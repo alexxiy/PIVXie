@@ -1,0 +1,49 @@
+[package]
+name = "pivx_shield_ffi"
+version = "0.1.0"
+edition = "2021"
+description = "Native (C ABI) build of the PIVX Shield (Sapling) wallet core for PIVXie. Ported from PIVX-Labs/pivx-shield."
+license = "MIT"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "staticlib", "rlib"]
+
+[features]
+default = ["multicore"]
+multicore = ["pivx_proofs/multicore"]
+
+[dependencies]
+rayon = "1.10.0"
+sha256 = { version = "1.5.0", default-features = false }
+pivx_client_backend = { package = "zcash_client_backend", git = "https://github.com/Duddino/librustpivx", branch = "librustzcash-rebase" }
+pivx_primitives = { package = "zcash_primitives", git = "https://github.com/Duddino/librustpivx", branch = "librustzcash-rebase", default-features = false, features = ["transparent-inputs", "circuits", "std", "non-standard-fees"] }
+pivx_proofs = { package = "zcash_proofs", git = "https://github.com/Duddino/librustpivx", branch = "librustzcash-rebase", default-features = false }
+pivx_protocol = { package = "zcash_protocol", git = "https://github.com/Duddino/librustpivx", branch = "librustzcash-rebase", default-features = false }
+zcash_keys = { git = "https://github.com/Duddino/librustpivx", branch = "librustzcash-rebase", features = ["unstable"] }
+zcash_transparent = { git = "https://github.com/Duddino/librustpivx", branch = "librustzcash-rebase" }
+sapling = { git = "https://github.com/Duddino/librustpivx", branch = "librustzcash-rebase" }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0.128"
+hex = "0.4.3"
+incrementalmerkletree = "0.7"
+secp256k1 = "0.29.1"
+either = "1.13.0"
+rand_core = { version = "0.6.4", features = ["getrandom"] }
+zcash_note_encryption = "0.4"
+serde_bytes = "0.11"
+bellman = { git = "https://github.com/Duddino/librustpivx", branch = "librustzcash-rebase", features = ["groth16"] }
+
+[dev-dependencies]
+jubjub = "*"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true
+
+[patch.crates-io]
+orchard = { git = "https://github.com/zcash/orchard.git", rev = "c684e9185a0449efb00428f807d3bf286b5dae03" }
+redjubjub = { git = "https://github.com/ZcashFoundation/redjubjub", rev = "eae848c5c14d9c795d000dd9f4c4762d1aee7ee1" }
+bellman = { git = "https://github.com/Duddino/librustpivx", branch = "librustzcash-rebase" }

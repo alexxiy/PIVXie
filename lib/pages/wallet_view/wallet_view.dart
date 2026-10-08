@@ -54,6 +54,7 @@ import '../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../wallets/wallet/impl/firo_wallet.dart';
 import '../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../../wallets/wallet/impl/namecoin_wallet.dart';
+import '../../wallets/wallet/impl/pivx_wallet.dart';
 import '../../wallets/wallet/impl/salvium_wallet.dart';
 import '../../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import '../../wallets/wallet/intermediate/lib_salvium_wallet.dart';
@@ -144,6 +145,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
   late final CryptoCurrency coin;
 
   late final bool isSparkWallet;
+  late final bool isPivxShield;
 
   // late final bool _shouldDisableAutoSyncOnLogOut;
 
@@ -174,6 +176,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
     }
 
     isSparkWallet = wallet is SparkInterface;
+    isPivxShield = wallet is PivxWallet && wallet.supportsShield;
 
     wallet.refresh();
 
@@ -461,7 +464,9 @@ class _WalletViewState extends ConsumerState<WalletView> {
     }
 
     try {
-      if (wallet is MwebInterface && wallet.info.isMwebEnabled) {
+      if (wallet is PivxWallet) {
+        await wallet.shieldAllTransparent();
+      } else if (wallet is MwebInterface && wallet.info.isMwebEnabled) {
         await wallet.anonymizeAllMweb();
       } else {
         await (wallet as FiroWallet).anonymizeAllSpark();
@@ -823,12 +828,14 @@ class _WalletViewState extends ConsumerState<WalletView> {
                           ),
                         ),
                         if ((isSparkWallet ||
+                                isPivxShield ||
                                 ref
                                     .watch(pWalletInfo(walletId))
                                     .isMwebEnabled) &&
                             !viewOnly)
                           const SizedBox(height: 10),
                         if ((isSparkWallet ||
+                                isPivxShield ||
                                 ref
                                     .watch(pWalletInfo(walletId))
                                     .isMwebEnabled) &&

@@ -64,6 +64,11 @@ dependencies:
 #      ref: 21077186e6bf773ec8a7cd57ef149b2cee5daa7b
 # %%END_ENABLE_TOR%%
 
+# %%ENABLE_PIVX%%
+#  flutter_libpivxshield:
+#    path: ./crypto_plugins/flutter_libpivxshield
+# %%END_ENABLE_PIVX%%
+
 # %%ENABLE_XMR%%
 #  cs_monero: 3.2.0
 #  cs_monero_flutter_libs: 2.0.1

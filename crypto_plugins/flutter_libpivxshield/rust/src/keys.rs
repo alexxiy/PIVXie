@@ -1,0 +1,154 @@
+//! Sapling key derivation and address encoding (ported from pivx-shield).
+use ::sapling::PaymentAddress;
+use pivx_client_backend::encoding::decode_payment_address;
+use pivx_client_backend::encoding::decode_transparent_address;
+use pivx_client_backend::keys::sapling;
+use pivx_primitives::consensus::Network;
+use pivx_primitives::consensus::NetworkConstants;
+use pivx_primitives::consensus::{MAIN_NETWORK, TEST_NETWORK};
+use pivx_primitives::legacy::TransparentAddress;
+use pivx_primitives::zip32::AccountId;
+use pivx_primitives::zip32::DiversifierIndex;
+use sapling::ExtendedFullViewingKey;
+use sapling::ExtendedSpendingKey;
+use serde::{Deserialize, Serialize};
+use std::error::Error;
+use zcash_keys::encoding;
+
+pub enum GenericAddress {
+    Shield(PaymentAddress),
+    Transparent(TransparentAddress),
+}
+
+pub fn decode_generic_address(
+    network: Network,
+    enc_addr: &str,
+) -> Result<GenericAddress, Box<dyn Error>> {
+    if enc_addr.starts_with(network.hrp_sapling_payment_address()) {
+        let to_address = decode_payment_address(network.hrp_sapling_payment_address(), enc_addr)
+            .map_err(|_| "Failed to decode sending address")?;
+        Ok(GenericAddress::Shield(to_address))
+    } else {
+        let to_address = decode_transparent_address(
+            &network.b58_pubkey_address_prefix(),
+            &network.b58_script_address_prefix(),
+            enc_addr,
+        )
+        .map_err(|_| "Error in decoding")?
+        .ok_or("Failed to decode transparent address")?;
+        Ok(GenericAddress::Transparent(to_address))
+    }
+}
+
+pub fn decode_extsk(enc_extsk: &str, is_testnet: bool) -> Result<ExtendedSpendingKey, Box<dyn Error>> {
+    let hrp = if is_testnet {
+        TEST_NETWORK.hrp_sapling_extended_spending_key()
+    } else {
+        MAIN_NETWORK.hrp_sapling_extended_spending_key()
+    };
+    Ok(encoding::decode_extended_spending_key(hrp, enc_extsk).map_err(|_| "Cannot decode extsk")?)
+}
+
+pub fn encode_extsk(extsk: &ExtendedSpendingKey, is_testnet: bool) -> String {
+    let hrp = if is_testnet {
+        TEST_NETWORK.hrp_sapling_extended_spending_key()
+    } else {
+        MAIN_NETWORK.hrp_sapling_extended_spending_key()
+    };
+    encoding::encode_extended_spending_key(hrp, extsk)
+}
+
+pub fn encode_payment_address_internal(addr: &PaymentAddress, is_testnet: bool) -> String {
+    let hrp = if is_testnet {
+        TEST_NETWORK.hrp_sapling_payment_address()
+    } else {
+        MAIN_NETWORK.hrp_sapling_payment_address()
+    };
+    encoding::encode_payment_address(hrp, addr)
+}
+
+pub fn decode_extended_full_viewing_key(
+    enc_extfvk: &str,
+    is_testnet: bool,
+) -> Result<ExtendedFullViewingKey, Box<dyn Error>> {
+    let hrp = if is_testnet {
+        TEST_NETWORK.hrp_sapling_extended_full_viewing_key()
+    } else {
+        MAIN_NETWORK.hrp_sapling_extended_full_viewing_key()
+    };
+    Ok(encoding::decode_extended_full_viewing_key(hrp, enc_extfvk).map_err(|_| "Cannot decode efvk")?)
+}
+
+pub fn encode_extended_full_viewing_key(extfvk: &ExtendedFullViewingKey, is_testnet: bool) -> String {
+    let hrp = if is_testnet {
+        TEST_NETWORK.hrp_sapling_extended_full_viewing_key()
+    } else {
+        MAIN_NETWORK.hrp_sapling_extended_full_viewing_key()
+    };
+    encoding::encode_extended_full_viewing_key(hrp, extfvk)
+}
+
+/// ZIP32 spending key from a BIP39 seed (first 32 bytes, as MyPIVXWallet does).
+pub fn generate_extended_spending_key_from_seed(
+    seed: &[u8],
+    coin_type: u32,
+    account_index: u32,
+) -> Result<String, Box<dyn Error>> {
+    let extsk = sapling::spending_key(
+        seed,
+        coin_type,
+        AccountId::try_from(account_index).map_err(|_| "Invalid account index")?,
+    );
+    Ok(encode_extsk(&extsk, coin_type == 1))
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct NewAddress {
+    pub address: String,
+    pub diversifier_index: Vec<u8>,
+}
+
+pub fn generate_default_payment_address(enc_extfvk: &str, is_testnet: bool) -> Result<NewAddress, Box<dyn Error>> {
+    let extfvk = decode_extended_full_viewing_key(enc_extfvk, is_testnet)?;
+    let (def_index, def_address) = extfvk.to_diversifiable_full_viewing_key().default_address();
+    Ok(NewAddress {
+        address: encode_payment_address_internal(&def_address, is_testnet),
+        diversifier_index: def_index.as_bytes().to_vec(),
+    })
+}
+
+/// Next valid payment address after `diversifier_index`.
+pub fn generate_next_shielding_payment_address(
+    enc_extfvk: &str,
+    diversifier_index: &[u8],
+    is_testnet: bool,
+) -> Result<NewAddress, Box<dyn Error>> {
+    let extfvk = decode_extended_full_viewing_key(enc_extfvk, is_testnet)?;
+    let diversifier_index: [u8; 11] = diversifier_index.try_into().map_err(|_| "Invalid diversifier index")?;
+    let mut diversifier_index = DiversifierIndex::from(diversifier_index);
+    diversifier_index.increment().map_err(|_| "No valid indeces left")?;
+    let (new_index, address) = extfvk
+        .to_diversifiable_full_viewing_key()
+        .find_address(diversifier_index)
+        .ok_or("No valid indeces left")?;
+    Ok(NewAddress {
+        address: encode_payment_address_internal(&address, is_testnet),
+        diversifier_index: new_index.as_bytes().to_vec(),
+    })
+}
+
+pub fn generate_extended_full_viewing_key(enc_extsk: &str, is_testnet: bool) -> Result<String, Box<dyn Error>> {
+    let extsk = decode_extsk(enc_extsk, is_testnet)?;
+    #[allow(deprecated)]
+    let extfvk = extsk.to_extended_full_viewing_key();
+    Ok(encode_extended_full_viewing_key(&extfvk, is_testnet))
+}
+
+pub fn is_valid_shield_address(address: &str, is_testnet: bool) -> bool {
+    let hrp = if is_testnet {
+        TEST_NETWORK.hrp_sapling_payment_address()
+    } else {
+        MAIN_NETWORK.hrp_sapling_payment_address()
+    };
+    decode_payment_address(hrp, address).is_ok()
+}

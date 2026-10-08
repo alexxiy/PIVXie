@@ -42,6 +42,7 @@ class PriceAPI {
     Monero: "monero",
     Particl: "particl",
     Peercoin: "peercoin",
+    Pivx: "pivx",
     Solana: "solana",
     Stellar: "stellar",
     Tezos: "tezos",

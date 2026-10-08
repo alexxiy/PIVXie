@@ -13,6 +13,7 @@ import '../pages/settings_views/global_settings_view/manage_nodes_views/add_edit
 import '../providers/global/prefs_provider.dart';
 import '../services/tor_service.dart';
 import '../wallets/api/cardano/blockfrost_http_provider.dart';
+import '../wallets/api/pivx/pivx_bridge_client.dart';
 import '../wallets/api/tezos/tezos_rpc_api.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 import '../wallets/crypto_currency/interfaces/electrumx_currency_interface.dart';
@@ -320,6 +321,25 @@ Future<bool> testNodeConnection({
 
         return health;
       } catch (_) {
+        testPassed = false;
+      }
+      break;
+
+    case Pivx():
+      try {
+        final client = PivxBridgeClient.fromParts(
+          host: formData.host!,
+          port: formData.port ?? 0,
+          useSSL: formData.useSSL ?? false,
+          useTor: ref.read(prefsChangeNotifierProvider).useTor,
+        );
+        final problem = await client.verifyFor(cryptoCurrency);
+        if (problem != null) {
+          Logging.instance.w("PIVX testNodeConnection: $problem");
+        }
+        testPassed = problem == null;
+      } catch (e, s) {
+        Logging.instance.w("PIVX testNodeConnection failed", error: e, stackTrace: s);
         testPassed = false;
       }
       break;

@@ -27,6 +27,7 @@ import '../../../utilities/show_node_tor_settings_mismatch.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/coins/firo.dart';
+import '../../../wallets/crypto_currency/coins/pivx.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../wallets/wallet/intermediate/external_wallet.dart';
 import '../../../widgets/coin_card.dart';
@@ -219,9 +220,12 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
                             ref.watch(pWalletBalanceSecondary(walletId)).total;
                         total +=
                             ref.watch(pWalletBalanceTertiary(walletId)).total;
-                      } else if (ref.watch(
-                        pWalletInfo(walletId).select((s) => s.isMwebEnabled),
-                      )) {
+                      } else if (coin is Pivx ||
+                          ref.watch(
+                            pWalletInfo(walletId).select(
+                              (s) => s.isMwebEnabled,
+                            ),
+                          )) {
                         total +=
                             ref.watch(pWalletBalanceSecondary(walletId)).total;
                       }

@@ -30,6 +30,7 @@ import '../../../utilities/extensions/extensions.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../wallets/crypto_currency/coins/banano.dart';
 import '../../../wallets/crypto_currency/coins/firo.dart';
+import '../../../wallets/crypto_currency/coins/pivx.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../wallets/wallet/impl/banano_wallet.dart';
 import '../../../widgets/conditional_parent.dart';
@@ -94,7 +95,9 @@ class WalletSummaryInfo extends ConsumerWidget {
 
     final bool toggleBalance;
 
-    if (coin is Firo || ref.watch(pWalletInfo(walletId)).isMwebEnabled) {
+    if (coin is Firo ||
+        coin is Pivx ||
+        ref.watch(pWalletInfo(walletId)).isMwebEnabled) {
       toggleBalance = false;
       final type = ref.watch(publicPrivateBalanceStateProvider.state).state;
       title =

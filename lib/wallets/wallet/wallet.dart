@@ -45,6 +45,7 @@ import 'impl/namecoin_wallet.dart';
 import 'impl/nano_wallet.dart';
 import 'impl/particl_wallet.dart';
 import 'impl/peercoin_wallet.dart';
+import 'impl/pivx_wallet.dart';
 import 'impl/salvium_wallet.dart';
 import 'impl/solana_wallet.dart';
 import 'impl/stellar_wallet.dart';
@@ -407,6 +408,9 @@ abstract class Wallet<T extends CryptoCurrency> {
 
       case const (Peercoin):
         return PeercoinWallet(net);
+
+      case const (Pivx):
+        return PivxWallet(net);
 
       case const (Salvium):
         return SalviumWallet(net);

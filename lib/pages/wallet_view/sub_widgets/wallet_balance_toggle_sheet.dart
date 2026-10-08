@@ -35,9 +35,11 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
     final maxHeight = MediaQuery.of(context).size.height * 0.90;
 
     final coin = ref.watch(pWalletCoin(walletId));
-    final isMweb = ref.watch(
-      pWalletInfo(walletId).select((s) => s.isMwebEnabled),
-    );
+    // MWEB and PIVX shield keep their private balance as the secondary
+    // balance; Firo keeps Spark in the tertiary one.
+    final isMweb =
+        coin is Pivx ||
+        ref.watch(pWalletInfo(walletId).select((s) => s.isMwebEnabled));
     final hasPrivate = isMweb || coin is Firo;
 
     final balance = ref.watch(pWalletBalance(walletId));

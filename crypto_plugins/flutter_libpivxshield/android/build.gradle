@@ -1,0 +1,45 @@
+// Builds the Rust crate in ../rust for each Android ABI via cargokit.
+
+group 'org.pivx.flutter_libpivxshield'
+version '1.0'
+
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath("com.android.tools.build:gradle:8.7.0")
+    }
+}
+
+rootProject.allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+apply plugin: 'com.android.library'
+
+android {
+    namespace 'org.pivx.flutter_libpivxshield'
+    compileSdk = 35
+    ndkVersion = "28.0.13004108"
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    defaultConfig {
+        minSdk = 21
+    }
+}
+
+apply from: "../cargokit/gradle/plugin.gradle"
+
+cargokit {
+    manifestDir = "../rust"
+    libname = "pivx_shield_ffi"
+}

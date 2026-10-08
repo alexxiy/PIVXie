@@ -74,6 +74,9 @@ secp256k1.dll
 ## other generated project files
 
 pubspec.yaml
+# in-repo plugins keep their own pubspecs
+!crypto_plugins/flutter_libpivxshield/pubspec.yaml
+!crypto_plugins/flutter_libpivxshield/cargokit/build_tool/pubspec.yaml
 
 /android/app/build.gradle
 /android/app/src/debug/AndroidManifest.xml

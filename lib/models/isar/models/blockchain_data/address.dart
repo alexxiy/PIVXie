@@ -176,7 +176,8 @@ enum AddressType {
   cardanoShelley,
   xelis,
   fact0rn,
-  mweb;
+  mweb,
+  pivxShield;
 
   String get readableName {
     switch (this) {
@@ -220,6 +221,8 @@ enum AddressType {
         return "FACT0RN";
       case AddressType.mweb:
         return "MWEB";
+      case AddressType.pivxShield:
+        return "Shield";
     }
   }
 }

@@ -9,6 +9,7 @@
  */
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:decimal/decimal.dart';
@@ -57,6 +58,7 @@ import '../../wallets/models/tx_data.dart';
 import '../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../wallets/wallet/impl/firo_wallet.dart';
 import '../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
+import '../../wallets/wallet/impl/pivx_wallet.dart';
 import '../../wallets/wallet/impl/salvium_wallet.dart';
 import '../../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
@@ -669,6 +671,20 @@ class _SendViewState extends ConsumerState<SendView> {
               .format(fee, withUnitName: true, indicatePrecisionLoss: false);
           return cachedFiroSparkFees[amount]!;
       }
+    } else if (wallet is PivxWallet &&
+        (ref.read(publicPrivateBalanceStateProvider) == BalanceType.private ||
+            wallet.isShieldAddress(_address ?? ""))) {
+      // Shield fee depends on the selected balance and recipient type,
+      // so it is not cached per amount.
+      fee = await wallet.estimateShieldFee(
+        amount: amount,
+        fromShield:
+            ref.read(publicPrivateBalanceStateProvider) == BalanceType.private,
+        toShield: wallet.isShieldAddress(_address ?? ""),
+      );
+      return ref
+          .read(pAmountFormatter(coin))
+          .format(fee, withUnitName: true, indicatePrecisionLoss: false);
     } else {
       fee = await wallet.estimateFeeFor(amount, feeRate);
       cachedFees[amount] = ref
@@ -861,7 +877,9 @@ class _SendViewState extends ConsumerState<SendView> {
 
     final Amount amount = ref.read(pSendAmount)!;
     final Amount availableBalance;
-    if (isFiro || ref.read(pWalletInfo(walletId)).isMwebEnabled) {
+    if (isFiro ||
+        coin is Pivx ||
+        ref.read(pWalletInfo(walletId)).isMwebEnabled) {
       switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
         case BalanceType.public:
           availableBalance = wallet.info.cachedBalance.spendable;
@@ -1094,6 +1112,10 @@ class _SendViewState extends ConsumerState<SendView> {
         );
       } else {
         final memo = coin is Stellar ? memoController.text : null;
+        // PIVX: spending the private balance means spending shield notes.
+        final pivxFromShield =
+            coin is Pivx &&
+            ref.read(publicPrivateBalanceStateProvider) == BalanceType.private;
         txDataFuture = wallet.prepareSend(
           txData: TxData(
             recipients: [
@@ -1112,8 +1134,12 @@ class _SendViewState extends ConsumerState<SendView> {
                 (wallet is CoinControlInterface &&
                     wallet is! SalviumWallet &&
                     coinControlEnabled &&
+                    !pivxFromShield &&
                     selectedUTXOs.isNotEmpty)
                 ? selectedUTXOs
+                : null,
+            otherData: pivxFromShield
+                ? jsonEncode({kPivxFromShield: true})
                 : null,
           ),
         );
@@ -1237,7 +1263,9 @@ class _SendViewState extends ConsumerState<SendView> {
 
     if (showCoinControl && selectedUTXOs.isNotEmpty) {
       amount = _selectedUtxosAmount(selectedUTXOs);
-    } else if (isFiro || ref.read(pWalletInfo(walletId)).isMwebEnabled) {
+    } else if (isFiro ||
+        coin is Pivx ||
+        ref.read(pWalletInfo(walletId)).isMwebEnabled) {
       switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
         case BalanceType.public:
           amount = ref.read(pWalletBalance(walletId)).spendable;
@@ -1446,9 +1474,10 @@ class _SendViewState extends ConsumerState<SendView> {
 
     final balType = ref.watch(publicPrivateBalanceStateProvider);
 
-    final isMwebEnabled = ref.watch(
-      pWalletInfo(walletId).select((s) => s.isMwebEnabled),
-    );
+    // PIVX shield uses the same secondary-balance private UI as MWEB.
+    final isMwebEnabled =
+        coin is Pivx ||
+        ref.watch(pWalletInfo(walletId).select((s) => s.isMwebEnabled));
     final showPrivateBalance = coin is Firo || isMwebEnabled;
 
     final showCoinControl =

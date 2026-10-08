@@ -35,6 +35,7 @@ import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/wallet/impl/bitcoin_wallet.dart';
 import '../../wallets/wallet/impl/epiccash_wallet.dart';
 import '../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
+import '../../wallets/wallet/impl/pivx_wallet.dart';
 import '../../wallets/wallet/intermediate/bip39_hd_wallet.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/bcash_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
@@ -83,6 +84,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
   late final String walletId;
   late final ClipboardInterface clipboard;
   late final bool _supportsSpark;
+  late final bool _supportsPivxShield;
   late final bool _showMultiType;
   late bool supportsMweb;
 
@@ -345,6 +347,18 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
     return address;
   }
 
+  Future<void> generateNewPivxShieldAddress() async {
+    final wallet = ref.read(pWallets).getWallet(walletId) as PivxWallet;
+    final address = await showLoading<String>(
+      whileFuture: wallet.generateNewShieldAddress(),
+      context: context,
+      message: "Generating address",
+    );
+    if (mounted && address != null) {
+      setState(() => _addressMap[AddressType.pivxShield] = address);
+    }
+  }
+
   Future<void> generateNewMwebAddress() async {
     final address = await showLoading<Address>(
       whileFuture: _generateNewMwebAddress(),
@@ -392,6 +406,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
     clipboard = widget.clipboard;
     final wallet = ref.read(pWallets).getWallet(walletId);
     _supportsSpark = wallet is SparkInterface;
+    _supportsPivxShield = wallet is PivxWallet && wallet.supportsShield;
     supportsMweb =
         wallet is MwebInterface &&
         !wallet.info.isViewOnly &&
@@ -405,6 +420,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
     } else {
       _showMultiType =
           _supportsSpark ||
+          _supportsPivxShield ||
           supportsMweb ||
           (wallet is! BCashInterface &&
               wallet is Bip39HDWallet &&
@@ -418,6 +434,9 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
     if (_showMultiType) {
       if (_supportsSpark) {
         _walletAddressTypes.insert(0, AddressType.spark);
+      } else if (_supportsPivxShield) {
+        // Shield first: private by default.
+        _walletAddressTypes.insert(0, AddressType.pivxShield);
       } else {
         _walletAddressTypes.addAll(
           (wallet as Bip39HDWallet).supportedAddressTypes.where(
@@ -437,12 +456,26 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
       _walletAddressTypes.removeWhere((e) => e == AddressType.p2pkh);
     }
 
-    _addressMap[_walletAddressTypes[_currentIndex]] = ref.read(
-      pWalletReceivingAddress(walletId),
-    );
+    if (_supportsPivxShield) {
+      _addressMap[wallet.info.mainAddressType] = ref.read(
+        pWalletReceivingAddress(walletId),
+      );
+      _addressMap[AddressType.pivxShield] = "[Loading shield address]";
+      (wallet as PivxWallet).getCurrentShieldAddress().then((a) {
+        if (mounted && a != null) {
+          setState(() => _addressMap[AddressType.pivxShield] = a);
+        }
+      });
+    } else {
+      _addressMap[_walletAddressTypes[_currentIndex]] = ref.read(
+        pWalletReceivingAddress(walletId),
+      );
+    }
 
     if (_showMultiType) {
       for (final type in _walletAddressTypes) {
+        // Shield addresses live in the wallet's shield state, not Isar.
+        if (type == AddressType.pivxShield) continue;
         _addressSubMap[type] = _sub(type);
       }
     }
@@ -531,7 +564,10 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
       canGen = false;
     } else {
       canGen =
-          (wallet is MultiAddressInterface || _supportsSpark || supportsMweb);
+          (wallet is MultiAddressInterface ||
+              _supportsSpark ||
+              _supportsPivxShield ||
+              supportsMweb);
     }
 
     return Background(
@@ -669,7 +705,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                                   DropdownMenuItem(
                                     value: i,
                                     child: Text(
-                                      _supportsSpark &&
+                                      (_supportsSpark || _supportsPivxShield) &&
                                               _walletAddressTypes[i] ==
                                                   AddressType.p2pkh
                                           ? "Transparent address"
@@ -818,6 +854,10 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                                   _walletAddressTypes[_currentIndex] ==
                                       AddressType.spark
                             ? generateNewSparkAddress
+                            : _supportsPivxShield &&
+                                  _walletAddressTypes[_currentIndex] ==
+                                      AddressType.pivxShield
+                            ? generateNewPivxShieldAddress
                             : generateNewAddress,
                       ),
                     // MWC Slatepack import button.

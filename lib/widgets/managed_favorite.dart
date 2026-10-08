@@ -23,6 +23,7 @@ import '../utilities/constants.dart';
 import '../utilities/text_styles.dart';
 import '../utilities/util.dart';
 import '../wallets/crypto_currency/coins/firo.dart';
+import '../wallets/crypto_currency/coins/pivx.dart';
 import '../wallets/isar/providers/wallet_info_provider.dart';
 import 'custom_buttons/favorite_toggle.dart';
 import 'rounded_white_container.dart';
@@ -57,6 +58,8 @@ class _ManagedFavoriteCardState extends ConsumerState<ManagedFavorite> {
               ref.watch(pWalletBalanceTertiary(walletId)).total;
 
       total += balancePrivate;
+    } else if (coin is Pivx) {
+      total += ref.watch(pWalletBalanceSecondary(walletId)).total;
     }
 
     final isFavourite = ref.watch(pWalletIsFavourite(walletId));
