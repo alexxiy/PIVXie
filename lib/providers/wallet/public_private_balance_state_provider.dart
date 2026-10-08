@@ -18,4 +18,4 @@ final publicPrivateBalanceStateProvider = StateProvider<BalanceType>(
 
 /// Display only: show public + private as one "Total balance" in the
 /// wallet summary. Sends still use [publicPrivateBalanceStateProvider].
-final showTotalBalanceProvider = StateProvider<bool>((_) => false);
+final showTotalBalanceProvider = StateProvider<bool>((_) => true);

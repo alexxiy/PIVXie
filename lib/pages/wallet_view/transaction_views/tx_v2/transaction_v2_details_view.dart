@@ -92,6 +92,10 @@ class _TransactionV2DetailsViewState
   late final String walletId;
 
   late final CryptoCurrency coin;
+
+  /// PIVX: received shield notes carried a text memo.
+  bool get _hasPivxMemo =>
+      coin is Pivx && (_transaction.onChainNote?.isNotEmpty ?? false);
   late final Amount amount;
   late final Amount fee;
   late final String amountPrefix;
@@ -864,11 +868,15 @@ class _TransactionV2DetailsViewState
                                     ],
                                   ),
                                 ),
-                              if (coin is Epiccash || coin is Mimblewimblecoin)
+                              if (coin is Epiccash ||
+                                  coin is Mimblewimblecoin ||
+                                  _hasPivxMemo)
                                 isDesktop
                                     ? const _Divider()
                                     : const SizedBox(height: 12),
-                              if (coin is Epiccash || coin is Mimblewimblecoin)
+                              if (coin is Epiccash ||
+                                  coin is Mimblewimblecoin ||
+                                  _hasPivxMemo)
                                 RoundedWhiteContainer(
                                   padding: isDesktop
                                       ? const EdgeInsets.all(16)
@@ -885,7 +893,9 @@ class _TransactionV2DetailsViewState
                                               CrossAxisAlignment.start,
                                           children: [
                                             Text(
-                                              "On chain note",
+                                              coin is Pivx
+                                                  ? "Shielded memo"
+                                                  : "On chain note",
                                               style: labelStyle,
                                             ),
                                             const SizedBox(height: 8),
@@ -1389,11 +1399,15 @@ class _TransactionV2DetailsViewState
                               //       ],
                               //     ),
                               //   ),
-                              if (coin is Epiccash || coin is Mimblewimblecoin)
+                              if (coin is Epiccash ||
+                                  coin is Mimblewimblecoin ||
+                                  _hasPivxMemo)
                                 isDesktop
                                     ? const _Divider()
                                     : const SizedBox(height: 12),
-                              if (coin is Epiccash || coin is Mimblewimblecoin)
+                              if (coin is Epiccash ||
+                                  coin is Mimblewimblecoin ||
+                                  _hasPivxMemo)
                                 RoundedWhiteContainer(
                                   padding: isDesktop
                                       ? const EdgeInsets.all(16)

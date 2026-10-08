@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../db/isar/main_db.dart';
 import '../../models/isar/models/isar_models.dart';
@@ -17,6 +18,7 @@ import '../../providers/global/wallets_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/amount/amount_formatter.dart';
+import '../../utilities/assets.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/text_styles.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
@@ -75,6 +77,12 @@ class _UtxoCardState extends ConsumerState<UtxoCard> {
     super.initState();
   }
 
+  void _toggle() {
+    _selected = !_selected;
+    widget.onSelectedChanged(_selected);
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
@@ -82,8 +90,10 @@ class _UtxoCardState extends ConsumerState<UtxoCard> {
     final coin = ref.watch(pWalletCoin(widget.walletId));
     final currentHeight = ref.watch(pWalletChainHeight(widget.walletId));
 
+    // Tapping the card selects it (when selectable); details open from
+    // the chevron or a long press.
     return ConditionalParent(
-      condition: widget.onPressed != null,
+      condition: widget.onPressed != null || widget.canSelect,
       builder: (child) => MaterialButton(
         padding: const EdgeInsets.all(0),
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -97,11 +107,12 @@ class _UtxoCardState extends ConsumerState<UtxoCard> {
           borderRadius:
               BorderRadius.circular(Constants.size.circularBorderRadius),
         ),
-        onPressed: widget.onPressed,
+        onPressed: widget.canSelect ? _toggle : widget.onPressed,
+        onLongPress: widget.onPressed,
         child: child,
       ),
       child: RoundedContainer(
-        color: widget.onPressed == null
+        color: widget.onPressed == null && !widget.canSelect
             ? Theme.of(context).extension<StackColors>()!.popupBG
             : Colors.transparent,
         child: StreamBuilder<UTXO?>(
@@ -115,11 +126,7 @@ class _UtxoCardState extends ConsumerState<UtxoCard> {
                 ConditionalParent(
                   condition: widget.canSelect,
                   builder: (child) => GestureDetector(
-                    onTap: () {
-                      _selected = !_selected;
-                      widget.onSelectedChanged(_selected);
-                      setState(() {});
-                    },
+                    onTap: _toggle,
                     child: child,
                   ),
                   child: UTXOStatusIcon(
@@ -179,9 +186,45 @@ class _UtxoCardState extends ConsumerState<UtxoCard> {
                           ),
                         ],
                       ),
+                      const SizedBox(
+                        height: 2,
+                      ),
+                      Builder(
+                        builder: (context) {
+                          final confirmations =
+                              utxo.getConfirmations(currentHeight);
+                          return Text(
+                            "$confirmations confirmation"
+                            "${confirmations == 1 ? "" : "s"}",
+                            style: STextStyles.w500_12(context).copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textSubtitle1,
+                            ),
+                          );
+                        },
+                      ),
                     ],
                   ),
                 ),
+                if (widget.onPressed != null)
+                  GestureDetector(
+                    onTap: widget.onPressed,
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 10),
+                      child: SvgPicture.asset(
+                        Assets.svg.chevronRight,
+                        width: 20,
+                        height: 20,
+                        colorFilter: ColorFilter.mode(
+                          Theme.of(context)
+                              .extension<StackColors>()!
+                              .textSubtitle1,
+                          BlendMode.srcIn,
+                        ),
+                      ),
+                    ),
+                  ),
               ],
             );
           },

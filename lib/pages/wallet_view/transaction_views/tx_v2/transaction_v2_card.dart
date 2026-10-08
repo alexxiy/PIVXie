@@ -323,6 +323,17 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
                             ),
                         ],
                       ),
+                      // PIVX: memo of a received shield payment.
+                      if (coin is Pivx &&
+                          (_transaction.onChainNote?.isNotEmpty ?? false)) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          _transaction.onChainNote!,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: STextStyles.label(context),
+                        ),
+                      ],
                     ],
                   ),
                 ),

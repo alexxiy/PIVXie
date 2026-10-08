@@ -239,6 +239,20 @@ void main() {
     final dest = await _cli(["getnewaddress"]);
     final change = PivxShield.defaultAddress(extfvk: extfvk, isTestnet: true).address;
     final before = scanner.balance;
+    // Sending everything without subtractFee must fail, not quietly
+    // take the fee out of the amount.
+    await expectLater(
+      PivxShield.createTransaction(
+        notes: scanner.notes,
+        extsk: extsk,
+        toAddress: dest,
+        changeAddress: change,
+        amount: before,
+        blockHeight: (await bridge.getBlockCount()) + 1,
+        isTestnet: true,
+      ),
+      throwsA(predicate((e) => e.toString().contains("Not enough balance"))),
+    );
     final r = await PivxShield.createTransaction(
       notes: scanner.notes,
       extsk: extsk,

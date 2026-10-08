@@ -24,6 +24,7 @@ class AddressUtils {
     'recipient_name',
     'tx_description',
     'op_return', // For Rosen Bridge and other OP_RETURN protocols.
+    'memo', // PIVX shield memo (as in MyPIVXWallet).
     // TODO [prio=med]: Add more recognized params for other coins.
   };
 
@@ -107,6 +108,11 @@ class AddressUtils {
             break;
           case 'tx_payment_id':
             result['tx_payment_id'] = Uri.decodeComponent(value);
+            break;
+          case 'memo':
+            // Already decoded by Uri.queryParameters; free text may hold
+            // '%', which a second decode would reject.
+            result['memo'] = value;
             break;
           default:
             result[lowerKey] = Uri.decodeComponent(value);

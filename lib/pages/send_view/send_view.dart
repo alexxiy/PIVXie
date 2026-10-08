@@ -86,6 +86,7 @@ import '../address_book_views/address_book_view.dart';
 import '../coin_control/coin_control_view.dart';
 import 'confirm_transaction_view.dart';
 import 'sub_widgets/building_transaction_dialog.dart';
+import 'sub_widgets/pivx_change_address_sheet.dart';
 import 'sub_widgets/dual_balance_selection_sheet.dart';
 import 'sub_widgets/epic_slatepack_dialog.dart';
 import 'sub_widgets/mwc_slatepack_dialog.dart';
@@ -137,6 +138,7 @@ class _SendViewState extends ConsumerState<SendView> {
 
   final _addressFocusNode = FocusNode();
   final _noteFocusNode = FocusNode();
+  final _pivxMemoFocusNode = FocusNode();
   final _onChainNoteFocusNode = FocusNode();
   final _cryptoFocus = FocusNode();
   final _baseFocus = FocusNode();
@@ -161,10 +163,18 @@ class _SendViewState extends ConsumerState<SendView> {
   /// PIVX: the recipient pays the fee (receives amount - fee).
   bool _pivxSubtractFee = false;
 
+  /// PIVX: custom change address for public sends (null = automatic).
+  String? _pivxChangeAddress;
+
   void _applyUri(PaymentUriData paymentData) {
     try {
       // auto fill address
       _address = paymentData.address.trim();
+
+      // PIVX shield memo
+      if (coin is Pivx) {
+        memoController.text = paymentData.additionalParams['memo'] ?? "";
+      }
 
       // autofill notes field
       if (paymentData.message != null) {
@@ -1118,11 +1128,23 @@ class _SendViewState extends ConsumerState<SendView> {
           ),
         );
       } else {
-        final memo = coin is Stellar ? memoController.text : null;
+        final memo =
+            coin is Stellar ||
+                (coin is Pivx &&
+                    (coin as Pivx).isShieldAddress(_address ?? "") &&
+                    memoController.text.isNotEmpty)
+            ? memoController.text
+            : null;
         // PIVX: spending the private balance means spending shield notes.
         final pivxFromShield =
             coin is Pivx &&
             ref.read(publicPrivateBalanceStateProvider) == BalanceType.private;
+        final pivxOtherData = <String, dynamic>{
+          if (pivxFromShield) kPivxFromShield: true,
+          if (coin is Pivx && _pivxSubtractFee) kPivxSubtractFee: true,
+          if (coin is Pivx && !pivxFromShield && _pivxChangeAddress != null)
+            kPivxChangeAddress: _pivxChangeAddress,
+        };
         txDataFuture = wallet.prepareSend(
           txData: TxData(
             recipients: [
@@ -1144,12 +1166,7 @@ class _SendViewState extends ConsumerState<SendView> {
                     selectedUTXOs.isNotEmpty)
                 ? selectedUTXOs
                 : null,
-            otherData: (pivxFromShield || (coin is Pivx && _pivxSubtractFee))
-                ? jsonEncode({
-                    if (pivxFromShield) kPivxFromShield: true,
-                    if (coin is Pivx && _pivxSubtractFee) kPivxSubtractFee: true,
-                  })
-                : null,
+            otherData: pivxOtherData.isEmpty ? null : jsonEncode(pivxOtherData),
           ),
         );
       }
@@ -1279,6 +1296,9 @@ class _SendViewState extends ConsumerState<SendView> {
   }
 
   Future<void> _sendAllTapped(bool showCoinControl) async {
+    // PIVX never takes the fee out of the amount silently: sending
+    // everything ticks "Subtract fee from amount" where the user sees it.
+    if (coin is Pivx && !_pivxSubtractFee) _setPivxSubtractFee(true);
     final Amount amount;
 
     if (showCoinControl && selectedUTXOs.isNotEmpty) {
@@ -1476,6 +1496,7 @@ class _SendViewState extends ConsumerState<SendView> {
     memoController.dispose();
 
     _noteFocusNode.dispose();
+    _pivxMemoFocusNode.dispose();
     _onChainNoteFocusNode.dispose();
     _addressFocusNode.dispose();
     _cryptoFocus.dispose();
@@ -2446,6 +2467,63 @@ class _SendViewState extends ConsumerState<SendView> {
                                   ),
                                 ),
                               ),
+                            if (coin is Pivx && balType == BalanceType.public)
+                              const SizedBox(height: 8),
+                            if (coin is Pivx && balType == BalanceType.public)
+                              RoundedWhiteContainer(
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      "Change address",
+                                      style: STextStyles.w500_14(context)
+                                          .copyWith(
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .textSubtitle1,
+                                          ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Flexible(
+                                      child: CustomTextButton(
+                                        text: _pivxChangeAddress == null
+                                            ? "Automatic"
+                                            : "${_pivxChangeAddress!.substring(0, 6)}"
+                                                  "…${_pivxChangeAddress!.substring(_pivxChangeAddress!.length - 6)}",
+                                        onTap: () async {
+                                          FocusScope.of(context).unfocus();
+                                          final picked =
+                                              await showModalBottomSheet<
+                                                String
+                                              >(
+                                                backgroundColor:
+                                                    Colors.transparent,
+                                                context: context,
+                                                useSafeArea: true,
+                                                isScrollControlled: true,
+                                                builder: (_) =>
+                                                    PivxChangeAddressSheet(
+                                                      walletId: walletId,
+                                                      coin: coin as Pivx,
+                                                      current:
+                                                          _pivxChangeAddress,
+                                                    ),
+                                              );
+                                          if (picked != null && mounted) {
+                                            setState(() {
+                                              _pivxChangeAddress =
+                                                  picked.isEmpty
+                                                  ? null
+                                                  : picked;
+                                            });
+                                          }
+                                        },
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             if (showCoinControl) const SizedBox(height: 8),
                             if (showCoinControl)
                               RoundedWhiteContainer(
@@ -2621,6 +2699,56 @@ class _SendViewState extends ConsumerState<SendView> {
                               ),
                             if (coin is Epiccash || coin is Mimblewimblecoin)
                               const SizedBox(height: 12),
+                            // PIVX: the shielded memo travels encrypted
+                            // with the payment; only shield recipients
+                            // can receive one.
+                            if (coin is Pivx &&
+                                (coin as Pivx).isShieldAddress(
+                                  _address ?? "",
+                                )) ...[
+                              Text(
+                                "Shielded memo (optional)",
+                                style: STextStyles.smallMed12(context),
+                                textAlign: TextAlign.left,
+                              ),
+                              const SizedBox(height: 8),
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(
+                                  Constants.size.circularBorderRadius,
+                                ),
+                                child: TextField(
+                                  key: const Key("sendViewPivxMemoFieldKey"),
+                                  controller: memoController,
+                                  focusNode: _pivxMemoFocusNode,
+                                  maxLength: 512,
+                                  minLines: 1,
+                                  maxLines: 4,
+                                  style: STextStyles.field(context),
+                                  onChanged: (_) => setState(() {}),
+                                  decoration:
+                                      standardInputDecoration(
+                                        "Sent privately with the payment",
+                                        _pivxMemoFocusNode,
+                                        context,
+                                      ).copyWith(
+                                        suffixIcon:
+                                            memoController.text.isNotEmpty
+                                            ? UnconstrainedBox(
+                                                child: TextFieldIconButton(
+                                                  child: const XIcon(),
+                                                  onTap: () => setState(
+                                                    () =>
+                                                        memoController.text =
+                                                            "",
+                                                  ),
+                                                ),
+                                              )
+                                            : null,
+                                      ),
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                            ],
                             Text(
                               (coin is Epiccash || coin is Mimblewimblecoin)
                                   ? "Local Note (optional)"

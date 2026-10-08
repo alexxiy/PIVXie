@@ -9,6 +9,7 @@
  */
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
@@ -64,6 +65,13 @@ class GenerateUriQrCodeView extends StatefulWidget {
 
 class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
   final _qrKey = GlobalKey();
+
+  // PIVX payment URIs carry no message; shield addresses take a memo
+  // (sent on chain with the payment) in the field the note uses.
+  late final bool _isPivx = widget.coin is Pivx;
+  late final bool _pivxShield =
+      _isPivx && (widget.coin as Pivx).isShieldAddress(widget.receivingAddress);
+  bool get _showNote => !_isPivx || _pivxShield;
 
   late TextEditingController amountController;
   late TextEditingController noteController;
@@ -171,7 +179,19 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
     if (amountString.isNotEmpty) {
       queryParams["amount"] = amount.toString();
     }
-    if (noteString.isNotEmpty) {
+    if (noteString.isNotEmpty && _pivxShield) {
+      if (utf8.encode(noteString).length > 512) {
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.warning,
+            message: "Shielded memo is too long (max 512 bytes)",
+            context: context,
+          ),
+        );
+        return null;
+      }
+      queryParams["memo"] = noteString;
+    } else if (noteString.isNotEmpty && !_isPivx) {
       queryParams["message"] = noteString;
     }
 
@@ -362,7 +382,9 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
             if (!isDesktop)
               RoundedWhiteContainer(
                 child: Text(
-                  "The new QR code with your address, amount and note will appear in the pop up window.",
+                  "The new QR code with your address, amount"
+                  "${_pivxShield ? " and shielded memo" : _isPivx ? "" : " and note"}"
+                  " will appear in the pop up window.",
                   style: STextStyles.itemSubtitle(context),
                 ),
               ),
@@ -446,9 +468,10 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                 ),
               ),
             ),
+            if (_showNote) ...[
             SizedBox(height: isDesktop ? 20 : 12),
             Text(
-              "Note (Optional)",
+              _pivxShield ? "Shielded memo (Optional)" : "Note (Optional)",
               style:
                   isDesktop
                       ? STextStyles.desktopTextExtraExtraSmall(
@@ -486,7 +509,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                         : STextStyles.field(context),
                 onChanged: (_) => setState(() {}),
                 decoration: standardInputDecoration(
-                  "Note",
+                  _pivxShield ? "Shielded memo" : "Note",
                   _noteFocusNode,
                   context,
                 ).copyWith(
@@ -522,6 +545,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                 ),
               ),
             ),
+            ],
             SizedBox(height: isDesktop ? 20 : 8),
             PrimaryButton(
               label: "Generate QR code",

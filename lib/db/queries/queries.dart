@@ -36,7 +36,14 @@ enum CCSortDescriptor {
 
   @override
   String toString() {
-    return name.capitalize();
+    switch (this) {
+      case CCSortDescriptor.age:
+        return "Confirmations";
+      case CCSortDescriptor.address:
+        return "Address";
+      case CCSortDescriptor.value:
+        return "Amount";
+    }
   }
 }
 

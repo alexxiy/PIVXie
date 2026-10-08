@@ -30,6 +30,7 @@ import '../../providers/providers.dart';
 import '../../providers/ui/transaction_filter_provider.dart';
 import '../../providers/ui/unread_notifications_provider.dart';
 import '../../providers/wallet/my_paynym_account_state_provider.dart';
+import '../../providers/wallet/public_private_balance_state_provider.dart';
 import '../../services/event_bus/events/global/node_connection_status_changed_event.dart';
 import '../../services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import '../../services/event_bus/global_event_bus.dart';
@@ -165,6 +166,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(currentWalletIdProvider.notifier).state = wallet.walletId;
+      // Wallets with a private balance open on public + private.
+      ref.read(showTotalBalanceProvider.notifier).state = true;
     });
 
     if (!wallet.shouldAutoSync) {

@@ -559,12 +559,8 @@ impl Selection {
             }
             *amount -= fee;
         } else if total < *amount + fee {
-            // Spending everything: the fee comes out of the amount.
-            if total >= *amount && *amount > fee {
-                *amount -= fee;
-            } else {
-                Err("Not enough balance")?;
-            }
+            // The fee is only taken out of the amount when asked to.
+            Err("Not enough balance to pay the fee")?;
         }
         Ok(total - *amount - fee)
     }

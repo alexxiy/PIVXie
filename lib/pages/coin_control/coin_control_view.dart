@@ -44,6 +44,8 @@ import '../../widgets/icon_widgets/x_icon.dart';
 import '../../widgets/rounded_container.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/toggle.dart';
+import '../wallet_view/transaction_views/tx_v2/transaction_v2_details_view.dart'
+    show IconCopyButton;
 import 'utxo_card.dart';
 import 'utxo_details_view.dart';
 
@@ -177,18 +179,29 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
       color: Theme.of(context).extension<StackColors>()!.textSubtitle1,
     );
     final value = STextStyles.w600_12(context);
-    Widget cell(String name, String text) => Padding(
+    Widget cell(String name, String text, {String? copy}) => Padding(
       padding: const EdgeInsets.symmetric(vertical: 3),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(name, style: label),
           Flexible(
-            child: Text(
-              text,
-              style: value,
-              textAlign: TextAlign.right,
-              overflow: TextOverflow.ellipsis,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Flexible(
+                  child: Text(
+                    text,
+                    style: value,
+                    textAlign: TextAlign.right,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                if (copy != null) ...[
+                  const SizedBox(width: 8),
+                  IconCopyButton(data: copy),
+                ],
+              ],
             ),
           ),
         ],
@@ -207,7 +220,17 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
             ],
           ),
           cell("Fee", "~${fmt.format(s.fee)}"),
-          cell("After fee", fmt.format(s.afterFee)),
+          cell(
+            "After fee",
+            fmt.format(s.afterFee),
+            copy: s.afterFee.raw.isNegative
+                ? null
+                : fmt.format(
+                    s.afterFee,
+                    withUnitName: false,
+                    indicatePrecisionLoss: false,
+                  ),
+          ),
           if (change != null)
             cell(
               "Change",
@@ -924,7 +947,10 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                                 fractionDigits:
                                                     coin.fractionDigits,
                                               );
-                                          return SelectableText(
+                                          return Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                          SelectableText(
                                             ref
                                                 .watch(pAmountFormatter(coin))
                                                 .format(selectedSum),
@@ -955,6 +981,21 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                                                   >()!
                                                                   .accentColorRed,
                                                     ),
+                                          ),
+                                              const SizedBox(width: 8),
+                                              IconCopyButton(
+                                                data: ref
+                                                    .watch(
+                                                      pAmountFormatter(coin),
+                                                    )
+                                                    .format(
+                                                      selectedSum,
+                                                      withUnitName: false,
+                                                      indicatePrecisionLoss:
+                                                          false,
+                                                    ),
+                                              ),
+                                            ],
                                           );
                                         },
                                       ),

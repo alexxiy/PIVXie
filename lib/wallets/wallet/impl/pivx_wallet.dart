@@ -539,6 +539,13 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
       return null;
     }
 
+    // Text memos of the shield notes received (shown as the shielded memo).
+    final memo = [
+      for (final n in receivedNotes)
+        if (((n as Map)["memo"] as String?)?.trim().isNotEmpty ?? false)
+          (n["memo"] as String).trim(),
+    ].join("\n");
+
     final height = json["blockHeight"] as int? ?? -1;
     final txid = json["txid"] as String;
     return TransactionV2(
@@ -557,6 +564,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
       // Shield value is invisible in inputs/outputs, so the fee comes
       // from the bridge (transparent in + value balance - transparent out).
       otherData: jsonEncode({
+        if (memo.isNotEmpty) TxV2OdKeys.onChainNote: memo,
         if (json["fees"] != null)
           TxV2OdKeys.overrideFee: Amount(
             rawValue: BigInt.parse(json["fees"] as String),
@@ -746,6 +754,8 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
             addressType: AddressType.pivxShield,
           ),
         ],
+        // Privatize moves everything; the fee comes out of it.
+        otherData: jsonEncode({kPivxSubtractFee: true}),
       ),
     );
     return confirmSend(txData: prepared);
@@ -943,6 +953,24 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
   // ===========================================================================
   // Send
 
+  /// Where transparent change goes: the address the user picked on the
+  /// send screen ([kPivxChangeAddress]) or the wallet's next change
+  /// address.
+  Future<String> _transparentChangeAddress(TxData txData) async {
+    final custom = txData.otherData == null
+        ? null
+        : (jsonDecode(txData.otherData!) as Map)[kPivxChangeAddress] as String?;
+    if (custom != null && custom.isNotEmpty) {
+      if (!cryptoCurrency.isTransparentAddress(custom)) {
+        throw Exception("Change must go to a transparent PIVX address");
+      }
+      return custom;
+    }
+    return ((await getCurrentChangeAddress()) ??
+            await _deriveAddress(chain: 1, index: 0))
+        .value;
+  }
+
   coinlib.Address _parseAddress(String address) {
     if (cryptoCurrency.isExchangeAddress(address)) {
       return EXP2PKHAddress.fromString(address, cryptoCurrency.exAddressVersion);
@@ -998,12 +1026,10 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
 
     final available = candidates.fold(BigInt.zero, (p, u) => p + BigInt.from(u.value));
     final target = recipients.fold(BigInt.zero, (p, r) => p + r.amount.raw);
-    final isSendAll = recipients.length == 1 &&
-        (coinControl
-            ? target == available
-            : target == info.cachedBalance.spendable.raw);
-    // The recipient pays the fee: inputs only need to cover the amount.
-    final feeFromAmount = isSendAll || subtractFee;
+    // The fee is only ever taken out of the amount when the user asked
+    // for it ("Subtract fee from amount"); spending the whole balance
+    // without it fails with insufficient funds.
+    final feeFromAmount = subtractFee;
 
     if (target > available) {
       throw Exception("Insufficient balance");
@@ -1012,7 +1038,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     // ---- choose inputs -----------------------------------------------------
     final selected = <UTXO>[];
     BigInt inSum = BigInt.zero;
-    if (isSendAll || coinControl) {
+    if (coinControl) {
       selected.addAll(candidates);
       inSum = available;
     } else {
@@ -1033,18 +1059,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     List<TxRecipient> outputs;
     BigInt fee;
 
-    if (isSendAll) {
-      fee = BigInt.from(_estimateSize(inputs.length, [recipients.first.address]) * feePerByte);
-      final amount = inSum - fee;
-      if (amount < cryptoCurrency.dustLimit.raw) {
-        throw Exception("Insufficient balance to pay transaction fee");
-      }
-      outputs = [
-        recipients.first.copyWith(
-          amount: Amount(rawValue: amount, fractionDigits: cryptoCurrency.fractionDigits),
-        ),
-      ];
-    } else if (subtractFee) {
+    if (subtractFee) {
       final recipient = recipients.first;
       final change = inSum - target;
       final withChange = change >= cryptoCurrency.dustLimit.raw;
@@ -1065,11 +1080,10 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
         ),
       ];
       if (withChange) {
-        final changeAddress = (await getCurrentChangeAddress()) ??
-            await _deriveAddress(chain: 1, index: 0);
+        final changeAddress = await _transparentChangeAddress(txData);
         outputs.add(
           TxRecipient(
-            address: changeAddress.value,
+            address: changeAddress,
             amount: Amount(rawValue: change, fractionDigits: cryptoCurrency.fractionDigits),
             isChange: true,
             addressType: AddressType.p2pkh,
@@ -1086,17 +1100,19 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
       final feeWithChange =
           BigInt.from(_estimateSize(inputs.length, [...addrs, "change"]) * feePerByte);
       if (inSum < target + feeNoChange) {
-        throw Exception("Insufficient balance to pay transaction fee");
+        throw Exception(
+          "Insufficient funds to pay the transaction fee. Lower the amount "
+          "or tick \"Subtract fee from amount\".",
+        );
       }
       final change = inSum - target - feeWithChange;
       outputs = [...recipients];
       if (change >= cryptoCurrency.dustLimit.raw) {
         await checkChangeAddressForTransactions();
-        final changeAddress = (await getCurrentChangeAddress()) ??
-            await _deriveAddress(chain: 1, index: 0);
+        final changeAddress = await _transparentChangeAddress(txData);
         outputs.add(
           TxRecipient(
-            address: changeAddress.value,
+            address: changeAddress,
             amount: Amount(rawValue: change, fractionDigits: cryptoCurrency.fractionDigits),
             isChange: true,
             addressType: AddressType.p2pkh,

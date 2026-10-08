@@ -19,6 +19,10 @@ const kPivxFromShield = "pivxFromShield";
 /// (receives the amount minus the fee).
 const kPivxSubtractFee = "pivxSubtractFee";
 
+/// Set in [TxData.otherData] by the UI: custom transparent change
+/// address for sends from the public balance.
+const kPivxChangeAddress = "pivxChangeAddress";
+
 bool _otherDataFlag(TxData txData, String key) =>
     txData.otherData != null &&
     (jsonDecode(txData.otherData!) as Map)[key] == true;
@@ -475,9 +479,29 @@ extension _PivxShield on PivxWallet {
     required TxData txData,
     required bool fromShield,
   }) async {
+    try {
+      return await _buildShieldSend(txData: txData, fromShield: fromShield);
+    } catch (e) {
+      if (e.toString().contains("Not enough balance")) {
+        throw Exception(
+          "Insufficient funds to pay the transaction fee. Lower the amount "
+          "or tick \"Subtract fee from amount\".",
+        );
+      }
+      rethrow;
+    }
+  }
+
+  Future<TxData> _buildShieldSend({
+    required TxData txData,
+    required bool fromShield,
+  }) async {
     final recipients = txData.recipients!;
     if (recipients.length != 1) {
       throw Exception("Shield transactions support a single recipient");
+    }
+    if (utf8.encode(txData.memo ?? "").length > 512) {
+      throw Exception("Shielded memo is too long (max 512 bytes)");
     }
     final recipient = recipients.first;
     final state = await _loadShield();
@@ -516,9 +540,7 @@ extension _PivxShield on PivxWallet {
         useAllInputs: txData.utxos?.isNotEmpty ?? false,
       );
     } else {
-      final change = (await getCurrentChangeAddress()) ??
-          await _deriveAddress(chain: 1, index: 0);
-      changeAddress = change.value;
+      changeAddress = await _transparentChangeAddress(txData);
       final selected = (txData.utxos ?? const {})
           .whereType<StandardInput>()
           .map((e) => e.utxo)
