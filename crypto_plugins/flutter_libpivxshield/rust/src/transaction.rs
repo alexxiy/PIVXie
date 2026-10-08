@@ -164,6 +164,8 @@ pub struct ReceivedNote {
     pub address: String,
     pub memo: Option<String>,
     pub nullifier: String,
+    /// Index of the note's output among the tx's shield outputs.
+    pub index: u32,
 }
 
 /// A transaction that touches the wallet (receives a note or spends one).
@@ -254,7 +256,9 @@ pub fn handle_blocks(
     let mut wallet_transactions = vec![];
     for ((hex_tx, tx), decrypted_tx) in txs.iter().zip(decrypted_txs) {
         let old_note_length = new_notes.len();
-        let tx_nullifiers = handle_transaction(&mut tree, tx, &decrypted_tx, &nullif_key, &mut comp_note, &mut new_notes)
+        let mut indices = vec![];
+        let tx_nullifiers =
+            handle_transaction(&mut tree, tx, &decrypted_tx, &nullif_key, &mut comp_note, &mut new_notes, &mut indices)
             .map_err(|_| "Couldn't handle transaction")?
             .into_iter()
             .map(|n| hex::encode(n.0))
@@ -270,11 +274,13 @@ pub fn handle_blocks(
                 hex: (*hex_tx).clone(),
                 received: received_here
                     .iter()
-                    .map(|n| ReceivedNote {
+                    .zip(&indices)
+                    .map(|(n, &index)| ReceivedNote {
                         value: n.note.value().inner(),
                         address: encode_payment_address_internal(&n.note.recipient(), is_testnet),
                         memo: n.memo.clone(),
                         nullifier: n.nullifier.clone(),
+                        index,
                     })
                     .collect(),
                 nullifiers: tx_nullifiers.clone(),
@@ -389,6 +395,7 @@ pub fn handle_blocks_compact(
 }
 
 /// Add a tx to the commitment tree; witness our outputs; return its nullifiers.
+/// The output index of each note added to `new_witnesses` goes to `indices`.
 pub fn handle_transaction(
     tree: &mut CommitmentTree<Node, DEPTH>,
     tx: &Transaction,
@@ -396,6 +403,7 @@ pub fn handle_transaction(
     nullif_key: &NullifierDerivingKey,
     witnesses: &mut [SpendableNote],
     new_witnesses: &mut Vec<SpendableNote>,
+    indices: &mut Vec<u32>,
 ) -> BoxResult<Vec<Nullifier>> {
     let mut nullifiers: Vec<Nullifier> = vec![];
     if let Some(sapling) = tx.sapling_bundle() {
@@ -418,6 +426,7 @@ pub fn handle_transaction(
                         nullifier,
                         memo: memo_text(output.memo().as_slice()),
                     });
+                    indices.push(i as u32);
                     break;
                 }
             }
@@ -472,10 +481,15 @@ pub struct JSTxOptions {
     pub is_testnet: bool,
     #[serde(default)]
     pub memo: String,
+    /// Spend every given note/UTXO (coin control) instead of only as
+    /// many as the amount needs.
+    #[serde(default)]
+    pub use_all_inputs: bool,
 }
 
 pub fn create_transaction(options: JSTxOptions) -> BoxResult<JSTransaction> {
-    let JSTxOptions { notes, utxos, extsk, to_address, change_address, amount, block_height, is_testnet, memo } = options;
+    let JSTxOptions { notes, utxos, extsk, to_address, change_address, amount, block_height, is_testnet, memo, use_all_inputs } =
+        options;
     if notes.is_some() && utxos.is_some() {
         Err("Notes and UTXOs were both provided")?;
     }
@@ -491,7 +505,17 @@ pub fn create_transaction(options: JSTxOptions) -> BoxResult<JSTransaction> {
     } else {
         Err("No input provided")?
     };
-    create_transaction_internal(input, &extsk, &to_address, &change_address, amount, BlockHeight::from_u32(block_height), network, memo)
+    create_transaction_internal(
+        input,
+        &extsk,
+        &to_address,
+        &change_address,
+        amount,
+        BlockHeight::from_u32(block_height),
+        network,
+        memo,
+        use_all_inputs,
+    )
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -504,6 +528,7 @@ fn create_transaction_internal(
     block_height: BlockHeight,
     network: Network,
     memo: String,
+    use_all_inputs: bool,
 ) -> BoxResult<JSTransaction> {
     let anchor = if let Either::Left(ref notes) = inputs {
         match notes.first() {
@@ -530,8 +555,24 @@ fn create_transaction_internal(
         transparent_output_count += 1;
     }
     let (nullifiers, change, fee) = match inputs {
-        Either::Left(notes) => choose_notes(&mut builder, &notes, extsk, &mut amount, transparent_output_count, sapling_output_count)?,
-        Either::Right(utxos) => choose_utxos(&mut builder, &utxos, &mut amount, transparent_output_count, sapling_output_count, &mut signing_set)?,
+        Either::Left(notes) => choose_notes(
+            &mut builder,
+            &notes,
+            extsk,
+            &mut amount,
+            transparent_output_count,
+            sapling_output_count,
+            use_all_inputs,
+        )?,
+        Either::Right(utxos) => choose_utxos(
+            &mut builder,
+            &utxos,
+            &mut amount,
+            transparent_output_count,
+            sapling_output_count,
+            &mut signing_set,
+            use_all_inputs,
+        )?,
     };
     let send_amount = Zatoshis::from_u64(amount).map_err(|_| "Invalid Amount")?;
     match decode_generic_address(network, to_address)? {
@@ -569,6 +610,7 @@ fn choose_utxos(
     transparent_output_count: u64,
     sapling_output_count: u64,
     signing_set: &mut TransparentSigningSet,
+    use_all: bool,
 ) -> BoxResult<(Vec<String>, Zatoshis, u64)> {
     let mut total = 0;
     let mut used = vec![];
@@ -600,7 +642,7 @@ fn choose_utxos(
         count += 1;
         fee = fee_calculator(count, transparent_output_count, 0, sapling_output_count);
         total += utxo.amount;
-        if total >= *amount + fee {
+        if !use_all && total >= *amount + fee {
             break;
         }
     }
@@ -622,6 +664,7 @@ fn choose_notes(
     amount: &mut u64,
     transparent_output_count: u64,
     sapling_output_count: u64,
+    use_all: bool,
 ) -> BoxResult<(Vec<String>, Zatoshis, u64)> {
     let mut total = 0;
     let mut nullifiers = vec![];
@@ -638,7 +681,7 @@ fn choose_notes(
         count += 1;
         fee = fee_calculator(0, transparent_output_count, count, sapling_output_count);
         total += note.value().inner();
-        if total >= *amount + fee {
+        if !use_all && total >= *amount + fee {
             break;
         }
     }

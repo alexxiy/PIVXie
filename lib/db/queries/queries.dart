@@ -25,6 +25,10 @@ enum CCFilter {
   }
 }
 
+/// Keep only utxos whose otherData contains [key] (or only those
+/// without it), e.g. PIVX shield note rows vs transparent outputs.
+typedef UtxoTagFilter = ({String key, bool present});
+
 enum CCSortDescriptor {
   age,
   address,
@@ -43,6 +47,7 @@ extension MainDBQueries on MainDB {
     required CCSortDescriptor sort,
     required String searchTerm,
     required CryptoCurrency cryptoCurrency,
+    UtxoTagFilter? tagFilter,
   }) {
     var preSort = getUTXOs(walletId).filter().group((q) {
       final qq = q.group(
@@ -57,6 +62,18 @@ extension MainDBQueries on MainDB {
           return qq;
       }
     });
+
+    if (tagFilter != null) {
+      preSort = tagFilter.present
+          ? preSort.and().otherDataContains(tagFilter.key)
+          : preSort.and().group(
+              (q) => q
+                  .otherDataIsNull()
+                  .or()
+                  .not()
+                  .otherDataContains(tagFilter.key),
+            );
+    }
 
     if (searchTerm.isNotEmpty) {
       preSort = preSort.and().group(
@@ -115,6 +132,7 @@ extension MainDBQueries on MainDB {
     required CCSortDescriptor sort,
     required String searchTerm,
     required CryptoCurrency cryptoCurrency,
+    UtxoTagFilter? tagFilter,
   }) {
     var preSort = getUTXOs(walletId).filter().group((q) {
       final qq = q.group(
@@ -129,6 +147,18 @@ extension MainDBQueries on MainDB {
           return qq;
       }
     });
+
+    if (tagFilter != null) {
+      preSort = tagFilter.present
+          ? preSort.and().otherDataContains(tagFilter.key)
+          : preSort.and().group(
+              (q) => q
+                  .otherDataIsNull()
+                  .or()
+                  .not()
+                  .otherDataContains(tagFilter.key),
+            );
+    }
 
     if (searchTerm.isNotEmpty) {
       preSort = preSort.and().group(

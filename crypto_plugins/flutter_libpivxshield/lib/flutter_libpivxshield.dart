@@ -208,6 +208,7 @@ abstract final class PivxShield {
     required int blockHeight,
     required bool isTestnet,
     String memo = "",
+    bool useAllInputs = false,
   }) async {
     final r = await pivxShieldCallAsync("create_transaction", {
       "notes": notes,
@@ -219,6 +220,7 @@ abstract final class PivxShield {
       "block_height": blockHeight,
       "is_testnet": isTestnet,
       "memo": memo,
+      "use_all_inputs": useAllInputs,
     });
     return Map<String, dynamic>.from(r as Map);
   }

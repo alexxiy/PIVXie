@@ -7,6 +7,7 @@ import 'dart:typed_data';
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:isar_community/isar.dart';
+import 'package:mutex/mutex.dart';
 
 import '../../../models/balance.dart';
 import '../../../models/coinlib/exp2pkh_address.dart';
@@ -48,6 +49,10 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
   PivxWallet(CryptoCurrencyNetwork network) : super(Pivx(network));
 
   PivxShieldState? _shield;
+
+  /// Serialises writes of the wallet's UTXO rows (transparent outputs
+  /// and shield notes share the table; see [_putUtxoRows]).
+  final _utxoLock = Mutex();
 
   /// Blocks re-fetched below the newest confirmed tx on every sync, to
   /// pick up reorged / late-confirmed transactions.
@@ -627,8 +632,26 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
         ),
       );
     }
-    return await mainDB.updateUTXOs(walletId, utxos);
+    return await _putUtxoRows(transparent: utxos);
   }
+
+  /// [MainDB.updateUTXOs] replaces all of a wallet's rows, so write
+  /// transparent outputs and shield notes together, keeping the stored
+  /// rows of whichever kind is not given.
+  Future<bool> _putUtxoRows({
+    List<UTXO>? transparent,
+    List<UTXO>? notes,
+  }) => _utxoLock.protect(() async {
+    final stored = await mainDB.getUTXOs(walletId).findAll();
+    return await mainDB.updateUTXOs(walletId, [
+      ...transparent ?? stored.where((u) => !isPivxShieldNote(u)),
+      ...notes ?? stored.where(isPivxShieldNote),
+    ]);
+  });
+
+  /// Shield notes count towards the private (secondary) balance only.
+  @override
+  bool ignoreUtxoInBalance(UTXO utxo) => isPivxShieldNote(utxo);
 
   @override
   Future<void> checkReceivingAddressForTransactions() async {
@@ -735,23 +758,29 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     required Amount amount,
     required bool fromShield,
     required bool toShield,
+    Set<UTXO>? selected,
   }) async {
     int fee(int tIn, int tOut, int sIn, int sOut) =>
         1000 * (948 * sOut + 384 * sIn + 150 * tIn + 34 * tOut + 85);
     final target = amount.raw.toInt();
+    final picked = TxData(
+      utxos: selected?.map((e) => StandardInput(e)).toSet(),
+    );
     final List<int> values;
     if (fromShield) {
-      values = (await _loadShield()).spendableNotes
+      values = (await _notesToSpend(await _loadShield(), picked))
           .map((n) => (n["value"] as num).toInt())
           .toList();
     } else {
       values = _spendable(
-        await mainDB.getUTXOs(walletId).findAll(),
+        selected?.toList() ?? await mainDB.getUTXOs(walletId).findAll(),
         await chainHeight,
       ).map((u) => u.value).toList();
     }
     values.sort();
     final tOut = (toShield ? 0 : 1) + (fromShield ? 0 : 1);
+    // A coin-control selection is spent in full.
+    final useAll = selected?.isNotEmpty ?? false;
     int count = 0;
     int total = 0;
     int f = fee(0, tOut, 0, 2);
@@ -759,7 +788,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
       count++;
       total += v;
       f = fromShield ? fee(0, tOut, count, 2) : fee(count, tOut, 0, 2);
-      if (total >= target + f) break;
+      if (!useAll && total >= target + f) break;
     }
     return Amount(
       rawValue: BigInt.from(f),
@@ -820,9 +849,11 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     return size;
   }
 
+  /// Spendable transparent outputs (shield note rows excluded).
   List<UTXO> _spendable(List<UTXO> utxos, int chainHeight) => utxos
       .where(
         (u) =>
+            !isPivxShieldNote(u) &&
             !u.isBlocked &&
             u.used != true &&
             u.isConfirmed(

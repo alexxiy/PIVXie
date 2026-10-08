@@ -57,6 +57,9 @@ fn decrypts_regtest_note() {
     let wtx = r["wallet_transactions"].as_array().unwrap();
     assert_eq!(wtx.len(), 1);
     assert_eq!(wtx[0]["received"][0]["value"], 1000000000u64);
+    // The received note carries its nullifier and output index.
+    assert_eq!(wtx[0]["received"][0]["nullifier"], notes[0]["nullifier"]);
+    assert!(wtx[0]["received"][0]["index"].as_u64().unwrap() < 2);
 
     // Feeding the note back keeps it; the tree advanced past the output.
     let r2 = call("handle_blocks", json!({

@@ -121,6 +121,12 @@ void main() {
     });
     expect(scanner.notes.single["address"], address);
     expect(scanner.walletTxs.last["received"][0]["value"], 700000000);
+    // Coin control identifies notes by txid + output index.
+    expect(
+      scanner.walletTxs.last["received"][0]["nullifier"],
+      scanner.notes.single["nullifier"],
+    );
+    expect(scanner.walletTxs.last["received"][0]["index"], isA<int>());
   }, skip: skip, timeout: const Timeout(Duration(minutes: 10)));
 
   test("spends shield -> transparent with shield change", () async {
@@ -198,5 +204,34 @@ void main() {
     // Transparent change came back to us.
     final t = await bridge.tx(txid);
     expect((t["vout"] as List).any((o) => (o["addresses"] as List).contains(tAddress)), isTrue);
+  }, skip: skip, timeout: const Timeout(Duration(minutes: 10)));
+
+  test("coin control: useAllInputs spends every selected note", () async {
+    expect(scanner.notes.length, greaterThanOrEqualTo(2));
+    final dest = await _cli(["getnewaddress"]);
+    final change = PivxShield.defaultAddress(extfvk: extfvk, isTestnet: true).address;
+    final height = (await bridge.getBlockCount()) + 1;
+    Future<Map<String, dynamic>> build(bool all) => PivxShield.createTransaction(
+      notes: scanner.notes,
+      extsk: extsk,
+      toAddress: dest,
+      changeAddress: change,
+      amount: 10000000,
+      blockHeight: height,
+      isTestnet: true,
+      useAllInputs: all,
+    );
+    // A small amount needs one note; with coin control every note goes in.
+    expect((await build(false))["nullifiers"], hasLength(1));
+    final r = await build(true);
+    expect(r["nullifiers"], hasLength(scanner.notes.length));
+    final before = scanner.balance;
+    await bridge.sendTx(r["txhex"] as String);
+    await _cli(["generate", "1"]);
+    await _waitFor(() async {
+      await scanner.sync();
+      return scanner.notes.length == 1;
+    });
+    expect(scanner.balance, before - 10000000 - (r["fee"] as int));
   }, skip: skip, timeout: const Timeout(Duration(minutes: 10)));
 }

@@ -681,6 +681,9 @@ class _SendViewState extends ConsumerState<SendView> {
         fromShield:
             ref.read(publicPrivateBalanceStateProvider) == BalanceType.private,
         toShield: wallet.isShieldAddress(_address ?? ""),
+        selected: selectedUTXOs.isEmpty
+            ? null
+            : selectedUTXOs.map((e) => e.utxo).toSet(),
       );
       return ref
           .read(pAmountFormatter(coin))
@@ -1134,7 +1137,6 @@ class _SendViewState extends ConsumerState<SendView> {
                 (wallet is CoinControlInterface &&
                     wallet is! SalviumWallet &&
                     coinControlEnabled &&
-                    !pivxFromShield &&
                     selectedUTXOs.isNotEmpty)
                 ? selectedUTXOs
                 : null,
@@ -1488,7 +1490,10 @@ class _SendViewState extends ConsumerState<SendView> {
         ) &&
         ref.watch(pWallets).getWallet(walletId) is CoinControlInterface &&
         ref.watch(pWallets).getWallet(walletId) is! SalviumWallet &&
-        (showPrivateBalance ? balType == BalanceType.public : true);
+        // PIVX coin control covers shield notes too.
+        (showPrivateBalance
+            ? balType == BalanceType.public || coin is Pivx
+            : true);
 
     final isExchangeAddress = ref.watch(pIsExchangeAddress);
 
@@ -2420,9 +2425,25 @@ class _SendViewState extends ConsumerState<SendView> {
                                         }
 
                                         if (context.mounted) {
-                                          final spendable = ref
-                                              .read(pWalletBalance(walletId))
-                                              .spendable;
+                                          final pivxShield =
+                                              coin is Pivx &&
+                                              ref.read(
+                                                    publicPrivateBalanceStateProvider,
+                                                  ) ==
+                                                  BalanceType.private;
+                                          final spendable = pivxShield
+                                              ? ref
+                                                    .read(
+                                                      pWalletBalanceSecondary(
+                                                        walletId,
+                                                      ),
+                                                    )
+                                                    .spendable
+                                              : ref
+                                                    .read(
+                                                      pWalletBalance(walletId),
+                                                    )
+                                                    .spendable;
 
                                           Amount? amount;
                                           if (ref.read(pSendAmount) != null) {
@@ -2440,14 +2461,24 @@ class _SendViewState extends ConsumerState<SendView> {
                                                 context,
                                               ).pushNamed(
                                                 CoinControlView.routeName,
-                                                arguments: Tuple4(
-                                                  walletId,
-                                                  CoinControlViewType.use,
-                                                  amount,
-                                                  selectedUTXOs
-                                                      .map((e) => e.utxo)
-                                                      .toSet(),
-                                                ),
+                                                arguments: coin is Pivx
+                                                    ? Tuple5(
+                                                        walletId,
+                                                        CoinControlViewType.use,
+                                                        amount,
+                                                        selectedUTXOs
+                                                            .map((e) => e.utxo)
+                                                            .toSet(),
+                                                        pivxShield,
+                                                      )
+                                                    : Tuple4(
+                                                        walletId,
+                                                        CoinControlViewType.use,
+                                                        amount,
+                                                        selectedUTXOs
+                                                            .map((e) => e.utxo)
+                                                            .toSet(),
+                                                      ),
                                               );
 
                                           if (result is Set<UTXO>) {

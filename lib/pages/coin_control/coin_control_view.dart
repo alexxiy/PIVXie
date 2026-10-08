@@ -27,6 +27,7 @@ import '../../utilities/constants.dart';
 import '../../utilities/text_styles.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/wallet/impl/namecoin_wallet.dart';
+import '../../wallets/wallet/impl/pivx_wallet.dart';
 import '../../wallets/wallet/wallet.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
 import '../../widgets/animated_widgets/rotate_icon.dart';
@@ -53,6 +54,7 @@ class CoinControlView extends ConsumerStatefulWidget {
     required this.type,
     this.requestedTotal,
     this.selectedUTXOs,
+    this.pivxShieldNotes,
   });
 
   static const routeName = "/coinControl";
@@ -61,6 +63,10 @@ class CoinControlView extends ConsumerStatefulWidget {
   final CoinControlViewType type;
   final Amount? requestedTotal;
   final Set<UTXO>? selectedUTXOs;
+
+  /// PIVX: list shield notes (true) or transparent outputs (false). When
+  /// null on a shield-capable PIVX wallet, the user switches between them.
+  final bool? pivxShieldNotes;
 
   @override
   ConsumerState<CoinControlView> createState() => _CoinControlViewState();
@@ -80,6 +86,11 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
 
   final Set<UTXO> _selectedAvailable = {};
   final Set<UTXO> _selectedBlocked = {};
+
+  /// PIVX wallets keep shield notes and transparent outputs apart; null
+  /// for other wallets (no filter).
+  bool? _shieldNotes;
+  bool _canSwitchKind = false;
 
   Future<void> _refreshBalance() async {
     final coinControlInterface =
@@ -101,6 +112,11 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
 
   @override
   void initState() {
+    final wallet = ref.read(pWallets).getWallet(widget.walletId);
+    if (wallet is PivxWallet) {
+      _shieldNotes = widget.pivxShieldNotes ?? false;
+      _canSwitchKind = widget.pivxShieldNotes == null && wallet.supportsShield;
+    }
     if (widget.selectedUTXOs != null) {
       _selectedAvailable.addAll(widget.selectedUTXOs!);
     }
@@ -133,6 +149,10 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
     final coin = ref.watch(pWalletCoin(widget.walletId));
     final currentHeight = ref.watch(pWalletChainHeight(widget.walletId));
 
+    final UtxoTagFilter? tagFilter = _shieldNotes == null
+        ? null
+        : (key: kPivxShieldNoteKey, present: _shieldNotes!);
+
     if (_sort == CCSortDescriptor.address && !_isSearching) {
       _list = null;
       _map = MainDB.instance.queryUTXOsGroupedByAddressSync(
@@ -141,6 +161,7 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
         sort: _sort,
         searchTerm: "",
         cryptoCurrency: coin,
+        tagFilter: tagFilter,
       );
     } else {
       _map = null;
@@ -155,6 +176,7 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
         sort: _sort,
         searchTerm: _isSearching ? searchController.text : "",
         cryptoCurrency: coin,
+        tagFilter: tagFilter,
       );
     }
 
@@ -287,12 +309,47 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                     child: Column(
                       children: [
                         const SizedBox(height: 10),
+                        if (!_isSearching && _canSwitchKind) ...[
+                          SizedBox(
+                            height: 48,
+                            child: Toggle(
+                              key: UniqueKey(),
+                              onColor: Theme.of(
+                                context,
+                              ).extension<StackColors>()!.popupBG,
+                              onText: "Transparent",
+                              offColor: Theme.of(
+                                context,
+                              ).extension<StackColors>()!.textFieldDefaultBG,
+                              offText: "Shield",
+                              isOn: _shieldNotes == true,
+                              onValueChanged: (value) {
+                                setState(() {
+                                  _shieldNotes = value;
+                                  _selectedAvailable.clear();
+                                  _selectedBlocked.clear();
+                                });
+                              },
+                              decoration: BoxDecoration(
+                                color: Colors.transparent,
+                                borderRadius: BorderRadius.circular(
+                                  Constants.size.circularBorderRadius,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                        ],
                         if (!_isSearching)
                           RoundedWhiteContainer(
                             child: Text(
-                              "This option allows you to control, freeze, and utilize "
-                              "outputs at your discretion. Tap the output circle to "
-                              "select.",
+                              _shieldNotes == true
+                                  ? "This option allows you to control, freeze, and "
+                                        "utilize shield notes at your discretion. Tap "
+                                        "the note circle to select."
+                                  : "This option allows you to control, freeze, and utilize "
+                                        "outputs at your discretion. Tap the output circle to "
+                                        "select.",
                               style: STextStyles.w500_14(context).copyWith(
                                 color:
                                     Theme.of(

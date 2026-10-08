@@ -37,7 +37,7 @@ class _Unavailable extends LibPivxShieldInterface {
   @override
   bool proverIsLoaded() => false;
   @override
-  Future<Map<String, dynamic>> createTransaction({List<Map<String, dynamic>>? notes, List<Map<String, dynamic>>? utxos, required String extsk, required String toAddress, required String changeAddress, required int amount, required int blockHeight, required bool isTestnet, String memo = ""}) => _no();
+  Future<Map<String, dynamic>> createTransaction({List<Map<String, dynamic>>? notes, List<Map<String, dynamic>>? utxos, required String extsk, required String toAddress, required String changeAddress, required int amount, required int blockHeight, required bool isTestnet, String memo = "", bool useAllInputs = false}) => _no();
 }
 
 //END_OFF
@@ -89,8 +89,8 @@ class _Impl extends LibPivxShieldInterface {
   bool proverIsLoaded() => PivxShield.proverIsLoaded();
 
   @override
-  Future<Map<String, dynamic>> createTransaction({List<Map<String, dynamic>>? notes, List<Map<String, dynamic>>? utxos, required String extsk, required String toAddress, required String changeAddress, required int amount, required int blockHeight, required bool isTestnet, String memo = ""}) =>
-      PivxShield.createTransaction(notes: notes, utxos: utxos, extsk: extsk, toAddress: toAddress, changeAddress: changeAddress, amount: amount, blockHeight: blockHeight, isTestnet: isTestnet, memo: memo);
+  Future<Map<String, dynamic>> createTransaction({List<Map<String, dynamic>>? notes, List<Map<String, dynamic>>? utxos, required String extsk, required String toAddress, required String changeAddress, required int amount, required int blockHeight, required bool isTestnet, String memo = "", bool useAllInputs = false}) =>
+      PivxShield.createTransaction(notes: notes, utxos: utxos, extsk: extsk, toAddress: toAddress, changeAddress: changeAddress, amount: amount, blockHeight: blockHeight, isTestnet: isTestnet, memo: memo, useAllInputs: useAllInputs);
 }
 
 //END_ON

@@ -65,5 +65,7 @@ abstract class LibPivxShieldInterface {
     required int blockHeight,
     required bool isTestnet,
     String memo = "",
+    // Spend every given note/UTXO (coin control selection).
+    bool useAllInputs = false,
   });
 }

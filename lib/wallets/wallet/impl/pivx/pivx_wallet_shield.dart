@@ -15,6 +15,22 @@ const _kOdShieldNullifiers = "pivxShieldNullifiers";
 /// Set in [TxData.otherData] by the UI to spend the shield balance.
 const kPivxFromShield = "pivxFromShield";
 
+/// Unspent shield notes are mirrored as [UTXO] rows so coin control can
+/// list, freeze and select them. Such rows carry this key (with the
+/// note's nullifier) in [UTXO.otherData], use [_kShieldNoteVoutBase] +
+/// the note's output index as vout (never a transparent vout) and are
+/// kept out of the transparent balance and coin selection.
+const kPivxShieldNoteKey = "pivxShieldNote";
+const _kShieldNoteVoutBase = 1 << 20;
+
+bool isPivxShieldNote(UTXO utxo) =>
+    utxo.otherData?.contains(kPivxShieldNoteKey) ?? false;
+
+String? _noteNullifier(UTXO utxo) {
+  if (!isPivxShieldNote(utxo)) return null;
+  return (jsonDecode(utxo.otherData!) as Map)[kPivxShieldNoteKey] as String?;
+}
+
 extension _PivxShield on PivxWallet {
   bool get _shieldSupported => libPivxShield.isAvailable && !isViewOnly;
 
@@ -82,7 +98,16 @@ extension _PivxShield on PivxWallet {
       state = await _createShieldState(from);
     }
     await _storeShieldAddresses(state);
-    return _shield = state;
+    _shield = state;
+    // Notes scanned before the library reported txid/output index can't
+    // be shown in coin control; rescan them once.
+    if (state.unspentNotes.any(
+      (n) => state!.nullifierNotes[n["nullifier"]]?["txid"] == null,
+    )) {
+      Logging.instance.i("PIVX shield: rescanning to index existing notes");
+      await _resetShield(fromHeight: state.startHeight);
+    }
+    return _shield!;
   }
 
   /// Shield addresses are also kept as Isar [Address] rows (type
@@ -182,6 +207,7 @@ extension _PivxShield on PivxWallet {
     if (walletTxids.isNotEmpty) {
       await _storeShieldHistory(walletTxids);
     }
+    await _writeShieldNoteRows(state);
 
     // With shield funds, fetch the proving parameters ahead of the first
     // spend so sending doesn't wait on a ~50 MB download.
@@ -234,6 +260,13 @@ extension _PivxShield on PivxWallet {
     for (final w in r["wallet_transactions"] as List) {
       final wtx = Map<String, dynamic>.from(w as Map);
       final txid = wtx["txid"] as String;
+      for (final n in wtx["received"] as List) {
+        final note = state.nullifierNotes[(n as Map)["nullifier"]];
+        if (note != null) {
+          note["txid"] = txid;
+          note["index"] = n["index"];
+        }
+      }
       state.txInfo[txid] = {
         "received": [
           for (final n in wtx["received"] as List)
@@ -241,6 +274,8 @@ extension _PivxShield on PivxWallet {
               "value": (n as Map)["value"],
               "address": n["address"],
               "memo": n["memo"],
+              "nullifier": n["nullifier"],
+              "index": n["index"],
             },
         ],
         "spentNullifiers": [
@@ -273,19 +308,103 @@ extension _PivxShield on PivxWallet {
     await mainDB.updateOrPutTransactionV2s(txns);
   }
 
+  /// [UTXO] rows for the unspent notes (see [kPivxShieldNoteKey]).
+  /// Block data comes from the stored tx. Notes in a pending spend get
+  /// no row ([MainDB.updateUTXOs] would keep a stale `used` flag).
+  Future<List<UTXO>> _shieldNoteRows(PivxShieldState state) async {
+    final rows = <UTXO>[];
+    for (final n in state.spendableNotes) {
+      final nf = n["nullifier"] as String;
+      final meta = state.nullifierNotes[nf];
+      final txid = meta?["txid"] as String?;
+      if (txid == null) continue;
+      final tx = await mainDB.isar.transactionV2s
+          .where()
+          .txidWalletIdEqualTo(txid, walletId)
+          .findFirst();
+      final memo = n["memo"] as String?;
+      rows.add(
+        UTXO(
+          walletId: walletId,
+          txid: txid,
+          vout: _kShieldNoteVoutBase + ((meta!["index"] as num?)?.toInt() ?? 0),
+          value: (n["value"] as num).toInt(),
+          name: "",
+          isBlocked: false,
+          blockedReason: null,
+          isCoinbase: false,
+          blockHash: tx?.blockHash,
+          blockHeight: tx?.height,
+          blockTime: tx?.timestamp,
+          address: n["address"] as String?,
+          otherData: jsonEncode({
+            kPivxShieldNoteKey: nf,
+            if (memo != null && memo.isNotEmpty) "memo": memo,
+          }),
+        ),
+      );
+    }
+    return rows;
+  }
+
+  Future<void> _writeShieldNoteRows(PivxShieldState state) async {
+    await _putUtxoRows(notes: await _shieldNoteRows(state));
+  }
+
+  /// Nullifiers of notes the user froze in coin control.
+  Future<Set<String>> _frozenNullifiers() async => {
+    for (final u in await mainDB
+        .getUTXOs(walletId)
+        .filter()
+        .isBlockedEqualTo(true)
+        .findAll())
+      ?_noteNullifier(u),
+  };
+
+  /// Notes a shield spend may use: the coin-control selection if any,
+  /// else every confirmed note not frozen or already being spent.
+  Future<List<Map<String, dynamic>>> _notesToSpend(
+    PivxShieldState state,
+    TxData txData,
+  ) async {
+    final notes = state.spendableNotes;
+    final selected = (txData.utxos ?? const {})
+        .whereType<StandardInput>()
+        .map((e) => _noteNullifier(e.utxo))
+        .nonNulls
+        .toSet();
+    if (selected.isNotEmpty) {
+      final chosen = notes.where((n) => selected.contains(n["nullifier"]));
+      if (chosen.length != selected.length) {
+        throw Exception("Attempted to use an unavailable shield note");
+      }
+      return chosen.toList();
+    }
+    final frozen = await _frozenNullifiers();
+    return notes.where((n) => !frozen.contains(n["nullifier"])).toList();
+  }
+
   Future<void> _updateShieldBalance() async {
     if (!_shieldSupported) return;
     final state = await _loadShield();
-    final spendable = Amount(
-      rawValue: BigInt.from(state.spendableBalance),
+    final frozen = await _frozenNullifiers();
+    int total = 0;
+    int blocked = 0;
+    for (final n in state.spendableNotes) {
+      final v = (n["value"] as num).toInt();
+      total += v;
+      if (frozen.contains(n["nullifier"])) blocked += v;
+    }
+    Amount amount(int v) => Amount(
+      rawValue: BigInt.from(v),
       fractionDigits: cryptoCurrency.fractionDigits,
     );
     await info.updateBalanceSecondary(
       newBalance: Balance(
-        total: spendable,
-        spendable: spendable,
-        blockedTotal: Amount.zeroWith(fractionDigits: cryptoCurrency.fractionDigits),
-        pendingSpendable: Amount.zeroWith(fractionDigits: cryptoCurrency.fractionDigits),
+        total: amount(total),
+        spendable: amount(total - blocked),
+        blockedTotal: amount(blocked),
+        pendingSpendable: amount(0),
       ),
       isar: mainDB.isar,
     );
@@ -368,11 +487,16 @@ extension _PivxShield on PivxWallet {
         isTestnet: state.isTestnet,
       );
       changeAddress = next.address;
-      if (state.spendableBalance < recipient.amount.raw.toInt()) {
+      final notes = await _notesToSpend(state, txData);
+      final available = notes.fold<int>(
+        0,
+        (p, n) => p + (n["value"] as num).toInt(),
+      );
+      if (available < recipient.amount.raw.toInt()) {
         throw Exception("Insufficient shield balance");
       }
       result = await libPivxShield.createTransaction(
-        notes: state.spendableNotes,
+        notes: notes,
         extsk: await _extsk(),
         toAddress: recipient.address,
         changeAddress: changeAddress,
@@ -380,15 +504,23 @@ extension _PivxShield on PivxWallet {
         blockHeight: height,
         isTestnet: state.isTestnet,
         memo: txData.memo ?? "",
+        useAllInputs: txData.utxos?.isNotEmpty ?? false,
       );
     } else {
       final change = (await getCurrentChangeAddress()) ??
           await _deriveAddress(chain: 1, index: 0);
       changeAddress = change.value;
+      final selected = (txData.utxos ?? const {})
+          .whereType<StandardInput>()
+          .map((e) => e.utxo)
+          .toList();
       final utxos = _spendable(
-        await mainDB.getUTXOs(walletId).findAll(),
+        selected.isNotEmpty ? selected : await mainDB.getUTXOs(walletId).findAll(),
         await chainHeight,
       );
+      if (selected.isNotEmpty && utxos.length != selected.length) {
+        throw Exception("Attempted to use an unavailable utxo");
+      }
       final inputs = await _withKeys(utxos);
       result = await libPivxShield.createTransaction(
         utxos: [
@@ -411,6 +543,7 @@ extension _PivxShield on PivxWallet {
         blockHeight: height,
         isTestnet: state.isTestnet,
         memo: txData.memo ?? "",
+        useAllInputs: selected.isNotEmpty,
       );
       final used = Set<String>.from(result["nullifiers"] as List);
       usedInputs = inputs
@@ -523,6 +656,7 @@ extension _PivxShield on PivxWallet {
       final state = await _loadShield();
       state.pendingSpent[txid] = nullifiers;
       await state.save(walletId);
+      await _writeShieldNoteRows(state);
     }
     final used = (txData.usedUTXOs ?? const [])
         .whereType<StandardInput>()
