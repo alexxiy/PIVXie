@@ -240,7 +240,113 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
   Future<void> updateNode() async {
     _client = null;
     _clientKey = null;
+    _stopWatching();
     await refresh();
+  }
+
+  // ===========================================================================
+  // Live updates
+  //
+  // While auto sync is on, a long-poll on the bridge's `/api/v2/watch`
+  // refreshes the wallet as soon as a block is indexed or a mempool tx
+  // touches one of our transparent addresses. The base class's 150 s
+  // timer stays as a fallback.
+
+  int _watchGeneration = 0;
+  bool _watching = false;
+
+  @override
+  Future<void> refresh() async {
+    try {
+      await super.refresh();
+    } finally {
+      _startWatching();
+    }
+  }
+
+  @override
+  Future<void> exit() async {
+    _stopWatching();
+    await super.exit();
+  }
+
+  void _startWatching() {
+    if (_watching || !shouldAutoSync) return;
+    _watching = true;
+    unawaited(_watchLoop(++_watchGeneration));
+  }
+
+  void _stopWatching() {
+    _watchGeneration++;
+    _watching = false;
+  }
+
+  Future<void> _watchLoop(int generation) async {
+    bool alive() => generation == _watchGeneration && shouldAutoSync;
+    int height = info.cachedChainHeight;
+    String? hash;
+    int? seq;
+    int failures = 0;
+    try {
+      while (alive()) {
+        PivxBridgeWatch? r;
+        try {
+          final addresses = (await mainDB.getAddresses(walletId).findAll())
+              .where((e) => e.type != AddressType.pivxShield)
+              .map((e) => e.value)
+              .toList();
+          r = await bridge.watch(
+            height: height,
+            hash: hash,
+            mempoolSeq: seq,
+            addresses: addresses,
+          );
+          failures = 0;
+        } on PivxBridgeException catch (e) {
+          if (e.statusCode == 404 || e.statusCode == 405) {
+            Logging.instance.w("PIVX: bridge has no /api/v2/watch; polling only");
+            return;
+          }
+          failures++;
+        } catch (e) {
+          failures++;
+          Logging.instance.d("PIVX: watch failed: $e");
+        }
+        if (r == null) {
+          await Future<void>.delayed(
+            Duration(seconds: min(60, 5 * (1 << min(failures, 4)))),
+          );
+          continue;
+        }
+        if (!alive()) return;
+        height = r.height;
+        hash = r.hash;
+        seq = r.mempoolSeq;
+        if (r.changed) {
+          Logging.instance.i(
+            "PIVX: bridge reports ${r.newBlock ? "block $height" : ""}"
+            "${r.txids.isNotEmpty ? " txs ${r.txids}" : ""}"
+            "${r.reset ? " reset" : ""}; refreshing",
+          );
+          await _refreshWhenIdle();
+        }
+      }
+    } finally {
+      if (generation == _watchGeneration) _watching = false;
+    }
+  }
+
+  /// [refresh] skips when one is already running, which may have
+  /// started before the change; wait for it, then refresh again.
+  Future<void> _refreshWhenIdle() async {
+    while (refreshMutex.isLocked) {
+      await Future<void>.delayed(const Duration(milliseconds: 300));
+    }
+    try {
+      await refresh();
+    } catch (_) {
+      // Logged by refresh(); the loop keeps going.
+    }
   }
 
   Future<int?> _historyFromHeight() async {

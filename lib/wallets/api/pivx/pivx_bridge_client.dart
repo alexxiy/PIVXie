@@ -10,6 +10,17 @@ import '../../../services/tor_service.dart';
 import '../../../utilities/prefs.dart';
 import '../../crypto_currency/crypto_currency.dart';
 
+/// Answer of [PivxBridgeClient.watch].
+typedef PivxBridgeWatch = ({
+  int height,
+  String hash,
+  int mempoolSeq,
+  bool newBlock,
+  List<String> txids,
+  bool reset,
+  bool changed,
+});
+
 class PivxBridgeException implements Exception {
   PivxBridgeException(this.message, {this.statusCode});
 
@@ -219,6 +230,49 @@ class PivxBridgeClient {
     }
     final json = jsonDecode(response.body) as Map;
     return json["result"] as String;
+  }
+
+  /// Long-poll `POST /api/v2/watch` (bridge extension). Answers when a
+  /// block other than [height]/[hash] is indexed, when a mempool tx
+  /// touching one of [addresses] arrives after [mempoolSeq], or after
+  /// [timeoutSeconds].
+  Future<PivxBridgeWatch> watch({
+    required int height,
+    String? hash,
+    int? mempoolSeq,
+    List<String> addresses = const [],
+    int timeoutSeconds = 25,
+  }) async {
+    final response = await HTTP()
+        .post(
+          url: _uri("/api/v2/watch"),
+          headers: {"Content-Type": "application/json"},
+          body: jsonEncode({
+            "height": height,
+            if (hash != null) "hash": hash,
+            if (mempoolSeq != null) "mempoolSeq": mempoolSeq,
+            "addresses": addresses,
+            "timeout": timeoutSeconds,
+          }),
+          proxyInfo: _proxy,
+        )
+        .timeout(Duration(seconds: timeoutSeconds + 20));
+    if (response.code != 200) {
+      throw PivxBridgeException(
+        _errorMessage(response.body),
+        statusCode: response.code,
+      );
+    }
+    final json = jsonDecode(response.body) as Map;
+    return (
+      height: json["height"] as int,
+      hash: json["hash"] as String,
+      mempoolSeq: json["mempoolSeq"] as int,
+      newBlock: json["newBlock"] as bool,
+      txids: List<String>.from(json["txids"] as List),
+      reset: json["reset"] as bool,
+      changed: json["changed"] as bool,
+    );
   }
 
   // ---------------------------------------------------------------------------
