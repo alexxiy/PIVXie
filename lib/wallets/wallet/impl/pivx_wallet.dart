@@ -759,6 +759,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     required bool fromShield,
     required bool toShield,
     Set<UTXO>? selected,
+    bool subtractFee = false,
   }) async {
     int fee(int tIn, int tOut, int sIn, int sOut) =>
         1000 * (948 * sOut + 384 * sIn + 150 * tIn + 34 * tOut + 85);
@@ -788,11 +789,64 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
       count++;
       total += v;
       f = fromShield ? fee(0, tOut, count, 2) : fee(count, tOut, 0, 2);
-      if (!useAll && total >= target + f) break;
+      if (!useAll && total >= target + (subtractFee ? 0 : f)) break;
     }
     return Amount(
       rawValue: BigInt.from(f),
       fractionDigits: cryptoCurrency.fractionDigits,
+    );
+  }
+
+  /// PIVX Core-style coin control figures for spending [selected]
+  /// (all transparent outputs or all shield notes) to a transparent or
+  /// shield recipient. [amount] is what the user is sending, if known.
+  ({
+    int quantity,
+    Amount selected,
+    int bytes,
+    Amount fee,
+    Amount afterFee,
+    Amount? change,
+  })
+  coinControlSummary({
+    required Iterable<UTXO> selected,
+    required bool toShield,
+    Amount? amount,
+    bool subtractFee = false,
+  }) {
+    final count = selected.length;
+    final fromShield = selected.any(isPivxShieldNote);
+    final int bytes;
+    final int fee;
+    if (fromShield || toShield) {
+      // Same estimate as the shield library: 1000 sat per byte; it always
+      // budgets two shield outputs, plus a transparent recipient and/or
+      // transparent change.
+      final tOut = (toShield ? 0 : 1) + (fromShield ? 0 : 1);
+      bytes = 948 * 2 +
+          384 * (fromShield ? count : 0) +
+          150 * (fromShield ? 0 : count) +
+          34 * tOut +
+          85;
+      fee = bytes * 1000;
+    } else {
+      bytes = _estimateSize(count, const ["recipient", "change"]);
+      fee = bytes * cryptoCurrency.minFeePerByte;
+    }
+    final total = selected.fold<int>(0, (p, u) => p + u.value);
+    Amount a(int v) => Amount(
+      rawValue: BigInt.from(v),
+      fractionDigits: cryptoCurrency.fractionDigits,
+    );
+    return (
+      quantity: count,
+      selected: a(total),
+      bytes: bytes,
+      fee: a(fee),
+      afterFee: a(total - fee),
+      change: amount == null
+          ? null
+          : a(total - amount.raw.toInt() - (subtractFee ? 0 : fee)),
     );
   }
 
@@ -906,8 +960,11 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     if (recipients == null || recipients.isEmpty) {
       throw Exception("No recipients in attempted transaction!");
     }
-    final fromShield = txData.otherData != null &&
-        (jsonDecode(txData.otherData!) as Map)[kPivxFromShield] == true;
+    final fromShield = _otherDataFlag(txData, kPivxFromShield);
+    final subtractFee = _otherDataFlag(txData, kPivxSubtractFee);
+    if (subtractFee && recipients.length != 1) {
+      throw Exception("Subtracting the fee needs a single recipient");
+    }
     if (fromShield || recipients.any((r) => isShieldAddress(r.address))) {
       if (!_shieldSupported) throw Exception("Shield is not available");
       return _prepareShieldSend(txData: txData, fromShield: fromShield);
@@ -945,6 +1002,8 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
         (coinControl
             ? target == available
             : target == info.cachedBalance.spendable.raw);
+    // The recipient pays the fee: inputs only need to cover the amount.
+    final feeFromAmount = isSendAll || subtractFee;
 
     if (target > available) {
       throw Exception("Insufficient balance");
@@ -963,7 +1022,9 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
         inSum += BigInt.from(u.value);
         final feeWithChange =
             BigInt.from(_estimateSize(selected.length, [...addrs, "change"]) * feePerByte);
-        if (inSum >= target + feeWithChange) break;
+        if (inSum >= target + (feeFromAmount ? BigInt.zero : feeWithChange)) {
+          break;
+        }
       }
     }
 
@@ -983,6 +1044,42 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
           amount: Amount(rawValue: amount, fractionDigits: cryptoCurrency.fractionDigits),
         ),
       ];
+    } else if (subtractFee) {
+      final recipient = recipients.first;
+      final change = inSum - target;
+      final withChange = change >= cryptoCurrency.dustLimit.raw;
+      final sizeFee = BigInt.from(
+        _estimateSize(inputs.length, [
+          recipient.address,
+          if (withChange) "change",
+        ]) *
+            feePerByte,
+      );
+      final amount = target - sizeFee;
+      if (amount < cryptoCurrency.dustLimit.raw) {
+        throw Exception("Amount is too small to pay the transaction fee");
+      }
+      outputs = [
+        recipient.copyWith(
+          amount: Amount(rawValue: amount, fractionDigits: cryptoCurrency.fractionDigits),
+        ),
+      ];
+      if (withChange) {
+        final changeAddress = (await getCurrentChangeAddress()) ??
+            await _deriveAddress(chain: 1, index: 0);
+        outputs.add(
+          TxRecipient(
+            address: changeAddress.value,
+            amount: Amount(rawValue: change, fractionDigits: cryptoCurrency.fractionDigits),
+            isChange: true,
+            addressType: AddressType.p2pkh,
+          ),
+        );
+        fee = sizeFee;
+      } else {
+        // Dust change is left to the fee.
+        fee = sizeFee + change;
+      }
     } else {
       final addrs = recipients.map((e) => e.address).toList();
       final feeNoChange = BigInt.from(_estimateSize(inputs.length, addrs) * feePerByte);

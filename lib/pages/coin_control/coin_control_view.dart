@@ -25,6 +25,7 @@ import '../../utilities/amount/amount_formatter.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/text_styles.dart';
+import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/wallet/impl/namecoin_wallet.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
@@ -34,6 +35,7 @@ import '../../widgets/animated_widgets/rotate_icon.dart';
 import '../../widgets/app_bar_field.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../widgets/custom_buttons/blue_text_button.dart';
 import '../../widgets/custom_buttons/dropdown_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
@@ -47,6 +49,16 @@ import 'utxo_details_view.dart';
 
 enum CoinControlViewType { manage, use }
 
+/// PIVX send context: which kind of coins to pick (shield notes or
+/// transparent outputs) and what they pay for, for the Core-style
+/// summary (see [PivxWallet.coinControlSummary]).
+typedef PivxCoinControlArgs = ({
+  bool shieldNotes,
+  Amount? sendAmount,
+  bool toShield,
+  bool subtractFee,
+});
+
 class CoinControlView extends ConsumerStatefulWidget {
   const CoinControlView({
     super.key,
@@ -54,7 +66,7 @@ class CoinControlView extends ConsumerStatefulWidget {
     required this.type,
     this.requestedTotal,
     this.selectedUTXOs,
-    this.pivxShieldNotes,
+    this.pivx,
   });
 
   static const routeName = "/coinControl";
@@ -64,9 +76,9 @@ class CoinControlView extends ConsumerStatefulWidget {
   final Amount? requestedTotal;
   final Set<UTXO>? selectedUTXOs;
 
-  /// PIVX: list shield notes (true) or transparent outputs (false). When
-  /// null on a shield-capable PIVX wallet, the user switches between them.
-  final bool? pivxShieldNotes;
+  /// PIVX send context. When null on a shield-capable PIVX wallet the
+  /// user switches between transparent outputs and shield notes.
+  final PivxCoinControlArgs? pivx;
 
   @override
   ConsumerState<CoinControlView> createState() => _CoinControlViewState();
@@ -110,12 +122,108 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
     }
   }
 
+  /// Outputs on screen that may be selected right now.
+  List<UTXO> _selectableShown(int currentHeight, Wallet wallet) {
+    final ids = _list ?? _map?.values.expand((e) => e).toList() ?? const [];
+    return MainDB.instance.isar.utxos
+        .getAllSync(ids)
+        .nonNulls
+        .where(
+          (u) =>
+              widget.type == CoinControlViewType.manage ||
+              (!u.isBlocked && _isConfirmed(u, currentHeight, wallet)),
+        )
+        .toList();
+  }
+
+  Widget _selectAllRow(int currentHeight) {
+    final wallet = ref.read(pWallets).getWallet(widget.walletId);
+    final shown = _selectableShown(currentHeight, wallet);
+    final allSelected =
+        shown.isNotEmpty &&
+        shown.every(
+          (u) => _selectedAvailable.contains(u) || _selectedBlocked.contains(u),
+        );
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        CustomTextButton(
+          text: allSelected ? "Unselect all" : "Select all",
+          enabled: shown.isNotEmpty,
+          onTap: () {
+            setState(() {
+              for (final u in shown) {
+                final set = u.isBlocked ? _selectedBlocked : _selectedAvailable;
+                allSelected ? set.remove(u) : set.add(u);
+              }
+            });
+          },
+        ),
+      ],
+    );
+  }
+
+  /// PIVX Core-style figures for the current selection.
+  Widget _pivxSummary(PivxWallet wallet, CryptoCurrency coin) {
+    final args = widget.pivx;
+    final s = wallet.coinControlSummary(
+      selected: _selectedAvailable,
+      toShield: args?.toShield ?? false,
+      amount: args?.sendAmount,
+      subtractFee: args?.subtractFee ?? false,
+    );
+    final fmt = ref.watch(pAmountFormatter(coin));
+    final label = STextStyles.w500_12(context).copyWith(
+      color: Theme.of(context).extension<StackColors>()!.textSubtitle1,
+    );
+    final value = STextStyles.w600_12(context);
+    Widget cell(String name, String text) => Padding(
+      padding: const EdgeInsets.symmetric(vertical: 3),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(name, style: label),
+          Flexible(
+            child: Text(
+              text,
+              style: value,
+              textAlign: TextAlign.right,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+    final change = s.change;
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 6, 12, 6),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              Expanded(child: cell("Quantity", "${s.quantity}")),
+              const SizedBox(width: 16),
+              Expanded(child: cell("Bytes", "~${s.bytes}")),
+            ],
+          ),
+          cell("Fee", "~${fmt.format(s.fee)}"),
+          cell("After fee", fmt.format(s.afterFee)),
+          if (change != null)
+            cell(
+              "Change",
+              change.raw.isNegative ? "Insufficient" : fmt.format(change),
+            ),
+        ],
+      ),
+    );
+  }
+
   @override
   void initState() {
     final wallet = ref.read(pWallets).getWallet(widget.walletId);
     if (wallet is PivxWallet) {
-      _shieldNotes = widget.pivxShieldNotes ?? false;
-      _canSwitchKind = widget.pivxShieldNotes == null && wallet.supportsShield;
+      _shieldNotes = widget.pivx?.shieldNotes ?? false;
+      _canSwitchKind = widget.pivx == null && wallet.supportsShield;
     }
     if (widget.selectedUTXOs != null) {
       _selectedAvailable.addAll(widget.selectedUTXOs!);
@@ -389,6 +497,8 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                             ),
                           ),
                         if (!_isSearching) const SizedBox(height: 10),
+                        if (!_isSearching) _selectAllRow(currentHeight),
+                        if (!_isSearching) const SizedBox(height: 6),
                         if (_isSearching)
                           Expanded(
                             child: ListView.separated(
@@ -721,7 +831,28 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                     ),
                     child: Padding(
                       padding: const EdgeInsets.all(16),
-                      child: SecondaryButton(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Builder(
+                            builder: (context) {
+                              final sel = _showBlocked
+                                  ? _selectedBlocked
+                                  : _selectedAvailable;
+                              final sum = sel
+                                  .fold<int>(0, (p, u) => p + u.value)
+                                  .toAmountAsRaw(
+                                    fractionDigits: coin.fractionDigits,
+                                  );
+                              return Text(
+                                "${sel.length} selected · "
+                                "${ref.watch(pAmountFormatter(coin)).format(sum)}",
+                                style: STextStyles.w600_14(context),
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 12),
+                          SecondaryButton(
                         label: _showBlocked ? "Unfreeze" : "Freeze",
                         onPressed: () async {
                           if (_showBlocked) {
@@ -741,6 +872,8 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                           }
                           setState(() {});
                         },
+                      ),
+                        ],
                       ),
                     ),
                   ),
@@ -857,6 +990,26 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                       ],
                                     ),
                                   ),
+                                if (_selectedAvailable.isNotEmpty &&
+                                    ref.watch(pWallets).getWallet(
+                                          widget.walletId,
+                                        )
+                                        is PivxWallet) ...[
+                                  Container(
+                                    width: double.infinity,
+                                    height: 1.5,
+                                    color: Theme.of(
+                                      context,
+                                    ).extension<StackColors>()!.backgroundAppBar,
+                                  ),
+                                  _pivxSummary(
+                                    ref.watch(pWallets).getWallet(
+                                          widget.walletId,
+                                        )
+                                        as PivxWallet,
+                                    coin,
+                                  ),
+                                ],
                               ],
                             ),
                           ),

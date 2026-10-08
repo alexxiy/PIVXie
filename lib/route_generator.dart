@@ -672,8 +672,13 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         } else if (args
-            is Tuple5<String, CoinControlViewType, Amount?, Set<UTXO>?, bool>) {
-          // PIVX: item5 picks shield notes (true) or transparent outputs.
+            is Tuple5<
+              String,
+              CoinControlViewType,
+              Amount?,
+              Set<UTXO>?,
+              PivxCoinControlArgs
+            >) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => CoinControlView(
@@ -681,7 +686,7 @@ class RouteGenerator {
               type: args.item2,
               requestedTotal: args.item3,
               selectedUTXOs: args.item4,
-              pivxShieldNotes: args.item5,
+              pivx: args.item5,
             ),
             settings: RouteSettings(name: settings.name),
           );

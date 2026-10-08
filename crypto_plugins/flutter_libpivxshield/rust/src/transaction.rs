@@ -485,11 +485,25 @@ pub struct JSTxOptions {
     /// many as the amount needs.
     #[serde(default)]
     pub use_all_inputs: bool,
+    /// The recipient pays the fee: it receives `amount - fee`.
+    #[serde(default)]
+    pub subtract_fee: bool,
 }
 
 pub fn create_transaction(options: JSTxOptions) -> BoxResult<JSTransaction> {
-    let JSTxOptions { notes, utxos, extsk, to_address, change_address, amount, block_height, is_testnet, memo, use_all_inputs } =
-        options;
+    let JSTxOptions {
+        notes,
+        utxos,
+        extsk,
+        to_address,
+        change_address,
+        amount,
+        block_height,
+        is_testnet,
+        memo,
+        use_all_inputs,
+        subtract_fee,
+    } = options;
     if notes.is_some() && utxos.is_some() {
         Err("Notes and UTXOs were both provided")?;
     }
@@ -514,8 +528,46 @@ pub fn create_transaction(options: JSTxOptions) -> BoxResult<JSTransaction> {
         BlockHeight::from_u32(block_height),
         network,
         memo,
-        use_all_inputs,
+        Selection { use_all: use_all_inputs, subtract_fee },
     )
+}
+
+/// How inputs are chosen and who pays the fee.
+#[derive(Clone, Copy)]
+struct Selection {
+    /// Spend every given input (coin control).
+    use_all: bool,
+    /// Take the fee out of the amount sent.
+    subtract_fee: bool,
+}
+
+impl Selection {
+    /// Inputs needed before selection may stop.
+    fn needed(&self, amount: u64, fee: u64) -> u64 {
+        if self.subtract_fee {
+            amount
+        } else {
+            amount + fee
+        }
+    }
+
+    /// Final amount sent and change, given the selected `total`.
+    fn settle(&self, total: u64, amount: &mut u64, fee: u64) -> BoxResult<u64> {
+        if self.subtract_fee {
+            if total < *amount || *amount <= fee {
+                Err("Not enough balance")?;
+            }
+            *amount -= fee;
+        } else if total < *amount + fee {
+            // Spending everything: the fee comes out of the amount.
+            if total >= *amount && *amount > fee {
+                *amount -= fee;
+            } else {
+                Err("Not enough balance")?;
+            }
+        }
+        Ok(total - *amount - fee)
+    }
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -528,7 +580,7 @@ fn create_transaction_internal(
     block_height: BlockHeight,
     network: Network,
     memo: String,
-    use_all_inputs: bool,
+    selection: Selection,
 ) -> BoxResult<JSTransaction> {
     let anchor = if let Either::Left(ref notes) = inputs {
         match notes.first() {
@@ -562,7 +614,7 @@ fn create_transaction_internal(
             &mut amount,
             transparent_output_count,
             sapling_output_count,
-            use_all_inputs,
+            selection,
         )?,
         Either::Right(utxos) => choose_utxos(
             &mut builder,
@@ -571,7 +623,7 @@ fn create_transaction_internal(
             transparent_output_count,
             sapling_output_count,
             &mut signing_set,
-            use_all_inputs,
+            selection,
         )?,
     };
     let send_amount = Zatoshis::from_u64(amount).map_err(|_| "Invalid Amount")?;
@@ -610,7 +662,7 @@ fn choose_utxos(
     transparent_output_count: u64,
     sapling_output_count: u64,
     signing_set: &mut TransparentSigningSet,
-    use_all: bool,
+    selection: Selection,
 ) -> BoxResult<(Vec<String>, Zatoshis, u64)> {
     let mut total = 0;
     let mut used = vec![];
@@ -642,18 +694,12 @@ fn choose_utxos(
         count += 1;
         fee = fee_calculator(count, transparent_output_count, 0, sapling_output_count);
         total += utxo.amount;
-        if !use_all && total >= *amount + fee {
+        if !selection.use_all && total >= selection.needed(*amount, fee) {
             break;
         }
     }
-    if total < *amount + fee {
-        if total >= *amount && *amount > fee {
-            *amount -= fee;
-        } else {
-            Err("Not enough balance")?;
-        }
-    }
-    let change = Zatoshis::from_u64(total - *amount - fee).map_err(|_| "Invalid change")?;
+    let change = selection.settle(total, amount, fee)?;
+    let change = Zatoshis::from_u64(change).map_err(|_| "Invalid change")?;
     Ok((used, change, fee))
 }
 
@@ -664,7 +710,7 @@ fn choose_notes(
     amount: &mut u64,
     transparent_output_count: u64,
     sapling_output_count: u64,
-    use_all: bool,
+    selection: Selection,
 ) -> BoxResult<(Vec<String>, Zatoshis, u64)> {
     let mut total = 0;
     let mut nullifiers = vec![];
@@ -681,18 +727,12 @@ fn choose_notes(
         count += 1;
         fee = fee_calculator(0, transparent_output_count, count, sapling_output_count);
         total += note.value().inner();
-        if !use_all && total >= *amount + fee {
+        if !selection.use_all && total >= selection.needed(*amount, fee) {
             break;
         }
     }
-    if total < *amount + fee {
-        if total >= *amount && *amount > fee {
-            *amount -= fee
-        } else {
-            Err("Not enough balance")?;
-        }
-    }
-    let change = Zatoshis::from_u64(total - *amount - fee).map_err(|_| "Invalid change")?;
+    let change = selection.settle(total, amount, fee)?;
+    let change = Zatoshis::from_u64(change).map_err(|_| "Invalid change")?;
     Ok((nullifiers, change, fee))
 }
 

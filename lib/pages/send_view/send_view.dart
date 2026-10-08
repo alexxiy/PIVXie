@@ -158,6 +158,9 @@ class _SendViewState extends ConsumerState<SendView> {
 
   Set<StandardInput> selectedUTXOs = {};
 
+  /// PIVX: the recipient pays the fee (receives amount - fee).
+  bool _pivxSubtractFee = false;
+
   void _applyUri(PaymentUriData paymentData) {
     try {
       // auto fill address
@@ -684,6 +687,7 @@ class _SendViewState extends ConsumerState<SendView> {
         selected: selectedUTXOs.isEmpty
             ? null
             : selectedUTXOs.map((e) => e.utxo).toSet(),
+        subtractFee: _pivxSubtractFee,
       );
       return ref
           .read(pAmountFormatter(coin))
@@ -1140,8 +1144,11 @@ class _SendViewState extends ConsumerState<SendView> {
                     selectedUTXOs.isNotEmpty)
                 ? selectedUTXOs
                 : null,
-            otherData: pivxFromShield
-                ? jsonEncode({kPivxFromShield: true})
+            otherData: (pivxFromShield || (coin is Pivx && _pivxSubtractFee))
+                ? jsonEncode({
+                    if (pivxFromShield) kPivxFromShield: true,
+                    if (coin is Pivx && _pivxSubtractFee) kPivxSubtractFee: true,
+                  })
                 : null,
           ),
         );
@@ -1259,6 +1266,17 @@ class _SendViewState extends ConsumerState<SendView> {
     rawValue: utxos.map((e) => e.value).reduce((v, e) => v += e),
     fractionDigits: ref.read(pWalletCoin(walletId)).fractionDigits,
   );
+
+  void _setPivxSubtractFee(bool value) {
+    setState(() {
+      _pivxSubtractFee = value;
+      // Shield fees depend on how many notes the amount needs.
+      _calculateFeesFuture = calculateFees(
+        ref.read(pSendAmount) ??
+            0.toAmountAsRaw(fractionDigits: coin.fractionDigits),
+      );
+    });
+  }
 
   Future<void> _sendAllTapped(bool showCoinControl) async {
     final Amount amount;
@@ -2396,6 +2414,38 @@ class _SendViewState extends ConsumerState<SendView> {
                                   ),
                                 ),
                               ),
+                            if (coin is Pivx) const SizedBox(height: 8),
+                            if (coin is Pivx)
+                              GestureDetector(
+                                onTap: () => _setPivxSubtractFee(
+                                  !_pivxSubtractFee,
+                                ),
+                                child: Container(
+                                  color: Colors.transparent,
+                                  child: Row(
+                                    children: [
+                                      SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: Checkbox(
+                                          materialTapTargetSize:
+                                              MaterialTapTargetSize.shrinkWrap,
+                                          value: _pivxSubtractFee,
+                                          onChanged: (v) =>
+                                              _setPivxSubtractFee(v ?? false),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      Text(
+                                        "Subtract fee from amount",
+                                        style: STextStyles.itemSubtitle12(
+                                          context,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
                             if (showCoinControl) const SizedBox(height: 8),
                             if (showCoinControl)
                               RoundedWhiteContainer(
@@ -2449,8 +2499,11 @@ class _SendViewState extends ConsumerState<SendView> {
                                           if (ref.read(pSendAmount) != null) {
                                             amount = ref.read(pSendAmount)!;
 
-                                            if (spendable == amount) {
-                                              // this is now a send all
+                                            if (spendable == amount ||
+                                                (coin is Pivx &&
+                                                    _pivxSubtractFee)) {
+                                              // send all, or the fee comes
+                                              // out of the amount
                                             } else {
                                               amount += _currentFee;
                                             }
@@ -2469,7 +2522,21 @@ class _SendViewState extends ConsumerState<SendView> {
                                                         selectedUTXOs
                                                             .map((e) => e.utxo)
                                                             .toSet(),
-                                                        pivxShield,
+                                                        (
+                                                          shieldNotes:
+                                                              pivxShield,
+                                                          sendAmount: ref.read(
+                                                            pSendAmount,
+                                                          ),
+                                                          toShield:
+                                                              (coin as Pivx)
+                                                                  .isShieldAddress(
+                                                                    _address ??
+                                                                        "",
+                                                                  ),
+                                                          subtractFee:
+                                                              _pivxSubtractFee,
+                                                        ),
                                                       )
                                                     : Tuple4(
                                                         walletId,

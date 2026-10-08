@@ -234,4 +234,32 @@ void main() {
     });
     expect(scanner.balance, before - 10000000 - (r["fee"] as int));
   }, skip: skip, timeout: const Timeout(Duration(minutes: 10)));
+
+  test("subtractFee: the recipient pays the fee", () async {
+    final dest = await _cli(["getnewaddress"]);
+    final change = PivxShield.defaultAddress(extfvk: extfvk, isTestnet: true).address;
+    final before = scanner.balance;
+    final r = await PivxShield.createTransaction(
+      notes: scanner.notes,
+      extsk: extsk,
+      toAddress: dest,
+      changeAddress: change,
+      amount: 50000000,
+      blockHeight: (await bridge.getBlockCount()) + 1,
+      isTestnet: true,
+      subtractFee: true,
+    );
+    final fee = r["fee"] as int;
+    final txid = await bridge.sendTx(r["txhex"] as String);
+    await _cli(["generate", "1"]);
+    await _waitFor(() async {
+      await scanner.sync();
+      return scanner.balance == before - 50000000;
+    });
+    final t = await bridge.tx(txid);
+    final paid = (t["vout"] as List).firstWhere(
+      (o) => (o["addresses"] as List).contains(dest),
+    );
+    expect(paid["value"], "${50000000 - fee}");
+  }, skip: skip, timeout: const Timeout(Duration(minutes: 10)));
 }

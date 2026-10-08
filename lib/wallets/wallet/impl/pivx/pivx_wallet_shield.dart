@@ -15,6 +15,14 @@ const _kOdShieldNullifiers = "pivxShieldNullifiers";
 /// Set in [TxData.otherData] by the UI to spend the shield balance.
 const kPivxFromShield = "pivxFromShield";
 
+/// Set in [TxData.otherData] by the UI: the recipient pays the fee
+/// (receives the amount minus the fee).
+const kPivxSubtractFee = "pivxSubtractFee";
+
+bool _otherDataFlag(TxData txData, String key) =>
+    txData.otherData != null &&
+    (jsonDecode(txData.otherData!) as Map)[key] == true;
+
 /// Unspent shield notes are mirrored as [UTXO] rows so coin control can
 /// list, freeze and select them. Such rows carry this key (with the
 /// note's nullifier) in [UTXO.otherData], use [_kShieldNoteVoutBase] +
@@ -504,6 +512,7 @@ extension _PivxShield on PivxWallet {
         blockHeight: height,
         isTestnet: state.isTestnet,
         memo: txData.memo ?? "",
+        subtractFee: _otherDataFlag(txData, kPivxSubtractFee),
         useAllInputs: txData.utxos?.isNotEmpty ?? false,
       );
     } else {
@@ -543,6 +552,7 @@ extension _PivxShield on PivxWallet {
         blockHeight: height,
         isTestnet: state.isTestnet,
         memo: txData.memo ?? "",
+        subtractFee: _otherDataFlag(txData, kPivxSubtractFee),
         useAllInputs: selected.isNotEmpty,
       );
       final used = Set<String>.from(result["nullifiers"] as List);

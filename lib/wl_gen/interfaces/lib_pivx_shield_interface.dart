@@ -67,5 +67,7 @@ abstract class LibPivxShieldInterface {
     String memo = "",
     // Spend every given note/UTXO (coin control selection).
     bool useAllInputs = false,
+    // The recipient pays the fee (receives amount - fee).
+    bool subtractFee = false,
   });
 }
