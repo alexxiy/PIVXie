@@ -2086,6 +2086,17 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
+        if (args is ({String walletId, AddressType type, String title})) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => WalletAddressesView(
+              walletId: args.walletId,
+              addressType: args.type,
+              title: args.title,
+            ),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case AddressDetailsView.routeName:

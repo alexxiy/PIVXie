@@ -373,6 +373,11 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
     }
   }
 
+  String _addressTypeLabel(AddressType type) =>
+      (_supportsSpark || _supportsPivxShield) && type == AddressType.p2pkh
+      ? "Transparent address"
+      : "${type.readableName} address";
+
   StreamSubscription<Address?> _sub(AddressType type) {
     return ref
         .read(mainDBProvider)
@@ -474,8 +479,6 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
 
     if (_showMultiType) {
       for (final type in _walletAddressTypes) {
-        // Shield addresses live in the wallet's shield state, not Isar.
-        if (type == AddressType.pivxShield) continue;
         _addressSubMap[type] = _sub(type);
       }
     }
@@ -631,9 +634,21 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                                     GestureDetector(
                                       onTap: () {
                                         Navigator.of(context).pop();
+                                        final type =
+                                            _walletAddressTypes[_currentIndex];
                                         Navigator.of(context).pushNamed(
                                           WalletAddressesView.routeName,
-                                          arguments: walletId,
+                                          // Only the type picked here, so
+                                          // shield and transparent lists
+                                          // stay separate.
+                                          arguments: _showMultiType
+                                              ? (
+                                                  walletId: walletId,
+                                                  type: type,
+                                                  title:
+                                                      "${_addressTypeLabel(type)}es",
+                                                )
+                                              : walletId,
                                         );
                                       },
                                       child: RoundedWhiteContainer(
@@ -705,11 +720,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                                   DropdownMenuItem(
                                     value: i,
                                     child: Text(
-                                      (_supportsSpark || _supportsPivxShield) &&
-                                              _walletAddressTypes[i] ==
-                                                  AddressType.p2pkh
-                                          ? "Transparent address"
-                                          : "${_walletAddressTypes[i].readableName} address",
+                                      _addressTypeLabel(_walletAddressTypes[i]),
                                       style: STextStyles.w500_14(context),
                                     ),
                                   ),

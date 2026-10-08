@@ -23,7 +23,7 @@ import '../../../utilities/text_styles.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
 
-enum _BalanceType { available, full, privateAvailable, privateFull }
+enum _BalanceType { total, available, full, privateAvailable, privateFull }
 
 class WalletBalanceToggleSheet extends ConsumerWidget {
   const WalletBalanceToggleSheet({super.key, required this.walletId});
@@ -64,6 +64,10 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                 ? _BalanceType.privateAvailable
                 : _BalanceType.privateFull;
       }
+    }
+
+    if (balancePrivate != null && ref.watch(showTotalBalanceProvider)) {
+      _bal = _BalanceType.total;
     }
 
     return Container(
@@ -109,6 +113,24 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 24),
+              if (balancePrivate != null) ...[
+                BalanceSelector(
+                  title: "Total balance",
+                  coin: coin,
+                  balance: balance.total + balancePrivate.total,
+                  onPressed: () {
+                    ref.read(showTotalBalanceProvider.notifier).state = true;
+                    Navigator.of(context).pop();
+                  },
+                  onChanged: (_) {
+                    ref.read(showTotalBalanceProvider.notifier).state = true;
+                    Navigator.of(context).pop();
+                  },
+                  value: _BalanceType.total,
+                  groupValue: _bal,
+                ),
+                const SizedBox(height: 12),
+              ],
               BalanceSelector(
                 title: "Available${hasPrivate ? " public" : ""} balance",
                 coin: coin,
@@ -118,6 +140,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                       WalletBalanceToggleState.available;
                   ref.read(publicPrivateBalanceStateProvider.state).state =
                       BalanceType.public;
+                  ref.read(showTotalBalanceProvider.notifier).state = false;
                   Navigator.of(context).pop();
                 },
                 onChanged: (_) {
@@ -125,6 +148,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                       WalletBalanceToggleState.available;
                   ref.read(publicPrivateBalanceStateProvider.state).state =
                       BalanceType.public;
+                  ref.read(showTotalBalanceProvider.notifier).state = false;
                   Navigator.of(context).pop();
                 },
                 value: _BalanceType.available,
@@ -140,6 +164,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                       WalletBalanceToggleState.full;
                   ref.read(publicPrivateBalanceStateProvider.state).state =
                       BalanceType.public;
+                  ref.read(showTotalBalanceProvider.notifier).state = false;
                   Navigator.of(context).pop();
                 },
                 onChanged: (_) {
@@ -147,6 +172,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                       WalletBalanceToggleState.full;
                   ref.read(publicPrivateBalanceStateProvider.state).state =
                       BalanceType.public;
+                  ref.read(showTotalBalanceProvider.notifier).state = false;
                   Navigator.of(context).pop();
                 },
                 value: _BalanceType.full,
@@ -163,6 +189,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                         WalletBalanceToggleState.available;
                     ref.read(publicPrivateBalanceStateProvider.state).state =
                         BalanceType.private;
+                    ref.read(showTotalBalanceProvider.notifier).state = false;
                     Navigator.of(context).pop();
                   },
                   onChanged: (_) {
@@ -170,6 +197,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                         WalletBalanceToggleState.available;
                     ref.read(publicPrivateBalanceStateProvider.state).state =
                         BalanceType.private;
+                    ref.read(showTotalBalanceProvider.notifier).state = false;
                     Navigator.of(context).pop();
                   },
                   value: _BalanceType.privateAvailable,
@@ -186,6 +214,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                         WalletBalanceToggleState.full;
                     ref.read(publicPrivateBalanceStateProvider.state).state =
                         BalanceType.private;
+                    ref.read(showTotalBalanceProvider.notifier).state = false;
                     Navigator.of(context).pop();
                   },
                   onChanged: (_) {
@@ -193,6 +222,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                         WalletBalanceToggleState.full;
                     ref.read(publicPrivateBalanceStateProvider.state).state =
                         BalanceType.private;
+                    ref.read(showTotalBalanceProvider.notifier).state = false;
                     Navigator.of(context).pop();
                   },
                   value: _BalanceType.privateFull,

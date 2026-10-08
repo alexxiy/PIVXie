@@ -27,11 +27,21 @@ import 'address_card.dart';
 import 'address_details_view.dart';
 
 class WalletAddressesView extends ConsumerStatefulWidget {
-  const WalletAddressesView({super.key, required this.walletId});
+  const WalletAddressesView({
+    super.key,
+    required this.walletId,
+    this.addressType,
+    this.title,
+  });
 
   static const String routeName = "/walletAddressesView";
 
   final String walletId;
+
+  /// Only list addresses of this type (e.g. the type picked on the
+  /// receive screen). All wallet addresses when null.
+  final AddressType? addressType;
+  final String? title;
 
   @override
   ConsumerState<WalletAddressesView> createState() =>
@@ -76,6 +86,10 @@ class _WalletAddressesViewState extends ConsumerState<WalletAddressesView> {
                 .or()
                 .not()
                 .typeEqualTo(AddressType.frostMS),
+          )
+          .optional(
+            widget.addressType != null,
+            (q) => q.and().typeEqualTo(widget.addressType!),
           )
           .sortByDerivationIndex()
           .idProperty()
@@ -138,6 +152,10 @@ class _WalletAddressesViewState extends ConsumerState<WalletAddressesView> {
               .not()
               .typeEqualTo(AddressType.frostMS),
         )
+        .optional(
+          widget.addressType != null,
+          (q) => q.and().typeEqualTo(widget.addressType!),
+        )
         .sortByDerivationIndex()
         .idProperty()
         .findAll();
@@ -180,7 +198,7 @@ class _WalletAddressesViewState extends ConsumerState<WalletAddressesView> {
                 ),
                 titleSpacing: 0,
                 title: Text(
-                  "Wallet addresses",
+                  widget.title ?? "Wallet addresses",
                   style: STextStyles.navBarTitle(context),
                 ),
               ),

@@ -81,13 +81,65 @@ extension _PivxShield on PivxWallet {
       }
       state = await _createShieldState(from);
     }
+    await _storeShieldAddresses(state);
     return _shield = state;
+  }
+
+  /// Shield addresses are also kept as Isar [Address] rows (type
+  /// [AddressType.pivxShield]) so the address list, labels and the
+  /// receive screen treat them like other addresses. Rows are ordered
+  /// by the diversifier index.
+  Address _shieldAddressRow(({String address, List<int> diversifierIndex}) a) {
+    int index = 0;
+    for (int i = min(6, a.diversifierIndex.length) - 1; i >= 0; i--) {
+      index = index * 256 + a.diversifierIndex[i];
+    }
+    return Address(
+      walletId: walletId,
+      value: a.address,
+      publicKey: const [],
+      derivationIndex: index,
+      derivationPath: null,
+      type: AddressType.pivxShield,
+      subType: AddressSubType.receiving,
+    );
+  }
+
+  /// Make sure every shield address handed out so far (default up to
+  /// the current one) has a row; they are re-derived, as wallets made
+  /// before rows existed only remember the current one.
+  Future<void> _storeShieldAddresses(PivxShieldState state) async {
+    final stored = (await mainDB
+            .getAddresses(walletId)
+            .filter()
+            .typeEqualTo(AddressType.pivxShield)
+            .valueProperty()
+            .findAll())
+        .toSet();
+    if (stored.contains(state.currentAddress)) return;
+    var a = libPivxShield.defaultAddress(
+      extfvk: state.extfvk,
+      isTestnet: state.isTestnet,
+    );
+    final rows = [_shieldAddressRow(a)];
+    for (int i = 0; i < 10000 && a.address != state.currentAddress; i++) {
+      a = libPivxShield.nextAddress(
+        extfvk: state.extfvk,
+        diversifierIndex: a.diversifierIndex,
+        isTestnet: state.isTestnet,
+      );
+      rows.add(_shieldAddressRow(a));
+    }
+    await mainDB.updateOrPutAddresses(
+      rows.where((e) => !stored.contains(e.value)).toList(),
+    );
   }
 
   Future<void> _resetShield({required int fromHeight}) async {
     await PivxShieldState.delete(walletId);
     _shield = null;
     _shield = await _createShieldState(fromHeight);
+    await _storeShieldAddresses(_shield!);
   }
 
   // ===========================================================================

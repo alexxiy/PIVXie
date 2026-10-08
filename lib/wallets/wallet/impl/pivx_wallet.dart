@@ -365,7 +365,9 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
 
   Future<({Set<String> receiving, Set<String> change, Set<String> all})>
   _addressSets() async {
-    final addresses = await mainDB.getAddresses(walletId).findAll();
+    // Transparent only; shield addresses never appear in vin/vout.
+    final addresses = (await mainDB.getAddresses(walletId).findAll())
+        .where((e) => e.type != AddressType.pivxShield);
     final receiving = addresses
         .where((e) => e.subType == AddressSubType.receiving)
         .map((e) => e.value)
@@ -563,6 +565,11 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
   /// OP_CHECKCOLDSTAKEVERIFY[_LOF] ...`. Spending it needs the owner
   /// flag in the scriptSig, so such outputs are frozen until staking
   /// support lands.
+  final _blockHashes = <int, String>{};
+
+  Future<String> _blockHashAt(int height) async =>
+      _blockHashes[height] ??= await bridge.blockHash(height);
+
   static bool _isColdStakeScript(String hex) =>
       hex.startsWith("76a97b63d1") || hex.startsWith("76a97b63d2");
 
@@ -592,6 +599,17 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
         blockedReason = "Delegated to a cold staker";
       }
 
+      // UTXO.getConfirmations() treats a utxo without block hash or time
+      // as unconfirmed, and the tx may not be stored yet (transactions
+      // and utxos are fetched in parallel), so fill both from the bridge.
+      String? blockHash;
+      int? blockTime;
+      if (height != null) {
+        blockHash = tx?.blockHash ?? await _blockHashAt(height);
+        blockTime = tx?.timestamp ??
+            DateTime.timestamp().millisecondsSinceEpoch ~/ 1000;
+      }
+
       utxos.add(
         UTXO(
           walletId: walletId,
@@ -602,9 +620,9 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
           isBlocked: blocked,
           blockedReason: blockedReason,
           isCoinbase: u["coinbase"] == true || u["coinstake"] == true,
-          blockHash: null,
+          blockHash: blockHash,
           blockHeight: height,
-          blockTime: tx?.timestamp,
+          blockTime: blockTime,
           address: u["address"] as String?,
         ),
       );
@@ -675,6 +693,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
       ..diversifierIndex = next.diversifierIndex
       ..currentAddress = next.address;
     await state.save(walletId);
+    await mainDB.updateOrPutAddresses([_shieldAddressRow(next)]);
     return next.address;
   }
 

@@ -331,7 +331,7 @@ Future<bool> testNodeConnection({
           host: formData.host!,
           port: formData.port ?? 0,
           useSSL: formData.useSSL ?? false,
-          useTor: ref.read(prefsChangeNotifierProvider).useTor,
+          useTor: read(prefsChangeNotifierProvider).useTor,
         );
         final problem = await client.verifyFor(cryptoCurrency);
         if (problem != null) {
