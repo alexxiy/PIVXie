@@ -2772,7 +2772,9 @@ class _SendViewState extends ConsumerState<SendView> {
                                 onChanged: (_) => setState(() {}),
                                 decoration:
                                     standardInputDecoration(
-                                      "Type something...",
+                                      coin is Pivx
+                                          ? "Just for you: kept in your history, never sent"
+                                          : "Type something...",
                                       _noteFocusNode,
                                       context,
                                     ).copyWith(

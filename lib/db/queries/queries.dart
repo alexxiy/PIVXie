@@ -47,6 +47,30 @@ enum CCSortDescriptor {
   }
 }
 
+/// Sorts [utxos] by [sort] in the given direction. Confirmations go
+/// by block height, unconfirmed outputs counting as the fewest.
+List<UTXO> _sortedUtxos(
+  List<UTXO> utxos,
+  CCSortDescriptor sort,
+  bool ascending,
+) {
+  int compare(UTXO a, UTXO b) {
+    switch (sort) {
+      case CCSortDescriptor.age:
+        // Fewer confirmations = higher (or no) block height.
+        final ha = a.blockHeight ?? 1 << 62;
+        final hb = b.blockHeight ?? 1 << 62;
+        return hb.compareTo(ha);
+      case CCSortDescriptor.address:
+        return (a.address ?? "").compareTo(b.address ?? "");
+      case CCSortDescriptor.value:
+        return a.value.compareTo(b.value);
+    }
+  }
+
+  return utxos..sort((a, b) => ascending ? compare(a, b) : compare(b, a));
+}
+
 extension MainDBQueries on MainDB {
   List<Id> queryUTXOsSync({
     required String walletId,
@@ -55,6 +79,7 @@ extension MainDBQueries on MainDB {
     required String searchTerm,
     required CryptoCurrency cryptoCurrency,
     UtxoTagFilter? tagFilter,
+    bool? ascending,
   }) {
     var preSort = getUTXOs(walletId).filter().group((q) {
       final qq = q.group(
@@ -118,6 +143,12 @@ extension MainDBQueries on MainDB {
       );
     }
 
+    if (ascending != null) {
+      return _sortedUtxos(preSort.findAllSync(), sort, ascending)
+          .map((e) => e.id)
+          .toList();
+    }
+
     final List<Id> ids;
     switch (sort) {
       case CCSortDescriptor.age:
@@ -140,6 +171,7 @@ extension MainDBQueries on MainDB {
     required String searchTerm,
     required CryptoCurrency cryptoCurrency,
     UtxoTagFilter? tagFilter,
+    bool? ascending,
   }) {
     var preSort = getUTXOs(walletId).filter().group((q) {
       final qq = q.group(
@@ -204,7 +236,10 @@ extension MainDBQueries on MainDB {
     }
 
     final List<UTXO> utxos;
-    switch (sort) {
+    switch (ascending != null ? null : sort) {
+      case null:
+        utxos = _sortedUtxos(preSort.findAllSync(), sort, ascending!);
+        break;
       case CCSortDescriptor.age:
         utxos = preSort.sortByBlockHeight().findAllSync();
         break;

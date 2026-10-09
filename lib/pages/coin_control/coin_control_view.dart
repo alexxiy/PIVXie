@@ -95,6 +95,10 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
 
   CCSortDescriptor _sort = CCSortDescriptor.age;
 
+  /// Sort direction; each sort starts on its natural one (largest
+  /// amount, most confirmations, address A-Z).
+  bool _ascending = false;
+
   Map<String, List<Id>>? _map;
   List<Id>? _list;
 
@@ -293,6 +297,7 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
         searchTerm: "",
         cryptoCurrency: coin,
         tagFilter: tagFilter,
+        ascending: _ascending,
       );
     } else {
       _map = null;
@@ -308,6 +313,7 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
         searchTerm: _isSearching ? searchController.text : "",
         cryptoCurrency: coin,
         tagFilter: tagFilter,
+        ascending: _ascending,
       );
     }
 
@@ -423,10 +429,33 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                             if (newValue != null && newValue != _sort) {
                               setState(() {
                                 _sort = newValue;
+                                _ascending =
+                                    newValue == CCSortDescriptor.address;
                               });
                             }
                           },
                           displayPrefix: "Sort by",
+                        ),
+                      ),
+                      AspectRatio(
+                        aspectRatio: 1,
+                        child: AppBarIconButton(
+                          size: 36,
+                          semanticsLabel: _ascending
+                              ? "Sorted ascending. Tap for descending."
+                              : "Sorted descending. Tap for ascending.",
+                          icon: Icon(
+                            _ascending
+                                ? Icons.arrow_upward
+                                : Icons.arrow_downward,
+                            size: 20,
+                            color: Theme.of(
+                              context,
+                            ).extension<StackColors>()!.topNavIconPrimary,
+                          ),
+                          onPressed: () {
+                            setState(() => _ascending = !_ascending);
+                          },
                         ),
                       ),
                     ],
