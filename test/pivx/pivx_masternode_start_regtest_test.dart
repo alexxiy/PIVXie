@@ -5,7 +5,8 @@
 // Run on the build VM (see /root/work/mn_setup.sh for the server):
 //   PIVX_BRIDGE=http://127.0.0.1:3000 \
 //   PIVX_CLI="/opt/pivx/bin/pivx-cli -datadir=/srv/pivx-regtest -conf=/srv/pivx-regtest/pivx.conf" \
-//   PIVX_MN_KEY=$(cat /root/work/mn0.key) PIVX_MN_SERVICE=127.0.0.1:51480 \
+//   PIVX_MN_KEY=$(cat /root/work/mn0.key) PIVX_MN_SERVICE=127.0.0.10:51476 \
+//   (IPv6 server: PIVX_MN_SERVICE="[::1]:51476") \
 //   flutter test --concurrency=1 test/pivx/pivx_masternode_start_regtest_test.dart
 import 'dart:convert';
 import 'dart:io';
@@ -65,16 +66,18 @@ void main() {
     ).privkey;
 
     final height = await bridge.getBlockCount();
+    // "1.2.3.4:port" or "[v6]:port"
     final service = env["PIVX_MN_SERVICE"]!;
-    final port = int.parse(service.split(":").last);
-    final ip = InternetAddress(service.split(":").first).rawAddress;
+    final i = service.lastIndexOf(":");
+    final port = int.parse(service.substring(i + 1));
+    final ip = InternetAddress(
+      service.substring(0, i).replaceAll(RegExp(r"[\[\]]"), ""),
+    ).rawAddress;
     final mnb = pivxMasternodeBroadcast(
       txid: txid,
       vout: vout,
       service: Uint8List.fromList([
-        ...List.filled(10, 0),
-        0xff,
-        0xff,
+        if (ip.length == 4) ...[...List.filled(10, 0), 0xff, 0xff],
         ...ip,
         port >> 8,
         port & 0xff,
