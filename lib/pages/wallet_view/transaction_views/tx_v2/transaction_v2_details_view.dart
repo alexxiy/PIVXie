@@ -107,7 +107,7 @@ class _TransactionV2DetailsViewState
 
   bool get isTokenTx => tokenContract != null;
 
-  late final List<({List<String> addresses, Amount amount})> data;
+  late List<({List<String> addresses, Amount amount})> data;
 
   bool showFeePending = false;
 
@@ -414,6 +414,28 @@ class _TransactionV2DetailsViewState
               .toList();
           break;
       }
+    }
+
+    if (coin is Pivx) {
+      // Like PIVX Core: the destination only, without change. All inputs
+      // and outputs are listed separately ([_PivxTxParts]).
+      final change = _transaction.pivxChangeAddresses;
+      final owned = _transaction.outputs.where((e) => e.walletOwns);
+      var shown = switch (_transaction.type) {
+        TransactionType.outgoing => _transaction.outputs.where(
+          (e) => !e.walletOwns,
+        ),
+        TransactionType.incoming => owned,
+        _ => owned.where((e) => !e.addresses.any(change.contains)),
+      };
+      if (shown.isEmpty) shown = owned;
+      data = [
+        for (final e in shown)
+          (
+            addresses: e.addresses,
+            amount: Amount(rawValue: e.value, fractionDigits: fractionDigits),
+          ),
+      ];
     }
 
     super.initState();
@@ -868,6 +890,15 @@ class _TransactionV2DetailsViewState
                                     ],
                                   ),
                                 ),
+                              if (coin is Pivx) ...[
+                                isDesktop
+                                    ? const _Divider()
+                                    : const SizedBox(height: 12),
+                                _PivxTxParts(
+                                  transaction: _transaction,
+                                  coin: coin,
+                                ),
+                              ],
                               if (coin is Epiccash ||
                                   coin is Mimblewimblecoin ||
                                   _hasPivxMemo)
@@ -1681,6 +1712,150 @@ class OutputCard extends ConsumerWidget {
           ],
         ),
       ],
+    );
+  }
+}
+
+/// Inputs and outputs of a PIVX transaction, each list folded by
+/// default (PIVX Core shows them in its transaction details).
+class _PivxTxParts extends StatelessWidget {
+  const _PivxTxParts({required this.transaction, required this.coin});
+
+  final TransactionV2 transaction;
+  final CryptoCurrency coin;
+
+  @override
+  Widget build(BuildContext context) {
+    final change = transaction.pivxChangeAddresses;
+    String where(List<String> addresses, {bool shield = false}) {
+      final text = addresses.where((e) => e.isNotEmpty).join(", ");
+      return text.isNotEmpty ? text : (shield ? "Shielded" : "Unknown");
+    }
+
+    final inputs = [
+      for (final i in transaction.inputs)
+        (
+          address: i.coinbase != null
+              ? "New coins"
+              : where(i.addresses, shield: i.outpoint == null),
+          value: i.value,
+          tag: i.walletOwns ? "Yours" : null,
+        ),
+    ];
+    final outputs = [
+      for (final o in transaction.outputs)
+        (
+          address: where(o.addresses, shield: o.scriptPubKeyHex.isEmpty),
+          value: o.value,
+          tag: !o.walletOwns
+              ? null
+              : o.addresses.any(change.contains)
+              ? "Change"
+              : "Yours",
+        ),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _PivxPartList(title: "Inputs", entries: inputs, coin: coin),
+        Util.isDesktop ? const _Divider() : const SizedBox(height: 12),
+        _PivxPartList(title: "Outputs", entries: outputs, coin: coin),
+      ],
+    );
+  }
+}
+
+class _PivxPartList extends ConsumerStatefulWidget {
+  const _PivxPartList({
+    required this.title,
+    required this.entries,
+    required this.coin,
+  });
+
+  final String title;
+  final List<({String address, BigInt value, String? tag})> entries;
+  final CryptoCurrency coin;
+
+  @override
+  ConsumerState<_PivxPartList> createState() => _PivxPartListState();
+}
+
+class _PivxPartListState extends ConsumerState<_PivxPartList> {
+  bool _open = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<StackColors>()!;
+    final fmt = ref.watch(pAmountFormatter(widget.coin));
+    Amount amount(BigInt v) =>
+        Amount(rawValue: v, fractionDigits: widget.coin.fractionDigits);
+    final total = widget.entries.fold(BigInt.zero, (p, e) => p + e.value);
+
+    return RoundedWhiteContainer(
+      padding: Util.isDesktop
+          ? const EdgeInsets.all(16)
+          : const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          GestureDetector(
+            behavior: HitTestBehavior.opaque,
+            onTap: () => setState(() => _open = !_open),
+            child: Row(
+              children: [
+                Text(
+                  "${widget.title} (${widget.entries.length})",
+                  style: STextStyles.itemSubtitle(context),
+                ),
+                const Spacer(),
+                Text(
+                  fmt.format(amount(total)),
+                  style: STextStyles.itemSubtitle12(context),
+                ),
+                const SizedBox(width: 6),
+                Icon(
+                  _open ? Icons.expand_less_rounded : Icons.expand_more_rounded,
+                  size: 20,
+                  color: colors.textSubtitle1,
+                ),
+              ],
+            ),
+          ),
+          if (_open)
+            for (final e in widget.entries) ...[
+              const SizedBox(height: 10),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    child: SelectableText(
+                      e.address,
+                      style: STextStyles.itemSubtitle12(context),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        fmt.format(amount(e.value)),
+                        style: STextStyles.itemSubtitle12(context),
+                      ),
+                      if (e.tag != null)
+                        Text(
+                          e.tag!,
+                          style: STextStyles.label(
+                            context,
+                          ).copyWith(color: colors.textSubtitle1),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+        ],
+      ),
     );
   }
 }

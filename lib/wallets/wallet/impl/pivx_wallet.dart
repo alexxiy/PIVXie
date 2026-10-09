@@ -38,6 +38,7 @@ import '../intermediate/bip39_hd_wallet.dart';
 import '../wallet_mixin_interfaces/coin_control_interface.dart';
 import 'pivx/pivx_shield_state.dart';
 import 'pivx/pivx_shield_stream.dart';
+import 'pivx/pivx_tx_parser.dart';
 
 part 'pivx/pivx_masternodes.dart';
 part 'pivx/pivx_wallet_shield.dart';
@@ -384,7 +385,11 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     }
   }
 
+  bool get _reparseHistory =>
+      info.otherData[_kTxParseVersion] != _txParseVersion;
+
   Future<int?> _historyFromHeight() async {
+    if (_reparseHistory) return null;
     final newest = await mainDB.isar.transactionV2s
         .where()
         .walletIdEqualTo(walletId)
@@ -398,11 +403,24 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     return max(0, newest - _kResyncDepth);
   }
 
-  Future<({Set<String> receiving, Set<String> change, Set<String> all})>
+  Future<
+    ({
+      Set<String> receiving,
+      Set<String> change,
+      Set<String> all,
+      Set<String> shield,
+    })
+  >
   _addressSets() async {
-    // Transparent only; shield addresses never appear in vin/vout.
-    final addresses = (await mainDB.getAddresses(walletId).findAll())
-        .where((e) => e.type != AddressType.pivxShield);
+    final rows = await mainDB.getAddresses(walletId).findAll();
+    // Shield addresses handed out (receive screen); notes to any other
+    // of ours are change.
+    final shield = rows
+        .where((e) => e.type == AddressType.pivxShield)
+        .map((e) => e.value)
+        .toSet();
+    // Transparent ones appear in vin/vout.
+    final addresses = rows.where((e) => e.type != AddressType.pivxShield);
     final receiving = addresses
         .where((e) => e.subType == AddressSubType.receiving)
         .map((e) => e.value)
@@ -411,7 +429,12 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
         .where((e) => e.subType == AddressSubType.change)
         .map((e) => e.value)
         .toSet();
-    return (receiving: receiving, change: change, all: {...receiving, ...change});
+    return (
+      receiving: receiving,
+      change: change,
+      all: {...receiving, ...change},
+      shield: shield,
+    );
   }
 
   @override
@@ -431,311 +454,67 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
       () => _syncAddresses(result.info["tokens"] as List?),
     );
 
-    final sets = await _addressSets();
-    final Map<String, Map<String, dynamic>> shieldInfo =
-        _shieldSupported ? (await _loadShield()).txInfo : const {};
-    final txns = <TransactionV2>[];
-    for (final json in result.txs) {
-      final tx = _parseTx(
-        json,
-        receiving: sets.receiving,
-        change: sets.change,
-        all: sets.all,
-        shield: shieldInfo[json["txid"]],
-      );
-      if (tx != null) txns.add(tx);
-    }
-    await _notifyIncoming(txns);
-    await UiStallWatch.run(
-      "PIVX ${info.name}: store ${txns.length} txs",
-      () => _storeTxs(txns),
-    );
-
+    // Shield first: transparent txs with a shield side (shielding,
+    // unshielding) are only classified right with the scan's data.
     try {
       await UiStallWatch.run("PIVX ${info.name}: shield sync", _syncShield);
     } catch (e, s) {
       Logging.instance.e("PIVX shield sync failed", error: e, stackTrace: s);
       rethrow;
     }
+
+    final sets = await _addressSets();
+    final txns = <TransactionV2>[
+      for (final json in result.txs) ?_parseTx(json, sets: sets),
+    ];
+    await _notifyIncoming(txns);
+    await UiStallWatch.run(
+      "PIVX ${info.name}: store ${txns.length} txs",
+      () => _storeTxs(txns),
+    );
+    if (info.otherData[_kTxParseVersion] != _txParseVersion) {
+      await info.updateOtherData(
+        newEntries: {_kTxParseVersion: _txParseVersion},
+        isar: mainDB.isar,
+      );
+    }
   }
 
+  /// Bumped when parsing changes: the next sync re-parses all history.
+  static const _kTxParseVersion = "pivxTxParseVersion";
+  static const _txParseVersion = 2;
+
+  /// The wallet's view of a bridge tx; see [parsePivxTx].
   TransactionV2? _parseTx(
     Map<String, dynamic> json, {
-    required Set<String> receiving,
-    required Set<String> change,
-    required Set<String> all,
-    Map<String, dynamic>? shield,
-  }) {
-    bool sentFromWallet = false;
-    bool receivedInWallet = false;
-    BigInt receivedAmount = BigInt.zero;
-    BigInt changeAmount = BigInt.zero;
+    required ({
+      Set<String> receiving,
+      Set<String> change,
+      Set<String> all,
+      Set<String> shield,
+    })
+    sets,
+  }) => parsePivxTx(
+    json,
+    walletId: walletId,
+    fractionDigits: cryptoCurrency.fractionDigits,
+    receiving: sets.receiving,
+    change: sets.change,
+    shieldAddresses: sets.shield,
+    shield: _shield?.txInfo[json["txid"]],
+    nullifierNotes: _shield?.nullifierNotes ?? const {},
+    isColdStakeOutpoint: _isColdStakeOutpoint,
+  );
 
-    final inputs = <InputV2>[];
-    for (final v in (json["vin"] as List? ?? const [])) {
-      final vin = Map<String, dynamic>.from(v as Map);
-      final addrs = List<String>.from(vin["addresses"] as List? ?? const []);
-      final owns = addrs.any(all.contains);
-      sentFromWallet |= owns;
-      final coinbase = vin["coinbase"] as String?;
-      inputs.add(
-        InputV2.isarCantDoRequiredInDefaultConstructor(
-          scriptSigHex: null,
-          scriptSigAsm: null,
-          sequence: vin["sequence"] as int?,
-          outpoint: coinbase != null
-              ? null
-              : OutpointV2.isarCantDoRequiredInDefaultConstructor(
-                  txid: vin["txid"] as String,
-                  vout: vin["vout"] as int,
-                ),
-          addresses: addrs,
-          valueStringSats: vin["value"] as String? ?? "0",
-          witness: null,
-          innerRedeemScriptAsm: null,
-          coinbase: coinbase,
-          walletOwns: owns,
-        ),
-      );
-    }
-
-    // Shield notes this wallet spent (values from its nullifier map).
-    for (final nf in (shield?["spentNullifiers"] as List?) ?? const []) {
-      final note = _shield?.nullifierNotes[nf];
-      sentFromWallet = true;
-      inputs.add(
-        InputV2.isarCantDoRequiredInDefaultConstructor(
-          scriptSigHex: null,
-          scriptSigAsm: null,
-          sequence: null,
-          outpoint: null,
-          addresses: [note?["address"] as String? ?? ""],
-          valueStringSats: "${note?["value"] ?? 0}",
-          witness: null,
-          innerRedeemScriptAsm: null,
-          coinbase: null,
-          walletOwns: true,
-        ),
-      );
-    }
-
-    final outputs = <OutputV2>[];
-    BigInt totalOut = BigInt.zero;
-    for (final v in (json["vout"] as List? ?? const [])) {
-      final vout = Map<String, dynamic>.from(v as Map);
-      final addrs = List<String>.from(vout["addresses"] as List? ?? const []);
-      final value = BigInt.parse(vout["value"] as String? ?? "0");
-      totalOut += value;
-      bool owns = false;
-      if (addrs.any(receiving.contains)) {
-        owns = true;
-        receivedAmount += value;
-      } else if (addrs.any(change.contains)) {
-        owns = true;
-        changeAmount += value;
-      }
-      receivedInWallet |= owns;
-      outputs.add(
-        OutputV2.isarCantDoRequiredInDefaultConstructor(
-          scriptPubKeyHex: vout["hex"] as String? ?? "",
-          valueStringSats: value.toString(),
-          addresses: addrs,
-          walletOwns: owns,
-        ),
-      );
-    }
-
-    // Shield notes this wallet received.
-    final receivedNotes = (shield?["received"] as List?) ?? const [];
-    for (final n in receivedNotes) {
-      final value = BigInt.from(((n as Map)["value"] as num).toInt());
-      receivedInWallet = true;
-      changeAmount += value;
-      totalOut += value;
-      outputs.add(
-        OutputV2.isarCantDoRequiredInDefaultConstructor(
-          scriptPubKeyHex: "",
-          valueStringSats: value.toString(),
-          addresses: [n["address"] as String],
-          walletOwns: true,
-        ),
-      );
-    }
-
-    // Shield outputs this wallet sent to someone else.
-    final sentNotes = (shield?["sent"] as List?) ?? const [];
-    for (final n in sentNotes) {
-      final value = BigInt.from(((n as Map)["value"] as num).toInt());
-      sentFromWallet = true;
-      totalOut += value;
-      outputs.add(
-        OutputV2.isarCantDoRequiredInDefaultConstructor(
-          scriptPubKeyHex: "",
-          valueStringSats: value.toString(),
-          addresses: [n["address"] as String],
-          walletOwns: false,
-        ),
-      );
-    }
-
-    TransactionType type;
-    if (sentFromWallet) {
-      type = TransactionType.outgoing;
-      // Shield outputs we could not decrypt belong to someone else.
-      final shieldOutputs = json["shieldOutputs"] as int? ?? 0;
-      if (receivedInWallet &&
-          receivedAmount + changeAmount == totalOut &&
-          shieldOutputs <= receivedNotes.length) {
-        type = TransactionType.sentToSelf;
-      }
-    } else if (receivedInWallet) {
-      type = TransactionType.incoming;
-    } else {
-      Logging.instance.w("PIVX: unrelated tx ${json["txid"]} ignored");
-      return null;
-    }
-
-    // PIVX kinds with their own label (and the amount worth showing).
-    final kind = _classify(
-      json: json,
-      inputs: inputs,
-      outputs: outputs,
-      type: type,
-      receivedNotes: receivedNotes,
-      spentNullifiers: (shield?["spentNullifiers"] as List?) ?? const [],
-    );
-    if (kind != null && PivxTxKind.rewards.contains(kind.kind)) {
-      type = TransactionType.incoming;
-    }
-
-    // Text memos of the shield notes received or sent (the shielded memo).
-    final memo = [
-      for (final n in [...sentNotes, ...receivedNotes])
-        if (((n as Map)["memo"] as String?)?.trim().isNotEmpty ?? false)
-          (n["memo"] as String).trim(),
-    ].join("\n");
-
-    final height = json["blockHeight"] as int? ?? -1;
-    final txid = json["txid"] as String;
-    return TransactionV2(
-      walletId: walletId,
-      blockHash: json["blockHash"] as String?,
-      hash: txid,
-      txid: txid,
-      height: height > 0 ? height : null,
-      version: json["version"] as int? ?? 1,
-      timestamp: (json["blockTime"] as int?) ??
-          DateTime.timestamp().millisecondsSinceEpoch ~/ 1000,
-      inputs: List.unmodifiable(inputs),
-      outputs: List.unmodifiable(outputs),
-      type: type,
-      subType: TransactionSubType.none,
-      // Shield value is invisible in inputs/outputs, so the fee comes
-      // from the bridge (transparent in + value balance - transparent out).
-      otherData: jsonEncode({
-        if (memo.isNotEmpty) TxV2OdKeys.onChainNote: memo,
-        if (kind != null) TxV2OdKeys.pivxKind: kind.kind,
-        if (kind?.amount != null)
-          TxV2OdKeys.pivxAmount: Amount(
-            rawValue: kind!.amount!,
-            fractionDigits: cryptoCurrency.fractionDigits,
-          ).toJsonString(),
-        // Rewards create coins: no fee.
-        if (json["fees"] != null &&
-            !PivxTxKind.rewards.contains(kind?.kind))
-          TxV2OdKeys.overrideFee: Amount(
-            rawValue: BigInt.parse(json["fees"] as String),
-            fractionDigits: cryptoCurrency.fractionDigits,
-          ).toJsonString(),
-      }),
-    );
-  }
-
-  /// Which PIVX kind a parsed tx is, if a special one, and the amount
-  /// to show for it.
-  ({String kind, BigInt? amount})? _classify({
-    required Map<String, dynamic> json,
-    required List<InputV2> inputs,
-    required List<OutputV2> outputs,
-    required TransactionType type,
-    required List<dynamic> receivedNotes,
-    required List<dynamic> spentNullifiers,
-  }) {
-    BigInt sum(Iterable<dynamic> values) =>
-        values.fold(BigInt.zero, (p, v) => p + (v as BigInt));
-    final ownedIn = sum(inputs.where((e) => e.walletOwns).map((e) => e.value));
-    final ownedOutputs = outputs.where((e) => e.walletOwns);
-    final ownedOut = sum(ownedOutputs.map((e) => e.value));
-    final received = ownedOutputs.isNotEmpty;
-    final coldStakeOut = ownedOutputs.where(
-      (e) => _isColdStakeScript(e.scriptPubKeyHex),
-    );
-
-    if (json["coinbase"] == true && received) {
-      return (kind: PivxTxKind.blockReward, amount: ownedOut);
-    }
-    if (json["coinstake"] == true && received) {
-      if (ownedIn > BigInt.zero) {
-        // Our coins (or coins delegated by us) staked.
-        return (
-          kind: coldStakeOut.isNotEmpty
-              ? PivxTxKind.coldStakeReward
-              : PivxTxKind.stakeReward,
-          amount: ownedOut - ownedIn,
-        );
-      }
-      // Someone else's stake paid one of our addresses.
-      return (kind: PivxTxKind.masternodeReward, amount: ownedOut);
-    }
-    if (ownedIn > BigInt.zero && coldStakeOut.isNotEmpty) {
-      return (
-        kind: PivxTxKind.delegation,
-        amount: sum(coldStakeOut.map((e) => e.value)),
-      );
-    }
-    if (ownedIn > BigInt.zero && _spendsColdStake(inputs)) {
-      return (kind: PivxTxKind.undelegation, amount: ownedOut);
-    }
-    if (type == TransactionType.sentToSelf) {
-      // Transparent outputs have a script; shield notes have none.
-      final transparentOut = sum(
-        ownedOutputs
-            .where((e) => e.scriptPubKeyHex.isNotEmpty)
-            .map((e) => e.value),
-      );
-      if (spentNullifiers.isEmpty && receivedNotes.isNotEmpty) {
-        return (
-          kind: PivxTxKind.shield,
-          amount: sum(
-            receivedNotes.map(
-              (n) => BigInt.from(((n as Map)["value"] as num).toInt()),
-            ),
-          ),
-        );
-      }
-      if (spentNullifiers.isNotEmpty && transparentOut > BigInt.zero) {
-        return (kind: PivxTxKind.unshield, amount: transparentOut);
-      }
-    }
-    return null;
-  }
-
-  /// Whether one of our inputs spends a cold-stake (P2CS) output.
-  bool _spendsColdStake(List<InputV2> inputs) {
-    for (final i in inputs.where((e) => e.walletOwns)) {
-      final outpoint = i.outpoint;
-      if (outpoint == null) continue;
-      final prev = mainDB.isar.transactionV2s
-          .where()
-          .txidWalletIdEqualTo(outpoint.txid, walletId)
-          .findFirstSync();
-      if (prev != null &&
-          outpoint.vout < prev.outputs.length &&
-          _isColdStakeScript(prev.outputs[outpoint.vout].scriptPubKeyHex)) {
-        return true;
-      }
-    }
-    return false;
+  /// Whether [outpoint] is a cold-stake (P2CS) output of a stored tx.
+  bool _isColdStakeOutpoint(OutpointV2 outpoint) {
+    final prev = mainDB.isar.transactionV2s
+        .where()
+        .txidWalletIdEqualTo(outpoint.txid, walletId)
+        .findFirstSync();
+    return prev != null &&
+        outpoint.vout < prev.outputs.length &&
+        pivxIsColdStakeScript(prev.outputs[outpoint.vout].scriptPubKeyHex);
   }
 
   /// Store [txns] that are new or differ from the stored copy. Rewriting
@@ -747,6 +526,31 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
           .where()
           .txidWalletIdEqualTo(tx.txid, walletId)
           .findFirst();
+      if (stored != null && stored.isPivxOwnSend) {
+        // Our own send: the bridge's unconfirmed view lacks its shield
+        // side, so keep the entry we built until it confirms; then keep
+        // the exact amount and change we built it with.
+        if (tx.height == null) continue;
+        if (tx.type == stored.type) {
+          final od = {
+            ...jsonDecode(tx.otherData ?? "{}") as Map<String, dynamic>,
+          };
+          final old = jsonDecode(stored.otherData!) as Map<String, dynamic>;
+          for (final key in [
+            TxV2OdKeys.pivxKind,
+            TxV2OdKeys.pivxAmount,
+            TxV2OdKeys.pivxChange,
+          ]) {
+            if (old.containsKey(key)) {
+              od[key] = old[key];
+            } else {
+              od.remove(key);
+            }
+          }
+          od[TxV2OdKeys.pivxOwnSend] = true;
+          tx = tx.copyWith(otherData: jsonEncode(od));
+        }
+      }
       if (stored != null && tx.height == null && stored.height == null) {
         // Unconfirmed: keep when we first saw it (parsing uses "now").
         tx = tx.copyWith(timestamp: stored.timestamp);
@@ -1471,7 +1275,20 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
       tx = tx.signLegacy(inputN: i, key: inputs[i].key!.privateKey!);
     }
 
-    final allToSelf = tempOutputs.every((e) => e.walletOwns);
+    // Pending history entry, classified like confirmed ones.
+    final changeAddresses = {
+      for (final o in outputs)
+        if (o.isChange) o.address,
+    };
+    final fee =
+        tempInputs.fold(BigInt.zero, (p, e) => p + e.value) -
+        tempOutputs.fold(BigInt.zero, (p, e) => p + e.value);
+    final c = classifyPivxTx(
+      inputs: tempInputs,
+      outputs: tempOutputs,
+      changeAddresses: changeAddresses,
+      fee: fee,
+    )!;
     return (
       size: tx.size,
       txData: txData.copyWith(
@@ -1487,9 +1304,17 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
           inputs: List.unmodifiable(tempInputs),
           outputs: List.unmodifiable(tempOutputs),
           version: 1,
-          type: allToSelf ? TransactionType.sentToSelf : TransactionType.outgoing,
+          type: c.type,
           subType: TransactionSubType.none,
-          otherData: null,
+          otherData: jsonEncode(
+            pivxTxOtherData(
+              c: c,
+              fractionDigits: cryptoCurrency.fractionDigits,
+              changeAddresses: changeAddresses,
+              fee: fee,
+              ownSend: true,
+            ),
+          ),
         ),
       ),
     );

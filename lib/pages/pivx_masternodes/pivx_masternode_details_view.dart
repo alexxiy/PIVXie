@@ -100,6 +100,32 @@ class _PivxMasternodeDetailsViewState
       return;
     }
     _serviceFocus.unfocus();
+
+    // Restarting a running masternode sends it to the back of the
+    // payment queue.
+    final status = await wallet.masternodeStatus(mn);
+    if (!mounted) return;
+    if (status == "ENABLED" || status == "PRE_ENABLED") {
+      final restart = await showDialog<bool>(
+        context: context,
+        builder: (context) => StackDialog(
+          title: "Masternode is running",
+          message:
+              "Restarting puts it back at the end of the payment queue: "
+              "no rewards for days. Only restart it if it's really down.",
+          leftButton: SecondaryButton(
+            label: "Cancel",
+            onPressed: () => Navigator.of(context).pop(false),
+          ),
+          rightButton: PrimaryButton(
+            label: "Restart",
+            onPressed: () => Navigator.of(context).pop(true),
+          ),
+        ),
+      );
+      if (restart != true || !mounted) return;
+    }
+
     Exception? error;
     final answer = await showLoading<String>(
       whileFuture: wallet.startMasternode(mn, service: service),

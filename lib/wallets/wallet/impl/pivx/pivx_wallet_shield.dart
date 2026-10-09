@@ -213,6 +213,8 @@ extension _PivxShield on PivxWallet {
       }
     }
 
+    // After a parser change, every shield tx is read again.
+    if (_reparseHistory) walletTxids.addAll(state.txInfo.keys);
     if (walletTxids.isNotEmpty) {
       await _storeShieldHistory(walletTxids);
     }
@@ -317,14 +319,7 @@ extension _PivxShield on PivxWallet {
     final sets = await _addressSets();
     final txns = <TransactionV2>[];
     for (final txid in txids) {
-      final json = await bridge.tx(txid);
-      final tx = _parseTx(
-        json,
-        receiving: sets.receiving,
-        change: sets.change,
-        all: sets.all,
-        shield: _shield?.txInfo[txid],
-      );
+      final tx = _parseTx(await bridge.tx(txid), sets: sets);
       if (tx != null) txns.add(tx);
     }
     await _notifyIncoming(txns);
@@ -640,21 +635,33 @@ extension _PivxShield on PivxWallet {
           ),
     ];
     final recipientIsOurs = own.contains(recipient.address) || recipient.address == state.currentAddress;
+    // Shield notes have no script; transparent outputs keep theirs.
+    String script(String address) => isShieldAddress(address)
+        ? ""
+        : coinlib.Output.fromAddress(BigInt.zero, _parseAddress(address))
+              .scriptPubKey
+              .toHex;
     final tempOutputs = [
       OutputV2.isarCantDoRequiredInDefaultConstructor(
-        scriptPubKeyHex: "",
+        scriptPubKeyHex: script(recipient.address),
         valueStringSats: amount.toString(),
         addresses: [recipient.address],
         walletOwns: recipientIsOurs,
       ),
       if (changeValue > BigInt.zero)
         OutputV2.isarCantDoRequiredInDefaultConstructor(
-          scriptPubKeyHex: "",
+          scriptPubKeyHex: script(changeAddress),
           valueStringSats: changeValue.toString(),
           addresses: [changeAddress],
           walletOwns: true,
         ),
     ];
+    final tempClass = classifyPivxTx(
+      inputs: tempInputs,
+      outputs: tempOutputs,
+      changeAddresses: {changeAddress},
+      fee: fee,
+    )!;
 
     final otherData = <String, dynamic>{
       if (txData.otherData != null) ...jsonDecode(txData.otherData!) as Map<String, dynamic>,
@@ -682,14 +689,18 @@ extension _PivxShield on PivxWallet {
         inputs: List.unmodifiable(tempInputs),
         outputs: List.unmodifiable(tempOutputs),
         version: 3,
-        type: recipientIsOurs ? TransactionType.sentToSelf : TransactionType.outgoing,
+        type: tempClass.type,
         subType: TransactionSubType.none,
-        otherData: jsonEncode({
-          TxV2OdKeys.overrideFee: Amount(rawValue: fee, fractionDigits: digits).toJsonString(),
-          if ((txData.memo?.trim().isNotEmpty ?? false) &&
-              isShieldAddress(recipient.address))
-            TxV2OdKeys.onChainNote: txData.memo!.trim(),
-        }),
+        otherData: jsonEncode(
+          pivxTxOtherData(
+            c: tempClass,
+            fractionDigits: digits,
+            changeAddresses: {changeAddress},
+            fee: fee,
+            memo: isShieldAddress(recipient.address) ? txData.memo?.trim() : null,
+            ownSend: true,
+          ),
+        ),
       ),
     );
   }

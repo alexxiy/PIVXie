@@ -227,6 +227,16 @@ class TransactionV2 {
   @ignore
   String? get pivxKind => _getFromOtherData(key: TxV2OdKeys.pivxKind) as String?;
 
+  /// PIVX change addresses among the outputs.
+  @ignore
+  Set<String> get pivxChangeAddresses => {
+    ...((_getFromOtherData(key: TxV2OdKeys.pivxChange) as List?) ?? const [])
+        .cast<String>(),
+  };
+
+  @ignore
+  bool get isPivxOwnSend => _getFromOtherData(key: TxV2OdKeys.pivxOwnSend) == true;
+
   Amount? _getPivxAmount() {
     try {
       return Amount.fromSerializedJsonString(
@@ -484,6 +494,13 @@ abstract final class TxV2OdKeys {
   /// PIVX: amount to show instead of one derived from the outputs (the
   /// reward of a coinstake, the value delegated or shielded).
   static const pivxAmount = "pivxAmount";
+
+  /// PIVX: change addresses among the outputs (list of strings).
+  static const pivxChange = "pivxChange";
+
+  /// PIVX: built and sent by this wallet; its amount and change are
+  /// exact, unlike what a rescan can infer.
+  static const pivxOwnSend = "pivxOwnSend";
 }
 
 /// Kinds of PIVX transactions shown with their own label.
