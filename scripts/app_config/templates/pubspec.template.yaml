@@ -300,6 +300,9 @@ flutter_native_splash:
   color: "F7F7F7"
   color_dark_ios: "2A2D34"
   color_dark_android: "2A2D34"
+  # Without it, `flutter_native_splash:create` strips the portrait lock
+  # from AndroidManifest.xml.
+  android_screen_orientation: portrait
   android_12:
     color: "F7F7F7"
     color_dark: "2A2D34"
