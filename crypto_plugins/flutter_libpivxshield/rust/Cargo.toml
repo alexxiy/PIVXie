@@ -37,6 +37,17 @@ bellman = { git = "https://github.com/Duddino/librustpivx", branch = "librustzca
 [dev-dependencies]
 jubjub = "*"
 
+# Debug app builds compile the dev profile; unoptimised Sapling proving
+# is several times slower, so optimise it too.
+[profile.dev]
+opt-level = 3
+debug = false
+debug-assertions = false
+overflow-checks = false
+
+[profile.dev.package."*"]
+opt-level = 3
+
 [profile.release]
 opt-level = 3
 lto = true

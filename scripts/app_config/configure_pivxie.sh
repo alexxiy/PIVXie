@@ -69,11 +69,14 @@ const ({String light, String dark})? _appIconAsset = (
   dark: "assets/in_app_logo_icons/pivxie-icon_dark.svg",
 );
 
-// Release builds are single-coin (mainnet). Debug builds add the test
-// network (PIVX testnet / regtest) for development.
+// Release builds are single-coin (mainnet). Debug builds, and test
+// builds made with --dart-define=PIVX_TESTNET=true, add the test network
+// (PIVX testnet / regtest).
+const _pivxTestnet = bool.fromEnvironment("PIVX_TESTNET");
+
 final List<CryptoCurrency> _supportedCoins = List.unmodifiable([
   Pivx(CryptoCurrencyNetwork.main),
-  if (kDebugMode) Pivx(CryptoCurrencyNetwork.test),
+  if (kDebugMode || _pivxTestnet) Pivx(CryptoCurrencyNetwork.test),
 ]);
 
 final ({String from, String fromFuzzyNet, String to, String toFuzzyNet})
