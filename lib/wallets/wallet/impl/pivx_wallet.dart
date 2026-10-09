@@ -37,6 +37,7 @@ import '../wallet_mixin_interfaces/coin_control_interface.dart';
 import 'pivx/pivx_shield_state.dart';
 import 'pivx/pivx_shield_stream.dart';
 
+part 'pivx/pivx_masternodes.dart';
 part 'pivx/pivx_wallet_shield.dart';
 
 /// PIVX transparent wallet backed by pivx-bridge.
@@ -418,7 +419,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
       if (tx != null) txns.add(tx);
     }
     await _notifyIncoming(txns);
-    await mainDB.updateOrPutTransactionV2s(txns);
+    await _storeTxs(txns);
 
     try {
       await _syncShield();
@@ -707,6 +708,40 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     return false;
   }
 
+  /// Store [txns] that are new or differ from the stored copy. Rewriting
+  /// unchanged ones on every sync only makes the history list reload.
+  Future<void> _storeTxs(List<TransactionV2> txns) async {
+    final changed = <TransactionV2>[];
+    for (var tx in txns) {
+      final stored = await mainDB.isar.transactionV2s
+          .where()
+          .txidWalletIdEqualTo(tx.txid, walletId)
+          .findFirst();
+      if (stored != null && tx.height == null && stored.height == null) {
+        // Unconfirmed: keep when we first saw it (parsing uses "now").
+        tx = tx.copyWith(timestamp: stored.timestamp);
+      }
+      if (stored == null || _txSignature(stored) != _txSignature(tx)) {
+        changed.add(tx);
+      }
+    }
+    await mainDB.updateOrPutTransactionV2s(changed);
+  }
+
+  static String _txSignature(TransactionV2 t) => [
+    t.height,
+    t.blockHash,
+    t.timestamp,
+    t.type.name,
+    t.subType.name,
+    t.otherData,
+    for (final i in t.inputs)
+      "${i.outpoint?.txid}:${i.outpoint?.vout}:${i.valueStringSats}:"
+          "${i.addresses.join(",")}:${i.walletOwns}",
+    for (final o in t.outputs)
+      "${o.valueStringSats}:${o.addresses.join(",")}:${o.walletOwns}",
+  ].join("|");
+
   // ===========================================================================
   // Notifications
 
@@ -786,6 +821,10 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
       if (out != null && _isColdStakeScript(out.scriptPubKeyHex)) {
         blocked = true;
         blockedReason = "Delegated to a cold staker";
+      }
+      if (_isMasternodeCollateral(txid, vout)) {
+        blocked = true;
+        blockedReason = _kMasternodeFrozenReason;
       }
 
       // UTXO.getConfirmations() treats a utxo without block hash or time

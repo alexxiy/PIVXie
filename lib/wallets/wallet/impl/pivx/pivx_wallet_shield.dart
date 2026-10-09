@@ -327,7 +327,7 @@ extension _PivxShield on PivxWallet {
       if (tx != null) txns.add(tx);
     }
     await _notifyIncoming(txns);
-    await mainDB.updateOrPutTransactionV2s(txns);
+    await _storeTxs(txns);
   }
 
   /// [UTXO] rows for the unspent notes (see [kPivxShieldNoteKey]).

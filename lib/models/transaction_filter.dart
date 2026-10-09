@@ -9,6 +9,54 @@
  */
 
 import '../utilities/amount/amount.dart';
+import 'isar/models/blockchain_data/transaction.dart' show TransactionType;
+import 'isar/models/blockchain_data/v2/transaction_v2.dart';
+
+/// PIVX history categories the filter can select.
+enum PivxTxCategory {
+  sent("Sent"),
+  received("Received"),
+  sentToSelf("Sent to self"),
+  stakingReward("Staking rewards"),
+  masternodeReward("Masternode rewards"),
+  coldStakingReward("Cold staking rewards"),
+  delegation("Delegated"),
+  undelegation("Undelegated"),
+  shield("Shielded"),
+  unshield("Unshielded");
+
+  const PivxTxCategory(this.label);
+
+  final String label;
+
+  static PivxTxCategory of(TransactionV2 tx) {
+    switch (tx.pivxKind) {
+      case PivxTxKind.stakeReward:
+      case PivxTxKind.blockReward:
+        return stakingReward;
+      case PivxTxKind.masternodeReward:
+        return masternodeReward;
+      case PivxTxKind.coldStakeReward:
+        return coldStakingReward;
+      case PivxTxKind.delegation:
+        return delegation;
+      case PivxTxKind.undelegation:
+        return undelegation;
+      case PivxTxKind.shield:
+        return shield;
+      case PivxTxKind.unshield:
+        return unshield;
+    }
+    switch (tx.type) {
+      case TransactionType.incoming:
+        return received;
+      case TransactionType.sentToSelf:
+        return sentToSelf;
+      default:
+        return sent;
+    }
+  }
+}
 
 class TransactionFilter {
   final bool sent;
@@ -19,6 +67,10 @@ class TransactionFilter {
   final Amount? amount;
   final String keyword;
 
+  /// PIVX: categories to show (instead of [sent] / [received]); null when
+  /// not filtering by category.
+  final Set<PivxTxCategory>? pivxCategories;
+
   TransactionFilter({
     required this.sent,
     required this.received,
@@ -27,6 +79,7 @@ class TransactionFilter {
     required this.to,
     required this.amount,
     required this.keyword,
+    this.pivxCategories,
   });
 
   TransactionFilter copyWith({
@@ -37,6 +90,7 @@ class TransactionFilter {
     DateTime? to,
     Amount? amount,
     String? keyword,
+    Set<PivxTxCategory>? pivxCategories,
   }) {
     return TransactionFilter(
       sent: sent ?? this.sent,
@@ -46,11 +100,12 @@ class TransactionFilter {
       to: to ?? this.to,
       amount: amount ?? this.amount,
       keyword: keyword ?? this.keyword,
+      pivxCategories: pivxCategories ?? this.pivxCategories,
     );
   }
 
   @override
   String toString() {
-    return "TxFilter { sent: $sent, received: $received, trade: $trade, from: $from, to: $to, amount: $amount, keyword: $keyword }";
+    return "TxFilter { sent: $sent, received: $received, trade: $trade, from: $from, to: $to, amount: $amount, keyword: $keyword, pivxCategories: $pivxCategories }";
   }
 }

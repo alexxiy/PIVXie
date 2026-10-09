@@ -322,6 +322,13 @@ class PivxBridgeClient {
     return block["finalsaplingroot"] as String?;
   }
 
+  /// `listmasternodes` (via the RPC proxy) filtered by [filter], e.g. a
+  /// collateral txid.
+  Future<List<dynamic>> listMasternodes(String filter) async {
+    final json = await _getJson("/listmasternodes", {"params": filter});
+    return json is List ? json : const [];
+  }
+
   /// Download [url] into [file], reporting `(received, total)`.
   static Future<void> downloadToFile(
     Uri url,

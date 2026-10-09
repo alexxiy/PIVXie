@@ -1,0 +1,411 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:isar_community/isar.dart';
+
+import '../../db/isar/main_db.dart';
+import '../../models/isar/models/isar_models.dart';
+import '../../notifications/show_flush_bar.dart';
+import '../../providers/global/wallets_provider.dart';
+import '../../route_generator.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/show_loading.dart';
+import '../../utilities/text_styles.dart';
+import '../../wallets/models/tx_data.dart';
+import '../../wallets/wallet/impl/pivx_wallet.dart';
+import '../../widgets/background.dart';
+import '../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../widgets/custom_buttons/blue_text_button.dart';
+import '../../widgets/desktop/primary_button.dart';
+import '../../widgets/rounded_white_container.dart';
+import '../../widgets/stack_text_field.dart';
+import '../send_view/confirm_transaction_view.dart';
+import 'pivx_masternodes_view.dart';
+
+enum _Collateral { newAddress, ownAddress, existingOutput }
+
+/// Create a masternode: where the collateral goes (or which output is
+/// it), a label and the masternode private key.
+class PivxCreateMasternodeView extends ConsumerStatefulWidget {
+  const PivxCreateMasternodeView({super.key, required this.walletId});
+
+  static const routeName = "/pivxCreateMasternode";
+
+  final String walletId;
+
+  @override
+  ConsumerState<PivxCreateMasternodeView> createState() =>
+      _PivxCreateMasternodeViewState();
+}
+
+class _PivxCreateMasternodeViewState
+    extends ConsumerState<PivxCreateMasternodeView> {
+  final _labelController = TextEditingController();
+  final _labelFocus = FocusNode();
+  final _keyController = TextEditingController();
+  final _keyFocus = FocusNode();
+
+  _Collateral _collateral = _Collateral.newAddress;
+  bool _pasteKey = false;
+  late String _generatedKey;
+
+  Address? _newAddress;
+  List<Address> _ownAddresses = const [];
+  Address? _ownAddress;
+  List<UTXO> _outputs = const [];
+  UTXO? _output;
+
+  PivxWallet get _wallet =>
+      ref.read(pWallets).getWallet(widget.walletId) as PivxWallet;
+
+  @override
+  void initState() {
+    _generatedKey = _wallet.generateMasternodeKey();
+    unawaited(_load());
+    super.initState();
+  }
+
+  Future<void> _load() async {
+    final wallet = _wallet;
+    final newAddress = await wallet.getCurrentReceivingAddress();
+    final own = await MainDB.instance
+        .getAddresses(widget.walletId)
+        .filter()
+        .typeEqualTo(AddressType.p2pkh)
+        .and()
+        .subTypeEqualTo(AddressSubType.receiving)
+        .sortByDerivationIndex()
+        .findAll();
+    final outputs = await wallet.availableCollaterals();
+    if (!mounted) return;
+    setState(() {
+      _newAddress = newAddress;
+      _ownAddresses = own;
+      _ownAddress = own.isEmpty ? null : own.first;
+      _outputs = outputs;
+      _output = outputs.isEmpty ? null : outputs.first;
+    });
+  }
+
+  @override
+  void dispose() {
+    _labelController.dispose();
+    _labelFocus.dispose();
+    _keyController.dispose();
+    _keyFocus.dispose();
+    super.dispose();
+  }
+
+  String get _key => _pasteKey ? _keyController.text.trim() : _generatedKey;
+
+  String _addressTitle(Address a) {
+    final label = MainDB.instance
+        .getAddressLabelSync(widget.walletId, a.value)
+        ?.value
+        .trim();
+    return label != null && label.isNotEmpty
+        ? label
+        : "Receiving #${a.derivationIndex}";
+  }
+
+  Future<void> _create() async {
+    final wallet = _wallet;
+    if (!wallet.isValidMasternodeKey(_key)) {
+      await showFloatingFlushBar(
+        type: FlushBarType.warning,
+        message: "Invalid masternode private key",
+        context: context,
+      );
+      return;
+    }
+    final label = _labelController.text.trim();
+
+    if (_collateral == _Collateral.existingOutput) {
+      final output = _output;
+      if (output == null) return;
+      await wallet.addMasternode(
+        label: label,
+        address: output.address ?? "",
+        txid: output.txid,
+        vout: output.vout,
+        masternodeKey: _key,
+      );
+      if (mounted) Navigator.of(context).pop();
+      return;
+    }
+
+    final address = _collateral == _Collateral.newAddress
+        ? _newAddress?.value
+        : _ownAddress?.value;
+    if (address == null) return;
+
+    Exception? error;
+    final txData = await showLoading<TxData>(
+      whileFuture: wallet.prepareMasternodeCollateral(address: address),
+      context: context,
+      message: "Preparing collateral",
+      onException: (e) => error = e,
+    );
+    if (!mounted) return;
+    if (txData == null) {
+      await showFloatingFlushBar(
+        type: FlushBarType.warning,
+        message: error?.toString().replaceFirst("Exception: ", "") ??
+            "Could not prepare the collateral transaction",
+        context: context,
+        duration: const Duration(seconds: 4),
+      );
+      return;
+    }
+
+    final vout = wallet.collateralVout(txData, address);
+    final key = _key;
+    Future<void>? saving;
+    await Navigator.of(context).push(
+      RouteGenerator.getRoute<void>(
+        shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
+        builder: (_) => ConfirmTransactionView(
+          txData: txData,
+          walletId: widget.walletId,
+          onSuccess: () {
+            // Recorded (and its output frozen) once broadcast.
+            saving = wallet.addMasternode(
+              label: label,
+              address: address,
+              txid: txData.txid!,
+              vout: vout,
+              masternodeKey: key,
+            );
+          },
+          onSuccessInsteadOfRouteOnSuccess: () async {
+            await saving;
+            if (context.mounted) {
+              Navigator.of(context).popUntil(
+                ModalRoute.withName(PivxMasternodesView.routeName),
+              );
+            }
+          },
+        ),
+        settings: const RouteSettings(name: ConfirmTransactionView.routeName),
+      ),
+    );
+  }
+
+  Widget _option(_Collateral value, String title, Widget? body) {
+    final colors = Theme.of(context).extension<StackColors>()!;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: GestureDetector(
+        onTap: () => setState(() => _collateral = value),
+        child: RoundedWhiteContainer(
+          borderColor: _collateral == value ? colors.accentColorBlue : null,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Radio<_Collateral>(
+                value: value,
+                groupValue: _collateral,
+                activeColor: colors.radioButtonIconEnabled,
+                onChanged: (v) => setState(() => _collateral = v!),
+              ),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(title, style: STextStyles.titleBold12(context)),
+                      if (body != null && _collateral == value) ...[
+                        const SizedBox(height: 8),
+                        body,
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _subtitle(String text) => Text(
+    text,
+    style: STextStyles.w500_12(context).copyWith(
+      color: Theme.of(context).extension<StackColors>()!.textSubtitle1,
+    ),
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<StackColors>()!;
+    final wallet = _wallet;
+    final collateral =
+        "${wallet.masternodeCollateral.decimal} ${wallet.cryptoCurrency.ticker}";
+
+    return Background(
+      child: Scaffold(
+        backgroundColor: colors.background,
+        appBar: AppBar(
+          leading: AppBarBackButton(
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+          title: Text(
+            "Create masternode",
+            style: STextStyles.navBarTitle(context),
+          ),
+        ),
+        body: SafeArea(
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              Text("Label", style: STextStyles.smallMed12(context)),
+              const SizedBox(height: 8),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: TextField(
+                  controller: _labelController,
+                  focusNode: _labelFocus,
+                  style: STextStyles.field(context),
+                  decoration: standardInputDecoration(
+                    "e.g. My masternode",
+                    _labelFocus,
+                    context,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Text("Collateral", style: STextStyles.smallMed12(context)),
+              const SizedBox(height: 8),
+              _option(
+                _Collateral.newAddress,
+                "Send $collateral to a new address",
+                _subtitle(_newAddress?.value ?? "…"),
+              ),
+              if (_ownAddresses.isNotEmpty)
+                _option(
+                  _Collateral.ownAddress,
+                  "Send $collateral to one of my addresses",
+                  DropdownButton<Address>(
+                    isExpanded: true,
+                    value: _ownAddress,
+                    dropdownColor: colors.popupBG,
+                    items: [
+                      for (final a in _ownAddresses)
+                        DropdownMenuItem(
+                          value: a,
+                          child: Text(
+                            "${_addressTitle(a)}  ${a.value}",
+                            overflow: TextOverflow.ellipsis,
+                            style: STextStyles.w500_12(context),
+                          ),
+                        ),
+                    ],
+                    onChanged: (a) => setState(() => _ownAddress = a),
+                  ),
+                ),
+              if (_outputs.isNotEmpty)
+                _option(
+                  _Collateral.existingOutput,
+                  "Use a $collateral output I already have",
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      for (final u in _outputs)
+                        GestureDetector(
+                          onTap: () => setState(() => _output = u),
+                          child: Row(
+                            children: [
+                              Radio<UTXO>(
+                                value: u,
+                                groupValue: _output,
+                                activeColor: colors.radioButtonIconEnabled,
+                                onChanged: (v) => setState(() => _output = v),
+                              ),
+                              Expanded(
+                                child: _subtitle(
+                                  "${u.address}\n"
+                                  "${u.txid.substring(0, 16)}…:${u.vout}",
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    "Masternode private key",
+                    style: STextStyles.smallMed12(context),
+                  ),
+                  CustomTextButton(
+                    text: _pasteKey ? "Generate one" : "I have a key",
+                    onTap: () => setState(() => _pasteKey = !_pasteKey),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 8),
+              if (_pasteKey)
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: TextField(
+                    controller: _keyController,
+                    focusNode: _keyFocus,
+                    autocorrect: false,
+                    enableSuggestions: false,
+                    style: STextStyles.field(context),
+                    onChanged: (_) => setState(() {}),
+                    decoration: standardInputDecoration(
+                      "Paste the masternode private key",
+                      _keyFocus,
+                      context,
+                    ),
+                  ),
+                )
+              else
+                RoundedWhiteContainer(
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: SelectableText(
+                          _generatedKey,
+                          style: STextStyles.w500_12(context),
+                        ),
+                      ),
+                      CustomTextButton(
+                        text: "New",
+                        onTap: () => setState(
+                          () => _generatedKey = wallet.generateMasternodeKey(),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              const SizedBox(height: 8),
+              _subtitle(
+                "The masternode private key identifies your masternode on "
+                "the network. It can't spend your coins, but keep it "
+                "private. You will find it again in the masternode details.",
+              ),
+              const SizedBox(height: 24),
+              PrimaryButton(
+                label: _collateral == _Collateral.existingOutput
+                    ? "Create masternode"
+                    : "Send collateral",
+                enabled: !_pasteKey || _keyController.text.trim().isNotEmpty,
+                onPressed: _create,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

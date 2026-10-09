@@ -56,6 +56,7 @@ import '../../wallets/wallet/impl/firo_wallet.dart';
 import '../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../../wallets/wallet/impl/namecoin_wallet.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
+import '../pivx_masternodes/pivx_masternodes_view.dart';
 import '../../wallets/wallet/impl/salvium_wallet.dart';
 import '../../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import '../../wallets/wallet/intermediate/lib_salvium_wallet.dart';
@@ -1232,6 +1233,27 @@ class _WalletViewState extends ConsumerState<WalletView> {
                         onTap: () {
                           Navigator.of(context).pushNamed(
                             MasternodesHomeView.routeName,
+                            arguments: widget.walletId,
+                          );
+                        },
+                      ),
+                    if (!viewOnly && wallet is PivxWallet)
+                      WalletNavigationBarItemData(
+                        label: "Masternodes",
+                        icon: SvgPicture.asset(
+                          Assets.svg.recycle,
+                          height: 20,
+                          width: 20,
+                          colorFilter: ColorFilter.mode(
+                            Theme.of(
+                              context,
+                            ).extension<StackColors>()!.bottomNavIconIcon,
+                            BlendMode.srcIn,
+                          ),
+                        ),
+                        onTap: () {
+                          Navigator.of(context).pushNamed(
+                            PivxMasternodesView.routeName,
                             arguments: widget.walletId,
                           );
                         },

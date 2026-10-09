@@ -123,6 +123,9 @@ import 'pages/settings_views/global_settings_view/advanced_views/manage_coin_uni
 import 'pages/settings_views/global_settings_view/advanced_views/manage_coin_units/manage_coin_units_view.dart';
 import 'pages/settings_views/global_settings_view/advanced_views/manage_explorer_view.dart';
 import 'pages/settings_views/global_settings_view/appearance_settings/appearance_settings_view.dart';
+import 'pages/pivx_masternodes/pivx_create_masternode_view.dart';
+import 'pages/pivx_masternodes/pivx_masternode_details_view.dart';
+import 'pages/pivx_masternodes/pivx_masternodes_view.dart';
 import 'pages/settings_views/global_settings_view/appearance_settings/theme_mode_view.dart';
 import 'pages/settings_views/global_settings_view/appearance_settings/manage_themes.dart';
 import 'pages/settings_views/global_settings_view/appearance_settings/system_brightness_theme_selection_view.dart';
@@ -2421,6 +2424,39 @@ class RouteGenerator {
               amount: args.item2,
               trade: args.item4,
               address: args.item3,
+            ),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case PivxMasternodesView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => PivxMasternodesView(walletId: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case PivxCreateMasternodeView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => PivxCreateMasternodeView(walletId: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case PivxMasternodeDetailsView.routeName:
+        if (args is ({String walletId, String id})) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => PivxMasternodeDetailsView(
+              walletId: args.walletId,
+              masternodeId: args.id,
             ),
             settings: RouteSettings(name: settings.name),
           );

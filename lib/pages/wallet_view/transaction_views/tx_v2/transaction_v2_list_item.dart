@@ -49,7 +49,12 @@ class TxListItem extends ConsumerWidget {
                 )
           : [];
 
-      final txKeyString = _tx.txid + _tx.type.name + _tx.hashCode.toString();
+      // Keyed on content, not object identity: every database change
+      // reloads the list as new objects, and identity keys rebuilt every
+      // card (visible flicker on each sync).
+      final txKeyString =
+          "${_tx.txid}${_tx.type.name}${_tx.subType.name}"
+          "${_tx.height}${_tx.blockHash}${_tx.otherData.hashCode}";
 
       if (matchingTrades.isNotEmpty) {
         final trade = matchingTrades.first;

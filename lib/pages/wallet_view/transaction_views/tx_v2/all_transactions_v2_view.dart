@@ -120,19 +120,28 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
         .findAllSync();
 
     return transactions.where((tx) {
-      if (!filter.sent && !filter.received) {
-        return false;
+      final categories = filter.pivxCategories;
+      if (categories != null) {
+        if (!categories.contains(PivxTxCategory.of(tx))) return false;
+      } else {
+        if (!filter.sent && !filter.received) {
+          return false;
+        }
+
+        if (filter.received &&
+            !filter.sent &&
+            tx.type == TransactionType.outgoing) {
+          return false;
+        }
+
+        if (filter.sent &&
+            !filter.received &&
+            tx.type == TransactionType.incoming) {
+          return false;
+        }
       }
 
-      if (filter.received &&
-          !filter.sent &&
-          tx.type == TransactionType.outgoing) {
-        return false;
-      }
-
-      if (filter.sent &&
-          !filter.received &&
-          tx.type == TransactionType.incoming) {
+      if (filter.amount != null && _txAmount(tx) != filter.amount) {
         return false;
       }
 
@@ -204,7 +213,30 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
       tx.timestamp,
     ).toLowerCase().contains(keyword);
 
+    // on chain / shielded memo
+    contains |= tx.onChainNote?.toLowerCase().contains(keyword) ?? false;
+
+    // PIVX type ("staking", "masternode", "shield", ...)
+    contains |= PivxTxCategory.of(tx).label.toLowerCase().contains(keyword);
+
+    // amount: "1.2" finds 1.2, 1.25, 11.2, ...
+    final number = keyword.replaceAll(",", ".");
+    if (double.tryParse(number) != null) {
+      contains |= _txAmount(tx).decimal.toString().contains(number);
+    }
+
     return contains;
+  }
+
+  /// The amount shown for [tx] in the history.
+  Amount _txAmount(TransactionV2 tx) {
+    final digits = ref.read(pWalletCoin(walletId)).fractionDigits;
+    return tx.type == TransactionType.outgoing
+        ? tx.getAmountSentFromThisWallet(
+            fractionDigits: digits,
+            subtractFee: true,
+          )
+        : tx.getAmountReceivedInThisWallet(fractionDigits: digits);
   }
 
   String _searchString = "";
@@ -620,12 +652,53 @@ class _TransactionFilterOptionBarState
   final List<TransactionFilterOptionBarItem> items = [];
   TransactionFilter? _filter;
 
+  /// [copyWith] can't set a field back to null, so rebuild without it.
+  TransactionFilter _without(
+    TransactionFilter f, {
+    bool to = false,
+    bool from = false,
+    bool amount = false,
+    bool categories = false,
+  }) => TransactionFilter(
+    sent: f.sent,
+    received: f.received,
+    trade: f.trade,
+    from: from ? null : f.from,
+    to: to ? null : f.to,
+    amount: amount ? null : f.amount,
+    keyword: f.keyword,
+    pivxCategories: categories ? null : f.pivxCategories,
+  );
+
+  void _remove(String label, TransactionFilter Function(TransactionFilter) f) {
+    items.removeWhere((e) => e.label == label);
+    final current = ref.read(transactionFilterProvider.state).state;
+    if (items.isEmpty || current == null) {
+      ref.read(transactionFilterProvider.state).state = null;
+    } else {
+      ref.read(transactionFilterProvider.state).state = f(current);
+      setState(() {});
+    }
+  }
+
   @override
   void initState() {
     _filter = ref.read(transactionFilterProvider.state).state;
 
     if (_filter != null) {
-      if (_filter!.sent) {
+      final categories = _filter!.pivxCategories;
+      if (categories != null &&
+          categories.length < PivxTxCategory.values.length) {
+        final label = categories.map((e) => e.label).join(", ");
+        items.add(
+          TransactionFilterOptionBarItem(
+            label: label,
+            onPressed: (_) =>
+                _remove(label, (f) => _without(f, categories: true)),
+          ),
+        );
+      }
+      if (_filter!.sent && categories == null) {
         const label = "Sent";
         final item = TransactionFilterOptionBarItem(
           label: label,
@@ -644,7 +717,7 @@ class _TransactionFilterOptionBarState
         );
         items.add(item);
       }
-      if (_filter!.received) {
+      if (_filter!.received && categories == null) {
         const label = ("Received");
         final item = TransactionFilterOptionBarItem(
           label: label,
@@ -664,63 +737,33 @@ class _TransactionFilterOptionBarState
         items.add(item);
       }
 
-      if (_filter!.to != null) {
-        final label = _filter!.from.toString();
-        final item = TransactionFilterOptionBarItem(
-          label: label,
-          onPressed: (s) {
-            items.removeWhere((e) => e.label == label);
-            if (items.isEmpty) {
-              ref.read(transactionFilterProvider.state).state = null;
-            } else {
-              ref.read(transactionFilterProvider.state).state = ref
-                  .read(transactionFilterProvider.state)
-                  .state
-                  ?.copyWith(to: null);
-              setState(() {});
-            }
-          },
-        );
-        items.add(item);
-      }
       if (_filter!.from != null) {
-        final label2 = _filter!.to.toString();
-        final item2 = TransactionFilterOptionBarItem(
-          label: label2,
-          onPressed: (s) {
-            items.removeWhere((e) => e.label == label2);
-            if (items.isEmpty) {
-              ref.read(transactionFilterProvider.state).state = null;
-            } else {
-              ref.read(transactionFilterProvider.state).state = ref
-                  .read(transactionFilterProvider.state)
-                  .state
-                  ?.copyWith(from: null);
-              setState(() {});
-            }
-          },
+        final label = "From ${_filter!.from!.toString().split(" ").first}";
+        items.add(
+          TransactionFilterOptionBarItem(
+            label: label,
+            onPressed: (_) => _remove(label, (f) => _without(f, from: true)),
+          ),
         );
-        items.add(item2);
+      }
+      if (_filter!.to != null) {
+        final label = "To ${_filter!.to!.toString().split(" ").first}";
+        items.add(
+          TransactionFilterOptionBarItem(
+            label: label,
+            onPressed: (_) => _remove(label, (f) => _without(f, to: true)),
+          ),
+        );
       }
 
       if (_filter!.amount != null) {
-        final label = _filter!.amount!.toString();
-        final item = TransactionFilterOptionBarItem(
-          label: label,
-          onPressed: (s) {
-            items.removeWhere((e) => e.label == label);
-            if (items.isEmpty) {
-              ref.read(transactionFilterProvider.state).state = null;
-            } else {
-              ref.read(transactionFilterProvider.state).state = ref
-                  .read(transactionFilterProvider.state)
-                  .state
-                  ?.copyWith(amount: null);
-              setState(() {});
-            }
-          },
+        final label = _filter!.amount!.decimal.toString();
+        items.add(
+          TransactionFilterOptionBarItem(
+            label: label,
+            onPressed: (_) => _remove(label, (f) => _without(f, amount: true)),
+          ),
         );
-        items.add(item);
       }
       if (_filter!.keyword.isNotEmpty) {
         final label = _filter!.keyword;

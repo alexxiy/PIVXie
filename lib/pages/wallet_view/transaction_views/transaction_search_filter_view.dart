@@ -57,6 +57,9 @@ class _TransactionSearchViewState
   bool _isActiveSentCheckbox = false;
   bool _isActiveTradeCheckbox = false;
 
+  /// PIVX: categories to show; all by default.
+  final Set<PivxTxCategory> _categories = {...PivxTxCategory.values};
+
   final keywordTextFieldFocusNode = FocusNode();
   final amountTextFieldFocusNode = FocusNode();
 
@@ -69,6 +72,11 @@ class _TransactionSearchViewState
     if (filterState != null) {
       _isActiveReceivedCheckbox = filterState.received;
       _isActiveSentCheckbox = filterState.sent;
+      if (filterState.pivxCategories != null) {
+        _categories
+          ..clear()
+          ..addAll(filterState.pivxCategories!);
+      }
       _selectedToDate = filterState.to;
       _selectedFromDate = filterState.from;
       _keywordTextEditingController.text = filterState.keyword;
@@ -159,6 +167,57 @@ class _TransactionSearchViewState
     }
   }
 
+  /// One checkbox per PIVX transaction type.
+  Widget _pivxCategoryBox(bool isDesktop) {
+    return RoundedWhiteContainer(
+      padding: EdgeInsets.all(isDesktop ? 0 : 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          for (final c in PivxTxCategory.values)
+            Padding(
+              padding: EdgeInsets.only(bottom: isDesktop ? 4 : 10),
+              child: GestureDetector(
+                onTap: () => setState(() {
+                  _categories.contains(c)
+                      ? _categories.remove(c)
+                      : _categories.add(c);
+                }),
+                child: Container(
+                  color: Colors.transparent,
+                  child: Row(
+                    children: [
+                      SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: Checkbox(
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                          value: _categories.contains(c),
+                          onChanged: (v) => setState(() {
+                            v == true
+                                ? _categories.add(c)
+                                : _categories.remove(c);
+                          }),
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      Text(
+                        c.label,
+                        style: isDesktop
+                            ? STextStyles.desktopTextSmall(context)
+                            : STextStyles.itemSubtitle12(context),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildContent(BuildContext context) {
     final isDesktop = Util.isDesktop;
 
@@ -188,6 +247,9 @@ class _TransactionSearchViewState
             ),
           ),
         if (!isDesktop) const SizedBox(height: 12),
+        if (widget.coin is Pivx)
+          _pivxCategoryBox(isDesktop)
+        else
         RoundedWhiteContainer(
           padding: EdgeInsets.all(isDesktop ? 0 : 12),
           child: Column(
@@ -641,14 +703,16 @@ class _TransactionSearchViewState
             ).toAmount(fractionDigits: widget.coin.fractionDigits);
     }
 
+    final isPivx = widget.coin is Pivx;
     final TransactionFilter filter = TransactionFilter(
-      sent: _isActiveSentCheckbox,
-      received: _isActiveReceivedCheckbox,
+      sent: isPivx || _isActiveSentCheckbox,
+      received: isPivx || _isActiveReceivedCheckbox,
       trade: _isActiveTradeCheckbox,
       from: _selectedFromDate,
       to: _selectedToDate,
       amount: amount,
       keyword: _keywordTextEditingController.text,
+      pivxCategories: isPivx ? {..._categories} : null,
     );
 
     ref.read(transactionFilterProvider.state).state = filter;
