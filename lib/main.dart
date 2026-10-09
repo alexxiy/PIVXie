@@ -108,6 +108,10 @@ void main(List<String> args) async {
   if (Platform.isIOS) {
     Util.libraryPath = await getLibraryDirectory();
   }
+  if (!Util.isDesktop) {
+    // The mobile layouts are designed for portrait only.
+    await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
+  }
   Screen? screen;
   if (Platform.isLinux || (Util.isDesktop && !Platform.isIOS)) {
     screen = await getCurrentScreen();
