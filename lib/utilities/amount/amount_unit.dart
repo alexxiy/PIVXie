@@ -329,11 +329,14 @@ extension AmountUnitExt on AmountUnit {
         }
       }
 
+      // PIVXie: no trailing zeros ("1.5 PIV", not "1.50000000 PIV")
+      remainder = remainder.replaceFirst(RegExp(r'0+$'), "");
+
       // get decimal separator based on locale
       final String separator = numberSymbols?.DECIMAL_SEP ?? ".";
 
       // append separator and fractional amount
-      returnValue += "$separator$remainder";
+      if (remainder.isNotEmpty) returnValue += "$separator$remainder";
     }
 
     if (!withUnitName && !indicatePrecisionLoss) {

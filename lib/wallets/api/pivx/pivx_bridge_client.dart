@@ -329,6 +329,27 @@ class PivxBridgeClient {
     return json is List ? json : const [];
   }
 
+  /// Protocol version of the bridge's node (`getnetworkinfo`), or null
+  /// when the bridge does not allow that call.
+  Future<int?> protocolVersion() async {
+    try {
+      final json = await _getJson("/getnetworkinfo") as Map;
+      return json["protocolversion"] as int?;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// `relaymasternodebroadcast` (via the RPC proxy): relay a signed
+  /// masternode broadcast ([mnbHex]). Returns the node's answer, e.g.
+  /// "Masternode broadcast sent (service ..., vin ...)".
+  Future<String> relayMasternodeBroadcast(String mnbHex) async {
+    final json = await _getJson("/relaymasternodebroadcast", {
+      "params": mnbHex,
+    });
+    return json.toString();
+  }
+
   /// Download [url] into [file], reporting `(received, total)`.
   static Future<void> downloadToFile(
     Uri url,

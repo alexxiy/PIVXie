@@ -497,6 +497,22 @@ abstract final class PivxTxKind {
   static const shield = "shield";
   static const unshield = "unshield";
 
+  /// Bundled history icon of [kind], or null for a plain send/receive.
+  static String? iconAsset(String? kind, {required bool pending}) {
+    final name = switch (kind) {
+      stakeReward || blockReward => "stake-reward",
+      masternodeReward => "masternode-reward",
+      coldStakeReward => "cold-stake-reward",
+      delegation => "delegation",
+      undelegation => "undelegation",
+      shield => "shield",
+      unshield => "unshield",
+      _ => null,
+    };
+    if (name == null) return null;
+    return "assets/svg/tx-icon-pivx-$name${pending ? "-pending" : ""}.svg";
+  }
+
   /// Kinds that mint new coins: immature until coinbase maturity.
   static const rewards = {
     stakeReward,

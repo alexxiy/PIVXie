@@ -43,6 +43,8 @@ class _PivxCreateMasternodeViewState
     extends ConsumerState<PivxCreateMasternodeView> {
   final _labelController = TextEditingController();
   final _labelFocus = FocusNode();
+  final _addressLabelController = TextEditingController();
+  final _addressLabelFocus = FocusNode();
   final _keyController = TextEditingController();
   final _keyFocus = FocusNode();
 
@@ -68,14 +70,32 @@ class _PivxCreateMasternodeViewState
 
   Future<void> _load() async {
     final wallet = _wallet;
-    final newAddress = await wallet.getCurrentReceivingAddress();
+    await wallet.loadMasternodeNetwork();
+    var newAddress = await wallet.getCurrentReceivingAddress();
+    // A collateral sent moments ago may not have moved the wallet to its
+    // next address yet: never offer the same "new" address twice.
+    if (newAddress != null &&
+        wallet.masternodes.any((m) => m.address == newAddress!.value)) {
+      await wallet.generateNewReceivingAddress();
+      newAddress = await wallet.getCurrentReceivingAddress();
+    }
     final own = await MainDB.instance
         .getAddresses(widget.walletId)
         .filter()
-        .typeEqualTo(AddressType.p2pkh)
+        .group(
+          (q) => q
+              .subTypeEqualTo(AddressSubType.receiving)
+              .or()
+              .subTypeEqualTo(AddressSubType.change),
+        )
         .and()
-        .subTypeEqualTo(AddressSubType.receiving)
-        .sortByDerivationIndex()
+        .not()
+        .typeEqualTo(AddressType.pivxShield)
+        .and()
+        .not()
+        .typeEqualTo(AddressType.nonWallet)
+        .sortBySubType()
+        .thenByDerivationIndex()
         .findAll();
     final outputs = await wallet.availableCollaterals();
     if (!mounted) return;
@@ -92,6 +112,8 @@ class _PivxCreateMasternodeViewState
   void dispose() {
     _labelController.dispose();
     _labelFocus.dispose();
+    _addressLabelController.dispose();
+    _addressLabelFocus.dispose();
     _keyController.dispose();
     _keyFocus.dispose();
     super.dispose();
@@ -99,15 +121,20 @@ class _PivxCreateMasternodeViewState
 
   String get _key => _pasteKey ? _keyController.text.trim() : _generatedKey;
 
-  String _addressTitle(Address a) {
+  String? _label(String address) {
     final label = MainDB.instance
-        .getAddressLabelSync(widget.walletId, a.value)
+        .getAddressLabelSync(widget.walletId, address)
         ?.value
         .trim();
-    return label != null && label.isNotEmpty
-        ? label
-        : "Receiving #${a.derivationIndex}";
+    return label == null || label.isEmpty ? null : label;
   }
+
+  /// The address label, else its kind and index.
+  String _addressTitle(Address a) =>
+      _label(a.value) ??
+      (a.subType == AddressSubType.change
+          ? "Change #${a.derivationIndex}"
+          : "Receiving #${a.derivationIndex}");
 
   Future<void> _create() async {
     final wallet = _wallet;
@@ -161,6 +188,9 @@ class _PivxCreateMasternodeViewState
 
     final vout = wallet.collateralVout(txData, address);
     final key = _key;
+    final addressLabel = _collateral == _Collateral.newAddress
+        ? _addressLabelController.text.trim()
+        : null;
     Future<void>? saving;
     await Navigator.of(context).push(
       RouteGenerator.getRoute<void>(
@@ -176,11 +206,12 @@ class _PivxCreateMasternodeViewState
               txid: txData.txid!,
               vout: vout,
               masternodeKey: key,
+              addressLabel: addressLabel,
             );
           },
           onSuccessInsteadOfRouteOnSuccess: () async {
             await saving;
-            if (context.mounted) {
+            if (mounted) {
               Navigator.of(context).popUntil(
                 ModalRoute.withName(PivxMasternodesView.routeName),
               );
@@ -262,7 +293,7 @@ class _PivxCreateMasternodeViewState
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [
-              Text("Label", style: STextStyles.smallMed12(context)),
+              Text("Masternode alias", style: STextStyles.smallMed12(context)),
               const SizedBox(height: 8),
               ClipRRect(
                 borderRadius: BorderRadius.circular(8),
@@ -271,7 +302,7 @@ class _PivxCreateMasternodeViewState
                   focusNode: _labelFocus,
                   style: STextStyles.field(context),
                   decoration: standardInputDecoration(
-                    "e.g. My masternode",
+                    "e.g. MN1",
                     _labelFocus,
                     context,
                   ),
@@ -283,7 +314,26 @@ class _PivxCreateMasternodeViewState
               _option(
                 _Collateral.newAddress,
                 "Send $collateral to a new address",
-                _subtitle(_newAddress?.value ?? "…"),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _subtitle(_newAddress?.value ?? "…"),
+                    const SizedBox(height: 10),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: TextField(
+                        controller: _addressLabelController,
+                        focusNode: _addressLabelFocus,
+                        style: STextStyles.field(context),
+                        decoration: standardInputDecoration(
+                          "Address label (optional), e.g. MN1 collateral",
+                          _addressLabelFocus,
+                          context,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
               if (_ownAddresses.isNotEmpty)
                 _option(
@@ -291,16 +341,32 @@ class _PivxCreateMasternodeViewState
                   "Send $collateral to one of my addresses",
                   DropdownButton<Address>(
                     isExpanded: true,
+                    itemHeight: null,
                     value: _ownAddress,
                     dropdownColor: colors.popupBG,
                     items: [
                       for (final a in _ownAddresses)
                         DropdownMenuItem(
                           value: a,
-                          child: Text(
-                            "${_addressTitle(a)}  ${a.value}",
-                            overflow: TextOverflow.ellipsis,
-                            style: STextStyles.w500_12(context),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 6),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  _addressTitle(a),
+                                  style: STextStyles.w600_14(context),
+                                ),
+                                Text(
+                                  a.value,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: STextStyles.w500_12(
+                                    context,
+                                  ).copyWith(color: colors.textSubtitle1),
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                     ],
@@ -327,7 +393,7 @@ class _PivxCreateMasternodeViewState
                               ),
                               Expanded(
                                 child: _subtitle(
-                                  "${u.address}\n"
+                                  "${_label(u.address ?? "") ?? u.address}\n"
                                   "${u.txid.substring(0, 16)}…:${u.vout}",
                                 ),
                               ),

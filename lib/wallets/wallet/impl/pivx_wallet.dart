@@ -86,6 +86,9 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
   PivxBridgeClient? _client;
   String? _clientKey;
 
+  /// Chain the bridge serves ("main", "test", "regtest"), once known.
+  String? _bridgeChain;
+
   PivxBridgeClient get bridge {
     final node = getCurrentNode();
     final key = "${node.host}|${node.port}|${node.useSSL}|${prefs.useTor}";
@@ -238,6 +241,8 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
   Future<bool> pingCheck() async {
     try {
       final status = await bridge.status();
+      final chain = (status["backend"] as Map?)?["chain"] as String?;
+      if (chain != null) _bridgeChain = chain;
       return status["backend"] != null;
     } catch (_) {
       return false;

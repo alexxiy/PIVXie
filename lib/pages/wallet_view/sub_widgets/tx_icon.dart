@@ -101,22 +101,25 @@ class TxIcon extends ConsumerWidget {
     } else if (transaction is TransactionV2) {
       final tx = transaction as TransactionV2;
       txIsReceived = tx.type == TransactionType.incoming;
-      assetName = _getAssetName(
-        false,
-        txIsReceived,
-        !tx.isConfirmed(
-          currentHeight,
-          ref.watch(pWallets).getWallet(tx.walletId).cryptoCurrency.minConfirms,
-          ref
-              .watch(pWallets)
-              .getWallet(tx.walletId)
-              .cryptoCurrency
-              .minCoinbaseConfirms,
-        ),
-        tx.subType,
-        tx.type,
-        ref.watch(themeAssetsProvider),
+      final isPending = !tx.isConfirmed(
+        currentHeight,
+        ref.watch(pWallets).getWallet(tx.walletId).cryptoCurrency.minConfirms,
+        ref
+            .watch(pWallets)
+            .getWallet(tx.walletId)
+            .cryptoCurrency
+            .minCoinbaseConfirms,
       );
+      assetName =
+          PivxTxKind.iconAsset(tx.pivxKind, pending: isPending) ??
+          _getAssetName(
+            false,
+            txIsReceived,
+            isPending,
+            tx.subType,
+            tx.type,
+            ref.watch(themeAssetsProvider),
+          );
     } else {
       throw ArgumentError(
         "Unknown transaction type ${transaction.runtimeType}",

@@ -29,6 +29,14 @@ class _PivxMasternodesViewState extends ConsumerState<PivxMasternodesView> {
   PivxWallet get _wallet =>
       ref.read(pWallets).getWallet(widget.walletId) as PivxWallet;
 
+  @override
+  void initState() {
+    _wallet.loadMasternodeNetwork().then((_) {
+      if (mounted) setState(() {});
+    });
+    super.initState();
+  }
+
   Future<void> _open(String route, Object arguments) async {
     await Navigator.of(context).pushNamed(route, arguments: arguments);
     if (mounted) setState(() {});

@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../providers/global/wallets_provider.dart';
 import '../../themes/stack_colors.dart';
+import '../../utilities/show_loading.dart';
 import '../../utilities/text_styles.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
 import '../../widgets/background.dart';
@@ -17,6 +18,7 @@ import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
+import '../../widgets/stack_text_field.dart';
 import '../wallet_view/transaction_views/tx_v2/transaction_v2_details_view.dart'
     show IconCopyButton;
 import 'pivx_masternodes_view.dart';
@@ -47,6 +49,8 @@ class _PivxMasternodeDetailsViewState
   String? _key;
   bool _showKey = false;
   int _statusRefresh = 0;
+  final _serviceController = TextEditingController();
+  final _serviceFocus = FocusNode();
 
   PivxWallet get _wallet =>
       ref.read(pWallets).getWallet(widget.walletId) as PivxWallet;
@@ -59,6 +63,10 @@ class _PivxMasternodeDetailsViewState
   @override
   void initState() {
     final mn = _masternode;
+    _serviceController.text = mn?.service ?? "";
+    _wallet.loadMasternodeNetwork().then((_) {
+      if (mounted) setState(() {});
+    });
     if (mn != null) {
       unawaited(
         _wallet.masternodeKey(mn).then((k) {
@@ -67,6 +75,59 @@ class _PivxMasternodeDetailsViewState
       );
     }
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _serviceController.dispose();
+    _serviceFocus.dispose();
+    super.dispose();
+  }
+
+  Future<void> _start(PivxMasternode mn) async {
+    final wallet = _wallet;
+    final String service;
+    try {
+      service = wallet.normalizeMasternodeService(_serviceController.text);
+    } catch (e) {
+      unawaited(
+        showFloatingFlushBar(
+          type: FlushBarType.warning,
+          message: e is FormatException ? e.message : "Invalid server address",
+          context: context,
+        ),
+      );
+      return;
+    }
+    _serviceFocus.unfocus();
+    Exception? error;
+    final answer = await showLoading<String>(
+      whileFuture: wallet.startMasternode(mn, service: service),
+      context: context,
+      message: "Starting masternode",
+      onException: (e) => error = e,
+    );
+    if (!mounted) return;
+    if (answer == null) {
+      await showFloatingFlushBar(
+        type: FlushBarType.warning,
+        message:
+            error?.toString().replaceFirst("Exception: ", "") ??
+            "Could not start the masternode",
+        context: context,
+        duration: const Duration(seconds: 5),
+      );
+      return;
+    }
+    _serviceController.text = service;
+    setState(() => _statusRefresh++);
+    await showFloatingFlushBar(
+      type: FlushBarType.success,
+      message: "Start message sent. The masternode shows as enabled after "
+          "its first ping, usually within a few minutes.",
+      context: context,
+      duration: const Duration(seconds: 5),
+    );
   }
 
   Future<void> _copy(String text, [String what = "Copied to clipboard"]) async {
@@ -264,6 +325,49 @@ class _PivxMasternodeDetailsViewState
                       ),
                     ),
                     const SizedBox(height: 8),
+                    RoundedWhiteContainer(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            "Start masternode",
+                            style: STextStyles.w600_14(context),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            "Once the server runs PIVX Core with this "
+                            "masternode's private key, enter its IP address "
+                            "and start it. Start it again if it shows as "
+                            "missing or expired.",
+                            style: STextStyles.itemSubtitle(context),
+                          ),
+                          const SizedBox(height: 10),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: TextField(
+                              controller: _serviceController,
+                              focusNode: _serviceFocus,
+                              autocorrect: false,
+                              enableSuggestions: false,
+                              keyboardType: TextInputType.url,
+                              style: STextStyles.field(context),
+                              decoration: standardInputDecoration(
+                                "Server IP, e.g. 203.0.113.5",
+                                _serviceFocus,
+                                context,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          PrimaryButton(
+                            label: "Start masternode",
+                            enabled: !wallet.isViewOnly,
+                            onPressed: () => _start(mn),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 8),
                     _row("Collateral address", mn.address),
                     const SizedBox(height: 8),
                     _row("Collateral transaction", mn.txid),
@@ -297,9 +401,10 @@ class _PivxMasternodeDetailsViewState
                     const SizedBox(height: 8),
                     Text(
                       "Install PIVX Core on the server, add these lines to "
-                      "its pivx.conf (replace YOUR_VPS_IP with the server's "
-                      "public IP; port ${wallet.masternodePort} must be "
-                      "reachable) and restart pivxd.",
+                      "its pivx.conf${mn.service == null ? " (replace "
+                          "YOUR_VPS_IP with the server's public IP)" : ""}, "
+                      "make sure port ${wallet.masternodePort} is reachable "
+                      "and restart pivxd. Then start the masternode above.",
                       style: STextStyles.itemSubtitle(context),
                     ),
                     const SizedBox(height: 8),
