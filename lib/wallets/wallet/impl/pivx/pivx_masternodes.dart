@@ -111,6 +111,20 @@ extension PivxMasternodes on PivxWallet {
       PivxMasternode.fromJson(Map<String, dynamic>.from(e as Map)),
   ];
 
+  /// The first free alias "MN1", "MN2", ...
+  String nextMasternodeAlias() {
+    final used = {for (final m in masternodes) m.label.trim().toLowerCase()};
+    for (int i = 1; ; i++) {
+      if (!used.contains("mn$i")) return "MN$i";
+    }
+  }
+
+  /// Whether [alias] is already used by another masternode.
+  bool isMasternodeAliasTaken(String alias) {
+    final a = alias.trim().toLowerCase();
+    return masternodes.any((m) => m.label.trim().toLowerCase() == a);
+  }
+
   bool _isMasternodeCollateral(String txid, int vout) =>
       masternodes.any((m) => m.txid == txid && m.vout == vout);
 
@@ -166,6 +180,7 @@ extension PivxMasternodes on PivxWallet {
     if (!isValidMasternodeKey(masternodeKey)) {
       throw Exception("Invalid masternode private key");
     }
+    if (label.trim().isEmpty) throw Exception("Masternode alias is required");
     final mn = PivxMasternode(
       label: label,
       address: address,
@@ -244,8 +259,12 @@ extension PivxMasternodes on PivxWallet {
   Future<TxData> prepareMasternodeCollateral({
     required String address,
     Set<UTXO>? utxos,
+    String note = "Create masternode",
   }) => prepareSend(
     txData: TxData(
+      // The confirm screen expects both notes set, like the send screen.
+      note: note,
+      noteOnChain: "",
       recipients: [
         TxRecipient(
           address: address,

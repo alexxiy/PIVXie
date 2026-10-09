@@ -23,6 +23,7 @@ import '../../utilities/assets.dart';
 import '../../utilities/biometrics.dart';
 import '../../utilities/flutter_secure_storage_interface.dart';
 import '../../utilities/show_loading.dart';
+import '../../utilities/ui_stall_watch.dart';
 import '../../utilities/show_node_tor_settings_mismatch.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
@@ -83,14 +84,26 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
   static const maxAttemptsBeforeThrottling = 3;
   Timer? _timer;
 
+  /// Wallet opened right after unlocking, if any (see [_loadWallets]).
+  String? _openWalletId;
+
   Future<bool> _loadWallets(String? loadIntoWalletId) async {
-    await ref
-        .read(pWallets)
-        .load(
-          ref.read(prefsChangeNotifierProvider),
-          ref.read(mainDBProvider),
-          ref.read(pDuress),
-        );
+    await UiStallWatch.run(
+      "loading wallets",
+      () => ref
+          .read(pWallets)
+          .load(
+            ref.read(prefsChangeNotifierProvider),
+            ref.read(mainDBProvider),
+            ref.read(pDuress),
+          ),
+    );
+
+    // With a single wallet the wallet list is only a detour: open it.
+    if (loadIntoWalletId == null && ref.read(pWallets).wallets.length == 1) {
+      loadIntoWalletId = ref.read(pWallets).wallets.first.walletId;
+    }
+    _openWalletId = loadIntoWalletId;
 
     if (loadIntoWalletId != null) {
       final Wallet wallet;
@@ -98,6 +111,7 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
         wallet = ref.read(pWallets).getWallet(loadIntoWalletId);
       } catch (_) {
         // wallet isn't marked as duress, continue without loading into it
+        _openWalletId = null;
         return true;
       }
 
@@ -173,9 +187,12 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
           ),
         );
 
-        if (loadIntoWallet) {
-          final walletId = widget.routeOnSuccessArguments as String;
-
+        final walletId = widget.isInitialAppLogin
+            ? _openWalletId
+            : (loadIntoWallet
+                  ? widget.routeOnSuccessArguments as String
+                  : null);
+        if (walletId != null) {
           unawaited(
             Navigator.of(
               context,

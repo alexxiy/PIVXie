@@ -56,10 +56,7 @@ extension _PivxShield on PivxWallet {
   /// ZIP32 spending key, derived like MyPIVXWallet: from the first 32
   /// bytes of the BIP39 seed.
   Future<String> _extsk() async {
-    final seed = bip39.mnemonicToSeed(
-      await getMnemonic(),
-      passphrase: await getMnemonicPassphrase(),
-    );
+    final seed = await _seed();
     return libPivxShield.extendedSpendingKey(
       seed: seed.sublist(0, 32),
       coinType: _shieldCoinType,
@@ -242,12 +239,16 @@ extension _PivxShield on PivxWallet {
         .toList();
     if (relevant.isEmpty) return;
 
-    final r = await libPivxShield.handleBlocks(
+    final r = await UiStallWatch.run(
+      "PIVX ${info.name}: shield blocks "
+      "${relevant.first.height}-${relevant.last.height}",
+      () => libPivxShield.handleBlocks(
       tree: state.commitmentTree,
       blocks: [for (final b in relevant) b.txs],
       extfvk: state.extfvk,
       isTestnet: state.isTestnet,
       notes: state.unspentNotes,
+      ),
     );
 
     final kept = [

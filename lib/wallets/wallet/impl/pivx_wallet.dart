@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 import 'dart:math';
 import 'dart:typed_data';
 
@@ -26,6 +27,7 @@ import '../../../utilities/extensions/extensions.dart';
 import '../../../services/tor_service.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/stack_file_system.dart';
+import '../../../utilities/ui_stall_watch.dart';
 import '../../../widgets/crypto_notifications.dart';
 import '../../../wl_gen/interfaces/lib_pivx_shield_interface.dart';
 import '../../api/pivx/pivx_bridge_client.dart';
@@ -101,6 +103,20 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
 
   // ===========================================================================
   // Keys
+
+  /// BIP39 seed. PBKDF2 (2048 rounds) is slow in Dart, so it runs on a
+  /// background isolate instead of freezing the UI.
+  Future<Uint8List> _seed() async {
+    final mnemonic = await getMnemonic();
+    final passphrase = await getMnemonicPassphrase();
+    return Isolate.run(
+      () => bip39.mnemonicToSeed(mnemonic, passphrase: passphrase),
+    );
+  }
+
+  @override
+  Future<coinlib.HDPrivateKey> getRootHDNode() async =>
+      coinlib.HDPrivateKey.fromSeed(await _seed());
 
   String get _accountPath => cryptoCurrency
       .constructDerivePath(
@@ -271,7 +287,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
   @override
   Future<void> refresh() async {
     try {
-      await super.refresh();
+      await UiStallWatch.run("PIVX ${info.name}: refresh", super.refresh);
       if (info.otherData[_kNotifyReady] != true) {
         await info.updateOtherData(
           newEntries: {_kNotifyReady: true},
@@ -401,13 +417,19 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
   @override
   Future<void> updateTransactions() async {
     final xpub = await accountXpub;
-    final result = await bridge.xpubHistory(
-      xpub,
-      from: await _historyFromHeight(),
-      gap: await _bridgeGap(),
+    final result = await UiStallWatch.run(
+      "PIVX ${info.name}: history",
+      () async => bridge.xpubHistory(
+        xpub,
+        from: await _historyFromHeight(),
+        gap: await _bridgeGap(),
+      ),
     );
 
-    await _syncAddresses(result.info["tokens"] as List?);
+    await UiStallWatch.run(
+      "PIVX ${info.name}: addresses",
+      () => _syncAddresses(result.info["tokens"] as List?),
+    );
 
     final sets = await _addressSets();
     final Map<String, Map<String, dynamic>> shieldInfo =
@@ -424,10 +446,13 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
       if (tx != null) txns.add(tx);
     }
     await _notifyIncoming(txns);
-    await _storeTxs(txns);
+    await UiStallWatch.run(
+      "PIVX ${info.name}: store ${txns.length} txs",
+      () => _storeTxs(txns),
+    );
 
     try {
-      await _syncShield();
+      await UiStallWatch.run("PIVX ${info.name}: shield sync", _syncShield);
     } catch (e, s) {
       Logging.instance.e("PIVX shield sync failed", error: e, stackTrace: s);
       rethrow;

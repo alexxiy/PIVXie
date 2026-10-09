@@ -71,6 +71,7 @@ class _PivxCreateMasternodeViewState
   @override
   void initState() {
     _generatedKey = _wallet.generateMasternodeKey();
+    _labelController.text = _wallet.nextMasternodeAlias();
     unawaited(_load());
     super.initState();
   }
@@ -154,6 +155,16 @@ class _PivxCreateMasternodeViewState
       return;
     }
     final label = _labelController.text.trim();
+    if (label.isEmpty || wallet.isMasternodeAliasTaken(label)) {
+      await showFloatingFlushBar(
+        type: FlushBarType.warning,
+        message: label.isEmpty
+            ? "Enter a masternode alias"
+            : "Another masternode is already called \"$label\"",
+        context: context,
+      );
+      return;
+    }
 
     if (_collateral == _Collateral.existingOutput) {
       final output = _output;
@@ -180,6 +191,7 @@ class _PivxCreateMasternodeViewState
         final txData = await wallet.prepareMasternodeCollateral(
           address: address,
           utxos: _coins,
+          note: "Create masternode $label",
         );
         return (txData, wallet.collateralVout(txData, address));
       },
@@ -371,6 +383,7 @@ class _PivxCreateMasternodeViewState
                   controller: _labelController,
                   focusNode: _labelFocus,
                   style: STextStyles.field(context),
+                  onChanged: (_) => setState(() {}),
                   decoration: standardInputDecoration(
                     "e.g. MN1",
                     _labelFocus,
@@ -396,7 +409,9 @@ class _PivxCreateMasternodeViewState
                         focusNode: _addressLabelFocus,
                         style: STextStyles.field(context),
                         decoration: standardInputDecoration(
-                          "Address label (optional), e.g. MN1 collateral",
+                          "Address label (optional), e.g. "
+                          "${_labelController.text.trim().isEmpty ? "MN1" : _labelController.text.trim()} "
+                          "collateral",
                           _addressLabelFocus,
                           context,
                         ),
@@ -539,7 +554,9 @@ class _PivxCreateMasternodeViewState
                 label: _collateral == _Collateral.existingOutput
                     ? "Create masternode"
                     : "Send collateral",
-                enabled: !_pasteKey || _keyController.text.trim().isNotEmpty,
+                enabled:
+                    _labelController.text.trim().isNotEmpty &&
+                    (!_pasteKey || _keyController.text.trim().isNotEmpty),
                 onPressed: _create,
               ),
             ],

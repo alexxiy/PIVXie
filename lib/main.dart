@@ -72,6 +72,7 @@ import 'utilities/constants.dart';
 import 'utilities/enums/backup_frequency_type.dart';
 import 'utilities/flutter_secure_storage_interface.dart';
 import 'utilities/logger.dart';
+import 'utilities/ui_stall_watch.dart';
 import 'utilities/prefs.dart';
 import 'utilities/stack_file_system.dart';
 import 'utilities/util.dart';
@@ -238,6 +239,7 @@ void main(List<String> args) async {
     level: Prefs.instance.logLevel,
     debugConsoleLevel: kDebugMode ? Level.trace : null,
   );
+  UiStallWatch.start();
 
   if (AppConfig.coins.whereType<Xelis>().isNotEmpty) {
     await libXelis.setupRustLogger();
@@ -459,13 +461,16 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       );
       ref.read(priceAnd24hChangeNotifierProvider).start(true);
       if (loadWallets) {
-        await ref
-            .read(pWallets)
-            .load(
-              ref.read(prefsChangeNotifierProvider),
-              ref.read(mainDBProvider),
-              false,
-            );
+        await UiStallWatch.run(
+          "loading wallets",
+          () => ref
+              .read(pWallets)
+              .load(
+                ref.read(prefsChangeNotifierProvider),
+                ref.read(mainDBProvider),
+                false,
+              ),
+        );
       }
       loadingCompleter.complete();
       // TODO: this should probably run unawaited. Keep commented out for now as proper community nodes ui hasn't been implemented yet
