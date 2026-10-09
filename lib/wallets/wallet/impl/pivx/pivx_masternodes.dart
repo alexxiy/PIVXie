@@ -58,6 +58,14 @@ class PivxMasternode {
   );
 }
 
+/// A masternode as the network sees it. [lastPaid] is unix seconds (0:
+/// never paid).
+typedef PivxMasternodeNetworkInfo = ({
+  String status,
+  int activeSeconds,
+  int lastPaid,
+});
+
 const _kMasternodesKey = "pivxMasternodes";
 const _kMasternodeFrozenReason = "Masternode collateral";
 
@@ -176,6 +184,7 @@ extension PivxMasternodes on PivxWallet {
     required int vout,
     required String masternodeKey,
     String? addressLabel,
+    String? service,
   }) async {
     if (!isValidMasternodeKey(masternodeKey)) {
       throw Exception("Invalid masternode private key");
@@ -187,6 +196,7 @@ extension PivxMasternodes on PivxWallet {
       txid: txid,
       vout: vout,
       createdAt: DateTime.timestamp().millisecondsSinceEpoch ~/ 1000,
+      service: service,
     );
     await secureStorageInterface.write(
       key: _masternodeKeyName(mn.id),
@@ -292,22 +302,48 @@ extension PivxMasternodes on PivxWallet {
     throw Exception("Collateral output not found");
   }
 
-  /// Masternode status from the node (`listmasternodes`), e.g. ENABLED,
-  /// PRE_ENABLED or MISSING when the network does not know it yet.
-  Future<String> masternodeStatus(PivxMasternode mn) async {
+  /// The network's view of [mn] (`listmasternodes`): status such as
+  /// ENABLED, PRE_ENABLED or MISSING (unknown to the network yet), and
+  /// when known its active time and last payment.
+  Future<PivxMasternodeNetworkInfo> masternodeNetworkInfo(
+    PivxMasternode mn,
+  ) async {
     try {
       final list = await bridge.listMasternodes(mn.txid);
       for (final e in list) {
         final m = Map<String, dynamic>.from(e as Map);
         if (m["txhash"] == mn.txid && m["outidx"] == mn.vout) {
-          return m["status"] as String? ?? "UNKNOWN";
+          return (
+            status: m["status"] as String? ?? "UNKNOWN",
+            activeSeconds: (m["activetime"] as num?)?.toInt() ?? 0,
+            lastPaid: (m["lastpaid"] as num?)?.toInt() ?? 0,
+          );
         }
       }
-      return "MISSING";
+      return (status: "MISSING", activeSeconds: 0, lastPaid: 0);
     } catch (e) {
       Logging.instance.w("PIVX: listmasternodes failed: $e");
-      return "UNKNOWN";
+      return (status: "UNKNOWN", activeSeconds: 0, lastPaid: 0);
     }
+  }
+
+  Future<String> masternodeStatus(PivxMasternode mn) async =>
+      (await masternodeNetworkInfo(mn)).status;
+
+  /// Masternode rewards paid to [mn]'s collateral address so far.
+  Future<Amount> masternodeEarned(PivxMasternode mn) async {
+    final txs = await mainDB.isar.transactionV2s
+        .where()
+        .walletIdEqualTo(walletId)
+        .findAll();
+    var total = BigInt.zero;
+    for (final tx in txs) {
+      if (tx.pivxKind != PivxTxKind.masternodeReward) continue;
+      for (final o in tx.outputs) {
+        if (o.walletOwns && o.addresses.contains(mn.address)) total += o.value;
+      }
+    }
+    return Amount(rawValue: total, fractionDigits: cryptoCurrency.fractionDigits);
   }
 
   /// Lines for the masternode's own `pivx.conf` on a VPS.

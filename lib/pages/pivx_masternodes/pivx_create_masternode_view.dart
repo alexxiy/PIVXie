@@ -32,11 +32,20 @@ enum _Collateral { newAddress, ownAddress, existingOutput }
 /// Create a masternode: where the collateral goes (or which output is
 /// it), a label and the masternode private key.
 class PivxCreateMasternodeView extends ConsumerStatefulWidget {
-  const PivxCreateMasternodeView({super.key, required this.walletId});
+  const PivxCreateMasternodeView({
+    super.key,
+    required this.walletId,
+    this.existing = false,
+  });
 
   static const routeName = "/pivxCreateMasternode";
 
   final String walletId;
+
+  /// Add a masternode that already runs (e.g. after restoring the
+  /// wallet): pick its collateral output and paste its key; nothing is
+  /// sent or started.
+  final bool existing;
 
   @override
   ConsumerState<PivxCreateMasternodeView> createState() =>
@@ -51,6 +60,8 @@ class _PivxCreateMasternodeViewState
   final _addressLabelFocus = FocusNode();
   final _keyController = TextEditingController();
   final _keyFocus = FocusNode();
+  final _serviceController = TextEditingController();
+  final _serviceFocus = FocusNode();
 
   _Collateral _collateral = _Collateral.newAddress;
   bool _pasteKey = false;
@@ -72,6 +83,10 @@ class _PivxCreateMasternodeViewState
   void initState() {
     _generatedKey = _wallet.generateMasternodeKey();
     _labelController.text = _wallet.nextMasternodeAlias();
+    if (widget.existing) {
+      _collateral = _Collateral.existingOutput;
+      _pasteKey = true;
+    }
     unawaited(_load());
     super.initState();
   }
@@ -124,6 +139,8 @@ class _PivxCreateMasternodeViewState
     _addressLabelFocus.dispose();
     _keyController.dispose();
     _keyFocus.dispose();
+    _serviceController.dispose();
+    _serviceFocus.dispose();
     super.dispose();
   }
 
@@ -169,12 +186,28 @@ class _PivxCreateMasternodeViewState
     if (_collateral == _Collateral.existingOutput) {
       final output = _output;
       if (output == null) return;
+      String? service;
+      if (_serviceController.text.trim().isNotEmpty) {
+        try {
+          service = wallet.normalizeMasternodeService(_serviceController.text);
+        } catch (e) {
+          await showFloatingFlushBar(
+            type: FlushBarType.warning,
+            message: e is FormatException
+                ? e.message
+                : "Invalid server address",
+            context: context,
+          );
+          return;
+        }
+      }
       await wallet.addMasternode(
         label: label,
         address: output.address ?? "",
         txid: output.txid,
         vout: output.vout,
         masternodeKey: _key,
+        service: service,
       );
       if (mounted) Navigator.of(context).pop();
       return;
@@ -203,7 +236,8 @@ class _PivxCreateMasternodeViewState
     if (prepared == null) {
       await showFloatingFlushBar(
         type: FlushBarType.warning,
-        message: error?.toString().replaceFirst("Exception: ", "") ??
+        message:
+            error?.toString().replaceFirst("Exception: ", "") ??
             "Could not prepare the collateral transaction",
         context: context,
         duration: const Duration(seconds: 5),
@@ -237,9 +271,9 @@ class _PivxCreateMasternodeViewState
           onSuccessInsteadOfRouteOnSuccess: () async {
             await saving;
             if (mounted) {
-              Navigator.of(context).popUntil(
-                ModalRoute.withName(PivxMasternodesView.routeName),
-              );
+              Navigator.of(
+                context,
+              ).popUntil(ModalRoute.withName(PivxMasternodesView.routeName));
             }
           },
         ),
@@ -367,7 +401,7 @@ class _PivxCreateMasternodeViewState
             onPressed: () => Navigator.of(context).pop(),
           ),
           title: Text(
-            "Create masternode",
+            widget.existing ? "Add existing masternode" : "Create masternode",
             style: STextStyles.navBarTitle(context),
           ),
         ),
@@ -375,6 +409,15 @@ class _PivxCreateMasternodeViewState
           child: ListView(
             padding: const EdgeInsets.all(16),
             children: [
+              if (widget.existing) ...[
+                Text(
+                  "For a masternode that already runs, e.g. after restoring "
+                  "this wallet. Nothing is sent or started: PIVXie only "
+                  "records it and freezes its collateral.",
+                  style: STextStyles.itemSubtitle(context),
+                ),
+                const SizedBox(height: 20),
+              ],
               Text("Masternode alias", style: STextStyles.smallMed12(context)),
               const SizedBox(height: 8),
               ClipRRect(
@@ -392,82 +435,31 @@ class _PivxCreateMasternodeViewState
                 ),
               ),
               const SizedBox(height: 20),
-              Text("Collateral", style: STextStyles.smallMed12(context)),
-              const SizedBox(height: 8),
-              _option(
-                _Collateral.newAddress,
-                "Send $collateral to a new address",
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _subtitle(_newAddress?.value ?? "…"),
-                    const SizedBox(height: 10),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: TextField(
-                        controller: _addressLabelController,
-                        focusNode: _addressLabelFocus,
-                        style: STextStyles.field(context),
-                        decoration: standardInputDecoration(
-                          "Address label (optional), e.g. "
-                          "${_labelController.text.trim().isEmpty ? "MN1" : _labelController.text.trim()} "
-                          "collateral",
-                          _addressLabelFocus,
-                          context,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+              Text(
+                widget.existing ? "Collateral output" : "Collateral",
+                style: STextStyles.smallMed12(context),
               ),
-              if (_ownAddresses.isNotEmpty)
-                _option(
-                  _Collateral.ownAddress,
-                  "Send $collateral to one of my addresses",
-                  DropdownButton<Address>(
-                    isExpanded: true,
-                    itemHeight: null,
-                    value: _ownAddress,
-                    dropdownColor: colors.popupBG,
-                    items: [
-                      for (final a in _ownAddresses)
-                        DropdownMenuItem(
-                          value: a,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 6),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  _addressTitle(a),
-                                  style: STextStyles.w600_14(context),
-                                ),
-                                Text(
-                                  a.value,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: STextStyles.w500_12(
-                                    context,
-                                  ).copyWith(color: colors.textSubtitle1),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                    ],
-                    onChanged: (a) => setState(() => _ownAddress = a),
-                  ),
-                ),
-              if (_outputs.isNotEmpty)
-                _option(
-                  _Collateral.existingOutput,
-                  "Use a $collateral output I already have",
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      for (final u in _outputs)
-                        GestureDetector(
-                          onTap: () => setState(() => _output = u),
+              const SizedBox(height: 8),
+              if (widget.existing) ...[
+                if (_outputs.isEmpty)
+                  RoundedWhiteContainer(
+                    child: Text(
+                      "No unspent output of exactly $collateral in this "
+                      "wallet. A masternode's collateral is one output of "
+                      "exactly that amount.",
+                      style: STextStyles.itemSubtitle(context),
+                    ),
+                  )
+                else
+                  for (final u in _outputs)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: GestureDetector(
+                        onTap: () => setState(() => _output = u),
+                        child: RoundedWhiteContainer(
+                          borderColor: _output == u
+                              ? colors.accentColorBlue
+                              : null,
                           child: Row(
                             children: [
                               Radio<UTXO>(
@@ -476,18 +468,117 @@ class _PivxCreateMasternodeViewState
                                 activeColor: colors.radioButtonIconEnabled,
                                 onChanged: (v) => setState(() => _output = v),
                               ),
+                              const SizedBox(width: 4),
                               Expanded(
-                                child: _subtitle(
-                                  "${_label(u.address ?? "") ?? u.address}\n"
-                                  "${u.txid.substring(0, 16)}…:${u.vout}",
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      _label(u.address ?? "") ??
+                                          (u.address ?? ""),
+                                      overflow: TextOverflow.ellipsis,
+                                      style: STextStyles.w600_14(context),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    _subtitle(
+                                      "${u.txid.substring(0, 16)}…:${u.vout}",
+                                    ),
+                                  ],
                                 ),
                               ),
                             ],
                           ),
                         ),
+                      ),
+                    ),
+                const SizedBox(height: 12),
+                Text(
+                  "Server IP (optional)",
+                  style: STextStyles.smallMed12(context),
+                ),
+                const SizedBox(height: 8),
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: TextField(
+                    controller: _serviceController,
+                    focusNode: _serviceFocus,
+                    autocorrect: false,
+                    enableSuggestions: false,
+                    keyboardType: TextInputType.url,
+                    style: STextStyles.field(context),
+                    decoration: standardInputDecoration(
+                      "e.g. 203.0.113.5",
+                      _serviceFocus,
+                      context,
+                    ),
+                  ),
+                ),
+              ] else ...[
+                _option(
+                  _Collateral.newAddress,
+                  "Send $collateral to a new address",
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _subtitle(_newAddress?.value ?? "…"),
+                      const SizedBox(height: 10),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: TextField(
+                          controller: _addressLabelController,
+                          focusNode: _addressLabelFocus,
+                          style: STextStyles.field(context),
+                          decoration: standardInputDecoration(
+                            "Address label (optional), e.g. "
+                            "${_labelController.text.trim().isEmpty ? "MN1" : _labelController.text.trim()} "
+                            "collateral",
+                            _addressLabelFocus,
+                            context,
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),
+                if (_ownAddresses.isNotEmpty)
+                  _option(
+                    _Collateral.ownAddress,
+                    "Send $collateral to one of my addresses",
+                    DropdownButton<Address>(
+                      isExpanded: true,
+                      itemHeight: null,
+                      value: _ownAddress,
+                      dropdownColor: colors.popupBG,
+                      items: [
+                        for (final a in _ownAddresses)
+                          DropdownMenuItem(
+                            value: a,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 6),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    _addressTitle(a),
+                                    style: STextStyles.w600_14(context),
+                                  ),
+                                  Text(
+                                    a.value,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: STextStyles.w500_12(
+                                      context,
+                                    ).copyWith(color: colors.textSubtitle1),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                      ],
+                      onChanged: (a) => setState(() => _ownAddress = a),
+                    ),
+                  ),
+              ],
               if (_collateral != _Collateral.existingOutput) ...[
                 const SizedBox(height: 4),
                 _coinControl(),
@@ -500,10 +591,11 @@ class _PivxCreateMasternodeViewState
                     "Masternode private key",
                     style: STextStyles.smallMed12(context),
                   ),
-                  CustomTextButton(
-                    text: _pasteKey ? "Generate one" : "I have a key",
-                    onTap: () => setState(() => _pasteKey = !_pasteKey),
-                  ),
+                  if (!widget.existing)
+                    CustomTextButton(
+                      text: _pasteKey ? "Generate one" : "I have a key",
+                      onTap: () => setState(() => _pasteKey = !_pasteKey),
+                    ),
                 ],
               ),
               const SizedBox(height: 8),
@@ -551,12 +643,11 @@ class _PivxCreateMasternodeViewState
               ),
               const SizedBox(height: 24),
               PrimaryButton(
-                label: _collateral == _Collateral.existingOutput
-                    ? "Create masternode"
-                    : "Send collateral",
+                label: widget.existing ? "Add masternode" : "Send collateral",
                 enabled:
                     _labelController.text.trim().isNotEmpty &&
-                    (!_pasteKey || _keyController.text.trim().isNotEmpty),
+                    (!_pasteKey || _keyController.text.trim().isNotEmpty) &&
+                    (!widget.existing || _output != null),
                 onPressed: _create,
               ),
             ],

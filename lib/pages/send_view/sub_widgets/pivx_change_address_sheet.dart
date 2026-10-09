@@ -12,9 +12,10 @@ import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/stack_text_field.dart';
 
-/// Picks where the change of a PIVX send from the public balance goes:
-/// automatic (the wallet's next change address), one of the wallet's
-/// transparent addresses, or any other transparent address.
+/// Picks where the change of a PIVX send goes: automatic (a new change
+/// address of the wallet), one of the wallet's addresses, or any other
+/// address. Transparent addresses for sends from the public balance,
+/// shield addresses ([shield]) for sends from the shield balance.
 ///
 /// Pops "" for automatic, an address, or null when dismissed.
 class PivxChangeAddressSheet extends ConsumerStatefulWidget {
@@ -23,7 +24,11 @@ class PivxChangeAddressSheet extends ConsumerStatefulWidget {
     required this.walletId,
     required this.coin,
     this.current,
+    this.shield = false,
   });
+
+  /// Shield change (send from the shield balance).
+  final bool shield;
 
   final String walletId;
   final Pivx coin;
@@ -45,12 +50,11 @@ class _PivxChangeAddressSheetState
 
   @override
   void initState() {
+    final query = MainDB.instance.getAddresses(widget.walletId).filter();
     _addresses =
-        MainDB.instance
-            .getAddresses(widget.walletId)
-            .filter()
-            .not()
-            .typeEqualTo(AddressType.pivxShield)
+        (widget.shield
+                ? query.typeEqualTo(AddressType.pivxShield)
+                : query.not().typeEqualTo(AddressType.pivxShield))
             .sortBySubType()
             .thenByDerivationIndex()
             .findAllSync();
@@ -75,6 +79,7 @@ class _PivxChangeAddressSheetState
         ?.value
         .trim();
     if (label != null && label.isNotEmpty) return label;
+    if (a.type == AddressType.pivxShield) return "Shield #${a.derivationIndex}";
     return a.subType == AddressSubType.change
         ? "Change #${a.derivationIndex}"
         : "Receiving #${a.derivationIndex}";
@@ -82,8 +87,14 @@ class _PivxChangeAddressSheetState
 
   void _useCustom() {
     final address = _controller.text.trim();
-    if (!widget.coin.isTransparentAddress(address)) {
-      setState(() => _error = "Not a transparent PIVX address");
+    if (widget.shield
+        ? !widget.coin.isShieldAddress(address)
+        : !widget.coin.isTransparentAddress(address)) {
+      setState(
+        () => _error = widget.shield
+            ? "Not a shield PIVX address"
+            : "Not a transparent PIVX address",
+      );
       return;
     }
     Navigator.of(context).pop(address);
@@ -163,7 +174,9 @@ class _PivxChangeAddressSheetState
                 children: [
                   _option(
                     title: "Automatic",
-                    subtitle: "A new change address of this wallet",
+                    subtitle: widget.shield
+                        ? "A new shield address of this wallet"
+                        : "A new change address of this wallet",
                     selected: widget.current == null,
                     onTap: () => Navigator.of(context).pop(""),
                   ),
@@ -190,7 +203,9 @@ class _PivxChangeAddressSheetState
                 style: STextStyles.field(context),
                 onChanged: (_) => setState(() => _error = null),
                 decoration: standardInputDecoration(
-                  "Other transparent address",
+                  widget.shield
+                      ? "Other shield address"
+                      : "Other transparent address",
                   _focus,
                   context,
                 ).copyWith(errorText: _error),

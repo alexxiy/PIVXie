@@ -149,7 +149,8 @@ class _PivxMasternodeDetailsViewState
     setState(() => _statusRefresh++);
     await showFloatingFlushBar(
       type: FlushBarType.success,
-      message: "Start message sent. The masternode shows as enabled after "
+      message:
+          "Start message sent. The masternode shows as enabled after "
           "its first ping, usually within a few minutes.",
       context: context,
       duration: const Duration(seconds: 5),
@@ -213,10 +214,9 @@ class _PivxMasternodeDetailsViewState
           Expanded(
             child: SelectableText(
               code,
-              style: STextStyles.w500_12(context).copyWith(
-                fontFamily: "monospace",
-                color: colors.textDark,
-              ),
+              style: STextStyles.w500_12(
+                context,
+              ).copyWith(fontFamily: "monospace", color: colors.textDark),
             ),
           ),
           const SizedBox(width: 8),
@@ -428,7 +428,7 @@ class _PivxMasternodeDetailsViewState
                     Text(
                       "Install PIVX Core on the server, add these lines to "
                       "its pivx.conf${mn.service == null ? " (replace "
-                          "YOUR_VPS_IP with the server's public IP)" : ""}, "
+                                "YOUR_VPS_IP with the server's public IP)" : ""}, "
                       "make sure port ${wallet.masternodePort} is reachable "
                       "and restart pivxd. Then start the masternode above.",
                       style: STextStyles.itemSubtitle(context),

@@ -166,6 +166,9 @@ class _SendViewState extends ConsumerState<SendView> {
   /// PIVX: custom change address for public sends (null = automatic).
   String? _pivxChangeAddress;
 
+  /// Change of sends from the shield balance (null: automatic).
+  String? _pivxShieldChangeAddress;
+
   void _applyUri(PaymentUriData paymentData) {
     try {
       // auto fill address
@@ -1144,6 +1147,8 @@ class _SendViewState extends ConsumerState<SendView> {
           if (coin is Pivx && _pivxSubtractFee) kPivxSubtractFee: true,
           if (coin is Pivx && !pivxFromShield && _pivxChangeAddress != null)
             kPivxChangeAddress: _pivxChangeAddress,
+          if (coin is Pivx && pivxFromShield && _pivxShieldChangeAddress != null)
+            kPivxChangeAddress: _pivxShieldChangeAddress,
         };
         txDataFuture = wallet.prepareSend(
           txData: TxData(
@@ -1370,6 +1375,11 @@ class _SendViewState extends ConsumerState<SendView> {
       ),
     );
   }
+
+  /// Chosen change address for a send from [balance] (null: automatic).
+  String? _pivxChange(BalanceType balance) => balance == BalanceType.private
+      ? _pivxShieldChangeAddress
+      : _pivxChangeAddress;
 
   @override
   void initState() {
@@ -2467,9 +2477,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                   ),
                                 ),
                               ),
-                            if (coin is Pivx && balType == BalanceType.public)
-                              const SizedBox(height: 8),
-                            if (coin is Pivx && balType == BalanceType.public)
+                            if (coin is Pivx) const SizedBox(height: 8),
+                            if (coin is Pivx)
                               RoundedWhiteContainer(
                                 child: Row(
                                   mainAxisAlignment:
@@ -2487,10 +2496,10 @@ class _SendViewState extends ConsumerState<SendView> {
                                     const SizedBox(width: 12),
                                     Flexible(
                                       child: CustomTextButton(
-                                        text: _pivxChangeAddress == null
+                                        text: _pivxChange(balType) == null
                                             ? "Automatic"
-                                            : "${_pivxChangeAddress!.substring(0, 6)}"
-                                                  "…${_pivxChangeAddress!.substring(_pivxChangeAddress!.length - 6)}",
+                                            : "${_pivxChange(balType)!.substring(0, 6)}"
+                                                  "…${_pivxChange(balType)!.substring(_pivxChange(balType)!.length - 6)}",
                                         onTap: () async {
                                           FocusScope.of(context).unfocus();
                                           final picked =
@@ -2506,16 +2515,26 @@ class _SendViewState extends ConsumerState<SendView> {
                                                     PivxChangeAddressSheet(
                                                       walletId: walletId,
                                                       coin: coin as Pivx,
-                                                      current:
-                                                          _pivxChangeAddress,
+                                                      current: _pivxChange(
+                                                        balType,
+                                                      ),
+                                                      shield:
+                                                          balType ==
+                                                          BalanceType.private,
                                                     ),
                                               );
                                           if (picked != null && mounted) {
                                             setState(() {
-                                              _pivxChangeAddress =
-                                                  picked.isEmpty
+                                              final value = picked.isEmpty
                                                   ? null
                                                   : picked;
+                                              if (balType ==
+                                                  BalanceType.private) {
+                                                _pivxShieldChangeAddress =
+                                                    value;
+                                              } else {
+                                                _pivxChangeAddress = value;
+                                              }
                                             });
                                           }
                                         },

@@ -2448,6 +2448,16 @@ class RouteGenerator {
             settings: RouteSettings(name: settings.name),
           );
         }
+        if (args is ({String walletId, bool existing})) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => PivxCreateMasternodeView(
+              walletId: args.walletId,
+              existing: args.existing,
+            ),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case PivxMasternodeDetailsView.routeName:

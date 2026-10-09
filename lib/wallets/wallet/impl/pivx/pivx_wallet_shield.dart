@@ -19,8 +19,9 @@ const kPivxFromShield = "pivxFromShield";
 /// (receives the amount minus the fee).
 const kPivxSubtractFee = "pivxSubtractFee";
 
-/// Set in [TxData.otherData] by the UI: custom transparent change
-/// address for sends from the public balance.
+/// Set in [TxData.otherData] by the UI: custom change address, a
+/// transparent one for sends from the public balance, a shield one for
+/// sends from the shield balance.
 const kPivxChangeAddress = "pivxChangeAddress";
 
 bool _otherDataFlag(TxData txData, String key) =>
@@ -519,12 +520,23 @@ extension _PivxShield on PivxWallet {
     final String changeAddress;
 
     if (fromShield) {
-      final next = libPivxShield.nextAddress(
-        extfvk: state.extfvk,
-        diversifierIndex: state.diversifierIndex,
-        isTestnet: state.isTestnet,
-      );
-      changeAddress = next.address;
+      final custom = txData.otherData == null
+          ? null
+          : (jsonDecode(txData.otherData!) as Map)[kPivxChangeAddress] as String?;
+      if (custom != null && custom.isNotEmpty) {
+        if (!isShieldAddress(custom)) {
+          throw Exception("Change must go to a shield address");
+        }
+        changeAddress = custom;
+      } else {
+        // A fresh address never handed out, so the history knows it's
+        // change (PIVX Core's IsNoteSaplingChange).
+        changeAddress = libPivxShield.nextAddress(
+          extfvk: state.extfvk,
+          diversifierIndex: state.diversifierIndex,
+          isTestnet: state.isTestnet,
+        ).address;
+      }
       final notes = await _notesToSpend(state, txData);
       final available = notes.fold<int>(
         0,
