@@ -971,7 +971,8 @@ class Prefs extends ChangeNotifier {
               key: "enableSystemBrightness",
             )
             as bool? ??
-        false;
+        // Apps with their own dark theme follow the system by default.
+        AppConfig.hasFeature(AppFeature.darkTheme);
   }
 
   // current theme id

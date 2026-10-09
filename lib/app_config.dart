@@ -9,7 +9,18 @@ import 'wallets/crypto_currency/intermediate/frost_currency.dart';
 
 part 'app_config.g.dart';
 
-enum AppFeature { themeSelection, buy, swap, tor, shopinBit, cakePay }
+enum AppFeature {
+  themeSelection,
+  buy,
+  swap,
+  tor,
+  shopinBit,
+  cakePay,
+
+  /// Ships light and dark default themes (no theme store); settings offer
+  /// System / Light / Dark.
+  darkTheme,
+}
 
 abstract class AppConfig {
   static const appName = _prefix + _separator + suffix;

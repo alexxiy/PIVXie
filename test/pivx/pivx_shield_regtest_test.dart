@@ -276,4 +276,38 @@ void main() {
     );
     expect(paid["value"], "${50000000 - fee}");
   }, skip: skip, timeout: const Timeout(Duration(minutes: 10)));
+
+  test("shield -> someone else's shield address: no phantom note, sent output recovered", () async {
+    final dest = await _cli(["getnewshieldaddress"]);
+    final change = PivxShield.defaultAddress(extfvk: extfvk, isTestnet: true).address;
+    final before = scanner.balance;
+    const memo = "outgoing memo test";
+    final r = await PivxShield.createTransaction(
+      notes: scanner.notes,
+      extsk: extsk,
+      toAddress: dest,
+      changeAddress: change,
+      amount: 20000000,
+      blockHeight: (await bridge.getBlockCount()) + 1,
+      isTestnet: true,
+      memo: memo,
+    );
+    final txid = await bridge.sendTx(r["txhex"] as String);
+    await _cli(["generate", "1"]);
+    await _waitFor(() async {
+      await scanner.sync();
+      return scanner.walletTxs.any((w) => w["txid"] == txid);
+    });
+    // Only our change is ours; the recipient's note is not.
+    expect(scanner.balance, before - 20000000 - (r["fee"] as int));
+    for (final n in scanner.notes) {
+      expect(n["address"], isNot(dest));
+    }
+    // The sender sees where it went (outgoing viewing key).
+    final w = scanner.walletTxs.lastWhere((w) => w["txid"] == txid);
+    final sent = (w["sent"] as List).single as Map;
+    expect(sent["address"], dest);
+    expect(sent["value"], 20000000);
+    expect(sent["memo"], memo);
+  }, skip: skip, timeout: const Timeout(Duration(minutes: 10)));
 }

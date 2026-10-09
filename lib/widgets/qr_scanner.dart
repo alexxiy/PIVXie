@@ -1,15 +1,15 @@
-import 'dart:async';
-import 'dart:io';
-
 import 'package:flutter/material.dart';
-import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
+import 'package:mobile_scanner/mobile_scanner.dart';
 
 import '../themes/stack_colors.dart';
-import '../utilities/if_not_already.dart';
 import '../utilities/text_styles.dart';
 import 'background.dart';
 import 'custom_buttons/app_bar_icon_button.dart';
 
+/// Full screen QR scanner. Pops with the scanned text.
+///
+/// Uses the platform detectors (ML Kit on Android, Vision on iOS), which
+/// read codes at an angle or from a screen as quickly as the camera app.
 class QrScanner extends StatefulWidget {
   const QrScanner({super.key});
 
@@ -18,66 +18,62 @@ class QrScanner extends StatefulWidget {
 }
 
 class _QrScannerState extends State<QrScanner> {
-  final GlobalKey qrKey = GlobalKey(debugLabel: "QR Scan Key");
+  final _controller = MobileScannerController(
+    formats: const [BarcodeFormat.qrCode],
+  );
 
-  QRViewController? controller;
+  bool _done = false;
 
-  StreamSubscription<Barcode>? sub;
-
-  late final Future<void> Function(String?) _onScanned;
-
-  @override
-  void initState() {
-    super.initState();
-
-    _onScanned = IfNotAlreadyAsync<String>.withArgs((data) async {
-      await sub?.cancel();
-      if (mounted) {
-        Navigator.of(context).pop(data);
-      }
-    }).execute;
-  }
-
-  // In order to get hot reload to work we need to pause the camera if the platform
-  // is android, or resume the camera if the platform is iOS.
-  @override
-  void reassemble() {
-    super.reassemble();
-    if (Platform.isAndroid) {
-      controller!.pauseCamera();
-    } else if (Platform.isIOS) {
-      controller!.resumeCamera();
-    }
+  void _onDetect(BarcodeCapture capture) {
+    if (_done) return;
+    final code = capture.barcodes
+        .map((e) => e.rawValue)
+        .nonNulls
+        .where((e) => e.isNotEmpty)
+        .firstOrNull;
+    if (code == null) return;
+    _done = true;
+    Navigator.of(context).pop(code);
   }
 
   @override
   void dispose() {
-    sub?.cancel();
+    _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<StackColors>()!;
     return Background(
       child: Scaffold(
-        backgroundColor: Theme.of(context).extension<StackColors>()!.background,
+        backgroundColor: colors.background,
         appBar: AppBar(
-          backgroundColor: Theme.of(
-            context,
-          ).extension<StackColors>()!.backgroundAppBar,
+          backgroundColor: colors.backgroundAppBar,
           leading: const AppBarBackButton(),
           title: Text("Scan QR code", style: STextStyles.navBarTitle(context)),
+          actions: [
+            ValueListenableBuilder<MobileScannerState>(
+              valueListenable: _controller,
+              builder: (context, state, _) {
+                if (state.torchState == TorchState.unavailable) {
+                  return const SizedBox.shrink();
+                }
+                return IconButton(
+                  tooltip: "Flashlight",
+                  icon: Icon(
+                    state.torchState == TorchState.on
+                        ? Icons.flashlight_off
+                        : Icons.flashlight_on,
+                    color: colors.topNavIconPrimary,
+                  ),
+                  onPressed: _controller.toggleTorch,
+                );
+              },
+            ),
+          ],
         ),
-        body: QRView(
-          key: qrKey,
-          onQRViewCreated: (QRViewController p1) {
-            sub?.cancel();
-            controller = p1;
-            sub = controller!.scannedDataStream.listen((data) {
-              _onScanned(data.code);
-            });
-          },
-        ),
+        body: MobileScanner(controller: _controller, onDetect: _onDetect),
       ),
     );
   }

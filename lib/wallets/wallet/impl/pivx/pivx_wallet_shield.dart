@@ -294,6 +294,15 @@ extension _PivxShield on PivxWallet {
           for (final nf in wtx["nullifiers"] as List)
             if (state.nullifierNotes.containsKey(nf)) nf,
         ],
+        // Shield outputs we sent to others (recovered with our ovk).
+        "sent": [
+          for (final n in wtx["sent"] as List? ?? const [])
+            {
+              "value": (n as Map)["value"],
+              "address": n["address"],
+              "memo": n["memo"],
+            },
+        ],
       };
       walletTxids.add(txid);
     }
@@ -317,6 +326,7 @@ extension _PivxShield on PivxWallet {
       );
       if (tx != null) txns.add(tx);
     }
+    await _notifyIncoming(txns);
     await mainDB.updateOrPutTransactionV2s(txns);
   }
 
@@ -675,6 +685,9 @@ extension _PivxShield on PivxWallet {
         subType: TransactionSubType.none,
         otherData: jsonEncode({
           TxV2OdKeys.overrideFee: Amount(rawValue: fee, fractionDigits: digits).toJsonString(),
+          if ((txData.memo?.trim().isNotEmpty ?? false) &&
+              isShieldAddress(recipient.address))
+            TxV2OdKeys.onChainNote: txData.memo!.trim(),
         }),
       ),
     );

@@ -62,6 +62,7 @@ const _mwebdExeHash = "";
 
 const Set<AppFeature> _features = {
   AppFeature.tor,
+  AppFeature.darkTheme,
 };
 
 const ({String light, String dark})? _appIconAsset = (

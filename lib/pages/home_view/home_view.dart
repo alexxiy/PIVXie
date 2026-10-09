@@ -16,6 +16,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../app_config.dart';
+import '../../services/notifications_api.dart';
 import '../../providers/global/notifications_provider.dart';
 import '../../providers/global/prefs_provider.dart';
 import '../../providers/global/shopin_bit_service_provider.dart';
@@ -239,6 +240,9 @@ class _HomeViewState extends ConsumerState<HomeView> {
 
     ref.read(notificationsProvider).startCheckingWatchedNotifications();
 
+    // Incoming payments raise notifications; Android 13+ asks first.
+    if (!Util.isDesktop) unawaited(NotificationApi.requestPermission());
+
     // WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
     //   showOneTimeTorHasBeenAddedDialogIfRequired(context);
     // });
@@ -322,7 +326,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
                 ),
                 const SizedBox(width: 16),
                 Text(
-                  "My ${AppConfig.prefix}",
+                  AppConfig.prefix,
                   style: STextStyles.navBarTitle(context),
                 ),
               ],

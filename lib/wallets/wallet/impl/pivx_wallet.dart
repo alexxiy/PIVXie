@@ -18,6 +18,7 @@ import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../models/isar/models/isar_models.dart';
 import '../../../models/keys/view_only_wallet_data.dart';
 import '../../../models/paymint/fee_object_model.dart';
+import '../../../services/notifications_api.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
 import '../../../utilities/enums/fee_rate_type_enum.dart';
@@ -25,6 +26,7 @@ import '../../../utilities/extensions/extensions.dart';
 import '../../../services/tor_service.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/stack_file_system.dart';
+import '../../../widgets/crypto_notifications.dart';
 import '../../../wl_gen/interfaces/lib_pivx_shield_interface.dart';
 import '../../api/pivx/pivx_bridge_client.dart';
 import '../../crypto_currency/crypto_currency.dart';
@@ -264,6 +266,12 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
   Future<void> refresh() async {
     try {
       await super.refresh();
+      if (info.otherData[_kNotifyReady] != true) {
+        await info.updateOtherData(
+          newEntries: {_kNotifyReady: true},
+          isar: mainDB.isar,
+        );
+      }
     } finally {
       _startWatching();
     }
@@ -409,6 +417,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
       );
       if (tx != null) txns.add(tx);
     }
+    await _notifyIncoming(txns);
     await mainDB.updateOrPutTransactionV2s(txns);
 
     try {
@@ -522,6 +531,22 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
       );
     }
 
+    // Shield outputs this wallet sent to someone else.
+    final sentNotes = (shield?["sent"] as List?) ?? const [];
+    for (final n in sentNotes) {
+      final value = BigInt.from(((n as Map)["value"] as num).toInt());
+      sentFromWallet = true;
+      totalOut += value;
+      outputs.add(
+        OutputV2.isarCantDoRequiredInDefaultConstructor(
+          scriptPubKeyHex: "",
+          valueStringSats: value.toString(),
+          addresses: [n["address"] as String],
+          walletOwns: false,
+        ),
+      );
+    }
+
     TransactionType type;
     if (sentFromWallet) {
       type = TransactionType.outgoing;
@@ -539,9 +564,22 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
       return null;
     }
 
-    // Text memos of the shield notes received (shown as the shielded memo).
+    // PIVX kinds with their own label (and the amount worth showing).
+    final kind = _classify(
+      json: json,
+      inputs: inputs,
+      outputs: outputs,
+      type: type,
+      receivedNotes: receivedNotes,
+      spentNullifiers: (shield?["spentNullifiers"] as List?) ?? const [],
+    );
+    if (kind != null && PivxTxKind.rewards.contains(kind.kind)) {
+      type = TransactionType.incoming;
+    }
+
+    // Text memos of the shield notes received or sent (the shielded memo).
     final memo = [
-      for (final n in receivedNotes)
+      for (final n in [...sentNotes, ...receivedNotes])
         if (((n as Map)["memo"] as String?)?.trim().isNotEmpty ?? false)
           (n["memo"] as String).trim(),
     ].join("\n");
@@ -565,7 +603,15 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
       // from the bridge (transparent in + value balance - transparent out).
       otherData: jsonEncode({
         if (memo.isNotEmpty) TxV2OdKeys.onChainNote: memo,
-        if (json["fees"] != null)
+        if (kind != null) TxV2OdKeys.pivxKind: kind.kind,
+        if (kind?.amount != null)
+          TxV2OdKeys.pivxAmount: Amount(
+            rawValue: kind!.amount!,
+            fractionDigits: cryptoCurrency.fractionDigits,
+          ).toJsonString(),
+        // Rewards create coins: no fee.
+        if (json["fees"] != null &&
+            !PivxTxKind.rewards.contains(kind?.kind))
           TxV2OdKeys.overrideFee: Amount(
             rawValue: BigInt.parse(json["fees"] as String),
             fractionDigits: cryptoCurrency.fractionDigits,
@@ -574,15 +620,145 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     );
   }
 
-  /// Cold-stake (P2CS) script: `OP_DUP OP_HASH160 OP_ROT OP_IF
-  /// OP_CHECKCOLDSTAKEVERIFY[_LOF] ...`. Spending it needs the owner
-  /// flag in the scriptSig, so such outputs are frozen until staking
-  /// support lands.
+  /// Which PIVX kind a parsed tx is, if a special one, and the amount
+  /// to show for it.
+  ({String kind, BigInt? amount})? _classify({
+    required Map<String, dynamic> json,
+    required List<InputV2> inputs,
+    required List<OutputV2> outputs,
+    required TransactionType type,
+    required List<dynamic> receivedNotes,
+    required List<dynamic> spentNullifiers,
+  }) {
+    BigInt sum(Iterable<dynamic> values) =>
+        values.fold(BigInt.zero, (p, v) => p + (v as BigInt));
+    final ownedIn = sum(inputs.where((e) => e.walletOwns).map((e) => e.value));
+    final ownedOutputs = outputs.where((e) => e.walletOwns);
+    final ownedOut = sum(ownedOutputs.map((e) => e.value));
+    final received = ownedOutputs.isNotEmpty;
+    final coldStakeOut = ownedOutputs.where(
+      (e) => _isColdStakeScript(e.scriptPubKeyHex),
+    );
+
+    if (json["coinbase"] == true && received) {
+      return (kind: PivxTxKind.blockReward, amount: ownedOut);
+    }
+    if (json["coinstake"] == true && received) {
+      if (ownedIn > BigInt.zero) {
+        // Our coins (or coins delegated by us) staked.
+        return (
+          kind: coldStakeOut.isNotEmpty
+              ? PivxTxKind.coldStakeReward
+              : PivxTxKind.stakeReward,
+          amount: ownedOut - ownedIn,
+        );
+      }
+      // Someone else's stake paid one of our addresses.
+      return (kind: PivxTxKind.masternodeReward, amount: ownedOut);
+    }
+    if (ownedIn > BigInt.zero && coldStakeOut.isNotEmpty) {
+      return (
+        kind: PivxTxKind.delegation,
+        amount: sum(coldStakeOut.map((e) => e.value)),
+      );
+    }
+    if (ownedIn > BigInt.zero && _spendsColdStake(inputs)) {
+      return (kind: PivxTxKind.undelegation, amount: ownedOut);
+    }
+    if (type == TransactionType.sentToSelf) {
+      // Transparent outputs have a script; shield notes have none.
+      final transparentOut = sum(
+        ownedOutputs
+            .where((e) => e.scriptPubKeyHex.isNotEmpty)
+            .map((e) => e.value),
+      );
+      if (spentNullifiers.isEmpty && receivedNotes.isNotEmpty) {
+        return (
+          kind: PivxTxKind.shield,
+          amount: sum(
+            receivedNotes.map(
+              (n) => BigInt.from(((n as Map)["value"] as num).toInt()),
+            ),
+          ),
+        );
+      }
+      if (spentNullifiers.isNotEmpty && transparentOut > BigInt.zero) {
+        return (kind: PivxTxKind.unshield, amount: transparentOut);
+      }
+    }
+    return null;
+  }
+
+  /// Whether one of our inputs spends a cold-stake (P2CS) output.
+  bool _spendsColdStake(List<InputV2> inputs) {
+    for (final i in inputs.where((e) => e.walletOwns)) {
+      final outpoint = i.outpoint;
+      if (outpoint == null) continue;
+      final prev = mainDB.isar.transactionV2s
+          .where()
+          .txidWalletIdEqualTo(outpoint.txid, walletId)
+          .findFirstSync();
+      if (prev != null &&
+          outpoint.vout < prev.outputs.length &&
+          _isColdStakeScript(prev.outputs[outpoint.vout].scriptPubKeyHex)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // ===========================================================================
+  // Notifications
+
+  /// Set once the first full sync is done; earlier history (restores,
+  /// first sync) raises no notifications.
+  static const _kNotifyReady = "pivxNotifyReady";
+
+  /// Notify about [txns] that bring funds in and are not stored yet.
+  /// Call before storing them.
+  Future<void> _notifyIncoming(List<TransactionV2> txns) async {
+    if (info.otherData[_kNotifyReady] != true) return;
+    for (final tx in txns) {
+      if (tx.type != TransactionType.incoming) continue;
+      final stored = await mainDB.isar.transactionV2s
+          .where()
+          .txidWalletIdEqualTo(tx.txid, walletId)
+          .findFirst();
+      if (stored != null) continue;
+      final amount = tx.getAmountReceivedInThisWallet(
+        fractionDigits: cryptoCurrency.fractionDigits,
+      );
+      final label = switch (tx.pivxKind) {
+        PivxTxKind.stakeReward => "Staking reward",
+        PivxTxKind.masternodeReward => "Masternode reward",
+        PivxTxKind.coldStakeReward => "Cold staking reward",
+        PivxTxKind.blockReward => "Block reward",
+        _ => "Received",
+      };
+      CryptoNotificationsEventBus.instance.fire(
+        CryptoNotificationEvent(
+          title: "$label ${amount.decimal} ${cryptoCurrency.ticker}",
+          walletId: walletId,
+          walletName: info.name,
+          date: DateTime.now(),
+          shouldWatchForUpdates: false,
+          coin: cryptoCurrency,
+          txid: tx.txid,
+          payload: NotificationApi.txPayload(walletId, tx.txid),
+        ),
+      );
+    }
+  }
+
   final _blockHashes = <int, String>{};
 
   Future<String> _blockHashAt(int height) async =>
       _blockHashes[height] ??= await bridge.blockHash(height);
 
+  /// Cold-stake (P2CS) script: `OP_DUP OP_HASH160 OP_ROT OP_IF
+  /// OP_CHECKCOLDSTAKEVERIFY[_LOF] ...`. Spending it needs the owner
+  /// flag in the scriptSig, so such outputs are frozen until staking
+  /// support lands.
   static bool _isColdStakeScript(String hex) =>
       hex.startsWith("76a97b63d1") || hex.startsWith("76a97b63d2");
 

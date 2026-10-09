@@ -154,6 +154,9 @@ class TransactionV2 {
   }
 
   Amount getAmountReceivedInThisWallet({required int fractionDigits}) {
+    final pivxAmount = _getPivxAmount();
+    if (pivxAmount != null) return pivxAmount;
+
     if (_isMonero()) {
       if (type == TransactionType.incoming) {
         return _getMoneroAmount()!;
@@ -184,6 +187,9 @@ class TransactionV2 {
     required int fractionDigits,
     required bool subtractFee,
   }) {
+    final pivxAmount = _getPivxAmount();
+    if (pivxAmount != null) return pivxAmount;
+
     if (_isMonero()) {
       if (type == TransactionType.outgoing) {
         return _getMoneroAmount()!;
@@ -217,6 +223,19 @@ class TransactionV2 {
     ...inputs.map((e) => e.addresses).expand((e) => e),
     ...outputs.map((e) => e.addresses).expand((e) => e),
   };
+
+  @ignore
+  String? get pivxKind => _getFromOtherData(key: TxV2OdKeys.pivxKind) as String?;
+
+  Amount? _getPivxAmount() {
+    try {
+      return Amount.fromSerializedJsonString(
+        _getFromOtherData(key: TxV2OdKeys.pivxAmount) as String,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
 
   Amount? _getOverrideFee() {
     try {
@@ -254,6 +273,16 @@ class TransactionV2 {
         "/"
         "${(isCoinbase() ? minCoinbaseConfirms : minConfirms)}"
         ")";
+
+    final pivxLabel = _pivxStatusLabel(
+      confirmed: isConfirmed(
+        currentChainHeight,
+        minConfirms,
+        minCoinbaseConfirms,
+      ),
+      confirms: prettyConfirms(),
+    );
+    if (pivxLabel != null) return pivxLabel;
 
     if (subType == TransactionSubType.cashFusion ||
         subType == TransactionSubType.mint ||
@@ -364,6 +393,31 @@ class TransactionV2 {
     }
   }
 
+  String? _pivxStatusLabel({required bool confirmed, required String confirms}) {
+    String label(String done, String pending) =>
+        confirmed ? done : "$pending $confirms";
+    switch (pivxKind) {
+      case PivxTxKind.stakeReward:
+        return label("Staking reward", "Staking reward");
+      case PivxTxKind.masternodeReward:
+        return label("Masternode reward", "Masternode reward");
+      case PivxTxKind.coldStakeReward:
+        return label("Cold staking reward", "Cold staking reward");
+      case PivxTxKind.blockReward:
+        return label("Block reward", "Block reward");
+      case PivxTxKind.delegation:
+        return label("Delegated", "Delegating");
+      case PivxTxKind.undelegation:
+        return label("Undelegated", "Undelegating");
+      case PivxTxKind.shield:
+        return label("Shielded", "Shielding");
+      case PivxTxKind.unshield:
+        return label("Unshielded", "Unshielding");
+      default:
+        return null;
+    }
+  }
+
   dynamic _getFromOtherData({required dynamic key}) {
     if (otherData == null) {
       return null;
@@ -373,7 +427,9 @@ class TransactionV2 {
   }
 
   bool isCoinbase() =>
-      type == TransactionType.incoming && inputs.any((e) => e.coinbase != null);
+      (type == TransactionType.incoming &&
+          inputs.any((e) => e.coinbase != null)) ||
+      PivxTxKind.rewards.contains(pivxKind);
 
   @ignore
   bool get isInstantLock =>
@@ -421,4 +477,31 @@ abstract final class TxV2OdKeys {
   static const salviumTypeInt = "salviumTypeInt";
   static const salviumTypeString = "salviumTypeString";
   static const memo = "onChainMemo";
+
+  /// PIVX transaction kind, see [PivxTxKind].
+  static const pivxKind = "pivxKind";
+
+  /// PIVX: amount to show instead of one derived from the outputs (the
+  /// reward of a coinstake, the value delegated or shielded).
+  static const pivxAmount = "pivxAmount";
+}
+
+/// Kinds of PIVX transactions shown with their own label.
+abstract final class PivxTxKind {
+  static const stakeReward = "stakeReward";
+  static const masternodeReward = "masternodeReward";
+  static const coldStakeReward = "coldStakeReward";
+  static const blockReward = "blockReward";
+  static const delegation = "delegation";
+  static const undelegation = "undelegation";
+  static const shield = "shield";
+  static const unshield = "unshield";
+
+  /// Kinds that mint new coins: immature until coinbase maturity.
+  static const rewards = {
+    stakeReward,
+    masternodeReward,
+    coldStakeReward,
+    blockReward,
+  };
 }

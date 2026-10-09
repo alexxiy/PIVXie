@@ -124,7 +124,8 @@ class ThemeService {
         await _updateDefaultTheme("light");
       }
     }
-    if (AppConfig.hasFeature(AppFeature.themeSelection)) {
+    if (AppConfig.hasFeature(AppFeature.themeSelection) ||
+        AppConfig.hasFeature(AppFeature.darkTheme)) {
       if (!(await ThemeService.instance.verifyInstalled(themeId: "dark"))) {
         await _updateDefaultTheme("dark");
       } else {

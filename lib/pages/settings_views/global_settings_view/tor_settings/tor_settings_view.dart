@@ -229,7 +229,8 @@ class _TorAnimatedButtonState extends ConsumerState<_TorAnimatedButton>
           break;
 
         case TorConnectionStatus.connecting:
-          // Do nothing.
+          // Cancel a connection attempt.
+          await disconnectTor(ref, context);
           break;
       }
     } catch (_) {
@@ -343,7 +344,8 @@ class _TorAnimatedButtonState extends ConsumerState<_TorAnimatedButton>
         }
       },
       child: ConditionalParent(
-        condition: _status != TorConnectionStatus.connecting,
+        // Tappable while connecting too, to cancel.
+        condition: true,
         builder: (child) => GestureDetector(onTap: onTap, child: child),
         child: Column(
           children: [
@@ -406,7 +408,7 @@ class _TorButtonState extends ConsumerState<_TorButton> {
         return "Connected";
 
       case TorConnectionStatus.connecting:
-        return "Connecting";
+        return "Connecting (tap to cancel)";
     }
   }
 
@@ -430,7 +432,8 @@ class _TorButtonState extends ConsumerState<_TorButton> {
           break;
 
         case TorConnectionStatus.connecting:
-          // Do nothing.
+          // Cancel a connection attempt.
+          await disconnectTor(ref, context);
           break;
       }
     } catch (_) {
@@ -560,8 +563,10 @@ Future<void> connectTor(WidgetRef ref, BuildContext context) async {
     // Start the Tor service.
     await ref.read(pTorService).start();
 
-    // Toggle the useTor preference on success.
-    ref.read(prefsChangeNotifierProvider).useTor = true;
+    // Toggle the useTor preference on success (not when cancelled).
+    if (ref.read(pTorService).status == TorConnectionStatus.connected) {
+      ref.read(prefsChangeNotifierProvider).useTor = true;
+    }
   } catch (e, s) {
     Logging.instance.e("Error starting tor: ", error: e, stackTrace: s);
     // TODO: show dialog with error message

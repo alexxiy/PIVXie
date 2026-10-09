@@ -33,6 +33,7 @@ import 'db/hive/db.dart';
 import 'db/isar/main_db.dart';
 import 'db/special_migrations.dart';
 import 'db/sqlite/firo_cache.dart';
+import 'notifications/open_transaction.dart';
 import 'models/epicbox_server_model.dart';
 import 'models/exchange/change_now/exchange_transaction.dart';
 import 'models/exchange/change_now/exchange_transaction_status.dart';
@@ -440,6 +441,12 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
 
       NotificationApi.prefs = ref.read(prefsChangeNotifierProvider);
       NotificationApi.notificationsService = _notificationsService;
+      NotificationApi.onOpenTransaction = (walletId, txid) {
+        final navigator = ref.read(pNavKey).currentState;
+        if (navigator != null) {
+          unawaited(openTransactionDetails(navigator, walletId, txid));
+        }
+      };
 
       unawaited(ref.read(baseCurrenciesProvider).update());
 

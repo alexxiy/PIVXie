@@ -47,9 +47,14 @@ class WalletsOverview extends ConsumerStatefulWidget {
     required this.coin,
     this.navigatorState,
     this.overrideSimpleWalletCardPopPreviousValueWith,
+    this.allNetworks = false,
   });
 
   final CryptoCurrency coin;
+
+  /// List the wallets of every network of [coin] (e.g. PIVX and tPIVX)
+  /// inline on the home screen, as single coin apps do.
+  final bool allNetworks;
   final NavigatorState? navigatorState;
   final bool? overrideSimpleWalletCardPopPreviousValueWith;
 
@@ -124,10 +129,17 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
     return element.toLowerCase().contains(term);
   }
 
+  /// Shown inside the home screen rather than as its own page.
+  bool get _embedded => AppConfig.isSingleCoinApp || widget.allNetworks;
+
   void updateWallets() {
     final walletsData = ref.read(pAllWalletsInfo).toList();
 
-    walletsData.removeWhere((e) => e.coin != widget.coin);
+    walletsData.removeWhere(
+      (e) => widget.allNetworks
+          ? e.coin.mainNetId != widget.coin.mainNetId
+          : e.coin != widget.coin,
+    );
 
     if (widget.coin is Ethereum) {
       for (final data in walletsData) {
@@ -202,7 +214,7 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
 
     updateWallets();
 
-    if (AppConfig.isSingleCoinApp) {
+    if (_embedded) {
       GlobalEventBus.instance.on<WalletsChangedEvent>().listen((_) {
         updateWallets();
         WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -226,7 +238,7 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
   @override
   Widget build(BuildContext context) {
     return ConditionalParent(
-      condition: !isDesktop && !AppConfig.isSingleCoinApp,
+      condition: !isDesktop && !_embedded,
       builder: (child) => Background(
         child: Scaffold(
           backgroundColor: Theme.of(

@@ -23,6 +23,7 @@ import '../themes/theme_providers.dart';
 import '../utilities/format.dart';
 import '../utilities/util.dart';
 import 'notification_card_layout.dart';
+import 'open_transaction.dart';
 
 class NotificationCard extends ConsumerWidget {
   const NotificationCard({
@@ -74,12 +75,24 @@ class NotificationCard extends ConsumerWidget {
             ),
           );
 
-    return NotificationCardLayout(
+    final layout = NotificationCardLayout(
       icon: icon,
       title: notification.title,
       body: notification.description,
       dateString: extractPrettyDateString(notification.date),
       read: notification.read,
+    );
+    final txid = notification.txid;
+    if (txid == null) return layout;
+    // Transaction notifications open the transaction.
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => openTransactionDetails(
+        Navigator.of(context),
+        notification.walletId,
+        txid,
+      ),
+      child: layout,
     );
   }
 }

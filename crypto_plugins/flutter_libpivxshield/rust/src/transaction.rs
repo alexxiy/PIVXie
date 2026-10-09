@@ -18,6 +18,7 @@ use incrementalmerkletree::frontier::CommitmentTree;
 use incrementalmerkletree::witness::IncrementalWitness;
 use pivx_client_backend::data_api::DecryptedTransaction;
 use pivx_client_backend::decrypt_transaction;
+use pivx_client_backend::TransferType;
 use pivx_client_backend::keys::UnifiedFullViewingKey;
 use pivx_primitives::consensus::Network;
 use pivx_primitives::consensus::NetworkConstants;
@@ -168,12 +169,25 @@ pub struct ReceivedNote {
     pub index: u32,
 }
 
-/// A transaction that touches the wallet (receives a note or spends one).
+/// A shield output this wallet sent to someone else, recovered with the
+/// wallet's outgoing viewing key.
+#[derive(Serialize, Deserialize, Clone)]
+pub struct SentNote {
+    pub value: u64,
+    pub address: String,
+    pub memo: Option<String>,
+    pub index: u32,
+}
+
+/// A transaction that touches the wallet (receives a note, spends one,
+/// or sent shield outputs recoverable with our outgoing viewing key).
 #[derive(Serialize, Deserialize)]
 pub struct WalletTxDetail {
     pub txid: String,
     pub hex: String,
     pub received: Vec<ReceivedNote>,
+    #[serde(default)]
+    pub sent: Vec<SentNote>,
     /// All nullifiers revealed by the tx (the caller matches its own).
     pub nullifiers: Vec<String>,
 }
@@ -257,9 +271,19 @@ pub fn handle_blocks(
     for ((hex_tx, tx), decrypted_tx) in txs.iter().zip(decrypted_txs) {
         let old_note_length = new_notes.len();
         let mut indices = vec![];
-        let tx_nullifiers =
-            handle_transaction(&mut tree, tx, &decrypted_tx, &nullif_key, &mut comp_note, &mut new_notes, &mut indices)
-            .map_err(|_| "Couldn't handle transaction")?
+        let mut sent = vec![];
+        let tx_nullifiers = handle_transaction(
+            &mut tree,
+            tx,
+            &decrypted_tx,
+            &nullif_key,
+            &mut comp_note,
+            &mut new_notes,
+            &mut indices,
+            &mut sent,
+            is_testnet,
+        )
+        .map_err(|_| "Couldn't handle transaction")?
             .into_iter()
             .map(|n| hex::encode(n.0))
             .collect::<Vec<_>>();
@@ -268,7 +292,7 @@ pub fn handle_blocks(
             .iter()
             .chain(new_notes.iter())
             .any(|n| tx_nullifiers.contains(&n.nullifier));
-        if !received_here.is_empty() || spends_ours {
+        if !received_here.is_empty() || spends_ours || !sent.is_empty() {
             wallet_transactions.push(WalletTxDetail {
                 txid: tx.txid().to_string(),
                 hex: (*hex_tx).clone(),
@@ -283,6 +307,7 @@ pub fn handle_blocks(
                         index,
                     })
                     .collect(),
+                sent,
                 nullifiers: tx_nullifiers.clone(),
             });
         }
@@ -395,7 +420,9 @@ pub fn handle_blocks_compact(
 }
 
 /// Add a tx to the commitment tree; witness our outputs; return its nullifiers.
-/// The output index of each note added to `new_witnesses` goes to `indices`.
+/// The output index of each note added to `new_witnesses` goes to `indices`;
+/// outputs we sent to others (recovered with our ovk) go to `sent`.
+#[allow(clippy::too_many_arguments)]
 pub fn handle_transaction(
     tree: &mut CommitmentTree<Node, DEPTH>,
     tx: &Transaction,
@@ -404,6 +431,8 @@ pub fn handle_transaction(
     witnesses: &mut [SpendableNote],
     new_witnesses: &mut Vec<SpendableNote>,
     indices: &mut Vec<u32>,
+    sent: &mut Vec<SentNote>,
+    is_testnet: bool,
 ) -> BoxResult<Vec<Nullifier>> {
     let mut nullifiers: Vec<Nullifier> = vec![];
     if let Some(sapling) = tx.sapling_bundle() {
@@ -416,6 +445,16 @@ pub fn handle_transaction(
                 witness.append(Node::from_cmu(out.cmu())).map_err(|_| "Failed to add cmu to witness")?;
             }
             for output in decrypted_tx.sapling_outputs() {
+                if output.index() == i && output.transfer_type() == TransferType::Outgoing {
+                    // Someone else's note: never ours to spend.
+                    sent.push(SentNote {
+                        value: output.note().value().inner(),
+                        address: encode_payment_address_internal(&output.note().recipient(), is_testnet),
+                        memo: memo_text(output.memo().as_slice()),
+                        index: i as u32,
+                    });
+                    break;
+                }
                 if output.index() == i {
                     let note = output.note();
                     let witness = IncrementalWitness::<Node, DEPTH>::from_tree(tree.clone());
@@ -623,11 +662,14 @@ fn create_transaction_internal(
         )?,
     };
     let send_amount = Zatoshis::from_u64(amount).map_err(|_| "Invalid Amount")?;
+    // Outputs carry the wallet's outgoing viewing key (as PIVX Core does),
+    // so the sender can later recover recipient, amount and memo.
+    let ovk = extsk.to_diversifiable_full_viewing_key().fvk().ovk;
     match decode_generic_address(network, to_address)? {
         GenericAddress::Transparent(x) => builder.add_transparent_output(&x, send_amount).map_err(|_| "Failed to add output")?,
         GenericAddress::Shield(x) => builder
             .add_sapling_output::<FeeRule>(
-                None,
+                Some(ovk),
                 x,
                 send_amount,
                 Memo::from_str(&memo).map(|m| m.encode()).unwrap_or(MemoBytes::empty()),
@@ -640,7 +682,7 @@ fn create_transaction_internal(
                 builder.add_transparent_output(&x, change).map_err(|_| "Failed to add transparent change")?
             }
             GenericAddress::Shield(x) => builder
-                .add_sapling_output::<FeeRule>(None, x, change, MemoBytes::empty())
+                .add_sapling_output::<FeeRule>(Some(ovk), x, change, MemoBytes::empty())
                 .map_err(|_| "Failed to add shield change")?,
         }
     }

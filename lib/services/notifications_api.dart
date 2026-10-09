@@ -62,6 +62,10 @@ abstract final class NotificationApi {
     );
     await _notifications.initialize(
       settings,
+      onDidReceiveNotificationResponse: (response) {
+        final tx = parseTxPayload(response.payload);
+        if (tx != null) onOpenTransaction?.call(tx.walletId, tx.txid);
+      },
       // onDidReceiveNotificationResponse: (payload) async {
       //   onNotifications.add(payload.payload);
       // },
@@ -80,6 +84,29 @@ abstract final class NotificationApi {
   static Future<void> clearNotification(int id) async {
     await init();
     await _notifications.cancel(id);
+  }
+
+  /// Opens a transaction's details; set by the app once navigation is
+  /// available. Called when a transaction notification is tapped.
+  static void Function(String walletId, String txid)? onOpenTransaction;
+
+  /// Notification payload pointing at a transaction.
+  static String txPayload(String walletId, String txid) => "tx|$walletId|$txid";
+
+  static ({String walletId, String txid})? parseTxPayload(String? payload) {
+    final parts = payload?.split("|");
+    if (parts == null || parts.length != 3 || parts.first != "tx") return null;
+    return (walletId: parts[1], txid: parts[2]);
+  }
+
+  /// Android 13+ only shows notifications once the user allowed them.
+  static Future<void> requestPermission() async {
+    await init();
+    await _notifications
+        .resolvePlatformSpecificImplementation<
+          AndroidFlutterLocalNotificationsPlugin
+        >()
+        ?.requestNotificationsPermission();
   }
 
   //===================================

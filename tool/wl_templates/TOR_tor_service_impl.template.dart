@@ -1,7 +1,13 @@
 //ON
+import 'dart:ffi';
 import 'dart:io';
+import 'dart:isolate';
+import 'dart:math';
 
+import 'package:ffi/ffi.dart';
 import 'package:tor_ffi_plugin/tor_ffi_plugin.dart';
+import 'package:tor_ffi_plugin/tor_ffi_plugin_bindings_generated.dart'
+    as bindings;
 
 import '../../services/event_bus/events/global/tor_connection_status_changed_event.dart';
 import '../../services/event_bus/global_event_bus.dart';
@@ -30,9 +36,16 @@ class _TorServiceImpl extends TorService {
 
   _TorServiceImpl._();
 
-  Tor? _tor;
   String? _torDataDirPath;
   TorConnectionStatus _status = TorConnectionStatus.disconnected;
+
+  /// SOCKS port and native proxy handle of the running Tor client.
+  int? _port;
+  int _proxyAddress = 0;
+
+  /// Bumped by [disable]; a start that finishes under an older
+  /// generation was cancelled and shuts its proxy down.
+  int _generation = 0;
 
   @override
   TorConnectionStatus get status => _status;
@@ -42,59 +55,76 @@ class _TorServiceImpl extends TorService {
   /// Throws if Tor is not connected.
   @override
   ({InternetAddress host, int port}) getProxyInfo() {
-    if (status == TorConnectionStatus.connected) {
-      return (host: InternetAddress.loopbackIPv4, port: _tor!.port);
+    if (status == TorConnectionStatus.connected && _port != null) {
+      return (host: InternetAddress.loopbackIPv4, port: _port!);
     } else {
       throw Exception("Tor proxy info fetched while not connected!");
     }
   }
 
-  /// Initialize the tor ffi lib instance if it hasn't already been set. Nothing
-  /// changes if _tor is already been set.
   @override
-  void init({required String torDataDirPath, Tor? mockableOverride}) {
-    _tor ??= mockableOverride ?? Tor.instance;
+  void init({required String torDataDirPath}) {
     _torDataDirPath ??= torDataDirPath;
   }
 
-  /// Start the Tor service.
+  /// Start Tor and bootstrap a circuit.
   ///
-  /// This will start the Tor service and establish a Tor circuit.
-  ///
-  /// Throws an exception if the Tor library was not inited or if the Tor
-  /// service fails to start.
-  ///
-  /// Returns a Future that completes when the Tor service has started.
+  /// Both run in a background isolate: bootstrapping blocks for as long as
+  /// the network takes, and must not freeze the UI. [disable] cancels a
+  /// start in progress.
   @override
   Future<void> start() async {
-    if (_tor == null || _torDataDirPath == null) {
+    if (_torDataDirPath == null) {
       throw Exception("TorService.init has not been called!");
     }
+    if (_status != TorConnectionStatus.disconnected) return;
 
-    // Start the Tor service.
+    final generation = ++_generation;
+    _updateStatusAndFireEvent(
+      status: TorConnectionStatus.connecting,
+      message: "TorService.start call in progress",
+    );
+
     try {
-      _updateStatusAndFireEvent(
-        status: TorConnectionStatus.connecting,
-        message: "TorService.start call in progress",
-      );
+      final stateDir =
+          await Directory("$_torDataDirPath/tor_state").create(recursive: true);
+      final cacheDir =
+          await Directory("$_torDataDirPath/tor_cache").create(recursive: true);
+      final port = await _unusedPort();
 
-      await _tor!.start(torDataDirPath: _torDataDirPath!);
+      final proxyAddress = await Isolate.run(() {
+        final lib = bindings.TorFfiPluginBindings(_openTorLib());
+        final tor = lib.tor_start(
+          port,
+          stateDir.path.toNativeUtf8().cast(),
+          cacheDir.path.toNativeUtf8().cast(),
+        );
+        if (tor.client == nullptr) {
+          throw Exception(_lastTorError(lib));
+        }
+        if (!lib.tor_client_bootstrap(tor.client)) {
+          final error = _lastTorError(lib);
+          lib.tor_proxy_stop(tor.proxy);
+          throw Exception(error);
+        }
+        return tor.proxy.address;
+      });
 
-      // no exception or error so we can (probably?) assume tor
-      // has started successfully
-      // Fire a TorConnectionStatusChangedEvent on the event bus.
+      if (generation != _generation) {
+        // Cancelled while bootstrapping.
+        _stopProxy(proxyAddress);
+        return;
+      }
+
+      _port = port;
+      _proxyAddress = proxyAddress;
       _updateStatusAndFireEvent(
         status: TorConnectionStatus.connected,
         message: "TorService.start call success",
       );
-
-      // Complete the future.
-      return;
     } catch (e, s) {
+      if (generation != _generation) return;
       Logging.instance.w("TorService.start failed: ", error: e, stackTrace: s);
-      // _enabled should already be false
-
-      // Fire a TorConnectionStatusChangedEvent on the event bus.
       _updateStatusAndFireEvent(
         status: TorConnectionStatus.disconnected,
         message: "TorService.start call failed",
@@ -103,25 +133,40 @@ class _TorServiceImpl extends TorService {
     }
   }
 
-  /// Disable Tor.
+  /// Disable Tor, also while it is still connecting.
   @override
   Future<void> disable() async {
-    if (_tor == null) {
-      throw Exception("TorService.init has not been called!");
-    }
-
-    // No need to update status and fire event if status won't change.
-    if (_status == TorConnectionStatus.disconnected) {
-      return;
-    }
-
-    _tor!.disable();
-    await _tor?.stop();
-
+    if (_status == TorConnectionStatus.disconnected) return;
+    _generation++;
+    _stopProxy(_proxyAddress);
+    _proxyAddress = 0;
+    _port = null;
     _updateStatusAndFireEvent(
       status: TorConnectionStatus.disconnected,
       message: "TorService.disable call success",
     );
+  }
+
+  static void _stopProxy(int address) {
+    if (address == 0) return;
+    bindings.TorFfiPluginBindings(_openTorLib())
+        .tor_proxy_stop(Pointer.fromAddress(address));
+  }
+
+  static Future<int> _unusedPort() async {
+    final random = Random.secure();
+    for (int i = 0; i < 100; i++) {
+      final port = 1024 + random.nextInt(65535 - 1024);
+      try {
+        final socket = await ServerSocket.bind(
+          InternetAddress.loopbackIPv4,
+          port,
+        );
+        await socket.close();
+        return port;
+      } catch (_) {}
+    }
+    throw Exception("Failed to get an unused port for Tor");
   }
 
   void _updateStatusAndFireEvent({
@@ -134,6 +179,20 @@ class _TorServiceImpl extends TorService {
     );
   }
 }
+
+DynamicLibrary _openTorLib() {
+  if (Platform.isAndroid || Platform.isLinux) {
+    return DynamicLibrary.open("libtor_ffi_plugin.so");
+  } else if (Platform.isIOS || Platform.isMacOS) {
+    return DynamicLibrary.open("tor_ffi_plugin.framework/tor_ffi_plugin");
+  } else if (Platform.isWindows) {
+    return DynamicLibrary.open("tor_ffi_plugin.dll");
+  }
+  throw UnsupportedError("Tor is not supported on this platform");
+}
+
+String _lastTorError(bindings.TorFfiPluginBindings lib) =>
+    lib.tor_last_error_message().cast<Utf8>().toDartString();
 
 class _FusionTorServiceImpl extends FusionTorService {
   static _FusionTorServiceImpl? _instance;

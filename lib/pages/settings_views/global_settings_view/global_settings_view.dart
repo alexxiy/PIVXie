@@ -28,6 +28,7 @@ import '../sub_widgets/settings_list_button.dart';
 import 'about_view.dart';
 import 'advanced_views/advanced_settings_view.dart';
 import 'appearance_settings/appearance_settings_view.dart';
+import 'appearance_settings/theme_mode_view.dart';
 import 'currency_view.dart';
 import 'delete_account_view.dart';
 import 'language_view.dart';
@@ -212,6 +213,24 @@ class GlobalSettingsView extends StatelessWidget {
                                         );
                                       },
                                     ),
+                                  if (AppConfig.hasFeature(
+                                        AppFeature.darkTheme,
+                                      ) &&
+                                      !AppConfig.hasFeature(
+                                        AppFeature.themeSelection,
+                                      )) ...[
+                                    const SizedBox(height: 8),
+                                    SettingsListButton(
+                                      iconAssetName: Assets.svg.sun,
+                                      iconSize: 18,
+                                      title: "Appearance",
+                                      onPressed: () {
+                                        Navigator.of(
+                                          context,
+                                        ).pushNamed(ThemeModeView.routeName);
+                                      },
+                                    ),
+                                  ],
                                   if (Platform.isIOS) const SizedBox(height: 8),
                                   if (Platform.isIOS)
                                     SettingsListButton(

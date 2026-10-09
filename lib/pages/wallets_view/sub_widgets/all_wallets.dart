@@ -73,6 +73,23 @@ class AllWallets extends StatelessWidget {
                 );
               }
 
+              // Every coin is a network of the same one (PIVX and its test
+              // network): no per-coin groups, list the wallets directly.
+              if (AppConfig.coins.map((e) => e.mainNetId).toSet().length ==
+                      1 &&
+                  walletsByCoin.isNotEmpty) {
+                return WalletsOverview(
+                  // New state (wallet list) whenever wallets change.
+                  key: ValueKey(
+                    walletsByCoin
+                        .expand((e) => e.wallets.map((w) => w.walletId))
+                        .join(),
+                  ),
+                  coin: AppConfig.coins.first,
+                  allNetworks: true,
+                );
+              }
+
               return ListView.builder(
                 itemCount: walletsByCoin.length,
                 itemBuilder: (builderContext, index) {

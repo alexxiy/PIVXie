@@ -14,6 +14,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'sub_widgets/all_wallets.dart';
 import 'sub_widgets/empty_wallets.dart';
 import 'sub_widgets/favorite_wallets.dart';
+import '../../app_config.dart';
 import '../../providers/providers.dart';
 import '../../themes/theme_providers.dart';
 import '../../wallets/isar/providers/all_wallets_info_provider.dart';
@@ -28,9 +29,15 @@ class WalletsView extends ConsumerWidget {
     debugPrint("BUILD: $runtimeType");
     final hasWallets = ref.watch(pAllWalletsInfo).isNotEmpty;
 
-    final showFavorites = ref.watch(
-      prefsChangeNotifierProvider.select((value) => value.showFavoriteWallets),
-    );
+    // Single coin family apps (PIVXie) list wallets directly; favorites
+    // would only repeat that list.
+    final showFavorites =
+        AppConfig.coins.map((e) => e.mainNetId).toSet().length > 1 &&
+        ref.watch(
+          prefsChangeNotifierProvider.select(
+            (value) => value.showFavoriteWallets,
+          ),
+        );
 
     return SafeArea(
       child: hasWallets
