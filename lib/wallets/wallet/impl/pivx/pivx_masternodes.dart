@@ -238,33 +238,37 @@ extension PivxMasternodes on PivxWallet {
   }
 
   /// Build the collateral payment: exactly [masternodeCollateral] to
-  /// [address] (a wallet address). Confirm with [confirmSend], then call
-  /// [addMasternode] with [collateralVout].
-  Future<TxData> prepareMasternodeCollateral({required String address}) =>
-      prepareSend(
-        txData: TxData(
-          recipients: [
-            TxRecipient(
-              address: address,
-              amount: masternodeCollateral,
-              isChange: false,
-              addressType: AddressType.p2pkh,
-            ),
-          ],
+  /// [address] (a wallet address), from [utxos] when the user picked the
+  /// coins. Confirm with [confirmSend], then call [addMasternode] with
+  /// [collateralVout].
+  Future<TxData> prepareMasternodeCollateral({
+    required String address,
+    Set<UTXO>? utxos,
+  }) => prepareSend(
+    txData: TxData(
+      recipients: [
+        TxRecipient(
+          address: address,
+          amount: masternodeCollateral,
+          isChange: false,
+          addressType: AddressType.p2pkh,
         ),
-      );
+      ],
+      utxos: utxos == null || utxos.isEmpty
+          ? null
+          : {for (final u in utxos) StandardInput(u)},
+    ),
+  );
 
   /// Output index of the collateral in a prepared collateral payment.
+  /// Read from the wallet's own outputs of the transaction (coinlib
+  /// can't parse every PIVX transaction back).
   int collateralVout(TxData txData, String address) {
-    final tx = coinlib.Transaction.fromHex(txData.raw!);
-    final script = coinlib.Address.fromString(
-      address,
-      cryptoCurrency.networkParams,
-    ).program.script.compiled.toHex;
-    final raw = masternodeCollateral.raw;
-    for (int i = 0; i < tx.outputs.length; i++) {
-      final o = tx.outputs[i];
-      if (o.value == raw && o.scriptPubKey.toHex == script) return i;
+    final outputs = txData.tempTx?.outputs ?? const <OutputV2>[];
+    final raw = masternodeCollateral.raw.toString();
+    for (int i = 0; i < outputs.length; i++) {
+      final o = outputs[i];
+      if (o.valueStringSats == raw && o.addresses.contains(address)) return i;
     }
     throw Exception("Collateral output not found");
   }

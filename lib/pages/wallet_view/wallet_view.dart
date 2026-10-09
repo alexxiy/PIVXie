@@ -1240,16 +1240,12 @@ class _WalletViewState extends ConsumerState<WalletView> {
                     if (!viewOnly && wallet is PivxWallet)
                       WalletNavigationBarItemData(
                         label: "Masternodes",
-                        icon: SvgPicture.asset(
-                          Assets.svg.recycle,
-                          height: 20,
-                          width: 20,
-                          colorFilter: ColorFilter.mode(
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.bottomNavIconIcon,
-                            BlendMode.srcIn,
-                          ),
+                        icon: Icon(
+                          Icons.dns_rounded,
+                          size: 20,
+                          color: Theme.of(
+                            context,
+                          ).extension<StackColors>()!.bottomNavIconIcon,
                         ),
                         onTap: () {
                           Navigator.of(context).pushNamed(

@@ -67,6 +67,15 @@ class _PivxMasternodesViewState extends ConsumerState<PivxMasternodesView> {
                   child: masternodes.isEmpty
                       ? ListView(
                           children: [
+                            const SizedBox(height: 24),
+                            Center(
+                              child: Icon(
+                                Icons.dns_rounded,
+                                size: 72,
+                                color: colors.textSubtitle1,
+                              ),
+                            ),
+                            const SizedBox(height: 24),
                             RoundedWhiteContainer(
                               child: Text(
                                 "A masternode locks a collateral of "

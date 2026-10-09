@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar_community/isar.dart';
+import 'package:tuple/tuple.dart';
 
 import '../../db/isar/main_db.dart';
 import '../../models/isar/models/isar_models.dart';
@@ -10,6 +11,8 @@ import '../../notifications/show_flush_bar.dart';
 import '../../providers/global/wallets_provider.dart';
 import '../../route_generator.dart';
 import '../../themes/stack_colors.dart';
+import '../../utilities/amount/amount.dart';
+import '../../utilities/amount/amount_formatter.dart';
 import '../../utilities/show_loading.dart';
 import '../../utilities/text_styles.dart';
 import '../../wallets/models/tx_data.dart';
@@ -20,6 +23,7 @@ import '../../widgets/custom_buttons/blue_text_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_text_field.dart';
+import '../coin_control/coin_control_view.dart';
 import '../send_view/confirm_transaction_view.dart';
 import 'pivx_masternodes_view.dart';
 
@@ -57,6 +61,9 @@ class _PivxCreateMasternodeViewState
   Address? _ownAddress;
   List<UTXO> _outputs = const [];
   UTXO? _output;
+
+  /// Coins to pay the collateral with; empty: chosen automatically.
+  Set<UTXO> _coins = {};
 
   PivxWallet get _wallet =>
       ref.read(pWallets).getWallet(widget.walletId) as PivxWallet;
@@ -168,25 +175,31 @@ class _PivxCreateMasternodeViewState
     if (address == null) return;
 
     Exception? error;
-    final txData = await showLoading<TxData>(
-      whileFuture: wallet.prepareMasternodeCollateral(address: address),
+    final prepared = await showLoading<(TxData, int)>(
+      whileFutureAlt: () async {
+        final txData = await wallet.prepareMasternodeCollateral(
+          address: address,
+          utxos: _coins,
+        );
+        return (txData, wallet.collateralVout(txData, address));
+      },
       context: context,
       message: "Preparing collateral",
       onException: (e) => error = e,
     );
     if (!mounted) return;
-    if (txData == null) {
+    if (prepared == null) {
       await showFloatingFlushBar(
         type: FlushBarType.warning,
         message: error?.toString().replaceFirst("Exception: ", "") ??
             "Could not prepare the collateral transaction",
         context: context,
-        duration: const Duration(seconds: 4),
+        duration: const Duration(seconds: 5),
       );
       return;
     }
 
-    final vout = wallet.collateralVout(txData, address);
+    final (txData, vout) = prepared;
     final key = _key;
     final addressLabel = _collateral == _Collateral.newAddress
         ? _addressLabelController.text.trim()
@@ -259,6 +272,63 @@ class _PivxCreateMasternodeViewState
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Future<void> _chooseCoins() async {
+    final wallet = _wallet;
+    final result = await Navigator.of(context).pushNamed(
+      CoinControlView.routeName,
+      arguments: Tuple5(
+        widget.walletId,
+        CoinControlViewType.use,
+        wallet.masternodeCollateral,
+        _coins,
+        (
+          shieldNotes: false,
+          sendAmount: wallet.masternodeCollateral,
+          toShield: false,
+          subtractFee: false,
+        ),
+      ),
+    );
+    if (result is Set<UTXO> && mounted) setState(() => _coins = result);
+  }
+
+  Widget _coinControl() {
+    final colors = Theme.of(context).extension<StackColors>()!;
+    final fmt = ref.watch(pAmountFormatter(_wallet.cryptoCurrency));
+    final sum = _coins.fold(BigInt.zero, (p, u) => p + BigInt.from(u.value));
+    return RoundedWhiteContainer(
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("Coins to spend", style: STextStyles.w600_14(context)),
+                const SizedBox(height: 2),
+                Text(
+                  _coins.isEmpty
+                      ? "Chosen automatically"
+                      : "${_coins.length} selected · "
+                            "${fmt.format(Amount(rawValue: sum, fractionDigits: _wallet.cryptoCurrency.fractionDigits))}",
+                  style: STextStyles.w500_12(
+                    context,
+                  ).copyWith(color: colors.textSubtitle1),
+                ),
+              ],
+            ),
+          ),
+          if (_coins.isNotEmpty)
+            CustomTextButton(
+              text: "Reset",
+              onTap: () => setState(() => _coins = {}),
+            ),
+          const SizedBox(width: 12),
+          CustomTextButton(text: "Choose", onTap: _chooseCoins),
+        ],
       ),
     );
   }
@@ -403,6 +473,10 @@ class _PivxCreateMasternodeViewState
                     ],
                   ),
                 ),
+              if (_collateral != _Collateral.existingOutput) ...[
+                const SizedBox(height: 4),
+                _coinControl(),
+              ],
               const SizedBox(height: 12),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
