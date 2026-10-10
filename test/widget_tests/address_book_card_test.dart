@@ -45,7 +45,7 @@ void main() {
 
     await widgetTester.pumpWidget(
       ProviderScope(
-        overrides: [addressBookServiceProvider.overrideWithValue(service)],
+        overrides: [addressBookServiceProvider.overrideWith((_) => service)],
         child: MaterialApp(
           theme: ThemeData(
             extensions: [

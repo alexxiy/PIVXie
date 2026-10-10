@@ -114,8 +114,8 @@ class _HomeViewState extends ConsumerState<HomeView> {
 
   Future<bool> _onWillPop() async {
     // go to home view when tapping back on the main exchange view
-    if (ref.read(homeViewPageIndexStateProvider.state).state != 0) {
-      ref.read(homeViewPageIndexStateProvider.state).state = 0;
+    if (ref.read(homeViewPageIndexStateProvider) != 0) {
+      ref.read(homeViewPageIndexStateProvider.notifier).state = 0;
       return false;
     }
 
@@ -345,9 +345,9 @@ class _HomeViewState extends ConsumerState<HomeView> {
                       Navigator.of(context)
                           .pushNamed(NotificationsView.routeName)
                           .then((_) {
-                            final Set<int> unreadNotificationIds = ref
-                                .read(unreadNotificationsStateProvider.state)
-                                .state;
+                            final Set<int> unreadNotificationIds = ref.read(
+                              unreadNotificationsStateProvider,
+                            );
                             if (unreadNotificationIds.isEmpty) return;
 
                             final List<Future<void>> futures = [];
@@ -437,7 +437,9 @@ class _HomeViewState extends ConsumerState<HomeView> {
                         onPageChanged: (pageIndex) {
                           if (!_lock) {
                             ref
-                                    .read(homeViewPageIndexStateProvider.state)
+                                    .read(
+                                      homeViewPageIndexStateProvider.notifier,
+                                    )
                                     .state =
                                 pageIndex;
                           }

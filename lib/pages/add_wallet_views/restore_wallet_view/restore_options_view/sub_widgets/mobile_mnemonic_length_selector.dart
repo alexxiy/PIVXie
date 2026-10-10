@@ -11,6 +11,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+
 import '../../../../../providers/ui/verify_recovery_phrase/mnemonic_word_count_state_provider.dart';
 import '../../../../../themes/stack_colors.dart';
 import '../../../../../utilities/assets.dart';
@@ -38,9 +39,7 @@ class MobileMnemonicLengthSelector extends ConsumerWidget {
           textInputAction: TextInputAction.none,
         ),
         Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 12,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 12),
           child: RawMaterialButton(
             splashColor: Theme.of(context).extension<StackColors>()!.highlight,
             shape: RoundedRectangleBorder(
@@ -53,15 +52,16 @@ class MobileMnemonicLengthSelector extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  "${ref.watch(mnemonicWordCountStateProvider.state).state} words",
+                  "${ref.watch(mnemonicWordCountStateProvider)} words",
                   style: STextStyles.itemSubtitle12(context),
                 ),
                 SvgPicture.asset(
                   Assets.svg.chevronDown,
                   width: 8,
                   height: 4,
-                  color:
-                      Theme.of(context).extension<StackColors>()!.textSubtitle2,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textSubtitle2,
                 ),
               ],
             ),

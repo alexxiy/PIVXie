@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/text_styles.dart';
 import '../../rounded_container.dart';
@@ -44,23 +45,18 @@ class WalletNavigationBarItem extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return GestureDetector(
-      onTap: data.isMore || !ref.watch(walletNavBarMore.state).state
-          ? data.onTap
-          : null,
+      onTap: data.isMore || !ref.watch(walletNavBarMore) ? data.onTap : null,
       child: RoundedContainer(
         color: Colors.transparent,
         padding: const EdgeInsets.all(0),
         radiusMultiplier: 2,
         child: AnimatedOpacity(
-          opacity:
-              data.isMore || !ref.watch(walletNavBarMore.state).state ? 1 : 0.2,
+          opacity: data.isMore || !ref.watch(walletNavBarMore) ? 1 : 0.2,
           duration: disableDuration,
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 8.0),
             child: ConstrainedBox(
-              constraints: const BoxConstraints(
-                maxHeight: 45,
-              ),
+              constraints: const BoxConstraints(maxHeight: 45),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.center,
@@ -69,9 +65,7 @@ class WalletNavigationBarItem extends ConsumerWidget {
                   SizedBox(
                     width: 24,
                     height: 24,
-                    child: Center(
-                      child: data.icon,
-                    ),
+                    child: Center(child: data.icon),
                   ),
                   const Spacer(),
                   data.overrideText ??
@@ -94,10 +88,7 @@ class WalletNavigationBarItem extends ConsumerWidget {
 }
 
 class WalletNavigationBarMoreItem extends ConsumerWidget {
-  const WalletNavigationBarMoreItem({
-    super.key,
-    required this.data,
-  });
+  const WalletNavigationBarMoreItem({super.key, required this.data});
 
   final WalletNavigationBarItemData data;
 
@@ -106,17 +97,14 @@ class WalletNavigationBarMoreItem extends ConsumerWidget {
     return GestureDetector(
       onTap: () {
         data.onTap?.call();
-        ref.read(walletNavBarMore.state).state = false;
+        ref.read(walletNavBarMore.notifier).state = false;
       },
       child: Material(
         color: Colors.transparent,
         child: RoundedContainer(
           color: Theme.of(context).extension<StackColors>()!.bottomNavBack,
           radiusMultiplier: 100,
-          padding: const EdgeInsets.symmetric(
-            vertical: 16,
-            horizontal: 30,
-          ),
+          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 30),
           child: Row(
             children: [
               Expanded(
@@ -130,9 +118,7 @@ class WalletNavigationBarMoreItem extends ConsumerWidget {
                   ),
                 ),
               ),
-              const SizedBox(
-                width: 10,
-              ),
+              const SizedBox(width: 10),
               data.icon,
             ],
           ),

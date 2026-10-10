@@ -235,7 +235,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
     // }
 
     ref.read(currentWalletIdProvider.notifier).state = null;
-    ref.read(transactionFilterProvider.state).state = null;
+    ref.read(transactionFilterProvider.notifier).state = null;
     if (ref.read(prefsChangeNotifierProvider).isAutoBackupEnabled &&
         ref.read(prefsChangeNotifierProvider).backupFrequencyType ==
             BackupFrequencyType.afterClosingAWallet) {
@@ -568,10 +568,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                 )
                                 .then((_) {
                                   final Set<int> unreadNotificationIds = ref
-                                      .read(
-                                        unreadNotificationsStateProvider.state,
-                                      )
-                                      .state;
+                                      .read(unreadNotificationsStateProvider);
                                   if (unreadNotificationIds.isEmpty) return;
 
                                   final List<Future<dynamic>> futures = [];

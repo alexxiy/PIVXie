@@ -22,7 +22,7 @@ void main() {
 
     await widgetTester.pumpWidget(
       ProviderScope(
-        overrides: [pThemeService.overrideWithValue(mockThemeService)],
+        overrides: [pThemeService.overrideWith((_) => mockThemeService)],
         child: MaterialApp(
           theme: ThemeData(
             extensions: [

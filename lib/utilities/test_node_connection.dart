@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show ProviderListenable;
 
 import '../pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import '../providers/global/prefs_provider.dart';
@@ -36,7 +37,7 @@ Future<bool> testNodeConnection({
   required BuildContext context,
   required NodeFormData nodeFormData,
   required CryptoCurrency cryptoCurrency,
-  required Reader read,
+  required T Function<T>(ProviderListenable<T> provider) read,
 }) async {
   final formData = nodeFormData;
 

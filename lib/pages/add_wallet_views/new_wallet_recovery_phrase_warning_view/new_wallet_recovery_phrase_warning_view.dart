@@ -140,18 +140,14 @@ class _NewWalletRecoveryPhraseWarningViewState
       int wordCount = info.coin.defaultSeedPhraseLength;
 
       if (wordCount > 0) {
-        if (ref.read(pNewWalletOptions.state).state != null) {
+        if (ref.read(pNewWalletOptions) != null) {
           if (coin.hasMnemonicPassphraseSupport) {
             mnemonicPassphrase = ref
-                .read(pNewWalletOptions.state)
-                .state!
+                .read(pNewWalletOptions)!
                 .mnemonicPassphrase;
           }
 
-          wordCount = ref
-              .read(pNewWalletOptions.state)
-              .state!
-              .mnemonicWordsCount;
+          wordCount = ref.read(pNewWalletOptions)!.mnemonicWordsCount;
         } else {
           mnemonicPassphrase = "";
         }
@@ -178,7 +174,7 @@ class _NewWalletRecoveryPhraseWarningViewState
       await wallet.init();
 
       // set checkbox back to unchecked to annoy users to agree again :P
-      ref.read(checkBoxStateProvider.state).state = false;
+      ref.read(checkBoxStateProvider.notifier).state = false;
 
       final fetchedMnemonic = await (wallet as MnemonicInterface)
           .getMnemonicAsWords();
@@ -201,7 +197,7 @@ class _NewWalletRecoveryPhraseWarningViewState
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
-    final options = ref.read(pNewWalletOptions.state).state;
+    final options = ref.read(pNewWalletOptions);
 
     final seedCount =
         options?.mnemonicWordsCount ?? coin.defaultSeedPhraseLength;
@@ -487,10 +483,10 @@ class _NewWalletRecoveryPhraseWarningViewState
                             children: [
                               GestureDetector(
                                 onTap: () {
-                                  final value = ref
-                                      .read(checkBoxStateProvider.state)
-                                      .state;
-                                  ref.read(checkBoxStateProvider.state).state =
+                                  final value = ref.read(checkBoxStateProvider);
+                                  ref
+                                          .read(checkBoxStateProvider.notifier)
+                                          .state =
                                       !value;
                                 },
                                 child: Container(
@@ -505,16 +501,14 @@ class _NewWalletRecoveryPhraseWarningViewState
                                         child: Checkbox(
                                           materialTapTargetSize:
                                               MaterialTapTargetSize.shrinkWrap,
-                                          value: ref
-                                              .watch(
-                                                checkBoxStateProvider.state,
-                                              )
-                                              .state,
+                                          value: ref.watch(
+                                            checkBoxStateProvider,
+                                          ),
                                           onChanged: (newValue) {
                                             ref
                                                     .read(
                                                       checkBoxStateProvider
-                                                          .state,
+                                                          .notifier,
                                                     )
                                                     .state =
                                                 newValue!;
@@ -543,16 +537,10 @@ class _NewWalletRecoveryPhraseWarningViewState
                                   minHeight: isDesktop ? 70 : 0,
                                 ),
                                 child: TextButton(
-                                  onPressed:
-                                      ref
-                                          .read(checkBoxStateProvider.state)
-                                          .state
+                                  onPressed: ref.read(checkBoxStateProvider)
                                       ? _initNewWallet
                                       : null,
-                                  style:
-                                      ref
-                                          .read(checkBoxStateProvider.state)
-                                          .state
+                                  style: ref.read(checkBoxStateProvider)
                                       ? Theme.of(context)
                                             .extension<StackColors>()!
                                             .getPrimaryEnabledButtonStyle(
@@ -566,11 +554,7 @@ class _NewWalletRecoveryPhraseWarningViewState
                                   child: Text(
                                     "View recovery phrase",
                                     style: isDesktop
-                                        ? ref
-                                                  .read(
-                                                    checkBoxStateProvider.state,
-                                                  )
-                                                  .state
+                                        ? ref.read(checkBoxStateProvider)
                                               ? STextStyles.desktopButtonEnabled(
                                                   context,
                                                 )

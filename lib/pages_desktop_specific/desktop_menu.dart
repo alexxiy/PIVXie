@@ -61,7 +61,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
   void updateSelectedMenuItem(DesktopMenuItemId idKey) {
     widget.onSelectionWillChange?.call(idKey);
 
-    ref.read(currentDesktopMenuItemProvider.state).state = idKey;
+    ref.read(currentDesktopMenuItemProvider.notifier).state = idKey;
 
     widget.onSelectionChanged?.call(idKey);
   }
@@ -148,10 +148,12 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                   transitionDuration: duration,
                   controller: torButtonController,
                   onPressed: () {
-                    ref.read(currentDesktopMenuItemProvider.state).state =
+                    ref.read(currentDesktopMenuItemProvider.notifier).state =
                         DesktopMenuItemId.settings;
                     ref
-                            .read(selectedSettingsMenuItemStateProvider.state)
+                            .read(
+                              selectedSettingsMenuItemStateProvider.notifier,
+                            )
                             .state =
                         4;
                   },

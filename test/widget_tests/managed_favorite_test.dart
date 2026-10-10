@@ -56,9 +56,9 @@ void main() {
   //   await widgetTester.pumpWidget(
   //     ProviderScope(
   //       overrides: [
-  //         pWallets.overrideWithValue(wallets),
-  //         pThemeService.overrideWithValue(mockThemeService),
-  //         prefsChangeNotifierProvider.overrideWithValue(mockPrefs),
+  //         pWallets.overrideWith((_) => wallets),
+  //         pThemeService.overrideWith((_) => mockThemeService),
+  //         prefsChangeNotifierProvider.overrideWith((_) => mockPrefs),
   //         coinIconProvider.overrideWithProvider(
   //           (argument) => Provider<String>((_) =>
   //               "${Directory.current.path}/test/sample_data/light/assets/dummy.svg"),
@@ -141,15 +141,15 @@ void main() {
   //   await widgetTester.pumpWidget(
   //     ProviderScope(
   //       overrides: [
-  //         pWallets.overrideWithValue(wallets),
+  //         pWallets.overrideWith((_) => wallets),
   //         localeServiceChangeNotifierProvider
-  //             .overrideWithValue(mockLocaleService),
-  //         favoritesProvider.overrideWithValue(favorites),
-  //         nonFavoritesProvider.overrideWithValue(nonfavorites),
-  //         pThemeService.overrideWithValue(mockThemeService),
+  //             .overrideWith((_) => mockLocaleService),
+  //         favoritesProvider.overrideWith((_) => favorites),
+  //         nonFavoritesProvider.overrideWith((_) => nonfavorites),
+  //         pThemeService.overrideWith((_) => mockThemeService),
   //         walletsServiceChangeNotifierProvider
-  //             .overrideWithValue(mockWalletsService),
-  //         prefsChangeNotifierProvider.overrideWithValue(mockPrefs),
+  //             .overrideWith((_) => mockWalletsService),
+  //         prefsChangeNotifierProvider.overrideWith((_) => mockPrefs),
   //         coinIconProvider.overrideWithProvider(
   //           (argument) => Provider<String>((_) =>
   //               "${Directory.current.path}/test/sample_data/light/assets/dummy.svg"),
@@ -231,15 +231,15 @@ void main() {
   //   await widgetTester.pumpWidget(
   //     ProviderScope(
   //       overrides: [
-  //         pWallets.overrideWithValue(wallets),
+  //         pWallets.overrideWith((_) => wallets),
   //         localeServiceChangeNotifierProvider
-  //             .overrideWithValue(mockLocaleService),
-  //         favoritesProvider.overrideWithValue(favorites),
-  //         nonFavoritesProvider.overrideWithValue(nonfavorites),
-  //         pThemeService.overrideWithValue(mockThemeService),
-  //         prefsChangeNotifierProvider.overrideWithValue(mockPrefs),
+  //             .overrideWith((_) => mockLocaleService),
+  //         favoritesProvider.overrideWith((_) => favorites),
+  //         nonFavoritesProvider.overrideWith((_) => nonfavorites),
+  //         pThemeService.overrideWith((_) => mockThemeService),
+  //         prefsChangeNotifierProvider.overrideWith((_) => mockPrefs),
   //         walletsServiceChangeNotifierProvider
-  //             .overrideWithValue(mockWalletsService),
+  //             .overrideWith((_) => mockWalletsService),
   //         coinIconProvider.overrideWithProvider(
   //           (argument) => Provider<String>((_) =>
   //               "${Directory.current.path}/test/sample_data/light/assets/dummy.svg"),

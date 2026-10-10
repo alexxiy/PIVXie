@@ -44,7 +44,7 @@ class ThemeModeView extends ConsumerWidget {
         prefs.themeId = themeId = "dark";
     }
     final theme = ref.read(pThemeService).getTheme(themeId: themeId);
-    if (theme != null) ref.read(themeProvider.state).state = theme;
+    if (theme != null) ref.read(themeProvider.notifier).state = theme;
   }
 
   @override
@@ -72,10 +72,7 @@ class ThemeModeView extends ConsumerWidget {
                   children: [
                     Text(title, style: STextStyles.titleBold12(context)),
                     const SizedBox(height: 2),
-                    Text(
-                      subtitle,
-                      style: STextStyles.itemSubtitle(context),
-                    ),
+                    Text(subtitle, style: STextStyles.itemSubtitle(context)),
                   ],
                 ),
               ),

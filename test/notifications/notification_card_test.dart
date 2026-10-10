@@ -44,12 +44,10 @@ void main() {
     await widgetTester.pumpWidget(
       ProviderScope(
         overrides: [
-          pThemeService.overrideWithValue(mockThemeService),
-          coinIconProvider.overrideWithProvider(
-            (argument) => Provider<String>(
-              (_) =>
-                  "${Directory.current.path}/test/sample_data/light/assets/dummy.svg",
-            ),
+          pThemeService.overrideWith((_) => mockThemeService),
+          coinIconProvider.overrideWith(
+            (_, _) =>
+                "${Directory.current.path}/test/sample_data/light/assets/dummy.svg",
           ),
         ],
         child: MaterialApp(

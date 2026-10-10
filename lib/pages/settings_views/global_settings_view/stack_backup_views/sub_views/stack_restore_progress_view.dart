@@ -705,7 +705,7 @@ class _StackRestoreProgressViewState
                                     ref
                                             .read(
                                               currentDesktopMenuItemProvider
-                                                  .state,
+                                                  .notifier,
                                             )
                                             .state =
                                         keyID;

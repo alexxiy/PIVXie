@@ -9,7 +9,10 @@
  */
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
+
 import '../../models/transaction_filter.dart';
 
-final transactionFilterProvider =
-    StateProvider<TransactionFilter?>((_) => null);
+final transactionFilterProvider = StateProvider<TransactionFilter?>(
+  (_) => null,
+);

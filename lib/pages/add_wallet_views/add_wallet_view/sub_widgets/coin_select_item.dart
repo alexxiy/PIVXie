@@ -98,7 +98,7 @@ class _CoinSelectItemState extends ConsumerState<CoinSelectItem> {
           ),
         ),
         onPressed: () {
-          ref.read(addWalletSelectedEntityStateProvider.state).state =
+          ref.read(addWalletSelectedEntityStateProvider.notifier).state =
               widget.entity;
         },
       ),

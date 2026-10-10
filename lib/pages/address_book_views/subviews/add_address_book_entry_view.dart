@@ -125,8 +125,9 @@ class _AddAddressBookEntryViewState
       builder: (child) {
         return Background(
           child: Scaffold(
-            backgroundColor:
-                Theme.of(context).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(context)
+                .extension<StackColors>()!
+                .background,
             appBar: AppBar(
               leading: AppBarBackButton(
                 onPressed: () async {
@@ -158,20 +159,18 @@ class _AddAddressBookEntryViewState
                       key: const Key("addAddressBookEntryFavoriteButtonKey"),
                       size: 36,
                       shadows: const [],
-                      color:
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.background,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .background,
                       icon: SvgPicture.asset(
                         Assets.svg.star,
-                        color:
-                            _isFavorite
-                                ? Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.favoriteStarActive
-                                : Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .favoriteStarInactive,
+                        color: _isFavorite
+                            ? Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .favoriteStarActive
+                            : Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .favoriteStarInactive,
                         width: 20,
                         height: 20,
                       ),
@@ -249,96 +248,91 @@ class _AddAddressBookEntryViewState
                         if (!isDesktop) const SizedBox(height: 4),
                         isDesktop
                             ? Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                SizedBox(
-                                  height: 56,
-                                  width: 56,
-                                  child: MouseRegion(
-                                    cursor: SystemMouseCursors.click,
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        if (_selectedEmoji != null) {
-                                          setState(() {
-                                            _selectedEmoji = null;
-                                          });
-                                          return;
-                                        }
-
-                                        showDialog<dynamic>(
-                                          context: context,
-                                          builder: (context) {
-                                            return const DesktopDialog(
-                                              maxHeight: 700,
-                                              maxWidth: 600,
-                                              child: Padding(
-                                                padding: EdgeInsets.only(
-                                                  left: 32,
-                                                  right: 20,
-                                                  top: 32,
-                                                  bottom: 32,
-                                                ),
-                                                child: EmojiSelectSheet(),
-                                              ),
-                                            );
-                                          },
-                                        ).then((value) {
-                                          if (value is Emoji) {
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  SizedBox(
+                                    height: 56,
+                                    width: 56,
+                                    child: MouseRegion(
+                                      cursor: SystemMouseCursors.click,
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          if (_selectedEmoji != null) {
                                             setState(() {
-                                              _selectedEmoji = value;
+                                              _selectedEmoji = null;
                                             });
+                                            return;
                                           }
-                                        });
-                                      },
-                                      child: Stack(
-                                        children: [
-                                          Container(
-                                            height: 56,
-                                            width: 56,
-                                            decoration: BoxDecoration(
-                                              borderRadius:
-                                                  BorderRadius.circular(100),
-                                              color:
-                                                  Theme.of(context)
-                                                      .extension<StackColors>()!
-                                                      .textFieldActiveBG,
-                                            ),
-                                            child: Center(
-                                              child:
-                                                  _selectedEmoji == null
-                                                      ? SvgPicture.asset(
+
+                                          showDialog<dynamic>(
+                                            context: context,
+                                            builder: (context) {
+                                              return const DesktopDialog(
+                                                maxHeight: 700,
+                                                maxWidth: 600,
+                                                child: Padding(
+                                                  padding: EdgeInsets.only(
+                                                    left: 32,
+                                                    right: 20,
+                                                    top: 32,
+                                                    bottom: 32,
+                                                  ),
+                                                  child: EmojiSelectSheet(),
+                                                ),
+                                              );
+                                            },
+                                          ).then((value) {
+                                            if (value is Emoji) {
+                                              setState(() {
+                                                _selectedEmoji = value;
+                                              });
+                                            }
+                                          });
+                                        },
+                                        child: Stack(
+                                          children: [
+                                            Container(
+                                              height: 56,
+                                              width: 56,
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(100),
+                                                color: Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .textFieldActiveBG,
+                                              ),
+                                              child: Center(
+                                                child: _selectedEmoji == null
+                                                    ? SvgPicture.asset(
                                                         Assets.svg.user,
                                                         height: 30,
                                                         width: 30,
                                                       )
-                                                      : Text(
+                                                    : Text(
                                                         _selectedEmoji!.char,
                                                         style:
                                                             STextStyles.pageTitleH1(
                                                               context,
                                                             ),
                                                       ),
-                                            ),
-                                          ),
-                                          Align(
-                                            alignment: Alignment.bottomRight,
-                                            child: Container(
-                                              height: 14,
-                                              width: 14,
-                                              decoration: BoxDecoration(
-                                                borderRadius:
-                                                    BorderRadius.circular(14),
-                                                color:
-                                                    Theme.of(context)
-                                                        .extension<
-                                                          StackColors
-                                                        >()!
-                                                        .accentColorDark,
                                               ),
-                                              child: Center(
-                                                child:
-                                                    _selectedEmoji == null
-                                                        ? SvgPicture.asset(
+                                            ),
+                                            Align(
+                                              alignment: Alignment.bottomRight,
+                                              child: Container(
+                                                height: 14,
+                                                width: 14,
+                                                decoration: BoxDecoration(
+                                                  borderRadius:
+                                                      BorderRadius.circular(14),
+                                                  color: Theme.of(context)
+                                                      .extension<StackColors>()!
+                                                      .accentColorDark,
+                                                ),
+                                                child: Center(
+                                                  child: _selectedEmoji == null
+                                                      ? SvgPicture.asset(
                                                           Assets.svg.plus,
                                                           color:
                                                               Theme.of(context)
@@ -349,7 +343,7 @@ class _AddAddressBookEntryViewState
                                                           width: 12,
                                                           height: 12,
                                                         )
-                                                        : SvgPicture.asset(
+                                                      : SvgPicture.asset(
                                                           Assets.svg.thickX,
                                                           color:
                                                               Theme.of(context)
@@ -360,6 +354,178 @@ class _AddAddressBookEntryViewState
                                                           width: 8,
                                                           height: 8,
                                                         ),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  SizedBox(
+                                    width: isDesktop ? 450 : null,
+                                    child: ClipRRect(
+                                      borderRadius: BorderRadius.circular(
+                                        Constants.size.circularBorderRadius,
+                                      ),
+                                      child: TextField(
+                                        autocorrect: Util.isDesktop
+                                            ? false
+                                            : true,
+                                        enableSuggestions: Util.isDesktop
+                                            ? false
+                                            : true,
+                                        controller: nameController,
+                                        focusNode: nameFocusNode,
+                                        style: STextStyles.field(context),
+                                        decoration:
+                                            standardInputDecoration(
+                                              "Enter contact name",
+                                              nameFocusNode,
+                                              context,
+                                            ).copyWith(
+                                              labelStyle:
+                                                  STextStyles.fieldLabel(
+                                                    context,
+                                                  ),
+                                              suffixIcon:
+                                                  ref.read(
+                                                    contactNameIsNotEmptyStateProvider,
+                                                  )
+                                                  ? Padding(
+                                                      padding:
+                                                          const EdgeInsets.only(
+                                                            right: 0,
+                                                          ),
+                                                      child: UnconstrainedBox(
+                                                        child: Row(
+                                                          children: [
+                                                            TextFieldIconButton(
+                                                              child:
+                                                                  const XIcon(),
+                                                              onTap: () async {
+                                                                setState(() {
+                                                                  nameController
+                                                                          .text =
+                                                                      "";
+                                                                });
+                                                              },
+                                                            ),
+                                                          ],
+                                                        ),
+                                                      ),
+                                                    )
+                                                  : null,
+                                            ),
+                                        onChanged: (newValue) {
+                                          ref
+                                              .read(
+                                                contactNameIsNotEmptyStateProvider
+                                                    .notifier,
+                                              )
+                                              .state = newValue
+                                              .isNotEmpty;
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              )
+                            : Column(
+                                children: [
+                                  GestureDetector(
+                                    onTap: () {
+                                      if (_selectedEmoji != null) {
+                                        setState(() {
+                                          _selectedEmoji = null;
+                                        });
+                                        return;
+                                      }
+
+                                      showModalBottomSheet<dynamic>(
+                                        backgroundColor: Colors.transparent,
+                                        context: context,
+                                        shape: const RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.vertical(
+                                            top: Radius.circular(20),
+                                          ),
+                                        ),
+                                        builder: (_) =>
+                                            const EmojiSelectSheet(),
+                                      ).then((value) {
+                                        if (value is Emoji) {
+                                          setState(() {
+                                            _selectedEmoji = value;
+                                          });
+                                        }
+                                      });
+                                    },
+                                    child: SizedBox(
+                                      height: 48,
+                                      width: 48,
+                                      child: Stack(
+                                        children: [
+                                          Container(
+                                            height: 48,
+                                            width: 48,
+                                            decoration: BoxDecoration(
+                                              borderRadius:
+                                                  BorderRadius.circular(24),
+                                              color: Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .textFieldActiveBG,
+                                            ),
+                                            child: Center(
+                                              child: _selectedEmoji == null
+                                                  ? SvgPicture.asset(
+                                                      Assets.svg.user,
+                                                      height: 24,
+                                                      width: 24,
+                                                    )
+                                                  : Text(
+                                                      _selectedEmoji!.char,
+                                                      style:
+                                                          STextStyles.pageTitleH1(
+                                                            context,
+                                                          ),
+                                                    ),
+                                            ),
+                                          ),
+                                          Align(
+                                            alignment: Alignment.bottomRight,
+                                            child: Container(
+                                              height: 14,
+                                              width: 14,
+                                              decoration: BoxDecoration(
+                                                borderRadius:
+                                                    BorderRadius.circular(14),
+                                                color: Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .accentColorDark,
+                                              ),
+                                              child: Center(
+                                                child: _selectedEmoji == null
+                                                    ? SvgPicture.asset(
+                                                        Assets.svg.plus,
+                                                        color: Theme.of(context)
+                                                            .extension<
+                                                              StackColors
+                                                            >()!
+                                                            .textWhite,
+                                                        width: 12,
+                                                        height: 12,
+                                                      )
+                                                    : SvgPicture.asset(
+                                                        Assets.svg.thickX,
+                                                        color: Theme.of(context)
+                                                            .extension<
+                                                              StackColors
+                                                            >()!
+                                                            .textWhite,
+                                                        width: 8,
+                                                        height: 8,
+                                                      ),
                                               ),
                                             ),
                                           ),
@@ -367,238 +533,69 @@ class _AddAddressBookEntryViewState
                                       ),
                                     ),
                                   ),
-                                ),
-                                const SizedBox(width: 8),
-                                SizedBox(
-                                  width: isDesktop ? 450 : null,
-                                  child: ClipRRect(
+                                  const SizedBox(height: 8),
+                                  ClipRRect(
                                     borderRadius: BorderRadius.circular(
                                       Constants.size.circularBorderRadius,
                                     ),
                                     child: TextField(
-                                      autocorrect:
-                                          Util.isDesktop ? false : true,
-                                      enableSuggestions:
-                                          Util.isDesktop ? false : true,
+                                      autocorrect: Util.isDesktop
+                                          ? false
+                                          : true,
+                                      enableSuggestions: Util.isDesktop
+                                          ? false
+                                          : true,
                                       controller: nameController,
                                       focusNode: nameFocusNode,
                                       style: STextStyles.field(context),
-                                      decoration: standardInputDecoration(
-                                        "Enter contact name",
-                                        nameFocusNode,
-                                        context,
-                                      ).copyWith(
-                                        labelStyle: STextStyles.fieldLabel(
-                                          context,
-                                        ),
-                                        suffixIcon:
-                                            ref
-                                                    .read(
-                                                      contactNameIsNotEmptyStateProvider
-                                                          .state,
-                                                    )
-                                                    .state
-                                                ? Padding(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                        right: 0,
-                                                      ),
-                                                  child: UnconstrainedBox(
-                                                    child: Row(
-                                                      children: [
-                                                        TextFieldIconButton(
-                                                          child: const XIcon(),
-                                                          onTap: () async {
-                                                            setState(() {
-                                                              nameController
-                                                                  .text = "";
-                                                            });
-                                                          },
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
+                                      decoration:
+                                          standardInputDecoration(
+                                            "Enter contact name",
+                                            nameFocusNode,
+                                            context,
+                                          ).copyWith(
+                                            suffixIcon:
+                                                ref.read(
+                                                  contactNameIsNotEmptyStateProvider,
                                                 )
+                                                ? Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                          right: 0,
+                                                        ),
+                                                    child: UnconstrainedBox(
+                                                      child: Row(
+                                                        children: [
+                                                          TextFieldIconButton(
+                                                            child:
+                                                                const XIcon(),
+                                                            onTap: () async {
+                                                              setState(() {
+                                                                nameController
+                                                                        .text =
+                                                                    "";
+                                                              });
+                                                            },
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  )
                                                 : null,
-                                      ),
+                                          ),
                                       onChanged: (newValue) {
                                         ref
                                             .read(
                                               contactNameIsNotEmptyStateProvider
-                                                  .state,
+                                                  .notifier,
                                             )
-                                            .state = newValue.isNotEmpty;
+                                            .state = newValue
+                                            .isNotEmpty;
                                       },
                                     ),
                                   ),
-                                ),
-                              ],
-                            )
-                            : Column(
-                              children: [
-                                GestureDetector(
-                                  onTap: () {
-                                    if (_selectedEmoji != null) {
-                                      setState(() {
-                                        _selectedEmoji = null;
-                                      });
-                                      return;
-                                    }
-
-                                    showModalBottomSheet<dynamic>(
-                                      backgroundColor: Colors.transparent,
-                                      context: context,
-                                      shape: const RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.vertical(
-                                          top: Radius.circular(20),
-                                        ),
-                                      ),
-                                      builder: (_) => const EmojiSelectSheet(),
-                                    ).then((value) {
-                                      if (value is Emoji) {
-                                        setState(() {
-                                          _selectedEmoji = value;
-                                        });
-                                      }
-                                    });
-                                  },
-                                  child: SizedBox(
-                                    height: 48,
-                                    width: 48,
-                                    child: Stack(
-                                      children: [
-                                        Container(
-                                          height: 48,
-                                          width: 48,
-                                          decoration: BoxDecoration(
-                                            borderRadius: BorderRadius.circular(
-                                              24,
-                                            ),
-                                            color:
-                                                Theme.of(context)
-                                                    .extension<StackColors>()!
-                                                    .textFieldActiveBG,
-                                          ),
-                                          child: Center(
-                                            child:
-                                                _selectedEmoji == null
-                                                    ? SvgPicture.asset(
-                                                      Assets.svg.user,
-                                                      height: 24,
-                                                      width: 24,
-                                                    )
-                                                    : Text(
-                                                      _selectedEmoji!.char,
-                                                      style:
-                                                          STextStyles.pageTitleH1(
-                                                            context,
-                                                          ),
-                                                    ),
-                                          ),
-                                        ),
-                                        Align(
-                                          alignment: Alignment.bottomRight,
-                                          child: Container(
-                                            height: 14,
-                                            width: 14,
-                                            decoration: BoxDecoration(
-                                              borderRadius:
-                                                  BorderRadius.circular(14),
-                                              color:
-                                                  Theme.of(context)
-                                                      .extension<StackColors>()!
-                                                      .accentColorDark,
-                                            ),
-                                            child: Center(
-                                              child:
-                                                  _selectedEmoji == null
-                                                      ? SvgPicture.asset(
-                                                        Assets.svg.plus,
-                                                        color:
-                                                            Theme.of(context)
-                                                                .extension<
-                                                                  StackColors
-                                                                >()!
-                                                                .textWhite,
-                                                        width: 12,
-                                                        height: 12,
-                                                      )
-                                                      : SvgPicture.asset(
-                                                        Assets.svg.thickX,
-                                                        color:
-                                                            Theme.of(context)
-                                                                .extension<
-                                                                  StackColors
-                                                                >()!
-                                                                .textWhite,
-                                                        width: 8,
-                                                        height: 8,
-                                                      ),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(
-                                    Constants.size.circularBorderRadius,
-                                  ),
-                                  child: TextField(
-                                    autocorrect: Util.isDesktop ? false : true,
-                                    enableSuggestions:
-                                        Util.isDesktop ? false : true,
-                                    controller: nameController,
-                                    focusNode: nameFocusNode,
-                                    style: STextStyles.field(context),
-                                    decoration: standardInputDecoration(
-                                      "Enter contact name",
-                                      nameFocusNode,
-                                      context,
-                                    ).copyWith(
-                                      suffixIcon:
-                                          ref
-                                                  .read(
-                                                    contactNameIsNotEmptyStateProvider
-                                                        .state,
-                                                  )
-                                                  .state
-                                              ? Padding(
-                                                padding: const EdgeInsets.only(
-                                                  right: 0,
-                                                ),
-                                                child: UnconstrainedBox(
-                                                  child: Row(
-                                                    children: [
-                                                      TextFieldIconButton(
-                                                        child: const XIcon(),
-                                                        onTap: () async {
-                                                          setState(() {
-                                                            nameController
-                                                                .text = "";
-                                                          });
-                                                        },
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ),
-                                              )
-                                              : null,
-                                    ),
-                                    onChanged: (newValue) {
-                                      ref
-                                          .read(
-                                            contactNameIsNotEmptyStateProvider
-                                                .state,
-                                          )
-                                          .state = newValue.isNotEmpty;
-                                    },
-                                  ),
-                                ),
-                              ],
-                            ),
+                                ],
+                              ),
                         const SizedBox(height: 8),
                         if (forms.length <= 1) const SizedBox(height: 8),
                         if (forms.length <= 1) forms[0],
@@ -673,13 +670,9 @@ class _AddAddressBookEntryViewState
                             Expanded(
                               child: Builder(
                                 builder: (context) {
-                                  final bool nameExists =
-                                      ref
-                                          .watch(
-                                            contactNameIsNotEmptyStateProvider
-                                                .state,
-                                          )
-                                          .state;
+                                  final bool nameExists = ref.watch(
+                                    contactNameIsNotEmptyStateProvider,
+                                  );
 
                                   final bool validForms = ref.watch(
                                     validContactStateProvider(
@@ -694,65 +687,62 @@ class _AddAddressBookEntryViewState
 
                                   return PrimaryButton(
                                     label: "Save",
-                                    buttonHeight:
-                                        isDesktop ? ButtonHeight.m : null,
+                                    buttonHeight: isDesktop
+                                        ? ButtonHeight.m
+                                        : null,
                                     enabled: shouldEnableSave,
-                                    onPressed:
-                                        shouldEnableSave
-                                            ? () async {
-                                              if (FocusScope.of(
-                                                context,
-                                              ).hasFocus) {
-                                                FocusScope.of(
-                                                  context,
-                                                ).unfocus();
-                                                await Future<void>.delayed(
-                                                  const Duration(
-                                                    milliseconds: 75,
-                                                  ),
-                                                );
-                                              }
-                                              final List<ContactAddressEntry>
-                                              entries = [];
-                                              for (
-                                                int i = 0;
-                                                i < forms.length;
-                                                i++
-                                              ) {
-                                                entries.add(
-                                                  ref
-                                                      .read(
-                                                        addressEntryDataProvider(
-                                                          forms[i].id,
-                                                        ),
-                                                      )
-                                                      .buildAddressEntry(),
-                                                );
-                                              }
-                                              final ContactEntry contact =
-                                                  ContactEntry(
-                                                    emojiChar:
-                                                        _selectedEmoji?.char,
-                                                    name: nameController.text,
-                                                    addresses: entries,
-                                                    isFavorite: _isFavorite,
-                                                    customId: const Uuid().v1(),
-                                                  );
-
-                                              if (await ref
-                                                  .read(
-                                                    addressBookServiceProvider,
-                                                  )
-                                                  .addContact(contact)) {
-                                                if (mounted) {
-                                                  Navigator.of(context).pop();
-                                                }
-                                                // TODO show success notification
-                                              } else {
-                                                // TODO show error notification
-                                              }
+                                    onPressed: shouldEnableSave
+                                        ? () async {
+                                            if (FocusScope.of(context)
+                                                .hasFocus) {
+                                              FocusScope.of(context).unfocus();
+                                              await Future<void>.delayed(
+                                                const Duration(
+                                                  milliseconds: 75,
+                                                ),
+                                              );
                                             }
-                                            : null,
+                                            final List<ContactAddressEntry>
+                                            entries = [];
+                                            for (
+                                              int i = 0;
+                                              i < forms.length;
+                                              i++
+                                            ) {
+                                              entries.add(
+                                                ref
+                                                    .read(
+                                                      addressEntryDataProvider(
+                                                        forms[i].id,
+                                                      ),
+                                                    )
+                                                    .buildAddressEntry(),
+                                              );
+                                            }
+                                            final ContactEntry contact =
+                                                ContactEntry(
+                                                  emojiChar:
+                                                      _selectedEmoji?.char,
+                                                  name: nameController.text,
+                                                  addresses: entries,
+                                                  isFavorite: _isFavorite,
+                                                  customId: const Uuid().v1(),
+                                                );
+
+                                            if (await ref
+                                                .read(
+                                                  addressBookServiceProvider,
+                                                )
+                                                .addContact(contact)) {
+                                              if (mounted) {
+                                                Navigator.of(context).pop();
+                                              }
+                                              // TODO show success notification
+                                            } else {
+                                              // TODO show error notification
+                                            }
+                                          }
+                                        : null,
                                   );
                                 },
                               ),

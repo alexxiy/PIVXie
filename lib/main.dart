@@ -18,6 +18,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:keyboard_dismisser/keyboard_dismisser.dart';
 import 'package:logger/logger.dart';
@@ -270,7 +271,9 @@ void main(List<String> args) async {
     Prefs.instance.systemBrightnessDarkThemeId = "dark";
   }
 
-  runApp(const ProviderScope(child: MyApp()));
+  // Riverpod 3 retries failing providers by default; keep the old
+  // fail-once behaviour.
+  runApp(ProviderScope(retry: (_, _) => null, child: const MyApp()));
 }
 
 /// MyApp initialises relevant services with a MultiProvider
@@ -456,7 +459,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       ref.read(applicationThemesDirectoryPathProvider.notifier).state =
           StackFileSystem.themesDir!.path;
 
-      ref.read(themeProvider.state).state = ref
+      ref.read(themeProvider.notifier).state = ref
           .read(pThemeService)
           .getTheme(themeId: themeId)!;
 
@@ -464,17 +467,14 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
         // fetch open file if it exists
         await getOpenFile();
 
-        if (ref.read(openedFromSWBFileStringStateProvider.state).state !=
-            null) {
+        if (ref.read(openedFromSWBFileStringStateProvider) != null) {
           // waiting for loading to complete before going straight to restore if the app was opened via file
           await loadingCompleter.future;
 
-          await goToRestoreSWB(
-            ref.read(openedFromSWBFileStringStateProvider.state).state!,
-          );
-          ref.read(openedFromSWBFileStringStateProvider.state).state = null;
+          await goToRestoreSWB(ref.read(openedFromSWBFileStringStateProvider)!);
+          ref.read(openedFromSWBFileStringStateProvider.notifier).state = null;
         }
-        // ref.read(shouldShowLockscreenOnResumeStateProvider.state).state = false;
+        // ref.read(shouldShowLockscreenOnResumeStateProvider.notifier).state = false;
       }
     });
 
@@ -495,7 +495,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (ref.read(prefsChangeNotifierProvider).enableSystemBrightness) {
-          ref.read(themeProvider.state).state = ref
+          ref.read(themeProvider.notifier).state = ref
               .read(pThemeService)
               .getTheme(themeId: themeId)!;
         }
@@ -542,20 +542,20 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
           // fetch open file if it exists
           await getOpenFile();
           // go straight to restore if the app was resumed via file
-          if (ref.read(openedFromSWBFileStringStateProvider.state).state !=
-              null) {
+          if (ref.read(openedFromSWBFileStringStateProvider) != null) {
             await goToRestoreSWB(
-              ref.read(openedFromSWBFileStringStateProvider.state).state!,
+              ref.read(openedFromSWBFileStringStateProvider)!,
             );
-            ref.read(openedFromSWBFileStringStateProvider.state).state = null;
+            ref.read(openedFromSWBFileStringStateProvider.notifier).state =
+                null;
           }
         }
-        // if (ref.read(hasAuthenticatedOnStartStateProvider.state).state &&
-        //     ref.read(shouldShowLockscreenOnResumeStateProvider.state).state) {
+        // if (ref.read(hasAuthenticatedOnStartStateProvider) &&
+        //     ref.read(shouldShowLockscreenOnResumeStateProvider)) {
         //   final now = DateTime.now().toUtc().millisecondsSinceEpoch ~/ 1000;
         //
         //   if (now - _prefs.lastUnlocked > _prefs.lastUnlockedTimeout) {
-        //     ref.read(shouldShowLockscreenOnResumeStateProvider.state).state =
+        //     ref.read(shouldShowLockscreenOnResumeStateProvider.notifier).state =
         //         false;
         //     Navigator.of(navigatorKey.currentContext!).push(
         //       MaterialPageRoute<dynamic>(
@@ -605,14 +605,14 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
   /// should only be called on android currently
   Future<void> getOpenFile() async {
     // update provider with new file content state
-    ref.read(openedFromSWBFileStringStateProvider.state).state = await platform
-        .invokeMethod("getOpenFile");
+    ref.read(openedFromSWBFileStringStateProvider.notifier).state =
+        await platform.invokeMethod("getOpenFile");
 
     // call reset to clear cached value
     await resetOpenPath();
 
     Logging.instance.d(
-      "This is the .swb content from intent: ${ref.read(openedFromSWBFileStringStateProvider.state).state}",
+      "This is the .swb content from intent: ${ref.read(openedFromSWBFileStringStateProvider)}",
     );
   }
 
@@ -678,7 +678,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       );
     }
 
-    final colorScheme = ref.watch(colorProvider.state).state;
+    final colorScheme = ref.watch(colorProvider);
 
     return MaterialApp(
       key: GlobalKey(),

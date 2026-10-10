@@ -474,7 +474,7 @@ class _SendViewState extends ConsumerState<SendView> {
 
     final feeObject = await wallet.fees;
     final BigInt feeRate;
-    switch (ref.read(feeRateTypeMobileStateProvider.state).state) {
+    switch (ref.read(feeRateTypeMobileStateProvider)) {
       case FeeRateType.fast:
         feeRate = feeObject.fast;
         break;
@@ -503,7 +503,7 @@ class _SendViewState extends ConsumerState<SendView> {
 
     final Amount amount = ref.read(pSendAmount)!;
     final Amount availableBalance;
-    switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
+    switch (ref.read(publicPrivateBalanceStateProvider)) {
       case BalanceType.public:
         availableBalance = wallet.info.cachedBalance.spendable;
         break;
@@ -753,7 +753,7 @@ class _SendViewState extends ConsumerState<SendView> {
     if (showCoinControl && selectedUTXOs.isNotEmpty) {
       amount = _selectedUtxosAmount(selectedUTXOs);
     } else {
-      switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
+      switch (ref.read(publicPrivateBalanceStateProvider)) {
         case BalanceType.public:
           amount = ref.read(pWalletBalance(walletId)).spendable;
           break;
@@ -1362,7 +1362,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                         Row(
                                           children: [
                                             Text(
-                                              "${ref.watch(publicPrivateBalanceStateProvider.state).state.name.capitalize()} balance",
+                                              "${ref.watch(publicPrivateBalanceStateProvider).name.capitalize()} balance",
                                               style: STextStyles.itemSubtitle12(
                                                 context,
                                               ),
@@ -1371,12 +1371,9 @@ class _SendViewState extends ConsumerState<SendView> {
                                             Builder(
                                               builder: (_) {
                                                 final Amount amount;
-                                                switch (ref
-                                                    .read(
-                                                      publicPrivateBalanceStateProvider
-                                                          .state,
-                                                    )
-                                                    .state) {
+                                                switch (ref.read(
+                                                  publicPrivateBalanceStateProvider,
+                                                )) {
                                                   case BalanceType.public:
                                                     amount = ref
                                                         .watch(
@@ -1936,10 +1933,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                               Text(
                                                 ref
                                                     .watch(
-                                                      feeRateTypeMobileStateProvider
-                                                          .state,
+                                                      feeRateTypeMobileStateProvider,
                                                     )
-                                                    .state
                                                     .prettyName,
                                                 style:
                                                     STextStyles.itemSubtitle12(

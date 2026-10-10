@@ -32,12 +32,12 @@ class DesktopBalanceToggleButton extends ConsumerWidget {
         color: Theme.of(context).extension<StackColors>()!.buttonBackSecondary,
         splashColor: Theme.of(context).extension<StackColors>()!.highlight,
         onPressed: () {
-          if (ref.read(walletBalanceToggleStateProvider.state).state ==
+          if (ref.read(walletBalanceToggleStateProvider) ==
               WalletBalanceToggleState.available) {
-            ref.read(walletBalanceToggleStateProvider.state).state =
+            ref.read(walletBalanceToggleStateProvider.notifier).state =
                 WalletBalanceToggleState.full;
           } else {
-            ref.read(walletBalanceToggleStateProvider.state).state =
+            ref.read(walletBalanceToggleStateProvider.notifier).state =
                 WalletBalanceToggleState.available;
           }
           onPressed?.call();
@@ -55,7 +55,7 @@ class DesktopBalanceToggleButton extends ConsumerWidget {
         child: Center(
           child: FittedBox(
             child: Text(
-              ref.watch(walletBalanceToggleStateProvider.state).state ==
+              ref.watch(walletBalanceToggleStateProvider) ==
                       WalletBalanceToggleState.available
                   ? "AVAILABLE"
                   : "FULL",
@@ -90,10 +90,10 @@ class DesktopPrivateBalanceToggleButton extends ConsumerWidget {
         splashColor: Theme.of(context).extension<StackColors>()!.highlight,
         onPressed: () {
           if (currentType != BalanceType.private) {
-            ref.read(publicPrivateBalanceStateProvider.state).state =
+            ref.read(publicPrivateBalanceStateProvider.notifier).state =
                 BalanceType.private;
           } else {
-            ref.read(publicPrivateBalanceStateProvider.state).state =
+            ref.read(publicPrivateBalanceStateProvider.notifier).state =
                 BalanceType.public;
           }
 

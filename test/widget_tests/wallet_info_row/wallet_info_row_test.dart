@@ -40,8 +40,8 @@ void main() {
   //   await widgetTester.pumpWidget(
   //     ProviderScope(
   //       overrides: [
-  //         pWallets.overrideWithValue(wallets),
-  //         pThemeService.overrideWithValue(mockThemeService),
+  //         pWallets.overrideWith((_) => wallets),
+  //         pThemeService.overrideWith((_) => mockThemeService),
   //         coinIconProvider.overrideWithProvider(
   //           (argument) => Provider<String>((_) =>
   //               "${Directory.current.path}/test/sample_data/light/assets/dummy.svg"),

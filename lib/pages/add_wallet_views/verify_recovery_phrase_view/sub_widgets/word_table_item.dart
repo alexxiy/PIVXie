@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../../providers/providers.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/constants.dart';
@@ -30,8 +31,7 @@ class WordTableItem extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     debugPrint("BUILD: $runtimeType");
-    final selectedWord =
-        ref.watch(verifyMnemonicSelectedWordStateProvider.state).state;
+    final selectedWord = ref.watch(verifyMnemonicSelectedWordStateProvider);
     return Container(
       decoration: BoxDecoration(
         color: selectedWord == word
@@ -45,18 +45,17 @@ class WordTableItem extends ConsumerWidget {
         splashColor: Theme.of(context).extension<StackColors>()!.highlight,
         key: Key("coinSelectItemButtonKey_$word"),
         padding: isDesktop
-            ? const EdgeInsets.symmetric(
-                vertical: 18,
-                horizontal: 12,
-              )
+            ? const EdgeInsets.symmetric(vertical: 18, horizontal: 12)
             : const EdgeInsets.all(12),
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         shape: RoundedRectangleBorder(
-          borderRadius:
-              BorderRadius.circular(Constants.size.circularBorderRadius),
+          borderRadius: BorderRadius.circular(
+            Constants.size.circularBorderRadius,
+          ),
         ),
         onPressed: () {
-          ref.read(verifyMnemonicSelectedWordStateProvider.state).state = word;
+          ref.read(verifyMnemonicSelectedWordStateProvider.notifier).state =
+              word;
         },
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -68,20 +67,20 @@ class WordTableItem extends ConsumerWidget {
                   ? STextStyles.desktopTextExtraSmall(context).copyWith(
                       color: selectedWord == word
                           ? Theme.of(context)
-                              .extension<StackColors>()!
-                              .textSelectedWordTableItem
+                                .extension<StackColors>()!
+                                .textSelectedWordTableItem
                           : Theme.of(context)
-                              .extension<StackColors>()!
-                              .textDark,
+                                .extension<StackColors>()!
+                                .textDark,
                     )
                   : STextStyles.baseXS(context).copyWith(
                       color: selectedWord == word
                           ? Theme.of(context)
-                              .extension<StackColors>()!
-                              .textSelectedWordTableItem
+                                .extension<StackColors>()!
+                                .textSelectedWordTableItem
                           : Theme.of(context)
-                              .extension<StackColors>()!
-                              .textDark,
+                                .extension<StackColors>()!
+                                .textDark,
                     ),
             ),
           ],

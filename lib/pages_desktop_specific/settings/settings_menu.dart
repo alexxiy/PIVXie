@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../app_config.dart';
@@ -62,12 +63,7 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
                         width: 11,
                         height: 11,
                         color:
-                            ref
-                                    .watch(
-                                      selectedSettingsMenuItemStateProvider
-                                          .state,
-                                    )
-                                    .state ==
+                            ref.watch(selectedSettingsMenuItemStateProvider) ==
                                 i
                             ? Theme.of(context)
                                   .extension<StackColors>()!
@@ -76,13 +72,12 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
                       ),
                       label: labels[i],
                       value: i,
-                      group: ref
-                          .watch(selectedSettingsMenuItemStateProvider.state)
-                          .state,
+                      group: ref.watch(selectedSettingsMenuItemStateProvider),
                       onChanged: (newValue) =>
                           ref
                                   .read(
-                                    selectedSettingsMenuItemStateProvider.state,
+                                    selectedSettingsMenuItemStateProvider
+                                        .notifier,
                                   )
                                   .state =
                               newValue,

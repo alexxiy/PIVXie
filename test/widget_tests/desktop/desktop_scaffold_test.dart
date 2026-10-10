@@ -20,7 +20,7 @@ void main() {
         .thenAnswer((_) => StackTheme.fromJson(json: lightThemeJsonMap));
     await widgetTester.pumpWidget(
       ProviderScope(
-        overrides: [pThemeService.overrideWithValue(mockThemeService)],
+        overrides: [pThemeService.overrideWith((_) => mockThemeService)],
         child: MaterialApp(
           theme: ThemeData(
             extensions: [
@@ -45,7 +45,7 @@ void main() {
 
     await widgetTester.pumpWidget(
       ProviderScope(
-        overrides: [pThemeService.overrideWithValue(mockThemeService)],
+        overrides: [pThemeService.overrideWith((_) => mockThemeService)],
         child: MaterialApp(
           theme: ThemeData(
             extensions: [
@@ -76,7 +76,7 @@ void main() {
 
     await widgetTester.pumpWidget(
       ProviderScope(
-        overrides: [pThemeService.overrideWithValue(mockThemeService)],
+        overrides: [pThemeService.overrideWith((_) => mockThemeService)],
         child: MaterialApp(
           theme: ThemeData(
             extensions: [

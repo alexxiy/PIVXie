@@ -109,7 +109,7 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
             arguments: Tuple5(
               walletName,
               coin,
-              ref.read(mnemonicWordCountStateProvider.state).state,
+              ref.read(mnemonicWordCountStateProvider),
               height,
               passwordController.text,
             ),
@@ -288,10 +288,12 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
         if (Util.isDesktop)
           DropdownButtonHideUnderline(
             child: DropdownButton2<int>(
-              value: ref.watch(mnemonicWordCountStateProvider.state).state,
+              valueListenable: ValueNotifier(
+                ref.watch(mnemonicWordCountStateProvider),
+              ),
               items: [
                 ...lengths.map(
-                  (e) => DropdownMenuItem(
+                  (e) => DropdownItem(
                     value: e,
                     child: Text(
                       "$e words",
@@ -302,7 +304,8 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
               ],
               onChanged: (value) {
                 if (value is int) {
-                  ref.read(mnemonicWordCountStateProvider.state).state = value;
+                  ref.read(mnemonicWordCountStateProvider.notifier).state =
+                      value;
                 }
               },
               isExpanded: true,

@@ -9,6 +9,7 @@
  */
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 import '../../utilities/amount/amount.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';

@@ -35,7 +35,7 @@ void main() {
   //   await widgetTester.pumpWidget(
   //     ProviderScope(
   //       overrides: [
-  //         pWallets.overrideWithValue(wallets),
+  //         pWallets.overrideWith((_) => wallets),
   //       ],
   //       child: MaterialApp(
   //         theme: ThemeData(

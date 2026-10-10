@@ -150,12 +150,11 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
 
   void onMenuSelectionWillChange(DesktopMenuItemId newKey) {
     // handle logging out of active wallet
-    if (ref.read(prevDesktopMenuItemProvider.state).state ==
-            DesktopMenuItemId.myStack &&
-        ref.read(prevDesktopMenuItemProvider.state).state == newKey) {
+    if (ref.read(prevDesktopMenuItemProvider) == DesktopMenuItemId.myStack &&
+        ref.read(prevDesktopMenuItemProvider) == newKey) {
       Navigator.of(myStackViewNavKey.currentContext!)
           .popUntil(ModalRoute.withName(MyStackView.routeName));
-      if (ref.read(currentWalletIdProvider.state).state != null) {
+      if (ref.read(currentWalletIdProvider) != null) {
         final wallet = ref
             .read(pWallets)
             .getWallet(ref.read(currentWalletIdProvider)!);
@@ -163,7 +162,7 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
         if (wallet.shouldAutoSync) {
           wallet.shouldAutoSync = false;
         }
-        ref.read(transactionFilterProvider.state).state = null;
+        ref.read(transactionFilterProvider.notifier).state = null;
         if (ref.read(prefsChangeNotifierProvider).isAutoBackupEnabled &&
             ref.read(prefsChangeNotifierProvider).backupFrequencyType ==
                 BackupFrequencyType.afterClosingAWallet) {
@@ -175,7 +174,7 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
         // wallet.exit(); ??
       }
     }
-    ref.read(prevDesktopMenuItemProvider.state).state = newKey;
+    ref.read(prevDesktopMenuItemProvider.notifier).state = newKey;
 
     // check for unread notifications and refresh provider before
     // showing notifications view
@@ -183,12 +182,12 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
       ref.refresh(unreadNotificationsStateProvider);
     }
     // mark notifications as read if leaving notifications view
-    if (ref.read(currentDesktopMenuItemProvider.state).state ==
+    if (ref.read(currentDesktopMenuItemProvider) ==
             DesktopMenuItemId.notifications &&
         newKey != DesktopMenuItemId.notifications) {
-      final Set<int> unreadNotificationIds = ref
-          .read(unreadNotificationsStateProvider.state)
-          .state;
+      final Set<int> unreadNotificationIds = ref.read(
+        unreadNotificationsStateProvider,
+      );
 
       if (unreadNotificationIds.isNotEmpty) {
         final List<Future<void>> futures = [];
@@ -228,25 +227,18 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
             ),
             Expanded(
               child: IndexedStack(
-                index:
-                    ref
-                            .watch(currentDesktopMenuItemProvider.state)
-                            .state
-                            .index >
-                        0
+                index: ref.watch(currentDesktopMenuItemProvider).index > 0
                     ? 1
                     : 0,
                 children: [
                   myStackViewNav,
-                  contentViews[ref
-                      .watch(currentDesktopMenuItemProvider.state)
-                      .state]!,
+                  contentViews[ref.watch(currentDesktopMenuItemProvider)]!,
                 ],
               ),
             ),
             // Expanded(
             //   child: contentViews[
-            //       ref.watch(currentDesktopMenuItemProvider.state).state]!,
+            //       ref.watch(currentDesktopMenuItemProvider)]!,
             // ),
           ],
         ),

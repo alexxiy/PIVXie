@@ -9,7 +9,10 @@
  */
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
+
 import '../../services/address_book_service.dart';
 
-final addressBookServiceProvider =
-    ChangeNotifierProvider<AddressBookService>((ref) => AddressBookService());
+final addressBookServiceProvider = ChangeNotifierProvider<AddressBookService>(
+  (ref) => AddressBookService(),
+);

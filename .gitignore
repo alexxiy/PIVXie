@@ -61,7 +61,6 @@ test/services/coins/particl/particl_wallet_test_parameters.dart
 # other
 coverage
 scripts/**/build
-/lib/external_api_keys.dart
 
 libepic_cash_wallet.dll
 libtor_ffi.dll

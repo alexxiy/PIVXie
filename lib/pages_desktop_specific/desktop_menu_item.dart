@@ -42,8 +42,7 @@ class DesktopMyStackIcon extends ConsumerWidget {
       width: 20,
       height: 20,
       color:
-          DesktopMenuItemId.myStack ==
-              ref.watch(currentDesktopMenuItemProvider.state).state
+          DesktopMenuItemId.myStack == ref.watch(currentDesktopMenuItemProvider)
           ? Theme.of(context).extension<StackColors>()!.accentColorDark
           : Theme.of(context)
                 .extension<StackColors>()!
@@ -73,7 +72,7 @@ class DesktopNotificationsIcon extends ConsumerWidget {
             height: 20,
             color:
                 DesktopMenuItemId.notifications ==
-                    ref.watch(currentDesktopMenuItemProvider.state).state
+                    ref.watch(currentDesktopMenuItemProvider)
                 ? Theme.of(context).extension<StackColors>()!.accentColorDark
                 : Theme.of(context)
                       .extension<StackColors>()!
@@ -94,7 +93,7 @@ class DesktopAddressBookIcon extends ConsumerWidget {
       height: 20,
       color:
           DesktopMenuItemId.addressBook ==
-              ref.watch(currentDesktopMenuItemProvider.state).state
+              ref.watch(currentDesktopMenuItemProvider)
           ? Theme.of(context).extension<StackColors>()!.accentColorDark
           : Theme.of(context)
                 .extension<StackColors>()!
@@ -115,7 +114,7 @@ class DesktopSettingsIcon extends ConsumerWidget {
       height: 20,
       color:
           DesktopMenuItemId.settings ==
-              ref.watch(currentDesktopMenuItemProvider.state).state
+              ref.watch(currentDesktopMenuItemProvider)
           ? Theme.of(context).extension<StackColors>()!.accentColorDark
           : Theme.of(context)
                 .extension<StackColors>()!
@@ -135,8 +134,7 @@ class DesktopSupportIcon extends ConsumerWidget {
       width: 20,
       height: 20,
       color:
-          DesktopMenuItemId.support ==
-              ref.watch(currentDesktopMenuItemProvider.state).state
+          DesktopMenuItemId.support == ref.watch(currentDesktopMenuItemProvider)
           ? Theme.of(context).extension<StackColors>()!.accentColorDark
           : Theme.of(context)
                 .extension<StackColors>()!
@@ -156,8 +154,7 @@ class DesktopAboutIcon extends ConsumerWidget {
       width: 20,
       height: 20,
       color:
-          DesktopMenuItemId.about ==
-              ref.watch(currentDesktopMenuItemProvider.state).state
+          DesktopMenuItemId.about == ref.watch(currentDesktopMenuItemProvider)
           ? Theme.of(context).extension<StackColors>()!.accentColorDark
           : Theme.of(context)
                 .extension<StackColors>()!
@@ -267,7 +264,7 @@ class _DesktopMenuItemState<T> extends ConsumerState<DesktopMenuItem<T>>
 
   @override
   Widget build(BuildContext context) {
-    final group = ref.watch(currentDesktopMenuItemProvider.state).state;
+    final group = ref.watch(currentDesktopMenuItemProvider);
 
     return TextButton(
       style: value == group

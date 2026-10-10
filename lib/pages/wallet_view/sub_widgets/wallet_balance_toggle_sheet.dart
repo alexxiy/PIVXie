@@ -40,13 +40,12 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
     final balance = ref.watch(pWalletBalance(walletId));
 
     _BalanceType _bal =
-        ref.watch(walletBalanceToggleStateProvider.state).state ==
+        ref.watch(walletBalanceToggleStateProvider) ==
             WalletBalanceToggleState.available
         ? _BalanceType.available
         : _BalanceType.full;
 
-    if (ref.watch(publicPrivateBalanceStateProvider.state).state ==
-        BalanceType.private) {
+    if (ref.watch(publicPrivateBalanceStateProvider) == BalanceType.private) {
       _bal = _bal == _BalanceType.available
           ? _BalanceType.privateAvailable
           : _BalanceType.privateFull;
@@ -119,17 +118,17 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                 coin: coin,
                 balance: balance.spendable,
                 onPressed: () {
-                  ref.read(walletBalanceToggleStateProvider.state).state =
+                  ref.read(walletBalanceToggleStateProvider.notifier).state =
                       WalletBalanceToggleState.available;
-                  ref.read(publicPrivateBalanceStateProvider.state).state =
+                  ref.read(publicPrivateBalanceStateProvider.notifier).state =
                       BalanceType.public;
                   ref.read(showTotalBalanceProvider.notifier).state = false;
                   Navigator.of(context).pop();
                 },
                 onChanged: (_) {
-                  ref.read(walletBalanceToggleStateProvider.state).state =
+                  ref.read(walletBalanceToggleStateProvider.notifier).state =
                       WalletBalanceToggleState.available;
-                  ref.read(publicPrivateBalanceStateProvider.state).state =
+                  ref.read(publicPrivateBalanceStateProvider.notifier).state =
                       BalanceType.public;
                   ref.read(showTotalBalanceProvider.notifier).state = false;
                   Navigator.of(context).pop();
@@ -143,17 +142,17 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                 coin: coin,
                 balance: balance.total,
                 onPressed: () {
-                  ref.read(walletBalanceToggleStateProvider.state).state =
+                  ref.read(walletBalanceToggleStateProvider.notifier).state =
                       WalletBalanceToggleState.full;
-                  ref.read(publicPrivateBalanceStateProvider.state).state =
+                  ref.read(publicPrivateBalanceStateProvider.notifier).state =
                       BalanceType.public;
                   ref.read(showTotalBalanceProvider.notifier).state = false;
                   Navigator.of(context).pop();
                 },
                 onChanged: (_) {
-                  ref.read(walletBalanceToggleStateProvider.state).state =
+                  ref.read(walletBalanceToggleStateProvider.notifier).state =
                       WalletBalanceToggleState.full;
-                  ref.read(publicPrivateBalanceStateProvider.state).state =
+                  ref.read(publicPrivateBalanceStateProvider.notifier).state =
                       BalanceType.public;
                   ref.read(showTotalBalanceProvider.notifier).state = false;
                   Navigator.of(context).pop();
@@ -167,17 +166,17 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                 coin: coin,
                 balance: balancePrivate.spendable,
                 onPressed: () {
-                  ref.read(walletBalanceToggleStateProvider.state).state =
+                  ref.read(walletBalanceToggleStateProvider.notifier).state =
                       WalletBalanceToggleState.available;
-                  ref.read(publicPrivateBalanceStateProvider.state).state =
+                  ref.read(publicPrivateBalanceStateProvider.notifier).state =
                       BalanceType.private;
                   ref.read(showTotalBalanceProvider.notifier).state = false;
                   Navigator.of(context).pop();
                 },
                 onChanged: (_) {
-                  ref.read(walletBalanceToggleStateProvider.state).state =
+                  ref.read(walletBalanceToggleStateProvider.notifier).state =
                       WalletBalanceToggleState.available;
-                  ref.read(publicPrivateBalanceStateProvider.state).state =
+                  ref.read(publicPrivateBalanceStateProvider.notifier).state =
                       BalanceType.private;
                   ref.read(showTotalBalanceProvider.notifier).state = false;
                   Navigator.of(context).pop();
@@ -191,17 +190,17 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                 coin: coin,
                 balance: balancePrivate.total,
                 onPressed: () {
-                  ref.read(walletBalanceToggleStateProvider.state).state =
+                  ref.read(walletBalanceToggleStateProvider.notifier).state =
                       WalletBalanceToggleState.full;
-                  ref.read(publicPrivateBalanceStateProvider.state).state =
+                  ref.read(publicPrivateBalanceStateProvider.notifier).state =
                       BalanceType.private;
                   ref.read(showTotalBalanceProvider.notifier).state = false;
                   Navigator.of(context).pop();
                 },
                 onChanged: (_) {
-                  ref.read(walletBalanceToggleStateProvider.state).state =
+                  ref.read(walletBalanceToggleStateProvider.notifier).state =
                       WalletBalanceToggleState.full;
-                  ref.read(publicPrivateBalanceStateProvider.state).state =
+                  ref.read(publicPrivateBalanceStateProvider.notifier).state =
                       BalanceType.private;
                   ref.read(showTotalBalanceProvider.notifier).state = false;
                   Navigator.of(context).pop();

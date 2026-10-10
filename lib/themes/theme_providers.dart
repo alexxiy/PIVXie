@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 import '../models/isar/stack_theme.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
@@ -19,27 +20,17 @@ import 'theme_service.dart';
 final applicationThemesDirectoryPathProvider = StateProvider((ref) => "");
 
 final colorProvider = StateProvider<StackColors>(
-  (ref) => StackColors.fromStackColorTheme(
-    ref.watch(themeProvider.state).state,
-  ),
+  (ref) => StackColors.fromStackColorTheme(ref.watch(themeProvider)),
 );
 
 final themeProvider = StateProvider<StackTheme>(
   (ref) => ref.watch(
-    pThemeService.select(
-      (value) => value.getTheme(
-        themeId: "light",
-      )!,
-    ),
+    pThemeService.select((value) => value.getTheme(themeId: "light")!),
   ),
 );
 
 final themeAssetsProvider = StateProvider<IThemeAssets>(
-  (ref) => ref.watch(
-    themeProvider.select(
-      (value) => value.assets,
-    ),
-  ),
+  (ref) => ref.watch(themeProvider.select((value) => value.assets)),
 );
 
 final pCoinColor = StateProvider.family<Color, CryptoCurrency>(

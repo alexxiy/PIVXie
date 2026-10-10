@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:paymint/models/isar/stack_theme.dart';
@@ -65,8 +66,8 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          pThemeService.overrideWithValue(mockThemeService),
-          prefsChangeNotifierProvider.overrideWithValue(prefs),
+          pThemeService.overrideWith((_) => mockThemeService),
+          prefsChangeNotifierProvider.overrideWith((_) => prefs),
           ...overrides,
         ],
         child: MaterialApp(

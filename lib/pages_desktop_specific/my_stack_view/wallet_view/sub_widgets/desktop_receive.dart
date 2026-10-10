@@ -238,10 +238,10 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
             children: [
               DropdownButtonHideUnderline(
                 child: DropdownButton2<int>(
-                  value: _currentIndex,
+                  valueListenable: ValueNotifier(_currentIndex),
                   items: [
                     for (int i = 0; i < _walletAddressTypes.length; i++)
-                      DropdownMenuItem(
+                      DropdownItem(
                         value: i,
                         child: Text(
                           "${_walletAddressTypes[i].readableName} address",

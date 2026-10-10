@@ -11,6 +11,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+
 import '../../themes/stack_colors.dart';
 import '../../themes/theme_providers.dart';
 import '../../utilities/assets.dart';
@@ -47,9 +48,8 @@ class _FavoriteToggleState extends ConsumerState<FavoriteToggle> {
 
   @override
   void initState() {
-    on = widget.on ?? ref.read(themeProvider.state).state.favoriteStarActive;
-    off =
-        widget.off ?? ref.read(themeProvider.state).state.favoriteStarInactive;
+    on = widget.on ?? ref.read(themeProvider).favoriteStarActive;
+    off = widget.off ?? ref.read(themeProvider).favoriteStarInactive;
     _isActive = widget.initialState;
     _color = _isActive ? on : off;
     _onChanged = widget.onChanged;
@@ -67,9 +67,7 @@ class _FavoriteToggleState extends ConsumerState<FavoriteToggle> {
         splashColor: Theme.of(context).extension<StackColors>()!.highlight,
         minWidth: 0,
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        shape: RoundedRectangleBorder(
-          borderRadius: widget.borderRadius,
-        ),
+        shape: RoundedRectangleBorder(borderRadius: widget.borderRadius),
         onPressed: _onChanged != null
             ? () {
                 _isActive = !_isActive;

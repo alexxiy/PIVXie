@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 import '../../../models/paymint/fee_object_model.dart';
 import '../../../providers/providers.dart';
@@ -180,11 +181,11 @@ class _TransactionFeeSelectionSheetState
                     const SizedBox(height: 16),
                     GestureDetector(
                       onTap: () {
-                        final state = ref
-                            .read(feeRateTypeMobileStateProvider.state)
-                            .state;
+                        final state = ref.read(feeRateTypeMobileStateProvider);
                         if (state != FeeRateType.fast) {
-                          ref.read(feeRateTypeMobileStateProvider.state).state =
+                          ref
+                                  .read(feeRateTypeMobileStateProvider.notifier)
+                                  .state =
                               FeeRateType.fast;
                         }
                         final String? fee = getAmount(
@@ -212,16 +213,14 @@ class _TransactionFeeSelectionSheetState
                                         .extension<StackColors>()!
                                         .radioButtonIconEnabled,
                                     value: FeeRateType.fast,
-                                    groupValue: ref
-                                        .watch(
-                                          feeRateTypeMobileStateProvider.state,
-                                        )
-                                        .state,
+                                    groupValue: ref.watch(
+                                      feeRateTypeMobileStateProvider,
+                                    ),
                                     onChanged: (x) {
                                       ref
                                               .read(
                                                 feeRateTypeMobileStateProvider
-                                                    .state,
+                                                    .notifier,
                                               )
                                               .state =
                                           FeeRateType.fast;
@@ -317,11 +316,11 @@ class _TransactionFeeSelectionSheetState
                     const SizedBox(height: 16),
                     GestureDetector(
                       onTap: () {
-                        final state = ref
-                            .read(feeRateTypeMobileStateProvider.state)
-                            .state;
+                        final state = ref.read(feeRateTypeMobileStateProvider);
                         if (state != FeeRateType.average) {
-                          ref.read(feeRateTypeMobileStateProvider.state).state =
+                          ref
+                                  .read(feeRateTypeMobileStateProvider.notifier)
+                                  .state =
                               FeeRateType.average;
                         }
                         final String? fee = getAmount(
@@ -348,16 +347,14 @@ class _TransactionFeeSelectionSheetState
                                         .extension<StackColors>()!
                                         .radioButtonIconEnabled,
                                     value: FeeRateType.average,
-                                    groupValue: ref
-                                        .watch(
-                                          feeRateTypeMobileStateProvider.state,
-                                        )
-                                        .state,
+                                    groupValue: ref.watch(
+                                      feeRateTypeMobileStateProvider,
+                                    ),
                                     onChanged: (x) {
                                       ref
                                               .read(
                                                 feeRateTypeMobileStateProvider
-                                                    .state,
+                                                    .notifier,
                                               )
                                               .state =
                                           FeeRateType.average;
@@ -452,11 +449,11 @@ class _TransactionFeeSelectionSheetState
                     const SizedBox(height: 16),
                     GestureDetector(
                       onTap: () {
-                        final state = ref
-                            .read(feeRateTypeMobileStateProvider.state)
-                            .state;
+                        final state = ref.read(feeRateTypeMobileStateProvider);
                         if (state != FeeRateType.slow) {
-                          ref.read(feeRateTypeMobileStateProvider.state).state =
+                          ref
+                                  .read(feeRateTypeMobileStateProvider.notifier)
+                                  .state =
                               FeeRateType.slow;
                         }
                         final String? fee = getAmount(FeeRateType.slow, coin);
@@ -480,16 +477,14 @@ class _TransactionFeeSelectionSheetState
                                         .extension<StackColors>()!
                                         .radioButtonIconEnabled,
                                     value: FeeRateType.slow,
-                                    groupValue: ref
-                                        .watch(
-                                          feeRateTypeMobileStateProvider.state,
-                                        )
-                                        .state,
+                                    groupValue: ref.watch(
+                                      feeRateTypeMobileStateProvider,
+                                    ),
                                     onChanged: (x) {
                                       ref
                                               .read(
                                                 feeRateTypeMobileStateProvider
-                                                    .state,
+                                                    .notifier,
                                               )
                                               .state =
                                           FeeRateType.slow;

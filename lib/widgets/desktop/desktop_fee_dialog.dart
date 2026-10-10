@@ -89,7 +89,7 @@ class _DesktopFeeItemState extends ConsumerState<DesktopFeeItem> {
       builder: (child) => MaterialButton(
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         onPressed: () {
-          ref.read(feeRateTypeDesktopStateProvider.state).state =
+          ref.read(feeRateTypeDesktopStateProvider.notifier).state =
               widget.feeRateType;
           Navigator.of(context)
               .pop((widget.feeRateType, feeString, timeString));
@@ -139,7 +139,7 @@ class _DesktopFeeItemState extends ConsumerState<DesktopFeeItem> {
                     : widget.feeRateType == FeeRateType.slow
                     ? widget.feeObject!.slow
                     : widget.feeObject!.medium,
-                amount: ref.watch(sendAmountProvider.state).state,
+                amount: ref.watch(sendAmountProvider),
               ),
               builder: (_, AsyncSnapshot<Amount> snapshot) {
                 if (snapshot.connectionState == ConnectionState.done &&

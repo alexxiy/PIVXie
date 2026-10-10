@@ -90,7 +90,7 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
       }
 
       if (mounted) {
-        ref.read(mnemonicWordCountStateProvider.state).state =
+        ref.read(mnemonicWordCountStateProvider.notifier).state =
             coin.defaultSeedPhraseLength;
 
         ref.read(pNewWalletOptions.notifier).state = null;

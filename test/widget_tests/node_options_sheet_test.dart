@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
@@ -79,9 +80,9 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          pWallets.overrideWithValue(wallets),
-          prefsChangeNotifierProvider.overrideWithValue(prefs),
-          nodeServiceChangeNotifierProvider.overrideWithValue(nodeService),
+          pWallets.overrideWith((_) => wallets),
+          prefsChangeNotifierProvider.overrideWith((_) => prefs),
+          nodeServiceChangeNotifierProvider.overrideWith((_) => nodeService),
           ...extraOverrides,
         ],
         child: MaterialApp(

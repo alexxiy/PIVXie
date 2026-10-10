@@ -49,14 +49,14 @@ void main() {
   //   await widgetTester.pumpWidget(
   //     ProviderScope(
   //       overrides: [
-  //         pWallets.overrideWithValue(mockWallets),
+  //         pWallets.overrideWith((_) => mockWallets),
   //         walletsServiceChangeNotifierProvider
-  //             .overrideWithValue(mockWalletsService),
-  //         nodeServiceChangeNotifierProvider.overrideWithValue(mockNodeService),
+  //             .overrideWith((_) => mockWalletsService),
+  //         nodeServiceChangeNotifierProvider.overrideWith((_) => mockNodeService),
   //         localeServiceChangeNotifierProvider
-  //             .overrideWithValue(mockLocaleService),
-  //         prefsChangeNotifierProvider.overrideWithValue(mockPrefs),
-  //         pThemeService.overrideWithValue(mockThemeService),
+  //             .overrideWith((_) => mockLocaleService),
+  //         prefsChangeNotifierProvider.overrideWith((_) => mockPrefs),
+  //         pThemeService.overrideWith((_) => mockThemeService),
   //         coinIconProvider.overrideWithProvider(
   //           (argument) => Provider<String>((_) =>
   //               "${Directory.current.path}/test/sample_data/light/assets/dummy.svg"),
@@ -131,14 +131,14 @@ void main() {
   //   await widgetTester.pumpWidget(
   //     ProviderScope(
   //       overrides: [
-  //         pWallets.overrideWithValue(mockWallets),
+  //         pWallets.overrideWith((_) => mockWallets),
   //         walletsServiceChangeNotifierProvider
-  //             .overrideWithValue(mockWalletsService),
-  //         nodeServiceChangeNotifierProvider.overrideWithValue(mockNodeService),
+  //             .overrideWith((_) => mockWalletsService),
+  //         nodeServiceChangeNotifierProvider.overrideWith((_) => mockNodeService),
   //         localeServiceChangeNotifierProvider
-  //             .overrideWithValue(mockLocaleService),
-  //         prefsChangeNotifierProvider.overrideWithValue(mockPrefs),
-  //         pThemeService.overrideWithValue(mockThemeService),
+  //             .overrideWith((_) => mockLocaleService),
+  //         prefsChangeNotifierProvider.overrideWith((_) => mockPrefs),
+  //         pThemeService.overrideWith((_) => mockThemeService),
   //         coinIconProvider.overrideWithProvider(
   //           (argument) => Provider<String>((_) =>
   //               "${Directory.current.path}/test/sample_data/light/assets/dummy.svg"),

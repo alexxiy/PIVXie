@@ -34,8 +34,6 @@
 		97C147001CF9000F007C117D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		97C147021CF9000F007C117D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B999088F2ABE1E170012A442 /* Runner.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Runner.entitlements; sourceTree = "<group>"; };
-		CE4F88302C202CEE007A8C67 /* MoneroWallet.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = MoneroWallet.framework; sourceTree = "<group>"; };
-		CE4F88332C202CF4007A8C67 /* WowneroWallet.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = WowneroWallet.framework; sourceTree = "<group>"; };
 		E6F536731AC506735EB76340 /* Pods-Runner.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.release.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -83,8 +81,6 @@
 		97C146E51CF9000F007C117D = {
 			isa = PBXGroup;
 			children = (
-				CE4F88332C202CF4007A8C67 /* WowneroWallet.framework */,
-				CE4F88302C202CEE007A8C67 /* MoneroWallet.framework */,
 				9740EEB11CF90186004384FC /* Flutter */,
 				97C146F01CF9000F007C117D /* Runner */,
 				97C146EF1CF9000F007C117D /* Products */,
@@ -287,33 +283,21 @@
 				"${BUILT_PRODUCTS_DIR}/SwiftyGif/SwiftyGif.framework",
 				"${BUILT_PRODUCTS_DIR}/barcode_scan2/barcode_scan2.framework",
 				"${BUILT_PRODUCTS_DIR}/coinlib_flutter/secp256k1.framework",
-				"${BUILT_PRODUCTS_DIR}/connectivity_plus/connectivity_plus.framework",
-				"${PODS_ROOT}/../.symlinks/plugins/cs_monero_flutter_libs_ios/ios/Frameworks/MoneroWallet.framework",
-				"${PODS_ROOT}/../.symlinks/plugins/cs_monero_flutter_libs_ios/ios/Frameworks/WowneroWallet.framework",
-				"${BUILT_PRODUCTS_DIR}/cs_monero_flutter_libs_ios/cs_monero_flutter_libs_ios.framework",
-				"${PODS_ROOT}/../.symlinks/plugins/cs_salvium_flutter_libs_ios/ios/Frameworks/SalviumWallet.framework",
-				"${BUILT_PRODUCTS_DIR}/cs_salvium_flutter_libs_ios/cs_salvium_flutter_libs_ios.framework",
 				"${BUILT_PRODUCTS_DIR}/device_info_plus/device_info_plus.framework",
 				"${BUILT_PRODUCTS_DIR}/devicelocale/devicelocale.framework",
 				"${BUILT_PRODUCTS_DIR}/file_picker/file_picker.framework",
-				"${PODS_ROOT}/../.symlinks/plugins/flutter_libsparkmobile/ios/flutter_libsparkmobile.framework",
 				"${BUILT_PRODUCTS_DIR}/flutter_local_notifications/flutter_local_notifications.framework",
 				"${BUILT_PRODUCTS_DIR}/flutter_native_splash/flutter_native_splash.framework",
 				"${BUILT_PRODUCTS_DIR}/flutter_secure_storage/flutter_secure_storage.framework",
-				"${BUILT_PRODUCTS_DIR}/frostdart/frostdart.framework",
-				"${BUILT_PRODUCTS_DIR}/integration_test/integration_test.framework",
 				"${BUILT_PRODUCTS_DIR}/isar_flutter_libs/isar_flutter_libs.framework",
 				"${BUILT_PRODUCTS_DIR}/local_auth_darwin/local_auth_darwin.framework",
 				"${BUILT_PRODUCTS_DIR}/package_info_plus/package_info_plus.framework",
 				"${BUILT_PRODUCTS_DIR}/path_provider_foundation/path_provider_foundation.framework",
 				"${BUILT_PRODUCTS_DIR}/share_plus/share_plus.framework",
-				"${BUILT_PRODUCTS_DIR}/sqlite3/sqlite3.framework",
-				"${BUILT_PRODUCTS_DIR}/sqlite3_flutter_libs/sqlite3_flutter_libs.framework",
 				"${BUILT_PRODUCTS_DIR}/stack_wallet_backup/stack_wallet_backup.framework",
 				"${BUILT_PRODUCTS_DIR}/tor_ffi_plugin/tor_ffi_plugin.framework",
 				"${BUILT_PRODUCTS_DIR}/url_launcher_ios/url_launcher_ios.framework",
 				"${BUILT_PRODUCTS_DIR}/wakelock_plus/wakelock_plus.framework",
-				"${BUILT_PRODUCTS_DIR}/xelis_flutter/xelis_flutter.framework",
 			);
 			name = "[CP] Embed Pods Frameworks";
 			outputPaths = (
@@ -326,33 +310,21 @@
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SwiftyGif.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/barcode_scan2.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/secp256k1.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/connectivity_plus.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/MoneroWallet.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/WowneroWallet.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/cs_monero_flutter_libs_ios.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/SalviumWallet.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/cs_salvium_flutter_libs_ios.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/device_info_plus.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/devicelocale.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/file_picker.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/flutter_libsparkmobile.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/flutter_local_notifications.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/flutter_native_splash.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/flutter_secure_storage.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/frostdart.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/integration_test.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/isar_flutter_libs.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/local_auth_darwin.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/package_info_plus.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/path_provider_foundation.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/share_plus.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/sqlite3.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/sqlite3_flutter_libs.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/stack_wallet_backup.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/tor_ffi_plugin.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/url_launcher_ios.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/wakelock_plus.framework",
-				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/xelis_flutter.framework",
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
@@ -472,11 +444,9 @@
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/connectivity/connectivity.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/cryptography_flutter/cryptography_flutter.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/devicelocale/devicelocale.framework/Headers\"",
-					"\"${PODS_CONFIGURATION_BUILD_DIR}/flutter_libmonero/flutter_libmonero.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/flutter_local_notifications/flutter_local_notifications.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/flutter_native_splash/flutter_native_splash.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/flutter_secure_storage/flutter_secure_storage.framework/Headers\"",
-					"\"${PODS_CONFIGURATION_BUILD_DIR}/integration_test/integration_test.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/local_auth/local_auth.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/package_info_plus/package_info_plus.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/path_provider_ios/path_provider_ios.framework/Headers\"",
@@ -649,11 +619,9 @@
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/connectivity/connectivity.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/cryptography_flutter/cryptography_flutter.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/devicelocale/devicelocale.framework/Headers\"",
-					"\"${PODS_CONFIGURATION_BUILD_DIR}/flutter_libmonero/flutter_libmonero.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/flutter_local_notifications/flutter_local_notifications.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/flutter_native_splash/flutter_native_splash.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/flutter_secure_storage/flutter_secure_storage.framework/Headers\"",
-					"\"${PODS_CONFIGURATION_BUILD_DIR}/integration_test/integration_test.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/local_auth/local_auth.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/package_info_plus/package_info_plus.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/path_provider_ios/path_provider_ios.framework/Headers\"",
@@ -718,11 +686,9 @@
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/connectivity/connectivity.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/cryptography_flutter/cryptography_flutter.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/devicelocale/devicelocale.framework/Headers\"",
-					"\"${PODS_CONFIGURATION_BUILD_DIR}/flutter_libmonero/flutter_libmonero.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/flutter_local_notifications/flutter_local_notifications.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/flutter_native_splash/flutter_native_splash.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/flutter_secure_storage/flutter_secure_storage.framework/Headers\"",
-					"\"${PODS_CONFIGURATION_BUILD_DIR}/integration_test/integration_test.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/local_auth/local_auth.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/package_info_plus/package_info_plus.framework/Headers\"",
 					"\"${PODS_CONFIGURATION_BUILD_DIR}/path_provider_ios/path_provider_ios.framework/Headers\"",

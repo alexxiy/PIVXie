@@ -1,6 +1,7 @@
 import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:tuple/tuple.dart';
 
@@ -137,10 +138,10 @@ class _NewWalletOptionsViewState extends ConsumerState<NewWalletOptionsView> {
             SizedBox(height: Util.isDesktop ? 32 : 16),
             DropdownButtonHideUnderline(
               child: DropdownButton2<NewWalletOptions>(
-                value: _selectedOptions,
+                valueListenable: ValueNotifier(_selectedOptions),
                 items: [
                   ...NewWalletOptions.values.map(
-                    (e) => DropdownMenuItem(
+                    (e) => DropdownItem(
                       value: e,
                       child: Text(
                         e.name,
@@ -191,12 +192,12 @@ class _NewWalletOptionsViewState extends ConsumerState<NewWalletOptionsView> {
                   if (Util.isDesktop && lengths.length > 1)
                     DropdownButtonHideUnderline(
                       child: DropdownButton2<int>(
-                        value: ref
-                            .watch(mnemonicWordCountStateProvider.state)
-                            .state,
+                        valueListenable: ValueNotifier(
+                          ref.watch(mnemonicWordCountStateProvider),
+                        ),
                         items: [
                           ...lengths.map(
-                            (e) => DropdownMenuItem(
+                            (e) => DropdownItem(
                               value: e,
                               child: Text(
                                 "$e word seed",
@@ -208,7 +209,9 @@ class _NewWalletOptionsViewState extends ConsumerState<NewWalletOptionsView> {
                         onChanged: (value) {
                           if (value is int) {
                             ref
-                                    .read(mnemonicWordCountStateProvider.state)
+                                    .read(
+                                      mnemonicWordCountStateProvider.notifier,
+                                    )
                                     .state =
                                 value;
                           }
@@ -352,9 +355,9 @@ class _NewWalletOptionsViewState extends ConsumerState<NewWalletOptionsView> {
               onPressed: () {
                 if (_selectedOptions == NewWalletOptions.Advanced) {
                   ref.read(pNewWalletOptions.notifier).state = (
-                    mnemonicWordsCount: ref
-                        .read(mnemonicWordCountStateProvider.state)
-                        .state,
+                    mnemonicWordsCount: ref.read(
+                      mnemonicWordCountStateProvider,
+                    ),
                     mnemonicPassphrase: passwordController.text,
                   );
                 } else {

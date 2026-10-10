@@ -67,8 +67,8 @@ class _TransactionSearchViewState
 
   @override
   initState() {
-    baseColor = ref.read(themeProvider.state).state.textSubtitle2;
-    final filterState = ref.read(transactionFilterProvider.state).state;
+    baseColor = ref.read(themeProvider).textSubtitle2;
+    final filterState = ref.read(transactionFilterProvider);
     if (filterState != null) {
       _isActiveReceivedCheckbox = filterState.received;
       _isActiveSentCheckbox = filterState.sent;
@@ -120,13 +120,13 @@ class _TransactionSearchViewState
     } else {
       return Background(
         child: Scaffold(
-          backgroundColor: Theme.of(
-            context,
-          ).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(context)
+              .extension<StackColors>()!
+              .background,
           appBar: AppBar(
-            backgroundColor: Theme.of(
-              context,
-            ).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(context)
+                .extension<StackColors>()!
+                .background,
             leading: AppBarBackButton(
               onPressed: () async {
                 if (FocusScope.of(context).hasFocus) {
@@ -250,172 +250,179 @@ class _TransactionSearchViewState
         if (widget.coin is Pivx)
           _pivxCategoryBox(isDesktop)
         else
-        RoundedWhiteContainer(
-          padding: EdgeInsets.all(isDesktop ? 0 : 12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _isActiveSentCheckbox = !_isActiveSentCheckbox;
-                      });
-                    },
-                    child: Container(
-                      color: Colors.transparent,
-                      child: Row(
-                        children: [
-                          SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: Checkbox(
-                              key: const Key(
-                                "transactionSearchViewSentCheckboxKey",
-                              ),
-                              materialTapTargetSize:
-                                  MaterialTapTargetSize.shrinkWrap,
-                              value: _isActiveSentCheckbox,
-                              onChanged: (newValue) {
-                                setState(() {
-                                  _isActiveSentCheckbox = newValue!;
-                                });
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: FittedBox(
-                              child: Column(
-                                children: [
-                                  Text(
-                                    "Sent",
-                                    style: isDesktop
-                                        ? STextStyles.desktopTextSmall(context)
-                                        : STextStyles.itemSubtitle12(context),
-                                  ),
-                                  if (isDesktop) const SizedBox(height: 4),
-                                ],
+          RoundedWhiteContainer(
+            padding: EdgeInsets.all(isDesktop ? 0 : 12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _isActiveSentCheckbox = !_isActiveSentCheckbox;
+                        });
+                      },
+                      child: Container(
+                        color: Colors.transparent,
+                        child: Row(
+                          children: [
+                            SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: Checkbox(
+                                key: const Key(
+                                  "transactionSearchViewSentCheckboxKey",
+                                ),
+                                materialTapTargetSize:
+                                    MaterialTapTargetSize.shrinkWrap,
+                                value: _isActiveSentCheckbox,
+                                onChanged: (newValue) {
+                                  setState(() {
+                                    _isActiveSentCheckbox = newValue!;
+                                  });
+                                },
                               ),
                             ),
-                          ),
-                        ],
+                            const SizedBox(width: 14),
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: FittedBox(
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      "Sent",
+                                      style: isDesktop
+                                          ? STextStyles.desktopTextSmall(
+                                              context,
+                                            )
+                                          : STextStyles.itemSubtitle12(context),
+                                    ),
+                                    if (isDesktop) const SizedBox(height: 4),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-              SizedBox(height: isDesktop ? 4 : 10),
-              Row(
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _isActiveReceivedCheckbox = !_isActiveReceivedCheckbox;
-                      });
-                    },
-                    child: Container(
-                      color: Colors.transparent,
-                      child: Row(
-                        children: [
-                          SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: Checkbox(
-                              key: const Key(
-                                "transactionSearchViewReceivedCheckboxKey",
-                              ),
-                              materialTapTargetSize:
-                                  MaterialTapTargetSize.shrinkWrap,
-                              value: _isActiveReceivedCheckbox,
-                              onChanged: (newValue) {
-                                setState(() {
-                                  _isActiveReceivedCheckbox = newValue!;
-                                });
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: FittedBox(
-                              child: Column(
-                                children: [
-                                  Text(
-                                    "Received",
-                                    style: isDesktop
-                                        ? STextStyles.desktopTextSmall(context)
-                                        : STextStyles.itemSubtitle12(context),
-                                  ),
-                                  if (isDesktop) const SizedBox(height: 4),
-                                ],
+                  ],
+                ),
+                SizedBox(height: isDesktop ? 4 : 10),
+                Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _isActiveReceivedCheckbox =
+                              !_isActiveReceivedCheckbox;
+                        });
+                      },
+                      child: Container(
+                        color: Colors.transparent,
+                        child: Row(
+                          children: [
+                            SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: Checkbox(
+                                key: const Key(
+                                  "transactionSearchViewReceivedCheckboxKey",
+                                ),
+                                materialTapTargetSize:
+                                    MaterialTapTargetSize.shrinkWrap,
+                                value: _isActiveReceivedCheckbox,
+                                onChanged: (newValue) {
+                                  setState(() {
+                                    _isActiveReceivedCheckbox = newValue!;
+                                  });
+                                },
                               ),
                             ),
-                          ),
-                        ],
+                            const SizedBox(width: 14),
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: FittedBox(
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      "Received",
+                                      style: isDesktop
+                                          ? STextStyles.desktopTextSmall(
+                                              context,
+                                            )
+                                          : STextStyles.itemSubtitle12(context),
+                                    ),
+                                    if (isDesktop) const SizedBox(height: 4),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-              SizedBox(height: isDesktop ? 4 : 10),
-              Row(
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        _isActiveTradeCheckbox = !_isActiveTradeCheckbox;
-                      });
-                    },
-                    child: Container(
-                      color: Colors.transparent,
-                      child: Row(
-                        children: [
-                          SizedBox(
-                            height: 20,
-                            width: 20,
-                            child: Checkbox(
-                              key: const Key(
-                                "transactionSearchViewSentCheckboxKey",
-                              ),
-                              materialTapTargetSize:
-                                  MaterialTapTargetSize.shrinkWrap,
-                              value: _isActiveTradeCheckbox,
-                              onChanged: (newValue) {
-                                setState(() {
-                                  _isActiveTradeCheckbox = newValue!;
-                                });
-                              },
-                            ),
-                          ),
-                          const SizedBox(width: 14),
-                          Align(
-                            alignment: Alignment.centerLeft,
-                            child: FittedBox(
-                              child: Column(
-                                children: [
-                                  Text(
-                                    "Trades",
-                                    style: isDesktop
-                                        ? STextStyles.desktopTextSmall(context)
-                                        : STextStyles.itemSubtitle12(context),
-                                  ),
-                                  if (isDesktop) const SizedBox(height: 4),
-                                ],
+                  ],
+                ),
+                SizedBox(height: isDesktop ? 4 : 10),
+                Row(
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _isActiveTradeCheckbox = !_isActiveTradeCheckbox;
+                        });
+                      },
+                      child: Container(
+                        color: Colors.transparent,
+                        child: Row(
+                          children: [
+                            SizedBox(
+                              height: 20,
+                              width: 20,
+                              child: Checkbox(
+                                key: const Key(
+                                  "transactionSearchViewSentCheckboxKey",
+                                ),
+                                materialTapTargetSize:
+                                    MaterialTapTargetSize.shrinkWrap,
+                                value: _isActiveTradeCheckbox,
+                                onChanged: (newValue) {
+                                  setState(() {
+                                    _isActiveTradeCheckbox = newValue!;
+                                  });
+                                },
                               ),
                             ),
-                          ),
-                        ],
+                            const SizedBox(width: 14),
+                            Align(
+                              alignment: Alignment.centerLeft,
+                              child: FittedBox(
+                                child: Column(
+                                  children: [
+                                    Text(
+                                      "Trades",
+                                      style: isDesktop
+                                          ? STextStyles.desktopTextSmall(
+                                              context,
+                                            )
+                                          : STextStyles.itemSubtitle12(context),
+                                    ),
+                                    if (isDesktop) const SizedBox(height: 4),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
-        ),
         SizedBox(height: isDesktop ? 32 : 24),
         Align(
           alignment: Alignment.centerLeft,
@@ -493,9 +500,9 @@ class _TransactionSearchViewState
               ],
               style: isDesktop
                   ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textDark,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textDark,
                       height: 1.8,
                     )
                   : STextStyles.field(context),
@@ -562,9 +569,9 @@ class _TransactionSearchViewState
               focusNode: keywordTextFieldFocusNode,
               style: isDesktop
                   ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textDark,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textDark,
                       height: 1.8,
                     )
                   : STextStyles.field(context),
@@ -695,12 +702,10 @@ class _TransactionSearchViewState
     Amount? amount;
     if (amountText.isNotEmpty && !(amountText == "," || amountText == ".")) {
       amount = amountText.contains(",")
-          ? Decimal.parse(
-              amountText.replaceFirst(",", "."),
-            ).toAmount(fractionDigits: widget.coin.fractionDigits)
-          : Decimal.parse(
-              amountText,
-            ).toAmount(fractionDigits: widget.coin.fractionDigits);
+          ? Decimal.parse(amountText.replaceFirst(",", "."))
+                .toAmount(fractionDigits: widget.coin.fractionDigits)
+          : Decimal.parse(amountText)
+                .toAmount(fractionDigits: widget.coin.fractionDigits);
     }
 
     final isPivx = widget.coin is Pivx;
@@ -715,7 +720,7 @@ class _TransactionSearchViewState
       pivxCategories: isPivx ? {..._categories} : null,
     );
 
-    ref.read(transactionFilterProvider.state).state = filter;
+    ref.read(transactionFilterProvider.notifier).state = filter;
 
     Navigator.of(context).pop();
   }

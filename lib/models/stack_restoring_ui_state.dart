@@ -10,6 +10,7 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 
 import '../utilities/enums/stack_restoring_status.dart';
 import '../wallets/wallet/wallet.dart';
@@ -22,19 +23,25 @@ class StackRestoringUIState extends ChangeNotifier {
       return false;
     }
 
-    bool _done = (_decryption == StackRestoringStatus.success) ||
+    bool _done =
+        (_decryption == StackRestoringStatus.success) ||
         (_decryption == StackRestoringStatus.failed);
-    _done &= (_addressBook == StackRestoringStatus.success) ||
+    _done &=
+        (_addressBook == StackRestoringStatus.success) ||
         (_addressBook == StackRestoringStatus.failed);
-    _done &= (_preferences == StackRestoringStatus.success) ||
+    _done &=
+        (_preferences == StackRestoringStatus.success) ||
         (_preferences == StackRestoringStatus.failed);
-    _done &= (_trades == StackRestoringStatus.success) ||
+    _done &=
+        (_trades == StackRestoringStatus.success) ||
         (_trades == StackRestoringStatus.failed);
-    _done &= (_nodes == StackRestoringStatus.success) ||
+    _done &=
+        (_nodes == StackRestoringStatus.success) ||
         (_nodes == StackRestoringStatus.failed);
 
     for (final wallet in _walletStates.values) {
-      _done &= (wallet.restoringState == StackRestoringStatus.success) ||
+      _done &=
+          (wallet.restoringState == StackRestoringStatus.success) ||
           (wallet.restoringState == StackRestoringStatus.failed);
     }
 
@@ -117,9 +124,9 @@ class StackRestoringUIState extends ChangeNotifier {
   }
 
   Map<String, ChangeNotifierProvider<WalletRestoreState>>
-      _walletStateProviders = {};
+  _walletStateProviders = {};
   Map<String, ChangeNotifierProvider<WalletRestoreState>>
-      get walletStateProviders => _walletStateProviders;
+  get walletStateProviders => _walletStateProviders;
 
   WalletRestoreState getWalletRestoreState(String walletId) {
     return _walletStates[walletId]!;

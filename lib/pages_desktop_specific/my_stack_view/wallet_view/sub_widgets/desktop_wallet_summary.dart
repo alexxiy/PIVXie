@@ -69,7 +69,7 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
     );
 
     final _showAvailable =
-        ref.watch(walletBalanceToggleStateProvider.state).state ==
+        ref.watch(walletBalanceToggleStateProvider) ==
         WalletBalanceToggleState.available;
 
     final balance = ref.watch(pWalletBalance(walletId));

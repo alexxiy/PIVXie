@@ -10,10 +10,13 @@
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
+
 import '../../services/price.dart';
 
-final baseCurrenciesProvider =
-    ChangeNotifierProvider<_BaseCurrencies>((_) => _BaseCurrencies());
+final baseCurrenciesProvider = ChangeNotifierProvider<_BaseCurrencies>(
+  (_) => _BaseCurrencies(),
+);
 
 class _BaseCurrencies extends ChangeNotifier {
   Map<String, String> _map = {..._kCurrencyMap};

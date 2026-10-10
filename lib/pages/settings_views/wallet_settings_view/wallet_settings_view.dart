@@ -341,7 +341,9 @@ class _WalletSettingsViewBody extends StatelessWidget {
                             return TextButton(
                               onPressed: () {
                                 ref
-                                        .read(transactionFilterProvider.state)
+                                        .read(
+                                          transactionFilterProvider.notifier,
+                                        )
                                         .state =
                                     null;
 

@@ -646,7 +646,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.refresh(feeSheetSessionCacheProvider);
-      ref.read(pValidSendToAddress.state).state = false;
+      ref.read(pValidSendToAddress.notifier).state = false;
     });
 
     // _calculateFeesFuture = calculateFees(0);
@@ -692,10 +692,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       if (!_cryptoFocus.hasFocus && !_baseFocus.hasFocus) {
         if (ref.read(pSendAmount) == null) {
           if (ref.read(sendAmountProvider) != Amount.zero && mounted) {
-            ref.read(sendAmountProvider.state).state = Amount.zero;
+            ref.read(sendAmountProvider.notifier).state = Amount.zero;
           }
         } else {
-          ref.read(sendAmountProvider.state).state = ref.read(pSendAmount)!;
+          ref.read(sendAmountProvider.notifier).state = ref.read(pSendAmount)!;
         }
       }
     });
@@ -705,7 +705,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         if (ref.read(pSendAmount) == null) {
           ref.refresh(sendAmountProvider);
         } else {
-          ref.read(sendAmountProvider.state).state = ref.read(pSendAmount)!;
+          ref.read(sendAmountProvider.notifier).state = ref.read(pSendAmount)!;
         }
       }
     });
@@ -901,9 +901,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                   style: STextStyles.desktopTextExtraExtraSmall(context),
                 ),
                 CustomTextButton(
-                  text: ref.watch(desktopUseUTXOs.state).state.isEmpty
+                  text: ref.watch(desktopUseUTXOs).isEmpty
                       ? "Select coins"
-                      : "Selected coins (${ref.watch(desktopUseUTXOs.state).state.length})",
+                      : "Selected coins (${ref.watch(desktopUseUTXOs).length})",
                   onTap: _showDesktopCoinControl,
                 ),
               ],

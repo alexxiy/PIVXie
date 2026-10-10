@@ -9,10 +9,14 @@
  */
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
+
 import '../../pages_desktop_specific/desktop_menu.dart';
 
-final currentDesktopMenuItemProvider =
-    StateProvider<DesktopMenuItemId>((ref) => DesktopMenuItemId.myStack);
+final currentDesktopMenuItemProvider = StateProvider<DesktopMenuItemId>(
+  (ref) => DesktopMenuItemId.myStack,
+);
 
-final prevDesktopMenuItemProvider =
-    StateProvider<DesktopMenuItemId>((ref) => DesktopMenuItemId.myStack);
+final prevDesktopMenuItemProvider = StateProvider<DesktopMenuItemId>(
+  (ref) => DesktopMenuItemId.myStack,
+);

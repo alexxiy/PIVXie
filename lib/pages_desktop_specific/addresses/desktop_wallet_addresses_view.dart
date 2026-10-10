@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar_community/isar.dart';
 
@@ -82,19 +83,17 @@ class _DesktopWalletAddressesViewState
               const SizedBox(width: 32),
               AppBarIconButton(
                 size: 32,
-                color:
-                    Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldDefaultBG,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldDefaultBG,
                 shadows: const [],
                 icon: SvgPicture.asset(
                   Assets.svg.arrowLeft,
                   width: 18,
                   height: 18,
-                  color:
-                      Theme.of(
-                        context,
-                      ).extension<StackColors>()!.topNavIconPrimary,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .topNavIconPrimary,
                 ),
                 onPressed: Navigator.of(context).pop,
               ),
@@ -126,19 +125,15 @@ class _DesktopWalletAddressesViewState
                     child: Column(
                       children: [
                         const SizedBox(height: _headerHeight),
-                        if (ref.watch(desktopSelectedAddressId.state).state !=
-                            null)
+                        if (ref.watch(desktopSelectedAddressId) != null)
                           Expanded(
                             child: SingleChildScrollView(
                               child: AddressDetailsView(
                                 key: Key(
-                                  "currentDesktopAddressDetails_key_${ref.watch(desktopSelectedAddressId.state).state}",
+                                  "currentDesktopAddressDetails_key_${ref.watch(desktopSelectedAddressId)}",
                                 ),
                                 walletId: widget.walletId,
-                                addressId:
-                                    ref
-                                        .watch(desktopSelectedAddressId.state)
-                                        .state!,
+                                addressId: ref.watch(desktopSelectedAddressId)!,
                               ),
                             ),
                           ),

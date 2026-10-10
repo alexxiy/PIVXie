@@ -14,10 +14,7 @@ class NotificationFeedEntryCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final entry = this.entry;
     if (entry is HiveFeedEntry && entry.model.read == false) {
-      ref
-          .read(unreadNotificationsStateProvider.state)
-          .state
-          .add(entry.model.id);
+      ref.read(unreadNotificationsStateProvider).add(entry.model.id);
     }
 
     return switch (entry) {

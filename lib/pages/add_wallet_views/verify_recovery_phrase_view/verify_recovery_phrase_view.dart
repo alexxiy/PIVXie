@@ -14,6 +14,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../../notifications/show_flush_bar.dart';
@@ -134,15 +135,15 @@ class _VerifyRecoveryPhraseViewState
 
       final int next = Random().nextInt(_mnemonic.length);
       ref
-          .read(verifyMnemonicWordIndexStateProvider.state)
+          .read(verifyMnemonicWordIndexStateProvider.notifier)
           .update((state) => next);
 
       ref
-          .read(verifyMnemonicCorrectWordStateProvider.state)
+          .read(verifyMnemonicCorrectWordStateProvider.notifier)
           .update((state) => _mnemonic[next]);
 
       ref
-          .read(verifyMnemonicSelectedWordStateProvider.state)
+          .read(verifyMnemonicSelectedWordStateProvider.notifier)
           .update((state) => "");
     }
   }
@@ -199,9 +200,7 @@ class _VerifyRecoveryPhraseViewState
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
-    final correctIndex = ref
-        .watch(verifyMnemonicWordIndexStateProvider.state)
-        .state;
+    final correctIndex = ref.watch(verifyMnemonicWordIndexStateProvider);
 
     return WillPopScope(
       onWillPop: onWillPop,
@@ -302,16 +301,12 @@ class _VerifyRecoveryPhraseViewState
                     Expanded(
                       child: Consumer(
                         builder: (_, ref, __) {
-                          final selectedWord = ref
-                              .watch(
-                                verifyMnemonicSelectedWordStateProvider.state,
-                              )
-                              .state;
-                          final correctWord = ref
-                              .watch(
-                                verifyMnemonicCorrectWordStateProvider.state,
-                              )
-                              .state;
+                          final selectedWord = ref.watch(
+                            verifyMnemonicSelectedWordStateProvider,
+                          );
+                          final correctWord = ref.watch(
+                            verifyMnemonicCorrectWordStateProvider,
+                          );
 
                           return ConstrainedBox(
                             constraints: BoxConstraints(

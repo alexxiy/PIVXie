@@ -81,11 +81,11 @@ class _FiroBalanceSelectionSheetState
                 const SizedBox(height: 16),
                 GestureDetector(
                   onTap: () {
-                    final state = ref
-                        .read(publicPrivateBalanceStateProvider.state)
-                        .state;
+                    final state = ref.read(publicPrivateBalanceStateProvider);
                     if (state != BalanceType.private) {
-                      ref.read(publicPrivateBalanceStateProvider.state).state =
+                      ref
+                              .read(publicPrivateBalanceStateProvider.notifier)
+                              .state =
                           BalanceType.private;
                     }
                     Navigator.of(context).pop();
@@ -106,18 +106,17 @@ class _FiroBalanceSelectionSheetState
                                     .extension<StackColors>()!
                                     .radioButtonIconEnabled,
                                 value: BalanceType.private,
-                                groupValue: ref
-                                    .watch(
-                                      publicPrivateBalanceStateProvider.state,
-                                    )
-                                    .state,
+                                groupValue: ref.watch(
+                                  publicPrivateBalanceStateProvider,
+                                ),
                                 onChanged: (x) {
                                   ref
-                                      .read(
-                                        publicPrivateBalanceStateProvider.state,
-                                      )
-                                      .state = BalanceType
-                                      .private;
+                                          .read(
+                                            publicPrivateBalanceStateProvider
+                                                .notifier,
+                                          )
+                                          .state =
+                                      BalanceType.private;
 
                                   Navigator.of(context).pop();
                                 },
@@ -164,11 +163,11 @@ class _FiroBalanceSelectionSheetState
                 const SizedBox(height: 16),
                 GestureDetector(
                   onTap: () {
-                    final state = ref
-                        .read(publicPrivateBalanceStateProvider.state)
-                        .state;
+                    final state = ref.read(publicPrivateBalanceStateProvider);
                     if (state != BalanceType.public) {
-                      ref.read(publicPrivateBalanceStateProvider.state).state =
+                      ref
+                              .read(publicPrivateBalanceStateProvider.notifier)
+                              .state =
                           BalanceType.public;
                     }
                     Navigator.of(context).pop();
@@ -188,18 +187,17 @@ class _FiroBalanceSelectionSheetState
                                     .extension<StackColors>()!
                                     .radioButtonIconEnabled,
                                 value: BalanceType.public,
-                                groupValue: ref
-                                    .watch(
-                                      publicPrivateBalanceStateProvider.state,
-                                    )
-                                    .state,
+                                groupValue: ref.watch(
+                                  publicPrivateBalanceStateProvider,
+                                ),
                                 onChanged: (x) {
                                   ref
-                                      .read(
-                                        publicPrivateBalanceStateProvider.state,
-                                      )
-                                      .state = BalanceType
-                                      .public;
+                                          .read(
+                                            publicPrivateBalanceStateProvider
+                                                .notifier,
+                                          )
+                                          .state =
+                                      BalanceType.public;
                                   Navigator.of(context).pop();
                                 },
                               ),

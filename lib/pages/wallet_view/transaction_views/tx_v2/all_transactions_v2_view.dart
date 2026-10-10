@@ -487,8 +487,7 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
               ),
             ),
             if (isDesktop) const SizedBox(height: 8),
-            if (isDesktop &&
-                ref.watch(transactionFilterProvider.state).state != null)
+            if (isDesktop && ref.watch(transactionFilterProvider) != null)
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 8),
                 child: Row(children: [TransactionFilterOptionBar()]),
@@ -497,9 +496,7 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
             Expanded(
               child: Consumer(
                 builder: (_, ref, __) {
-                  final criteria = ref
-                      .watch(transactionFilterProvider.state)
-                      .state;
+                  final criteria = ref.watch(transactionFilterProvider);
 
                   return FutureBuilder(
                     future: ref
@@ -657,18 +654,18 @@ class _TransactionFilterOptionBarState
 
   void _remove(String label, TransactionFilter Function(TransactionFilter) f) {
     items.removeWhere((e) => e.label == label);
-    final current = ref.read(transactionFilterProvider.state).state;
+    final current = ref.read(transactionFilterProvider);
     if (items.isEmpty || current == null) {
-      ref.read(transactionFilterProvider.state).state = null;
+      ref.read(transactionFilterProvider.notifier).state = null;
     } else {
-      ref.read(transactionFilterProvider.state).state = f(current);
+      ref.read(transactionFilterProvider.notifier).state = f(current);
       setState(() {});
     }
   }
 
   @override
   void initState() {
-    _filter = ref.read(transactionFilterProvider.state).state;
+    _filter = ref.read(transactionFilterProvider);
 
     if (_filter != null) {
       final categories = _filter!.pivxCategories;
@@ -690,11 +687,10 @@ class _TransactionFilterOptionBarState
           onPressed: (s) {
             items.removeWhere((e) => e.label == label);
             if (items.isEmpty) {
-              ref.read(transactionFilterProvider.state).state = null;
+              ref.read(transactionFilterProvider.notifier).state = null;
             } else {
-              ref.read(transactionFilterProvider.state).state = ref
-                  .read(transactionFilterProvider.state)
-                  .state
+              ref.read(transactionFilterProvider.notifier).state = ref
+                  .read(transactionFilterProvider)
                   ?.copyWith(sent: false);
               setState(() {});
             }
@@ -709,11 +705,10 @@ class _TransactionFilterOptionBarState
           onPressed: (s) {
             items.removeWhere((e) => e.label == label);
             if (items.isEmpty) {
-              ref.read(transactionFilterProvider.state).state = null;
+              ref.read(transactionFilterProvider.notifier).state = null;
             } else {
-              ref.read(transactionFilterProvider.state).state = ref
-                  .read(transactionFilterProvider.state)
-                  .state
+              ref.read(transactionFilterProvider.notifier).state = ref
+                  .read(transactionFilterProvider)
                   ?.copyWith(received: false);
               setState(() {});
             }
@@ -757,11 +752,10 @@ class _TransactionFilterOptionBarState
           onPressed: (s) {
             items.removeWhere((e) => e.label == label);
             if (items.isEmpty) {
-              ref.read(transactionFilterProvider.state).state = null;
+              ref.read(transactionFilterProvider.notifier).state = null;
             } else {
-              ref.read(transactionFilterProvider.state).state = ref
-                  .read(transactionFilterProvider.state)
-                  .state
+              ref.read(transactionFilterProvider.notifier).state = ref
+                  .read(transactionFilterProvider)
                   ?.copyWith(keyword: "");
               setState(() {});
             }

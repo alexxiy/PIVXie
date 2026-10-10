@@ -108,9 +108,7 @@ class _DesktopSettingsViewState extends ConsumerState<DesktopSettingsView> {
           ),
           Expanded(
             child:
-                contentViews[ref
-                    .watch(selectedSettingsMenuItemStateProvider.state)
-                    .state],
+                contentViews[ref.watch(selectedSettingsMenuItemStateProvider)],
           ),
         ],
       ),

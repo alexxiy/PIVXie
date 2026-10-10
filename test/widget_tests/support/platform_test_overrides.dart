@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:paymint/pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import 'package:paymint/providers/global/secure_store_provider.dart';
@@ -160,29 +161,32 @@ Future<PlatformTestOverrides> createPlatformTestOverrides({
     secureStorage: secureStorage,
     connectionInvocations: connectionInvocations,
     overrides: [
-      secureStoreProvider.overrideWithValue(secureStorage),
-      testNodeConnectionProvider.overrideWithValue(({
-        required BuildContext context,
-        required NodeFormData nodeFormData,
-        required CryptoCurrency cryptoCurrency,
-        void Function(NodeFormData)? onSuccess,
-      }) async {
-        final invocation = NodeConnectionTestInvocation.fromFormData(
-          cryptoCurrency: cryptoCurrency,
-          nodeFormData: nodeFormData,
-        );
-        connectionInvocations.add(invocation);
+      secureStoreProvider.overrideWith((_) => secureStorage),
+      testNodeConnectionProvider.overrideWith(
+        (_) =>
+            ({
+              required BuildContext context,
+              required NodeFormData nodeFormData,
+              required CryptoCurrency cryptoCurrency,
+              void Function(NodeFormData)? onSuccess,
+            }) async {
+              final invocation = NodeConnectionTestInvocation.fromFormData(
+                cryptoCurrency: cryptoCurrency,
+                nodeFormData: nodeFormData,
+              );
+              connectionInvocations.add(invocation);
 
-        final result = onTestNodeConnection != null
-            ? await onTestNodeConnection(invocation)
-            : connectionResult;
+              final result = onTestNodeConnection != null
+                  ? await onTestNodeConnection(invocation)
+                  : connectionResult;
 
-        if (result) {
-          onSuccess?.call(nodeFormData);
-        }
+              if (result) {
+                onSuccess?.call(nodeFormData);
+              }
 
-        return result;
-      }),
+              return result;
+            },
+      ),
     ],
   );
 }

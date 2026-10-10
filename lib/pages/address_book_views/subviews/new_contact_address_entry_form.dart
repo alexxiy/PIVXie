@@ -212,9 +212,11 @@ class _NewContactAddressEntryFormState
                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
               ),
               isExpanded: true,
-              value: ref.watch(
-                addressEntryDataProvider(widget.id)
-                    .select((value) => value.coin),
+              valueListenable: ValueNotifier(
+                ref.watch(
+                  addressEntryDataProvider(widget.id)
+                      .select((value) => value.coin),
+                ),
               ),
               onChanged: (value) {
                 if (value is CryptoCurrency) {
@@ -231,7 +233,7 @@ class _NewContactAddressEntryFormState
               ),
               items: [
                 ...coins.map(
-                  (coin) => DropdownMenuItem<CryptoCurrency>(
+                  (coin) => DropdownItem<CryptoCurrency>(
                     value: coin,
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 4),

@@ -46,7 +46,7 @@ class _AlreadyRunningAppState extends ConsumerState<AlreadyRunningApp> {
           StackFileSystem.themesDir!.path;
       // The first instance already verified/installed the light theme, so
       // getTheme cannot return null here.
-      ref.read(themeProvider.state).state = ref
+      ref.read(themeProvider.notifier).state = ref
           .read(pThemeService)
           .getTheme(themeId: "light")!;
     });
@@ -54,7 +54,7 @@ class _AlreadyRunningAppState extends ConsumerState<AlreadyRunningApp> {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = ref.watch(colorProvider.state).state;
+    final colorScheme = ref.watch(colorProvider);
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: AppConfig.appName,
@@ -159,25 +159,22 @@ class AlreadyRunningView extends ConsumerWidget {
                         Text(
                           AppConfig.appName,
                           textAlign: TextAlign.center,
-                          style: STextStyles.pageTitleH1(
-                            context,
-                          ).copyWith(fontSize: 40),
+                          style: STextStyles.pageTitleH1(context)
+                              .copyWith(fontSize: 40),
                         ),
                         const Spacer(flex: 24),
                         Text(
                           AppConfig.shortDescriptionText,
                           textAlign: TextAlign.center,
-                          style: STextStyles.subtitle(
-                            context,
-                          ).copyWith(fontSize: 24),
+                          style: STextStyles.subtitle(context)
+                              .copyWith(fontSize: 24),
                         ),
                         const Spacer(flex: 42),
                         Text(
                           _errorMessage,
                           textAlign: TextAlign.center,
-                          style: STextStyles.label(
-                            context,
-                          ).copyWith(fontSize: 18),
+                          style: STextStyles.label(context)
+                              .copyWith(fontSize: 18),
                         ),
                         const Spacer(flex: 65),
                       ],
