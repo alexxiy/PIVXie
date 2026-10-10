@@ -2272,8 +2272,8 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
   @override
   Future<String> signMessage(
-    final String message, {
-    required final Address address,
+    String message, {
+    required Address address,
   }) async {
     if (isViewOnly) {
       throw Exception("Cannot sign a message in a view only wallet");
@@ -2295,9 +2295,9 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
 
   @override
   Future<bool> verifyMessage(
-    final String message, {
-    required final String address,
-    required final String signature,
+    String message, {
+    required String address,
+    required String signature,
   }) async {
     final signed = coinlib.MessageSignature.fromBase64(signature);
 
@@ -2491,11 +2491,11 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
                 canBatch
                     ? checkGapsBatched(
                         txCountBatchSize,
-                        root,
+                        root!,
                         type,
                         receiveChain,
                       )
-                    : checkGapsLinearly(root, type, receiveChain),
+                    : checkGapsLinearly(root!, type, receiveChain),
               );
             }
           }
@@ -2515,11 +2515,11 @@ mixin ElectrumXInterface<T extends ElectrumXCurrencyInterface>
                 canBatch
                     ? checkGapsBatched(
                         txCountBatchSize,
-                        root,
+                        root!,
                         type,
                         changeChain,
                       )
-                    : checkGapsLinearly(root, type, changeChain),
+                    : checkGapsLinearly(root!, type, changeChain),
               );
             }
           }

@@ -11,7 +11,7 @@ extension CLTransactionExt on Transaction {
 
   int vSize() => (weight() / 4).ceil();
 
-  int _byteLength(final bool allowWitness) {
+  int _byteLength(bool allowWitness) {
     final hasWitness = allowWitness && isWitness;
     return (hasWitness ? 10 : 8) +
         _encodingLength(inputs.length) +

@@ -56,7 +56,7 @@ abstract class AppConfig {
   }
 
   static CryptoCurrency? getCryptoCurrencyForTicker(
-    final String ticker, {
+    String ticker, {
     bool caseInsensitive = true,
   }) {
     final _ticker = caseInsensitive ? ticker.toLowerCase() : ticker;
@@ -90,7 +90,7 @@ abstract class AppConfig {
 
   /// Fuzzy logic. Use with caution!!
   @Deprecated("dangerous")
-  static CryptoCurrency getCryptoCurrencyByPrettyName(final String prettyName) {
+  static CryptoCurrency getCryptoCurrencyByPrettyName(String prettyName) {
     // trocador hack
     const hackSplitter = " (Mainnet";
     final name = prettyName.contains(hackSplitter)

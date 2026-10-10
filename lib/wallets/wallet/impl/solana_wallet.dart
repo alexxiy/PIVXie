@@ -713,11 +713,11 @@ class SolanaWallet extends Bip39Wallet<Solana> {
 
   // static helper function for building a sol rpc client
   static RpcClient createRpcClient(
-    final String host,
-    final int port,
-    final bool useSSL,
-    final Prefs prefs,
-    final TorService torService,
+    String host,
+    int port,
+    bool useSSL,
+    Prefs prefs,
+    TorService torService,
   ) {
     HttpClient? httpClient;
 

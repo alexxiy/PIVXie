@@ -14,8 +14,8 @@ description: PLACEHOLDER
 version: PLACEHOLDER_V+PLACEHOLDER_B
 
 environment:
-  sdk: ">=3.12.0 <4.0.0"
-  flutter: ^3.44.9
+  sdk: ">=3.13.0 <4.0.0"
+  flutter: ^3.47.7
 
 dependencies:
   flutter:
@@ -150,7 +150,7 @@ dependencies:
   bs58check: ^1.0.2
 
   # Eth Plugins
-  web3dart: 3.0.1
+  web3dart: 3.0.3
   ethereum_addresses:
     git:
       url: https://github.com/cypherstack/dart-ethereum_address
@@ -158,23 +158,23 @@ dependencies:
 
   # Storage plugins
   flutter_secure_storage: ^8.0.0
-  hive_ce: ^2.13.2
-  hive_ce_flutter: ^2.3.2
-  path_provider: ^2.1.5
+  hive_ce: ^2.20.2
+  hive_ce_flutter: ^2.4.0
+  path_provider: ^2.1.6
 
   # UI/Component plugins
-  flutter_native_splash: ^2.2.4
+  flutter_native_splash: ^2.4.8
   google_fonts: ^6.3.2
-  url_launcher: ^6.0.5
-  flutter_svg: ^2.0.7
-  decimal: ^3.2.4
+  url_launcher: ^6.3.3
+  flutter_svg: ^2.3.0
+  decimal: ^3.2.6
   event_bus: ^2.0.0
-  uuid: ^4.5.2
+  uuid: ^4.6.0
   crypto: ^3.0.2
-  image: ^4.3.0
-  wakelock_plus: ^1.2.8
-  intl: ^0.19.0
-  html: ^0.15.6
+  image: ^4.10.2
+  wakelock_plus: ^1.3.3
+  intl: ^0.20.3
+  html: ^0.15.7
   devicelocale: 0.9.1
   device_info_plus: ^10.1.2
   keyboard_dismisser: ^3.0.0
@@ -186,22 +186,22 @@ dependencies:
   emojis: ^0.9.9
   pointycastle: ^4.0.0
   package_info_plus: ^8.0.2
-  lottie: ^3.3.2
+  lottie: ^3.6.1
   file_picker: ^10.3.3
   connectivity_plus: ^4.0.1
-  isar_community: 3.3.0-dev.2
-  isar_community_flutter_libs: 3.3.0-dev.2
+  isar_community: 3.3.2
+  isar_community_flutter_libs: 3.3.2
   dropdown_button2: ^2.1.3
   string_validator: ^0.3.0
   equatable: ^2.0.5
-  async: ^2.10.0
+  async: ^2.13.1
   dart_bs58: ^1.0.1
   dart_bs58check:
     git:
       url: https://github.com/cypherstack/dart-bs58check
       ref: bed60e43e4e509ea45bb097e6caee9f8293ddf98
   hex: ^0.2.0
-  archive: ^4.0.2
+  archive: ^4.4.0
   desktop_drop: ^0.4.4
   nanodart:
     git:
@@ -246,7 +246,7 @@ dependencies:
     git: # TODO [prio=low]: Revert to official after https://github.com/flutter/packages/pull/7067.
       url: https://github.com/cypherstack/packages.git
       path: packages/camera/camera_windows
-  camera_platform_interface: ^2.8.0
+  camera_platform_interface: ^2.14.0
   camera_macos: ^0.0.8
   blockchain_utils: ^3.3.0
   on_chain: ^4.0.1
@@ -260,14 +260,14 @@ dependencies:
     git:
       url: https://github.com/cypherstack/namecoin_dart
       ref: 73a29731ba493595fed331d92c7a4b5604fd6e23
-  drift: ^2.28.2
+  drift: ^2.31.0
   drift_flutter: ^0.2.7
   path: ^1.9.1
   mweb_client: ^0.2.0
   fixnum: ^1.1.1
   saf_util: ^0.11.0
   saf_stream: ^0.12.3
-  unorm_dart: ^0.3.2
+  unorm_dart: ^0.3.3
   mobile_scanner: ^7.4.2
   mobile_app_privacy:
     git:
@@ -282,18 +282,18 @@ dev_dependencies:
     sdk: flutter
   integration_test:
       sdk: flutter
-  build_runner: ^2.5.4
+  build_runner: ^2.16.2
   flutter_launcher_icons: ^0.13.1
-  hive_ce_generator: ^1.9.3
-  dependency_validator: ^5.0.2
+  hive_ce_generator: ^1.11.3
+  dependency_validator: ^5.1.0
   hive_test: ^1.0.1
-  mockito: ^5.4.6
+  mockito: ^5.8.1
   mockingjay: ^0.2.0
   analyzer: ^8.2.2
   import_sorter: ^4.6.0
   flutter_lints: ^3.0.1
-  isar_community_generator: 3.3.0-dev.2
-  drift_dev: ^2.28.3
+  isar_community_generator: 3.3.2
+  drift_dev: ^2.31.0
 
 flutter_native_splash:
   image: assets/icon/splash.png
@@ -351,7 +351,7 @@ dependency_overrides:
       ref: 20bc8ca0bf0a30c6965977a26c41475a9e862020
 
   # required to override solana's lower version
-  decimal: ^3.2.4
+  decimal: ^3.2.6
 
   # pin analyzer below 8.4.0 to avoid source_gen 3.1.0 incompatibility (getInvocation() removed in 8.4.0+)
   analyzer: ">=8.2.0 <8.4.0"
