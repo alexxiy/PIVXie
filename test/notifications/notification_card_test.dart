@@ -6,44 +6,39 @@ import 'package:flutter_svg/svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:stackwallet/models/isar/stack_theme.dart';
-import 'package:stackwallet/models/notification_model.dart';
-import 'package:stackwallet/notifications/notification_card.dart';
-import 'package:stackwallet/themes/coin_icon_provider.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/themes/theme_service.dart';
-import 'package:stackwallet/utilities/assets.dart';
+import 'package:paymint/models/isar/stack_theme.dart';
+import 'package:paymint/models/notification_model.dart';
+import 'package:paymint/notifications/notification_card.dart';
+import 'package:paymint/themes/coin_icon_provider.dart';
+import 'package:paymint/themes/stack_colors.dart';
+import 'package:paymint/themes/theme_service.dart';
+import 'package:paymint/utilities/assets.dart';
 
 import '../sample_data/theme_json.dart';
 import 'notification_card_test.mocks.dart';
 
-@GenerateMocks([
-  ThemeService,
-])
+@GenerateMocks([ThemeService])
 void main() {
   testWidgets("test notification card", (widgetTester) async {
     final key = UniqueKey();
     final mockThemeService = MockThemeService();
-    final theme = StackTheme.fromJson(
-      json: lightThemeJsonMap,
-    );
+    final theme = StackTheme.fromJson(json: lightThemeJsonMap);
 
-    when(mockThemeService.getTheme(themeId: "light")).thenAnswer(
-      (_) => theme,
-    );
+    when(mockThemeService.getTheme(themeId: "light")).thenAnswer((_) => theme);
 
     final notificationCard = NotificationCard(
       key: key,
       notification: NotificationModel(
-          id: 1,
-          title: "notification title",
-          description: "notification description",
-          iconAssetName: Assets.svg.plus,
-          date: DateTime.parse("1662544771"),
-          walletId: "wallet id",
-          read: true,
-          shouldWatchForUpdates: true,
-          coinName: "Bitcoin"),
+        id: 1,
+        title: "notification title",
+        description: "notification description",
+        iconAssetName: Assets.svg.plus,
+        date: DateTime.parse("1662544771"),
+        walletId: "wallet id",
+        read: true,
+        shouldWatchForUpdates: true,
+        coinName: "Bitcoin",
+      ),
     );
 
     await widgetTester.pumpWidget(
@@ -51,21 +46,17 @@ void main() {
         overrides: [
           pThemeService.overrideWithValue(mockThemeService),
           coinIconProvider.overrideWithProvider(
-            (argument) => Provider<String>((_) =>
-                "${Directory.current.path}/test/sample_data/light/assets/dummy.svg"),
+            (argument) => Provider<String>(
+              (_) =>
+                  "${Directory.current.path}/test/sample_data/light/assets/dummy.svg",
+            ),
           ),
         ],
         child: MaterialApp(
           theme: ThemeData(
-            extensions: [
-              StackColors.fromStackColorTheme(
-                theme,
-              ),
-            ],
+            extensions: [StackColors.fromStackColorTheme(theme)],
           ),
-          home: Material(
-            child: notificationCard,
-          ),
+          home: Material(child: notificationCard),
         ),
       ),
     );

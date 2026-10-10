@@ -14,10 +14,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../models/paymint/fee_object_model.dart';
 import '../../../providers/providers.dart';
 import '../../../providers/ui/fee_rate_type_state_provider.dart';
-import '../../../providers/ui/preview_tx_button_state_provider.dart';
-import '../../../providers/wallet/public_private_balance_state_provider.dart';
 import '../../../themes/stack_colors.dart';
-import '../../../utilities/address_utils.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/amount/amount_formatter.dart';
 import '../../../utilities/constants.dart';
@@ -25,13 +22,7 @@ import '../../../utilities/enums/fee_rate_type_enum.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
-import '../../../wallets/crypto_currency/intermediate/cryptonote_currency.dart';
-import '../../../wallets/isar/providers/eth/current_token_wallet_provider.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
-import '../../../wallets/wallet/impl/firo_wallet.dart';
-import '../../../wallets/wallet/intermediate/cryptonote_wallet.dart';
-import '../../../wallets/wallet/wallet.dart';
-import '../../../wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
 import '../../../widgets/animated_text.dart';
 
 final feeSheetSessionCacheProvider =
@@ -53,13 +44,11 @@ class TransactionFeeSelectionSheet extends ConsumerStatefulWidget {
     required this.walletId,
     required this.amount,
     required this.updateChosen,
-    this.isToken = false,
   });
 
   final String walletId;
   final Amount amount;
   final Function updateChosen;
-  final bool isToken;
 
   @override
   ConsumerState<TransactionFeeSelectionSheet> createState() =>
@@ -80,183 +69,28 @@ class _TransactionFeeSelectionSheetState
     "Calculating...",
   ];
 
-  Amount _addFiroOpReturnFee({
-    required Amount fee,
-    required BigInt feeRate,
-    required FiroWallet wallet,
-    required CryptoCurrency coin,
-  }) {
-    final opReturnData = ref.read(pOpReturnData);
-    if (opReturnData == null ||
-        opReturnData.isEmpty ||
-        ref.read(publicPrivateBalanceStateProvider) != BalanceType.public) {
-      return fee;
-    }
-
-    final extraOutputVSize = AddressUtils.opReturnOutputVSizeFromHex(
-      opReturnData,
-    );
-    final extraFee = wallet.estimateTxFee(
-      vSize: extraOutputVSize,
-      feeRatePerKB: feeRate,
-    );
-
-    return fee +
-        Amount(
-          rawValue: BigInt.from(extraFee),
-          fractionDigits: coin.fractionDigits,
-        );
-  }
-
   Future<Amount> feeFor({
     required Amount amount,
     required FeeRateType feeRateType,
     required BigInt feeRate,
     required CryptoCurrency coin,
   }) async {
-    if (!widget.isToken &&
-        coin is Firo &&
-        ref.read(publicPrivateBalanceStateProvider) == BalanceType.public &&
-        (ref.read(pOpReturnData)?.isNotEmpty ?? false)) {
-      final wallet = ref.read(pWallets).getWallet(walletId) as FiroWallet;
-      final fee = await wallet.estimateFeeFor(amount, feeRate);
-      return _addFiroOpReturnFee(
-        fee: fee,
-        feeRate: feeRate,
-        wallet: wallet,
-        coin: coin,
-      );
-    }
-
+    final cache = ref.read(feeSheetSessionCacheProvider);
+    final Map<Amount, Amount> rateCache;
     switch (feeRateType) {
       case FeeRateType.fast:
-        if (ref.read(feeSheetSessionCacheProvider).fast[amount] == null) {
-          if (widget.isToken == false) {
-            final wallet = ref.read(pWallets).getWallet(walletId);
-
-            if (coin is CryptonoteCurrency) {
-              final fee = await wallet.estimateFeeFor(
-                amount,
-                BigInt.from((wallet as CryptonoteWallet).getTxPriorityHigh()),
-              );
-              ref.read(feeSheetSessionCacheProvider).fast[amount] = fee;
-            } else if (coin is Firo) {
-              final Amount fee;
-              switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
-                case BalanceType.private:
-                  fee = await (wallet as FiroWallet).estimateFeeForSpark(
-                    amount,
-                  );
-                case BalanceType.public:
-                  fee = await (wallet as FiroWallet).estimateFeeFor(
-                    amount,
-                    feeRate,
-                  );
-              }
-
-              ref.read(feeSheetSessionCacheProvider).fast[amount] = fee;
-            } else {
-              ref.read(feeSheetSessionCacheProvider).fast[amount] = await wallet
-                  .estimateFeeFor(amount, feeRate);
-            }
-          } else {
-            final Wallet wallet;
-            if (coin is Ethereum) {
-              wallet = ref.read(pCurrentTokenWallet)!;
-            } else {
-              wallet = ref.read(pWallets).getWallet(walletId);
-            }
-            final fee = await wallet.estimateFeeFor(amount, feeRate);
-            ref.read(feeSheetSessionCacheProvider).fast[amount] = fee;
-          }
-        }
-        return ref.read(feeSheetSessionCacheProvider).fast[amount]!;
-
+        rateCache = cache.fast;
       case FeeRateType.average:
-        if (ref.read(feeSheetSessionCacheProvider).average[amount] == null) {
-          if (widget.isToken == false) {
-            final wallet = ref.read(pWallets).getWallet(walletId);
-            if (coin is CryptonoteCurrency) {
-              final fee = await wallet.estimateFeeFor(
-                amount,
-                BigInt.from((wallet as CryptonoteWallet).getTxPriorityMedium()),
-              );
-              ref.read(feeSheetSessionCacheProvider).average[amount] = fee;
-            } else if (coin is Firo) {
-              final Amount fee;
-              switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
-                case BalanceType.private:
-                  fee = await (wallet as FiroWallet).estimateFeeForSpark(
-                    amount,
-                  );
-                case BalanceType.public:
-                  fee = await (wallet as FiroWallet).estimateFeeFor(
-                    amount,
-                    feeRate,
-                  );
-              }
-              ref.read(feeSheetSessionCacheProvider).average[amount] = fee;
-            } else {
-              ref.read(feeSheetSessionCacheProvider).average[amount] =
-                  await wallet.estimateFeeFor(amount, feeRate);
-            }
-          } else {
-            final Wallet wallet;
-            if (coin is Ethereum) {
-              wallet = ref.read(pCurrentTokenWallet)!;
-            } else {
-              wallet = ref.read(pWallets).getWallet(walletId);
-            }
-            final fee = await wallet.estimateFeeFor(amount, feeRate);
-            ref.read(feeSheetSessionCacheProvider).average[amount] = fee;
-          }
-        }
-        return ref.read(feeSheetSessionCacheProvider).average[amount]!;
-
+        rateCache = cache.average;
       case FeeRateType.slow:
-        if (ref.read(feeSheetSessionCacheProvider).slow[amount] == null) {
-          if (widget.isToken == false) {
-            final wallet = ref.read(pWallets).getWallet(walletId);
-            if (coin is CryptonoteCurrency) {
-              final fee = await wallet.estimateFeeFor(
-                amount,
-                BigInt.from((wallet as CryptonoteWallet).getTxPriorityNormal()),
-              );
-              ref.read(feeSheetSessionCacheProvider).slow[amount] = fee;
-            } else if (coin is Firo) {
-              final Amount fee;
-              switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
-                case BalanceType.private:
-                  fee = await (wallet as FiroWallet).estimateFeeForSpark(
-                    amount,
-                  );
-                case BalanceType.public:
-                  fee = await (wallet as FiroWallet).estimateFeeFor(
-                    amount,
-                    feeRate,
-                  );
-              }
-              ref.read(feeSheetSessionCacheProvider).slow[amount] = fee;
-            } else {
-              ref.read(feeSheetSessionCacheProvider).slow[amount] = await wallet
-                  .estimateFeeFor(amount, feeRate);
-            }
-          } else {
-            final Wallet wallet;
-            if (coin is Ethereum) {
-              wallet = ref.read(pCurrentTokenWallet)!;
-            } else {
-              wallet = ref.read(pWallets).getWallet(walletId);
-            }
-            final fee = await wallet.estimateFeeFor(amount, feeRate);
-            ref.read(feeSheetSessionCacheProvider).slow[amount] = fee;
-          }
-        }
-        return ref.read(feeSheetSessionCacheProvider).slow[amount]!;
-
+        rateCache = cache.slow;
       default:
         return Amount.zero;
     }
+    return rateCache[amount] ??= await ref
+        .read(pWallets)
+        .getWallet(walletId)
+        .estimateFeeFor(amount, feeRate);
   }
 
   String estimatedTimeToBeIncludedInNextBlock(
@@ -315,9 +149,9 @@ class _TransactionFeeSelectionSheetState
             Center(
               child: Container(
                 decoration: BoxDecoration(
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.textFieldDefaultBG,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textFieldDefaultBG,
                   borderRadius: BorderRadius.circular(
                     Constants.size.circularBorderRadius,
                   ),
@@ -328,11 +162,7 @@ class _TransactionFeeSelectionSheetState
             ),
             const SizedBox(height: 36),
             FutureBuilder(
-              future: widget.isToken
-                  ? (coin is Ethereum
-                        ? ref.read(pCurrentTokenWallet)!.fees
-                        : wallet.fees)
-                  : wallet.fees,
+              future: wallet.fees,
               builder: (context, AsyncSnapshot<FeeObject> snapshot) {
                 if (snapshot.connectionState == ConnectionState.done &&
                     snapshot.hasData) {
@@ -462,13 +292,13 @@ class _TransactionFeeSelectionSheetState
                                     ],
                                   ),
                                   const SizedBox(height: 2),
-                                  if (feeObject == null && coin is! Ethereum)
+                                  if (feeObject == null)
                                     AnimatedText(
                                       stringsToLoopThrough:
                                           stringsToLoopThrough,
                                       style: STextStyles.itemSubtitle(context),
                                     ),
-                                  if (feeObject != null && coin is! Ethereum)
+                                  if (feeObject != null)
                                     Text(
                                       estimatedTimeToBeIncludedInNextBlock(
                                         coin.targetBlockTimeSeconds,
@@ -597,13 +427,13 @@ class _TransactionFeeSelectionSheetState
                                     ],
                                   ),
                                   const SizedBox(height: 2),
-                                  if (feeObject == null && coin is! Ethereum)
+                                  if (feeObject == null)
                                     AnimatedText(
                                       stringsToLoopThrough:
                                           stringsToLoopThrough,
                                       style: STextStyles.itemSubtitle(context),
                                     ),
-                                  if (feeObject != null && coin is! Ethereum)
+                                  if (feeObject != null)
                                     Text(
                                       estimatedTimeToBeIncludedInNextBlock(
                                         coin.targetBlockTimeSeconds,
@@ -729,13 +559,13 @@ class _TransactionFeeSelectionSheetState
                                     ],
                                   ),
                                   const SizedBox(height: 2),
-                                  if (feeObject == null && coin is! Ethereum)
+                                  if (feeObject == null)
                                     AnimatedText(
                                       stringsToLoopThrough:
                                           stringsToLoopThrough,
                                       style: STextStyles.itemSubtitle(context),
                                     ),
-                                  if (feeObject != null && coin is! Ethereum)
+                                  if (feeObject != null)
                                     Text(
                                       estimatedTimeToBeIncludedInNextBlock(
                                         coin.targetBlockTimeSeconds,
@@ -752,83 +582,6 @@ class _TransactionFeeSelectionSheetState
                       ),
                     ),
                     const SizedBox(height: 24),
-                    if (wallet is ElectrumXInterface || coin is Ethereum)
-                      GestureDetector(
-                        onTap: () {
-                          final state = ref
-                              .read(feeRateTypeMobileStateProvider.state)
-                              .state;
-                          if (state != FeeRateType.custom) {
-                            ref
-                                    .read(feeRateTypeMobileStateProvider.state)
-                                    .state =
-                                FeeRateType.custom;
-                          }
-                          widget.updateChosen("custom");
-
-                          Navigator.of(context).pop();
-                        },
-                        child: Container(
-                          color: Colors.transparent,
-                          child: Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Column(
-                                children: [
-                                  SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: Radio(
-                                      activeColor: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .radioButtonIconEnabled,
-                                      value: FeeRateType.custom,
-                                      groupValue: ref
-                                          .watch(
-                                            feeRateTypeMobileStateProvider
-                                                .state,
-                                          )
-                                          .state,
-                                      onChanged: (x) {
-                                        ref
-                                                .read(
-                                                  feeRateTypeMobileStateProvider
-                                                      .state,
-                                                )
-                                                .state =
-                                            FeeRateType.custom;
-                                        Navigator.of(context).pop();
-                                      },
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(width: 12),
-                              Flexible(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      children: [
-                                        Text(
-                                          FeeRateType.custom.prettyName,
-                                          style: STextStyles.titleBold12(
-                                            context,
-                                          ),
-                                          textAlign: TextAlign.left,
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 2),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    if (wallet is ElectrumXInterface || coin is Ethereum)
-                      const SizedBox(height: 24),
                   ],
                 );
               },

@@ -15,7 +15,6 @@ import 'package:flutter_svg/svg.dart';
 import '../../app_config.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
-import '../../utilities/constants.dart';
 import 'settings_menu_item.dart';
 
 final selectedSettingsMenuItemStateProvider = StateProvider<int>((_) => 0);
@@ -42,8 +41,6 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
       "Syncing preferences",
       if (AppConfig.hasFeature(AppFeature.themeSelection)) "Appearance",
       "Advanced",
-      if (Constants.enableExchange && AppConfig.hasFeature(.shopinBit))
-        "ShopinBit",
     ];
 
     return Column(
@@ -72,9 +69,9 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
                                     )
                                     .state ==
                                 i
-                            ? Theme.of(
-                                context,
-                              ).extension<StackColors>()!.accentColorBlue
+                            ? Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .accentColorBlue
                             : Colors.transparent,
                       ),
                       label: labels[i],

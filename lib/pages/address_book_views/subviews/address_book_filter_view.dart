@@ -42,7 +42,6 @@ class _AddressBookFilterViewState extends ConsumerState<AddressBookFilterView> {
   @override
   void initState() {
     final coins = [...AppConfig.coins];
-    coins.removeWhere((e) => e is Firo && e.network.isTestNet);
 
     final showTestNet = ref.read(prefsChangeNotifierProvider).showTestNetCoins;
 
@@ -64,11 +63,13 @@ class _AddressBookFilterViewState extends ConsumerState<AddressBookFilterView> {
       builder: (child) {
         return Background(
           child: Scaffold(
-            backgroundColor:
-                Theme.of(context).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(context)
+                .extension<StackColors>()!
+                .background,
             appBar: AppBar(
-              backgroundColor:
-                  Theme.of(context).extension<StackColors>()!.background,
+              backgroundColor: Theme.of(context)
+                  .extension<StackColors>()!
+                  .background,
               leading: AppBarBackButton(
                 onPressed: () async {
                   Navigator.of(context).pop();

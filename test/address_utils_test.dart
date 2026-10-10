@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stackwallet/utilities/address_utils.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+import 'package:paymint/utilities/address_utils.dart';
+import 'package:paymint/wallets/crypto_currency/crypto_currency.dart';
 
 void main() {
   const String firoAddress = "a6ESWKz7szru5syLtYAPRhHLdKvMq3Yt1j";
@@ -21,10 +21,10 @@ void main() {
   });
 
   test("parse a valid uri string B", () {
-    const uri = "firo:$firoAddress?amount=50&message=eggs+are+good";
+    const uri = "pivx:$firoAddress?amount=50&message=eggs+are+good";
     final result = AddressUtils.parsePaymentUri(uri);
     expect(result, isNotNull);
-    expect(result!.scheme, "firo");
+    expect(result!.scheme, "pivx");
     expect(result.address, firoAddress);
     expect(result.amount, "50");
     expect(result.message, "eggs are good");
@@ -103,33 +103,33 @@ void main() {
   test("build a uri string with empty params", () {
     expect(
       AddressUtils.buildUriString(
-        Firo(CryptoCurrencyNetwork.main).uriScheme,
+        Pivx(CryptoCurrencyNetwork.main).uriScheme,
         firoAddress,
         {},
       ),
-      "firo:$firoAddress",
+      "pivx:$firoAddress",
     );
   });
 
   test("build a uri string with one param", () {
     expect(
       AddressUtils.buildUriString(
-        Firo(CryptoCurrencyNetwork.main).uriScheme,
+        Pivx(CryptoCurrencyNetwork.main).uriScheme,
         firoAddress,
         {"amount": "10.0123"},
       ),
-      "firo:$firoAddress?amount=10.0123",
+      "pivx:$firoAddress?amount=10.0123",
     );
   });
 
   test("build a uri string with some params", () {
     expect(
       AddressUtils.buildUriString(
-        Firo(CryptoCurrencyNetwork.main).uriScheme,
+        Pivx(CryptoCurrencyNetwork.main).uriScheme,
         firoAddress,
         {"amount": "10.0123", "message": "Some kind of message!"},
       ),
-      "firo:$firoAddress?amount=10.0123&message=Some+kind+of+message%21",
+      "pivx:$firoAddress?amount=10.0123&message=Some+kind+of+message%21",
     );
   });
 }

@@ -9,7 +9,6 @@
  */
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../../utilities/flutter_secure_storage_interface.dart';
 import '../../utilities/util.dart';

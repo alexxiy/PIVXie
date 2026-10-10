@@ -12,10 +12,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app_config.dart';
-import '../../pages/shopinbit/shopinbit_settings_view.dart';
 import '../../route_generator.dart';
 import '../../themes/stack_colors.dart';
-import '../../utilities/constants.dart';
 import '../../utilities/text_styles.dart';
 import '../../widgets/desktop/desktop_app_bar.dart';
 import '../../widgets/desktop/desktop_scaffold.dart';
@@ -90,12 +88,6 @@ class _DesktopSettingsViewState extends ConsumerState<DesktopSettingsView> {
         onGenerateRoute: RouteGenerator.generateRoute,
         initialRoute: AdvancedSettings.routeName,
       ), //advanced
-      if (Constants.enableExchange && AppConfig.hasFeature(.shopinBit))
-        const Navigator(
-          key: Key("settingsShopInBitDesktopKey"),
-          onGenerateRoute: RouteGenerator.generateRoute,
-          initialRoute: ShopInBitSettingsView.routeName,
-        ), //shopinbit
     ];
     return DesktopScaffold(
       background: Theme.of(context).extension<StackColors>()!.background,

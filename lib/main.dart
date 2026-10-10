@@ -14,12 +14,10 @@ import 'dart:math';
 import 'dart:ui';
 
 import 'package:coinlib_flutter/coinlib_flutter.dart';
-import 'package:compat/compat.dart' as lib_monero_compat;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:keyboard_dismisser/keyboard_dismisser.dart';
 import 'package:logger/logger.dart';
@@ -31,19 +29,11 @@ import 'app_config.dart';
 import 'db/db_version_migration.dart';
 import 'db/hive/db.dart';
 import 'db/isar/main_db.dart';
-import 'db/special_migrations.dart';
-import 'db/sqlite/firo_cache.dart';
 import 'notifications/open_transaction.dart';
-import 'models/epicbox_server_model.dart';
-import 'models/exchange/change_now/exchange_transaction.dart';
-import 'models/exchange/change_now/exchange_transaction_status.dart';
-import 'models/exchange/response_objects/trade.dart';
 import 'models/models.dart';
 import 'models/node_model.dart';
 import 'models/notification_model.dart';
-import 'models/trade_wallet_lookup.dart';
 import 'pages/already_running_view.dart';
-import 'pages/campfire_migrate_view.dart';
 import 'pages/home_view/home_view.dart';
 import 'pages/intro_view.dart';
 import 'pages/loading_view.dart';
@@ -55,17 +45,13 @@ import 'providers/desktop/storage_crypto_handler_provider.dart';
 import 'providers/global/auto_swb_service_provider.dart';
 import 'providers/global/base_currencies_provider.dart';
 // import 'package:stackwallet/providers/global/has_authenticated_start_state_provider.dart';
-import 'providers/global/trades_service_provider.dart';
 import 'providers/providers.dart';
 import 'route_generator.dart';
-import 'services/exchange/exchange_data_loading_service.dart';
 import 'services/locale_service.dart';
-import 'services/mwebd_service.dart';
 import 'services/node_service.dart';
 import 'services/notifications_api.dart';
 import 'services/notifications_service.dart';
 import 'services/tor_service.dart';
-import 'services/trade_service.dart';
 import 'themes/theme_providers.dart';
 import 'themes/theme_service.dart';
 import 'utilities/constants.dart';
@@ -76,13 +62,8 @@ import 'utilities/ui_stall_watch.dart';
 import 'utilities/prefs.dart';
 import 'utilities/stack_file_system.dart';
 import 'utilities/util.dart';
-import 'wallets/crypto_currency/crypto_currency.dart';
 import 'wallets/isar/providers/all_wallets_info_provider.dart';
-import 'wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import 'widgets/crypto_notifications.dart';
-import 'wl_gen/interfaces/cs_monero_interface.dart';
-import 'wl_gen/interfaces/cs_wownero_interface.dart';
-import 'wl_gen/interfaces/lib_xelis_interface.dart';
 
 final openedFromSWBFileStringStateProvider = StateProvider<String?>(
   (ref) => null,
@@ -92,10 +73,6 @@ final openedFromSWBFileStringStateProvider = StateProvider<String?>(
 // runs the MyApp widget and checks for new users, caching the value in the
 // miscellaneous box for later use
 void main(List<String> args) async {
-  // talker.info('initializing Rust lib ...');
-  if (AppConfig.coins.whereType<Xelis>().isNotEmpty) {
-    await libXelis.initRustLib();
-  }
   WidgetsFlutterBinding.ensureInitialized();
 
   if (Util.isDesktop && args.length == 2 && args.first == "-d") {
@@ -145,41 +122,11 @@ void main(List<String> args) async {
   DB.instance.hive.registerAdapter(UtxoObjectAdapter());
   DB.instance.hive.registerAdapter(StatusAdapter());
 
-  // Registering Lelantus Model Adapters
-  DB.instance.hive.registerAdapter(LelantusCoinAdapter());
-
   // notification model adapter
   DB.instance.hive.registerAdapter(NotificationModelAdapter());
 
-  // change now trade adapters
-  DB.instance.hive.registerAdapter(ExchangeTransactionAdapter());
-  DB.instance.hive.registerAdapter(ExchangeTransactionStatusAdapter());
-
-  DB.instance.hive.registerAdapter(TradeAdapter());
-
-  // reference lookup data adapter
-  DB.instance.hive.registerAdapter(TradeWalletLookupAdapter());
-
   // node model adapter
   DB.instance.hive.registerAdapter(NodeModelAdapter());
-
-  // epicbox server model adapter
-  DB.instance.hive.registerAdapter(EpicBoxServerModelAdapter());
-
-  if (!DB.instance.hive.isAdapterRegistered(
-    lib_monero_compat.WalletInfoAdapter().typeId,
-  )) {
-    DB.instance.hive.registerAdapter(lib_monero_compat.WalletInfoAdapter());
-  }
-
-  DB.instance.hive.registerAdapter(lib_monero_compat.WalletTypeAdapter());
-
-  if (AppConfig.coins.whereType<Monero>().isNotEmpty) {
-    csMonero.setUseCsMoneroLoggerInternal(kDebugMode);
-  }
-  if (AppConfig.coins.whereType<Wownero>().isNotEmpty) {
-    csWownero.setUseCsWowneroLoggerInternal(kDebugMode);
-  }
 
   DB.instance.hive.init(
     (await StackFileSystem.applicationHiveDirectory()).path,
@@ -245,41 +192,6 @@ void main(List<String> args) async {
   );
   UiStallWatch.start();
 
-  if (AppConfig.coins.whereType<Xelis>().isNotEmpty) {
-    await libXelis.setupRustLogger();
-    libXelis.startListeningToRustLogs();
-  }
-
-  if (AppConfig.coins.whereType<Firo>().isNotEmpty) {
-    // setup lib spark logging
-    initSparkLogging(Prefs.instance.logLevel);
-  }
-
-  if (AppConfig.appName == "Campfire" &&
-      !Util.isDesktop &&
-      !CampfireMigration.didRun) {
-    await CampfireMigration.init();
-  }
-
-  if (kDebugMode && !Platform.isIOS) {
-    unawaited(
-      MwebdService.instance
-          .logsStream(CryptoCurrencyNetwork.main)
-          .then(
-            (stream) =>
-                stream.listen((line) => debugPrint("[MWEBD: MAINNET]: $line")),
-          ),
-    );
-    unawaited(
-      MwebdService.instance
-          .logsStream(CryptoCurrencyNetwork.test)
-          .then(
-            (stream) =>
-                stream.listen((line) => debugPrint("[MWEBD: TESTNET]: $line")),
-          ),
-    );
-  }
-
   if (AppConfig.hasFeature(AppFeature.tor)) {
     // TODO:
     // This should be moved to happen during the loading animation instead of
@@ -294,16 +206,14 @@ void main(List<String> args) async {
     }
   }
   await StackFileSystem.initThemesDir();
-  await FiroCacheCoordinator.init();
 
   // Desktop migrate handled elsewhere (currently desktop_login_view.dart)
   if (!Util.isDesktop) {
     final int dbVersion =
         DB.instance.get<dynamic>(
-              boxName: DB.boxNameDBInfo,
-              key: "hive_data_version",
-            )
-            as int? ??
+          boxName: DB.boxNameDBInfo,
+          key: "hive_data_version",
+        ) as int? ??
         0;
     if (dbVersion < Constants.currentDataVersion) {
       try {
@@ -398,7 +308,6 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
   // late final Prefs _prefs;
   late final NotificationsService _notificationsService;
   late final NodeService _nodeService;
-  late final TradesService _tradesService;
 
   late final Completer<void> loadingCompleter;
 
@@ -417,8 +326,6 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
 
     final familiarity = ref.read(prefsChangeNotifierProvider).familiarity + 1;
     ref.read(prefsChangeNotifierProvider).familiarity = familiarity;
-
-    Constants.exchangeForExperiencedUsers(familiarity);
 
     if (Util.isDesktop) {
       _desktopHasPassword = await ref
@@ -443,7 +350,6 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
 
       _notificationsService = ref.read(notificationsProvider);
       _nodeService = ref.read(nodeServiceChangeNotifierProvider);
-      _tradesService = ref.read(tradesServiceProvider);
 
       NotificationApi.prefs = ref.read(prefsChangeNotifierProvider);
       NotificationApi.notificationsService = _notificationsService;
@@ -457,10 +363,8 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       unawaited(ref.read(baseCurrenciesProvider).update());
 
       await _nodeService.updateDefaults();
-      await _nodeService.updateDefaultEpicBoxes();
       await _notificationsService.init(
         nodeService: _nodeService,
-        tradesService: _tradesService,
         prefs: ref.read(prefsChangeNotifierProvider),
       );
       ref.read(priceAnd24hChangeNotifierProvider).start(true);
@@ -479,25 +383,6 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       loadingCompleter.complete();
       // TODO: this should probably run unawaited. Keep commented out for now as proper community nodes ui hasn't been implemented yet
       //  unawaited(_nodeService.updateCommunityNodes());
-
-      if (AppConfig.hasFeature(AppFeature.swap) &&
-          ref.read(prefsChangeNotifierProvider).enableExchange) {
-        await ExchangeDataLoadingService.instance.initDB();
-        // run without awaiting
-        if (ref.read(prefsChangeNotifierProvider).externalCalls &&
-            await ref.read(prefsChangeNotifierProvider).isExternalCallsSet()) {
-          if (Constants.enableExchange) {
-            await ExchangeDataLoadingService.instance.setCurrenciesIfEmpty(
-              ref.read(efCurrencyPairProvider),
-              ref.read(efRateTypeProvider),
-            );
-            unawaited(ExchangeDataLoadingService.instance.loadAll());
-          }
-          // if (Constants.enableBuy) {
-          //   unawaited(BuyDataLoadingService().loadAll(ref));
-          // }
-        }
-      }
 
       if (ref.read(prefsChangeNotifierProvider).isAutoBackupEnabled) {
         switch (ref.read(prefsChangeNotifierProvider).backupFrequencyType) {
@@ -738,16 +623,16 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
 
   Future<void> goToRestoreSWB(String encrypted) async {
     if (!ref.read(prefsChangeNotifierProvider).hasPin) {
-      await Navigator.of(
-        ref.read(pNavKey).currentContext!,
-      ).pushNamed(CreatePinView.routeName, arguments: true).then((value) {
-        if (value is! bool || value == false) {
-          Navigator.of(ref.read(pNavKey).currentContext!).pushNamed(
-            RestoreFromEncryptedStringView.routeName,
-            arguments: encrypted,
-          );
-        }
-      });
+      await Navigator.of(ref.read(pNavKey).currentContext!)
+          .pushNamed(CreatePinView.routeName, arguments: true)
+          .then((value) {
+            if (value is! bool || value == false) {
+              Navigator.of(ref.read(pNavKey).currentContext!).pushNamed(
+                RestoreFromEncryptedStringView.routeName,
+                arguments: encrypted,
+              );
+            }
+          });
     } else {
       unawaited(
         Navigator.push(
@@ -950,13 +835,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
                         biometricsCancelButtonString: "Cancel",
                       );
                     } else {
-                      if (AppConfig.appName == "Campfire" &&
-                          !CampfireMigration.didRun &&
-                          CampfireMigration.hasOldWallets) {
-                        return const CampfireMigrateView();
-                      } else {
-                        return const IntroView();
-                      }
+                      return const IntroView();
                     }
                   } else {
                     // CURRENTLY DISABLED as cannot be animated

@@ -24,9 +24,7 @@ import '../../../utilities/show_loading.dart';
 import '../../../utilities/show_node_tor_settings_mismatch.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
-import '../../../wallets/crypto_currency/coins/solana.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
-import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../wallets/wallet/intermediate/external_wallet.dart';
 import '../../../widgets/dialogs/tor_warning_dialog.dart';
 import '../../../widgets/rounded_white_container.dart';
@@ -46,8 +44,9 @@ class WalletListItem extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // debugPrint("BUILD: $runtimeType");
-    final walletCountString =
-        walletCount == 1 ? "$walletCount wallet" : "$walletCount wallets";
+    final walletCountString = walletCount == 1
+        ? "$walletCount wallet"
+        : "$walletCount wallets";
     final currency = ref.watch(
       prefsChangeNotifierProvider.select((value) => value.currency),
     );
@@ -82,21 +81,7 @@ class WalletListItem extends ConsumerWidget {
             }
           }
 
-          // Check if we should show the wallets overview or open wallet directly.
-          bool shouldShowWalletsOverview = walletCount > 1 || coin is Ethereum;
-
-          // For Solana and other token-supporting coins, check if any wallet has tokens.
-          if (!shouldShowWalletsOverview && coin.hasTokenSupport) {
-            final wallet = ref
-                .read(pWallets)
-                .wallets
-                .firstWhere((e) => e.info.coin == coin);
-
-            final tokenAddresses = ref.read(pWalletTokenAddresses(wallet.walletId));
-            if (tokenAddresses.isNotEmpty) {
-              shouldShowWalletsOverview = true;
-            }
-          }
+          final shouldShowWalletsOverview = walletCount > 1;
 
           if (walletCount == 1 && !shouldShowWalletsOverview) {
             final wallet = ref
@@ -140,9 +125,8 @@ class WalletListItem extends ConsumerWidget {
             }
           } else {
             unawaited(
-              Navigator.of(
-                context,
-              ).pushNamed(WalletsOverview.routeName, arguments: coin),
+              Navigator.of(context)
+                  .pushNamed(WalletsOverview.routeName, arguments: coin),
             );
           }
         },
@@ -157,8 +141,9 @@ class WalletListItem extends ConsumerWidget {
             Expanded(
               child: Consumer(
                 builder: (_, ref, __) {
-                  Color percentChangedColor =
-                      Theme.of(context).extension<StackColors>()!.textDark;
+                  Color percentChangedColor = Theme.of(context)
+                      .extension<StackColors>()!
+                      .textDark;
                   String? priceString;
                   double? percentChange;
                   if (ref.watch(
@@ -183,15 +168,13 @@ class WalletListItem extends ConsumerWidget {
                       percentChange = price.change24h;
 
                       if (percentChange > 0) {
-                        percentChangedColor =
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.accentColorGreen;
+                        percentChangedColor = Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorGreen;
                       } else if (percentChange < 0) {
-                        percentChangedColor =
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.accentColorRed;
+                        percentChangedColor = Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorRed;
                       }
                     }
                   }
@@ -224,9 +207,8 @@ class WalletListItem extends ConsumerWidget {
                           if (percentChange != null)
                             Text(
                               "${percentChange.toStringAsFixed(2)}%",
-                              style: STextStyles.itemSubtitle(
-                                context,
-                              ).copyWith(color: percentChangedColor),
+                              style: STextStyles.itemSubtitle(context)
+                                  .copyWith(color: percentChangedColor),
                             ),
                         ],
                       ),

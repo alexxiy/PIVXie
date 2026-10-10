@@ -12,23 +12,19 @@ import 'package:tor_ffi_plugin/tor_ffi_plugin_bindings_generated.dart'
 import '../../services/event_bus/events/global/tor_connection_status_changed_event.dart';
 import '../../services/event_bus/global_event_bus.dart';
 //END_ON
-import '../../services/fusion_tor_service.dart';
 import '../../services/tor_service.dart';
 //ON
 import '../../utilities/logger.dart';
 //END_ON
 
 TorService get torService => _getInterface();
-FusionTorService get fusionTorService => _getFusionInterface();
 
 //OFF
 TorService _getInterface() => throw Exception("TOR not enabled!");
-FusionTorService _getFusionInterface() => throw Exception("TOR not enabled!");
 
 //END_OFF
 //ON
 TorService _getInterface() => _TorServiceImpl.instance;
-FusionTorService _getFusionInterface() => _FusionTorServiceImpl.instance;
 
 class _TorServiceImpl extends TorService {
   static _TorServiceImpl? _instance;
@@ -180,63 +176,5 @@ class _TorServiceImpl extends TorService {
 
 String _lastTorError() =>
     bindings.tor_last_error_message().cast<Utf8>().toDartString();
-
-class _FusionTorServiceImpl extends FusionTorService {
-  static _FusionTorServiceImpl? _instance;
-  static _FusionTorServiceImpl get instance =>
-      _instance ??= _FusionTorServiceImpl._();
-
-  _FusionTorServiceImpl._();
-
-  Tor? _tor;
-  String? _torDataDirPath;
-
-  /// Getter for the proxyInfo.
-  ///
-  /// Throws if Tor is not connected.
-  @override
-  ({InternetAddress host, int port}) getProxyInfo() {
-    try {
-      return (host: InternetAddress.loopbackIPv4, port: _tor!.port);
-    } catch (_) {
-      throw Exception("Tor proxy info fetched while not connected!");
-    }
-  }
-
-  /// Initialize the tor ffi lib instance if it hasn't already been set. Nothing
-  /// changes if _tor is already been set.
-  @override
-  void init({required String torDataDirPath, Tor? mockableOverride}) {
-    _tor ??= mockableOverride ?? Tor.instance;
-    _torDataDirPath ??= torDataDirPath;
-  }
-
-  /// Start the Tor service.
-  ///
-  /// This will start the Tor service and establish a Tor circuit.
-  ///
-  /// Throws an exception if the Tor library was not inited or if the Tor
-  /// service fails to start.
-  ///
-  /// Returns a Future that completes when the Tor service has started.
-  @override
-  Future<void> start() async {
-    if (_tor == null || _torDataDirPath == null) {
-      throw Exception("FusionTorService.init has not been called!");
-    }
-
-    // Start the Tor service.
-    try {
-      await _tor!.start(torDataDirPath: _torDataDirPath!);
-    } catch (e, s) {
-      Logging.instance.w(
-        "FusionTorService.start failed: ",
-        error: e,
-        stackTrace: s,
-      );
-      rethrow;
-    }
-  }
-}
 
 //END_ON

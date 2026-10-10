@@ -14,19 +14,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar_community/isar.dart';
 
-import '../../../../models/isar/models/blockchain_data/transaction.dart';
 import '../../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../../providers/db/main_db_provider.dart';
 import '../../../../providers/global/wallets_provider.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/util.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
-import '../../../../wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
 import '../../../../widgets/loading_indicator.dart';
 import '../../../../widgets/paginated_list_view.dart';
 import '../../sub_widgets/no_transactions_found.dart';
 import '../../wallet_view.dart';
-import 'fusion_tx_group_card.dart';
 import 'transaction_v2_list_item.dart';
 
 class TransactionsV2List extends ConsumerStatefulWidget {
@@ -58,54 +55,6 @@ class _TransactionsV2ListState extends ConsumerState<TransactionsV2List> {
       bottomLeft: Radius.circular(Constants.size.circularBorderRadius),
       bottomRight: Radius.circular(Constants.size.circularBorderRadius),
     );
-  }
-
-  List<Object> _processData(List<TransactionV2> transactions) {
-    if (ref.read(pWallets).getWallet(widget.walletId) is! CashFusionInterface) {
-      return transactions;
-    }
-
-    final List<Object> processed = [];
-
-    List<TransactionV2> fusions = [];
-
-    for (int i = 0; i < transactions.length; i++) {
-      final tx = transactions[i];
-
-      if (tx.subType == TransactionSubType.cashFusion) {
-        if (fusions.isNotEmpty) {
-          final prevTime = DateTime.fromMillisecondsSinceEpoch(
-            fusions.last.timestamp * 1000,
-          );
-          final thisTime = DateTime.fromMillisecondsSinceEpoch(
-            tx.timestamp * 1000,
-          );
-
-          if (prevTime.difference(thisTime).inMinutes > 30) {
-            processed.add(FusionTxGroup(fusions));
-            fusions = [tx];
-            continue;
-          }
-        }
-
-        fusions.add(tx);
-      }
-
-      if (i + 1 < transactions.length) {
-        final nextTx = transactions[i + 1];
-        if (nextTx.subType != TransactionSubType.cashFusion &&
-            fusions.isNotEmpty) {
-          processed.add(FusionTxGroup(fusions));
-          fusions = [];
-        }
-      }
-
-      if (tx.subType != TransactionSubType.cashFusion) {
-        processed.add(tx);
-      }
-    }
-
-    return processed;
   }
 
   @override
@@ -178,7 +127,7 @@ class _TransactionsV2ListState extends ConsumerState<TransactionsV2List> {
             return compare;
           });
 
-          final _txns = _processData(_transactions);
+          final _txns = _transactions;
 
           return RefreshIndicator(
             onRefresh: () async {

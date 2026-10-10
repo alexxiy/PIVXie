@@ -23,30 +23,25 @@ import '../../../../providers/global/secure_store_provider.dart';
 import '../../../../providers/providers.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
-import '../../../../utilities/barcode_scanner_interface.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/enums/sync_type_enum.dart';
 import '../../../../utilities/flutter_secure_storage_interface.dart';
-import '../../../../utilities/logger.dart';
-import '../../../../utilities/node_uri_util.dart';
 import '../../../../utilities/test_node_connection.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/tor_plain_net_option_enum.dart';
 import '../../../../utilities/util.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
-import '../../../../wallets/crypto_currency/intermediate/cryptonote_currency.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/conditional_parent.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/primary_button.dart';
-import '../../../../widgets/desktop/qr_code_scanner_dialog.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
-import '../../../../widgets/icon_widgets/qrcode_icon.dart';
 import '../../../../widgets/icon_widgets/x_icon.dart';
 import '../../../../widgets/stack_dialog.dart';
 import '../../../../widgets/stack_text_field.dart';
 import '../../../../widgets/textfield_icon_button.dart';
+
 // import 'package:web3dart/web3dart.dart';
 
 enum AddEditNodeViewType { add, edit }
@@ -77,29 +72,12 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
   late final String? nodeId;
   late final bool isDesktop;
 
-  (NodeModel, String)? _scannedResult;
-
   late bool saveEnabled;
   late bool testConnectionEnabled;
-
-  void _onTestSuccess(NodeFormData data) {
-    if (coin is Epiccash) {
-      ref.read(nodeFormDataProvider).host = data.host;
-      ref.read(nodeFormDataProvider).port = data.port;
-      ref.read(nodeFormDataProvider).useSSL = data.useSSL;
-    } else if (coin is Mimblewimblecoin) {
-      ref.read(nodeFormDataProvider).host = data.host;
-      ref.read(nodeFormDataProvider).port = data.port;
-      ref.read(nodeFormDataProvider).useSSL = data.useSSL;
-    } else if (coin is CryptonoteCurrency) {
-      ref.read(nodeFormDataProvider).host = data.host;
-    }
-  }
 
   Future<void> attemptSave() async {
     final canConnect = await ref.read(testNodeConnectionProvider)(
       context: context,
-      onSuccess: _onTestSuccess,
       cryptoCurrency: coin,
       nodeFormData: ref.read(nodeFormDataProvider),
     );
@@ -191,9 +169,9 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                   child: Text(
                     "Cancel",
                     style: STextStyles.button(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.accentColorDark,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
                     ),
                   ),
                 ),
@@ -224,13 +202,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
     final formData = ref.read(nodeFormDataProvider);
 
     // strip unused path
-    String address = formData.host!;
-    if (coin is CryptonoteCurrency) {
-      if (address.startsWith("http")) {
-        final uri = Uri.parse(address);
-        address = "${uri.scheme}://${uri.host}";
-      }
-    }
+    final String address = formData.host!;
 
     final torEnabled =
         formData.netOption == TorPlainNetworkOption.tor ||
@@ -267,9 +239,8 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
             .save(node, formData.password, true);
         await _notifyWalletsOfUpdatedNode();
         if (mounted) {
-          Navigator.of(
-            context,
-          ).popUntil(ModalRoute.withName(widget.routeOnSuccessOrDelete));
+          Navigator.of(context)
+              .popUntil(ModalRoute.withName(widget.routeOnSuccessOrDelete));
         }
         break;
       case AddEditNodeViewType.edit:
@@ -297,9 +268,8 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
             .save(node, formData.password, true);
         await _notifyWalletsOfUpdatedNode();
         if (mounted) {
-          Navigator.of(
-            context,
-          ).popUntil(ModalRoute.withName(widget.routeOnSuccessOrDelete));
+          Navigator.of(context)
+              .popUntil(ModalRoute.withName(widget.routeOnSuccessOrDelete));
         }
         break;
     }
@@ -337,97 +307,6 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
           unawaited(wallet.updateNode().then((value) => wallet.refresh()));
         }
         break;
-    }
-  }
-
-  bool _scanLock = false;
-
-  void _scanQr() async {
-    if (_scanLock) return;
-    _scanLock = true;
-    try {
-      if (Util.isDesktop) {
-        try {
-          final qrResult = await showDialog<String>(
-            context: context,
-            builder: (context) => const QrCodeScannerDialog(),
-          );
-
-          if (qrResult == null) {
-            Logging.instance.d("Qr scanning cancelled");
-          } else {
-            try {
-              await _processQrData(qrResult);
-            } catch (e, s) {
-              Logging.instance.e(
-                "Error processing QR code data: ",
-                error: e,
-                stackTrace: s,
-              );
-            }
-          }
-        } catch (e, s) {
-          Logging.instance.e(
-            "Error opening QR code scanner dialog: ",
-            error: e,
-            stackTrace: s,
-          );
-        }
-      } else {
-        try {
-          final result = await ref.read(pBarcodeScanner).scan(context: context);
-          await _processQrData(result.rawContent ?? "");
-        } on PlatformException catch (e, s) {
-          if (mounted) {
-            try {
-              await checkCamPermDeniedMobileAndOpenAppSettings(
-                context,
-                logging: Logging.instance,
-              );
-            } catch (e, s) {
-              Logging.instance.e(
-                "Failed to check cam permissions",
-                error: e,
-                stackTrace: s,
-              );
-            }
-          }
-        } catch (e, s) {
-          Logging.instance.e("$runtimeType._scanQr()", error: e, stackTrace: s);
-        }
-      }
-    } finally {
-      _scanLock = false;
-    }
-  }
-
-  Future<void> _processQrData(String data) async {
-    try {
-      final nodeQrData = NodeQrUtil.decodeUri(data);
-      if (mounted) {
-        setState(() {
-          _scannedResult = (
-            NodeModel(
-              host: nodeQrData.host,
-              port: nodeQrData.port,
-              name: nodeQrData.label ?? "",
-              id: const Uuid().v1(),
-              useSSL: nodeQrData.scheme == "https",
-              enabled: true,
-              coinName: coin.identifier,
-              isFailover: true,
-              isDown: false,
-              torEnabled: true,
-              clearnetEnabled: !nodeQrData.host.endsWith(".onion"),
-              loginName: (nodeQrData as LibMoneroNodeQrData?)?.user,
-              isPrimary: false,
-            ),
-            (nodeQrData as LibMoneroNodeQrData?)?.password ?? "",
-          );
-        });
-      }
-    } catch (e, s) {
-      Logging.instance.w("$e\n$s", error: e, stackTrace: s);
     }
   }
 
@@ -474,9 +353,9 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
       condition: !isDesktop,
       builder: (child) => Background(
         child: Scaffold(
-          backgroundColor: Theme.of(
-            context,
-          ).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(context)
+              .extension<StackColors>()!
+              .background,
           appBar: AppBar(
             leading: AppBarBackButton(
               onPressed: () async {
@@ -494,35 +373,6 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
               style: STextStyles.navBarTitle(context),
             ),
             actions: [
-              if (viewType == AddEditNodeViewType.add &&
-                  coin
-                      is CryptonoteCurrency) // TODO: [prio=low] do something other than `coin is CryptonoteCurrency` in the future
-                Padding(
-                  padding: const EdgeInsets.only(
-                    top: 10,
-                    bottom: 10,
-                    right: 10,
-                  ),
-                  child: AspectRatio(
-                    aspectRatio: 1,
-                    child: AppBarIconButton(
-                      key: const Key("qrNodeAppBarButtonKey"),
-                      size: 36,
-                      shadows: const [],
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.background,
-                      icon: QrCodeIcon(
-                        width: 20,
-                        height: 20,
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.accentColorDark,
-                      ),
-                      onPressed: _scanQr,
-                    ),
-                  ),
-                ),
               if (viewType == AddEditNodeViewType.edit &&
                   ref
                           .watch(
@@ -544,14 +394,14 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                       key: const Key("deleteNodeAppBarButtonKey"),
                       size: 36,
                       shadows: const [],
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.background,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .background,
                       icon: SvgPicture.asset(
                         Assets.svg.trash,
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.accentColorDark,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark,
                         width: 20,
                         height: 20,
                       ),
@@ -619,23 +469,6 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                       ),
                     ],
                   ),
-                  if (coin
-                      is CryptonoteCurrency) // TODO: [prio=low] do something other than `coin is CryptonoteCurrency` in the future
-                    Padding(
-                      padding: const EdgeInsets.only(right: 32),
-                      child: AppBarIconButton(
-                        size: 40,
-                        color: isDesktop
-                            ? Theme.of(
-                                context,
-                              ).extension<StackColors>()!.textFieldDefaultBG
-                            : Theme.of(
-                                context,
-                              ).extension<StackColors>()!.background,
-                        icon: const QrCodeIcon(width: 21, height: 21),
-                        onPressed: _scanQr,
-                      ),
-                    ),
                 ],
               ),
               Padding(
@@ -654,9 +487,8 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             NodeForm(
-              key: Key((node ?? _scannedResult?.$1)?.id ?? "none"),
-              node: node ?? _scannedResult?.$1,
-              scannedPw: _scannedResult?.$2,
+              key: Key(node?.id ?? "none"),
+              node: node,
               secureStore: ref.read(secureStoreProvider),
               readOnly: false,
               coin: widget.coin,
@@ -692,7 +524,6 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                             final testPassed =
                                 await ref.read(testNodeConnectionProvider)(
                                   context: context,
-                                  onSuccess: _onTestSuccess,
                                   cryptoCurrency: coin,
                                   nodeFormData: ref.read(nodeFormDataProvider),
                                 );
@@ -769,7 +600,6 @@ class NodeForm extends ConsumerStatefulWidget {
   const NodeForm({
     super.key,
     this.node,
-    this.scannedPw,
     required this.secureStore,
     required this.readOnly,
     required this.coin,
@@ -777,7 +607,6 @@ class NodeForm extends ConsumerStatefulWidget {
   });
 
   final NodeModel? node;
-  final String? scannedPw;
   final SecureStorageInterface secureStore;
   final bool readOnly;
   final CryptoCurrency coin;
@@ -816,15 +645,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
   void Function(bool canSave, bool canTestConnection)? onChanged;
 
   bool _checkShouldEnableAuthFields(CryptoCurrency coin) {
-    // TODO: which coin servers can have username and password?
-    switch (coin) {
-      case Ethereum():
-      case CryptonoteCurrency():
-        return true;
-
-      default:
-        return false;
-    }
+    return false;
   }
 
   bool get canSave {
@@ -890,15 +711,11 @@ class _NodeFormState extends ConsumerState<NodeForm> {
     if (widget.node != null) {
       final node = widget.node!;
       if (enableAuthFields) {
-        if (widget.scannedPw == null) {
-          node.getPassword(widget.secureStore).then((value) {
-            if (value is String) {
-              _passwordController.text = value;
-            }
-          });
-        } else {
-          _passwordController.text = widget.scannedPw!;
-        }
+        node.getPassword(widget.secureStore).then((value) {
+          if (value is String) {
+            _passwordController.text = value;
+          }
+        });
       }
 
       _nameController.text = node.name;
@@ -920,13 +737,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
         netOption = TorPlainNetworkOption.both;
       }
 
-      if (widget.coin is Epiccash) {
-        enableSSLCheckbox = !node.host.startsWith("http");
-      } else if (widget.coin is Mimblewimblecoin) {
-        enableSSLCheckbox = !node.host.startsWith("http");
-      } else {
-        enableSSLCheckbox = true;
-      }
+      enableSSLCheckbox = true;
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         // update provider state object so test connection works without having to modify a field in the ui first
@@ -1025,7 +836,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
             style: STextStyles.field(context),
             decoration:
                 standardInputDecoration(
-                  (widget.coin is! CryptonoteCurrency) ? "IP address" : "Url",
+                  "IP address",
                   _hostFocusNode,
                   context,
                 ).copyWith(
@@ -1082,36 +893,6 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                 }
               }
 
-              if (widget.coin is Epiccash) {
-                if (newValue.startsWith("https://")) {
-                  _useSSL = true;
-                  enableSSLCheckbox = false;
-                } else if (newValue.startsWith("http://")) {
-                  _useSSL = false;
-                  enableSSLCheckbox = false;
-                } else {
-                  enableSSLCheckbox = true;
-                }
-              } else if (widget.coin is CryptonoteCurrency) {
-                if (newValue.startsWith("https://")) {
-                  _useSSL = true;
-                } else if (newValue.startsWith("http://")) {
-                  _useSSL = false;
-                } else {
-                  _useSSL = true;
-                }
-              }
-              if (widget.coin is Mimblewimblecoin) {
-                if (newValue.startsWith("https://")) {
-                  _useSSL = true;
-                  enableSSLCheckbox = false;
-                } else if (newValue.startsWith("http://")) {
-                  _useSSL = false;
-                  enableSSLCheckbox = false;
-                } else {
-                  enableSSLCheckbox = true;
-                }
-              }
               _updateState();
               setState(() {});
             },
@@ -1255,323 +1036,172 @@ class _NodeFormState extends ConsumerState<NodeForm> {
             ),
           ),
         if (enableAuthFields) const SizedBox(height: 8),
-        if (widget.coin is Mimblewimblecoin)
-          ClipRRect(
-            borderRadius: BorderRadius.circular(
-              Constants.size.circularBorderRadius,
-            ),
-            child: TextField(
-              autocorrect: Util.isDesktop ? false : true,
-              enableSuggestions: Util.isDesktop ? false : true,
-              controller: _apiSecretController,
-              readOnly: shouldBeReadOnly,
-              enabled: enableField(_apiSecretController),
-              obscureText: true,
-              focusNode: _apiSecretFocusNode,
-              style: STextStyles.field(context),
-              decoration:
-                  standardInputDecoration(
-                    "API secret (optional)",
-                    _apiSecretFocusNode,
-                    context,
-                  ).copyWith(
-                    suffixIcon:
-                        !shouldBeReadOnly &&
-                            _apiSecretController.text.isNotEmpty
-                        ? Padding(
-                            padding: const EdgeInsets.only(right: 0),
-                            child: UnconstrainedBox(
-                              child: Row(
-                                children: [
-                                  TextFieldIconButton(
-                                    child: const XIcon(),
-                                    onTap: () async {
-                                      _apiSecretController.text = "";
-                                      _updateState();
-                                    },
-                                  ),
-                                ],
+        Row(
+          children: [
+            GestureDetector(
+              onTap: !shouldBeReadOnly && enableSSLCheckbox
+                  ? () {
+                      setState(() {
+                        _useSSL = !_useSSL;
+                      });
+                      _updateState();
+                    }
+                  : null,
+              child: Container(
+                color: Colors.transparent,
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: Checkbox(
+                        fillColor: !shouldBeReadOnly && enableSSLCheckbox
+                            ? null
+                            : MaterialStateProperty.all(
+                                Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .checkboxBGDisabled,
                               ),
-                            ),
-                          )
-                        : null,
-                  ),
-              onChanged: (newValue) {
-                _updateState();
-                setState(() {});
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        value: _useSSL,
+                        onChanged: !shouldBeReadOnly && enableSSLCheckbox
+                            ? (newValue) {
+                                setState(() {
+                                  _useSSL = newValue!;
+                                });
+                                _updateState();
+                              }
+                            : null,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text("Use SSL", style: STextStyles.itemSubtitle12(context)),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  _isFailover = !_isFailover;
+                });
+                if (widget.readOnly) {
+                  ref
+                      .read(nodeServiceChangeNotifierProvider)
+                      .save(
+                        widget.node!.copyWith(
+                          isFailover: _isFailover,
+                          loginName: widget.node!.loginName,
+                          trusted: widget.node!.trusted,
+                        ),
+                        null,
+                        true,
+                      );
+                } else {
+                  _updateState();
+                }
+              },
+              child: Container(
+                color: Colors.transparent,
+                child: Row(
+                  children: [
+                    SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: Checkbox(
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        value: _isFailover,
+                        onChanged: (newValue) {
+                          setState(() {
+                            _isFailover = newValue!;
+                          });
+                          if (widget.readOnly) {
+                            ref
+                                .read(nodeServiceChangeNotifierProvider)
+                                .save(
+                                  widget.node!.copyWith(
+                                    isFailover: _isFailover,
+                                    loginName: widget.node!.loginName,
+                                    trusted: widget.node!.trusted,
+                                  ),
+                                  null,
+                                  true,
+                                );
+                          } else {
+                            _updateState();
+                          }
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Text(
+                      "Use as failover",
+                      style: STextStyles.itemSubtitle12(context),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Row(
+          children: [
+            RadioTextButton(
+              label: "Only TOR traffic",
+              enabled: !widget.readOnly,
+              value: TorPlainNetworkOption.tor,
+              groupValue: netOption,
+              onChanged: (value) {
+                if (!widget.readOnly) {
+                  setState(() => netOption = TorPlainNetworkOption.tor);
+                  _updateState();
+                }
               },
             ),
-          ),
-        if (widget.coin is Mimblewimblecoin) const SizedBox(height: 8),
-        if (widget.coin is! CryptonoteCurrency)
-          Row(
-            children: [
-              GestureDetector(
-                onTap: !shouldBeReadOnly && enableSSLCheckbox
-                    ? () {
-                        setState(() {
-                          _useSSL = !_useSSL;
-                        });
-                        _updateState();
-                      }
-                    : null,
-                child: Container(
-                  color: Colors.transparent,
-                  child: Row(
-                    children: [
-                      SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: Checkbox(
-                          fillColor: !shouldBeReadOnly && enableSSLCheckbox
-                              ? null
-                              : MaterialStateProperty.all(
-                                  Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .checkboxBGDisabled,
-                                ),
-                          materialTapTargetSize:
-                              MaterialTapTargetSize.shrinkWrap,
-                          value: _useSSL,
-                          onChanged: !shouldBeReadOnly && enableSSLCheckbox
-                              ? (newValue) {
-                                  setState(() {
-                                    _useSSL = newValue!;
-                                  });
-                                  _updateState();
-                                }
-                              : null,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        "Use SSL",
-                        style: STextStyles.itemSubtitle12(context),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        if (widget.coin is CryptonoteCurrency)
-          Row(
-            children: [
-              GestureDetector(
-                onTap: !widget.readOnly /*&& trustedCheckbox*/
-                    ? () {
-                        setState(() {
-                          _trusted = !_trusted;
-                        });
-                        _updateState();
-                      }
-                    : null,
-                child: Container(
-                  color: Colors.transparent,
-                  child: Row(
-                    children: [
-                      SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: Checkbox(
-                          fillColor: !widget.readOnly
-                              ? null
-                              : MaterialStateProperty.all(
-                                  Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .checkboxBGDisabled,
-                                ),
-                          materialTapTargetSize:
-                              MaterialTapTargetSize.shrinkWrap,
-                          value: _trusted,
-                          onChanged: !widget.readOnly
-                              ? (newValue) {
-                                  setState(() {
-                                    _trusted = newValue!;
-                                  });
-                                  _updateState();
-                                }
-                              : null,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        "Trusted",
-                        style: STextStyles.itemSubtitle12(context),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        if (widget.coin is! CryptonoteCurrency &&
-            widget.coin is! Epiccash &&
-            widget.coin is! Mimblewimblecoin)
-          const SizedBox(height: 8),
-        if (widget.coin is! CryptonoteCurrency &&
-            widget.coin is! Epiccash &&
-            widget.coin is! Mimblewimblecoin)
-          Row(
-            children: [
-              GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _isFailover = !_isFailover;
-                  });
-                  if (widget.readOnly) {
-                    ref
-                        .read(nodeServiceChangeNotifierProvider)
-                        .save(
-                          widget.node!.copyWith(
-                            isFailover: _isFailover,
-                            loginName: widget.node!.loginName,
-                            trusted: widget.node!.trusted,
-                          ),
-                          null,
-                          true,
-                        );
-                  } else {
-                    _updateState();
-                  }
-                },
-                child: Container(
-                  color: Colors.transparent,
-                  child: Row(
-                    children: [
-                      SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: Checkbox(
-                          materialTapTargetSize:
-                              MaterialTapTargetSize.shrinkWrap,
-                          value: _isFailover,
-                          onChanged: (newValue) {
-                            setState(() {
-                              _isFailover = newValue!;
-                            });
-                            if (widget.readOnly) {
-                              ref
-                                  .read(nodeServiceChangeNotifierProvider)
-                                  .save(
-                                    widget.node!.copyWith(
-                                      isFailover: _isFailover,
-                                      loginName: widget.node!.loginName,
-                                      trusted: widget.node!.trusted,
-                                    ),
-                                    null,
-                                    true,
-                                  );
-                            } else {
-                              _updateState();
-                            }
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        "Use as failover",
-                        style: STextStyles.itemSubtitle12(context),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        if (widget.coin is! Ethereum) const SizedBox(height: 16),
-        if (widget.coin is! Ethereum)
-          Row(
-            children: [
-              RadioTextButton(
-                label: "Only TOR traffic",
-                enabled: !widget.readOnly,
-                value: TorPlainNetworkOption.tor,
-                groupValue: netOption,
-                onChanged: (value) {
-                  if (!widget.readOnly) {
-                    setState(() => netOption = TorPlainNetworkOption.tor);
-                    _updateState();
-                  }
-                },
-              ),
-            ],
-          ),
-        if (widget.coin is! Ethereum) const SizedBox(height: 8),
-        if (widget.coin is! Ethereum)
-          Row(
-            children: [
-              RadioTextButton(
-                label: "Only non-TOR traffic",
-                enabled: !widget.readOnly,
-                value: TorPlainNetworkOption.clear,
-                groupValue: netOption,
-                onChanged: (value) {
-                  if (!widget.readOnly) {
-                    setState(() => netOption = TorPlainNetworkOption.clear);
-                    _updateState();
-                  }
-                },
-              ),
-            ],
-          ),
-        if (widget.coin is! Ethereum) const SizedBox(height: 8),
-        if (widget.coin is! Ethereum)
-          Row(
-            children: [
-              RadioTextButton(
-                label: "Allow both",
-                enabled: !widget.readOnly,
-                value: TorPlainNetworkOption.both,
-                groupValue: netOption,
-                onChanged: (value) {
-                  if (!widget.readOnly) {
-                    setState(() => netOption = TorPlainNetworkOption.both);
-                    _updateState();
-                  }
-                },
-              ),
-            ],
-          ),
-        if (widget.coin is CryptonoteCurrency && _isLocalNode())
-          const SizedBox(height: 8),
-        if (widget.coin is CryptonoteCurrency && _isLocalNode())
-          Row(
-            children: [
-              SizedBox(
-                width: 20,
-                height: 20,
-                child: Checkbox(
-                  fillColor: !widget.readOnly
-                      ? null
-                      : MaterialStateProperty.all(
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.checkboxBGDisabled,
-                        ),
-                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  value: _forceNoTor,
-                  onChanged: !widget.readOnly
-                      ? (newValue) {
-                          setState(() {
-                            _forceNoTor = newValue!;
-                          });
-                          _updateState();
-                        }
-                      : null,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Text("Bypass TOR", style: STextStyles.itemSubtitle12(context)),
-            ],
-          ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            RadioTextButton(
+              label: "Only non-TOR traffic",
+              enabled: !widget.readOnly,
+              value: TorPlainNetworkOption.clear,
+              groupValue: netOption,
+              onChanged: (value) {
+                if (!widget.readOnly) {
+                  setState(() => netOption = TorPlainNetworkOption.clear);
+                  _updateState();
+                }
+              },
+            ),
+          ],
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            RadioTextButton(
+              label: "Allow both",
+              enabled: !widget.readOnly,
+              value: TorPlainNetworkOption.both,
+              groupValue: netOption,
+              onChanged: (value) {
+                if (!widget.readOnly) {
+                  setState(() => netOption = TorPlainNetworkOption.both);
+                  _updateState();
+                }
+              },
+            ),
+          ],
+        ),
       ],
     );
-  }
-
-  bool _isLocalNode() {
-    final host = _hostController.text.toLowerCase();
-    return host.contains("127.0.0.1") || host.contains("localhost");
   }
 }
 
@@ -1613,9 +1243,9 @@ class RadioTextButton<T> extends StatelessWidget {
                 width: 20,
                 height: 20,
                 child: Radio<T>(
-                  activeColor: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.radioButtonIconEnabled,
+                  activeColor: Theme.of(context)
+                      .extension<StackColors>()!
+                      .radioButtonIconEnabled,
                   value: value,
                   groupValue: groupValue,
                   onChanged: !enabled

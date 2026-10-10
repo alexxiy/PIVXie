@@ -1,6 +1,6 @@
 import 'package:decimal/decimal.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
+import 'package:paymint/utilities/amount/amount.dart';
 
 void main() {
   test("Basic Amount Constructor tests", () {
@@ -39,8 +39,10 @@ void main() {
     expect(amount.raw, BigInt.from(200));
     expect(amount.decimal, Decimal.fromInt(2));
 
-    amount =
-        Amount.fromDecimal(Decimal.parse("0.0123456789"), fractionDigits: 7);
+    amount = Amount.fromDecimal(
+      Decimal.parse("0.0123456789"),
+      fractionDigits: 7,
+    );
     expect(amount.fractionDigits, 7);
     expect(amount.raw, BigInt.from(123456));
     expect(amount.decimal, Decimal.parse("0.0123456"));
@@ -56,10 +58,10 @@ void main() {
 
   group("serialization", () {
     test("toMap", () {
-      expect(
-        Amount(rawValue: BigInt.two, fractionDigits: 8).toMap(),
-        {"raw": "2", "fractionDigits": 8},
-      );
+      expect(Amount(rawValue: BigInt.two, fractionDigits: 8).toMap(), {
+        "raw": "2",
+        "fractionDigits": 8,
+      });
       expect(
         Amount.fromDecimal(Decimal.fromInt(2), fractionDigits: 8).toMap(),
         {"raw": "200000000", "fractionDigits": 8},
@@ -72,8 +74,10 @@ void main() {
         '{"raw":"2","fractionDigits":8}',
       );
       expect(
-        Amount.fromDecimal(Decimal.fromInt(2), fractionDigits: 8)
-            .toJsonString(),
+        Amount.fromDecimal(
+          Decimal.fromInt(2),
+          fractionDigits: 8,
+        ).toJsonString(),
         '{"raw":"200000000","fractionDigits":8}',
       );
     });
@@ -111,7 +115,8 @@ void main() {
     test("fromSerializedJsonString", () {
       expect(
         Amount.fromSerializedJsonString(
-            '{"raw":"200000000","fractionDigits":8}'),
+          '{"raw":"200000000","fractionDigits":8}',
+        ),
         Amount.fromDecimal(Decimal.parse("2"), fractionDigits: 8),
       );
     });
@@ -179,13 +184,15 @@ void main() {
       expect(one + one, Amount(rawValue: BigInt.from(2), fractionDigits: 0));
 
       expect(
-          Amount(rawValue: BigInt.from(3), fractionDigits: 0) +
-              Amount(rawValue: BigInt.from(-5), fractionDigits: 0),
-          Amount(rawValue: BigInt.from(-2), fractionDigits: 0));
+        Amount(rawValue: BigInt.from(3), fractionDigits: 0) +
+            Amount(rawValue: BigInt.from(-5), fractionDigits: 0),
+        Amount(rawValue: BigInt.from(-2), fractionDigits: 0),
+      );
       expect(
-          Amount(rawValue: BigInt.from(-3), fractionDigits: 0) +
-              Amount(rawValue: BigInt.from(6), fractionDigits: 0),
-          Amount(rawValue: BigInt.from(3), fractionDigits: 0));
+        Amount(rawValue: BigInt.from(-3), fractionDigits: 0) +
+            Amount(rawValue: BigInt.from(6), fractionDigits: 0),
+        Amount(rawValue: BigInt.from(3), fractionDigits: 0),
+      );
     });
 
     test("-", () {
@@ -193,13 +200,15 @@ void main() {
       expect(one - one, Amount(rawValue: BigInt.from(0), fractionDigits: 0));
 
       expect(
-          Amount(rawValue: BigInt.from(3), fractionDigits: 0) -
-              Amount(rawValue: BigInt.from(-5), fractionDigits: 0),
-          Amount(rawValue: BigInt.from(8), fractionDigits: 0));
+        Amount(rawValue: BigInt.from(3), fractionDigits: 0) -
+            Amount(rawValue: BigInt.from(-5), fractionDigits: 0),
+        Amount(rawValue: BigInt.from(8), fractionDigits: 0),
+      );
       expect(
-          Amount(rawValue: BigInt.from(-3), fractionDigits: 0) -
-              Amount(rawValue: BigInt.from(6), fractionDigits: 0),
-          Amount(rawValue: BigInt.from(-9), fractionDigits: 0));
+        Amount(rawValue: BigInt.from(-3), fractionDigits: 0) -
+            Amount(rawValue: BigInt.from(6), fractionDigits: 0),
+        Amount(rawValue: BigInt.from(-9), fractionDigits: 0),
+      );
     });
 
     test("*", () {
@@ -207,13 +216,15 @@ void main() {
       expect(one * one, Amount(rawValue: BigInt.from(1), fractionDigits: 0));
 
       expect(
-          Amount(rawValue: BigInt.from(3), fractionDigits: 0) *
-              Amount(rawValue: BigInt.from(-5), fractionDigits: 0),
-          Amount(rawValue: BigInt.from(-15), fractionDigits: 0));
+        Amount(rawValue: BigInt.from(3), fractionDigits: 0) *
+            Amount(rawValue: BigInt.from(-5), fractionDigits: 0),
+        Amount(rawValue: BigInt.from(-15), fractionDigits: 0),
+      );
       expect(
-          Amount(rawValue: BigInt.from(-3), fractionDigits: 0) *
-              Amount(rawValue: BigInt.from(-6), fractionDigits: 0),
-          Amount(rawValue: BigInt.from(18), fractionDigits: 0));
+        Amount(rawValue: BigInt.from(-3), fractionDigits: 0) *
+            Amount(rawValue: BigInt.from(-6), fractionDigits: 0),
+        Amount(rawValue: BigInt.from(18), fractionDigits: 0),
+      );
     });
   });
 }

@@ -1,22 +1,15 @@
 import 'package:decimal/decimal.dart';
 import 'package:mockito/annotations.dart';
-import 'package:stackwallet/services/locale_service.dart';
-import 'package:stackwallet/services/wallets.dart';
-import 'package:stackwallet/themes/theme_service.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
+import 'package:paymint/services/locale_service.dart';
+import 'package:paymint/services/wallets.dart';
+import 'package:paymint/themes/theme_service.dart';
+import 'package:paymint/utilities/amount/amount.dart';
 
 /// quick amount constructor wrapper. Using an int is bad practice but for
 /// testing with small amounts this should be fine
-Amount _a(int i) => Amount.fromDecimal(
-      Decimal.fromInt(i),
-      fractionDigits: 8,
-    );
+Amount _a(int i) => Amount.fromDecimal(Decimal.fromInt(i), fractionDigits: 8);
 
-@GenerateMocks([
-  Wallets,
-  LocaleService,
-  ThemeService,
-])
+@GenerateMocks([Wallets, LocaleService, ThemeService])
 void main() {
   // testWidgets('test widget loads correctly', (widgetTester) async {
   //   final CoinServiceAPI wallet = MockBitcoinWallet();

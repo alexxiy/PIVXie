@@ -28,13 +28,10 @@ import '../utilities/idle_monitor.dart';
 import '../utilities/prefs.dart';
 import '../widgets/background.dart';
 import 'address_book_view/desktop_address_book.dart';
-import 'desktop_buy/desktop_buy_view.dart';
-import 'desktop_exchange/desktop_exchange_view.dart';
 import 'desktop_menu.dart';
 import 'my_stack_view/my_stack_view.dart';
 import 'notifications/desktop_notifications_view.dart';
 import 'password/desktop_unlock_app_dialog.dart';
-import 'services/desktop_services_view.dart';
 import 'settings/desktop_settings_view.dart';
 import 'settings/settings_menu/desktop_about_view.dart';
 import 'settings/settings_menu/desktop_support_view.dart';
@@ -124,21 +121,6 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
       // onGenerateRoute: RouteGenerator.generateRoute,
       // initialRoute: MyStackView.routeName,
     ),
-    DesktopMenuItemId.exchange: const Navigator(
-      key: Key("desktopExchangeHomeKey"),
-      onGenerateRoute: RouteGenerator.generateRoute,
-      initialRoute: DesktopExchangeView.routeName,
-    ),
-    DesktopMenuItemId.buy: const Navigator(
-      key: Key("desktopBuyHomeKey"),
-      onGenerateRoute: RouteGenerator.generateRoute,
-      initialRoute: DesktopBuyView.routeName,
-    ),
-    DesktopMenuItemId.services: const Navigator(
-      key: Key("desktopServicesHomeKey"),
-      onGenerateRoute: RouteGenerator.generateRoute,
-      initialRoute: DesktopServicesView.routeName,
-    ),
     DesktopMenuItemId.notifications: const Navigator(
       key: Key("desktopNotificationsHomeKey"),
       onGenerateRoute: RouteGenerator.generateRoute,
@@ -171,9 +153,8 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
     if (ref.read(prevDesktopMenuItemProvider.state).state ==
             DesktopMenuItemId.myStack &&
         ref.read(prevDesktopMenuItemProvider.state).state == newKey) {
-      Navigator.of(
-        myStackViewNavKey.currentContext!,
-      ).popUntil(ModalRoute.withName(MyStackView.routeName));
+      Navigator.of(myStackViewNavKey.currentContext!)
+          .popUntil(ModalRoute.withName(MyStackView.routeName));
       if (ref.read(currentWalletIdProvider.state).state != null) {
         final wallet = ref
             .read(pWallets)

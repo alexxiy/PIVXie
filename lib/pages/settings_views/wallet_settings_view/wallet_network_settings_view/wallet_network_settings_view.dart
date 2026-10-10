@@ -21,7 +21,6 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 import '../../../../app_config.dart';
 import '../../../../providers/providers.dart';
 import '../../../../route_generator.dart';
-import '../../../../services/event_bus/events/global/blocks_remaining_event.dart';
 import '../../../../services/event_bus/events/global/node_connection_status_changed_event.dart';
 import '../../../../services/event_bus/events/global/refresh_percent_changed_event.dart';
 import '../../../../services/event_bus/events/global/tor_connection_status_changed_event.dart';
@@ -33,19 +32,7 @@ import '../../../../utilities/assets.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
-import '../../../../wallets/crypto_currency/coins/epiccash.dart';
-import '../../../../wallets/crypto_currency/coins/litecoin.dart';
-import '../../../../wallets/crypto_currency/coins/mimblewimblecoin.dart';
-import '../../../../wallets/crypto_currency/coins/monero.dart';
-import '../../../../wallets/crypto_currency/coins/salvium.dart';
-import '../../../../wallets/crypto_currency/coins/wownero.dart';
-import '../../../../wallets/crypto_currency/intermediate/cryptonote_currency.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
-import '../../../../wallets/wallet/impl/epiccash_wallet.dart';
-import '../../../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
-import '../../../../wallets/wallet/intermediate/cryptonote_wallet.dart';
-import '../../../../wallets/wallet/wallet_mixin_interfaces/electrumx_interface.dart';
-import '../../../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
 import '../../../../widgets/animated_text.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/conditional_parent.dart';
@@ -99,13 +86,11 @@ class _WalletNetworkSettingsViewState
 
   late StreamSubscription<dynamic> _refreshSubscription;
   late StreamSubscription<dynamic> _syncStatusSubscription;
-  StreamSubscription<dynamic>? _blocksRemainingSubscription;
   // late StreamSubscription _nodeStatusSubscription;
 
   late final bool isDesktop;
 
   late double _percent;
-  late int _blocksRemaining;
   bool _advancedIsExpanded = false;
 
   /// The current status of the Tor connection.
@@ -154,12 +139,7 @@ class _WalletNetworkSettingsViewState
             // pop rescanning dialog
             Navigator.of(context, rootNavigator: isDesktop).pop();
 
-            final String message;
-            if (wallet is CryptonoteWallet || wallet is EpiccashWallet) {
-              message = "Rescan started";
-            } else {
-              message = "Rescan completed";
-            }
+            const message = "Rescan completed";
 
             // show success
             await showDialog<dynamic>(
@@ -237,15 +217,8 @@ class _WalletNetworkSettingsViewState
     // _currentNodeStatus = widget.initialNodeStatus;
     if (_currentSyncStatus == WalletSyncStatus.synced) {
       _percent = 1;
-      _blocksRemaining = 0;
     } else {
-      final wallet = ref.read(pWallets).getWallet(widget.walletId);
-      if (wallet is ElectrumXInterface) {
-        _percent = wallet.refreshingPercent ?? 0;
-      } else {
-        _percent = 0;
-      }
-      _blocksRemaining = -1;
+      _percent = 0;
     }
 
     eventBus = widget.eventBus != null
@@ -271,27 +244,6 @@ class _WalletNetworkSettingsViewState
         });
       }
     });
-
-    final coin = ref.read(pWalletCoin(widget.walletId));
-
-    // TODO: handle isMwebEnabled toggled
-    if (coin is Monero ||
-        coin is Wownero ||
-        coin is Epiccash ||
-        coin is Salvium ||
-        coin is Mimblewimblecoin ||
-        (coin is Litecoin &&
-            ref.read(pWalletInfo(widget.walletId)).isMwebEnabled)) {
-      _blocksRemainingSubscription = eventBus.on<BlocksRemainingEvent>().listen(
-        (event) async {
-          if (event.walletId == widget.walletId) {
-            setState(() {
-              _blocksRemaining = event.blocksRemaining;
-            });
-          }
-        },
-      );
-    }
 
     // _nodeStatusSubscription =
     //     eventBus.on<NodeConnectionStatusChangedEvent>().listen(
@@ -326,7 +278,6 @@ class _WalletNetworkSettingsViewState
     // _nodeStatusSubscription.cancel();
     _syncStatusSubscription.cancel();
     _refreshSubscription.cancel();
-    _blocksRemainingSubscription?.cancel();
     super.dispose();
   }
 
@@ -338,47 +289,14 @@ class _WalletNetworkSettingsViewState
         ? 430.0
         : screenWidth - (_padding * 2) - (_boxPadding * 3) - _iconSize;
 
-    final coin = ref.watch(pWalletCoin(widget.walletId));
-
-    if (coin is CryptonoteCurrency) {
-      final double highestPercent =
-          (ref.read(pWallets).getWallet(widget.walletId) as CryptonoteWallet)
-              .highestPercentCached;
-      if (_percent < highestPercent) {
-        _percent = highestPercent.clamp(0.0, 1.0);
-      }
-    } else if (coin is Litecoin) {
-      final double highestPercent =
-          (ref.watch(pWallets).getWallet(widget.walletId) as MwebInterface)
-              .highestPercentCached;
-      if (_percent < highestPercent) {
-        _percent = highestPercent.clamp(0.0, 1.0);
-      }
-    } else if (coin is Epiccash) {
-      final double highestPercent =
-          (ref.watch(pWallets).getWallet(widget.walletId) as EpiccashWallet)
-              .highestPercent;
-      if (_percent < highestPercent) {
-        _percent = highestPercent.clamp(0.0, 1.0);
-      }
-    } else if (coin is Mimblewimblecoin) {
-      final double highestPercent =
-          (ref.watch(pWallets).getWallet(widget.walletId)
-                  as MimblewimblecoinWallet)
-              .highestPercent;
-      if (_percent < highestPercent) {
-        _percent = highestPercent.clamp(0.0, 1.0);
-      }
-    }
-
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) {
         return Background(
           child: Scaffold(
-            backgroundColor: Theme.of(
-              context,
-            ).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(context)
+                .extension<StackColors>()!
+                .background,
             appBar: AppBar(
               leading: AppBarBackButton(
                 onPressed: () {
@@ -387,97 +305,95 @@ class _WalletNetworkSettingsViewState
               ),
               title: Text("Network", style: STextStyles.navBarTitle(context)),
               actions: [
-                if (ref.watch(pWalletCoin(widget.walletId))
-                    is! Mimblewimblecoin)
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      top: 10,
-                      bottom: 10,
-                      right: 10,
-                    ),
-                    child: AspectRatio(
-                      aspectRatio: 1,
-                      child: AppBarIconButton(
-                        key: const Key(
-                          "walletNetworkSettingsAddNewNodeViewButton",
-                        ),
-                        size: 36,
-                        shadows: const [],
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.background,
-                        icon: SvgPicture.asset(
-                          Assets.svg.verticalEllipsis,
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.accentColorDark,
-                          width: 20,
-                          height: 20,
-                        ),
-                        onPressed: () {
-                          showDialog<dynamic>(
-                            barrierColor: Colors.transparent,
-                            barrierDismissible: true,
-                            context: context,
-                            builder: (_) {
-                              return Stack(
-                                children: [
-                                  Positioned(
-                                    top: 9,
-                                    right: 10,
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: Theme.of(
-                                          context,
-                                        ).extension<StackColors>()!.popupBG,
-                                        borderRadius: BorderRadius.circular(
-                                          Constants.size.circularBorderRadius,
-                                        ),
-                                        // boxShadow: [CFColors.standardBoxShadow],
-                                        boxShadow: const [],
+                Padding(
+                  padding: const EdgeInsets.only(
+                    top: 10,
+                    bottom: 10,
+                    right: 10,
+                  ),
+                  child: AspectRatio(
+                    aspectRatio: 1,
+                    child: AppBarIconButton(
+                      key: const Key(
+                        "walletNetworkSettingsAddNewNodeViewButton",
+                      ),
+                      size: 36,
+                      shadows: const [],
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .background,
+                      icon: SvgPicture.asset(
+                        Assets.svg.verticalEllipsis,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark,
+                        width: 20,
+                        height: 20,
+                      ),
+                      onPressed: () {
+                        showDialog<dynamic>(
+                          barrierColor: Colors.transparent,
+                          barrierDismissible: true,
+                          context: context,
+                          builder: (_) {
+                            return Stack(
+                              children: [
+                                Positioned(
+                                  top: 9,
+                                  right: 10,
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .popupBG,
+                                      borderRadius: BorderRadius.circular(
+                                        Constants.size.circularBorderRadius,
                                       ),
-                                      child: Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          GestureDetector(
-                                            onTap: () {
-                                              Navigator.of(context).pop();
-                                              showDialog<void>(
-                                                context: context,
-                                                useSafeArea: false,
-                                                barrierDismissible: true,
-                                                builder: (context) {
-                                                  return ConfirmFullRescanDialog(
-                                                    onConfirm: _attemptRescan,
-                                                  );
-                                                },
-                                              );
-                                            },
-                                            child: RoundedWhiteContainer(
-                                              child: Material(
-                                                color: Colors.transparent,
-                                                child: Text(
-                                                  "Rescan blockchain",
-                                                  style: STextStyles.baseXS(
-                                                    context,
-                                                  ),
+                                      // boxShadow: [CFColors.standardBoxShadow],
+                                      boxShadow: const [],
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        GestureDetector(
+                                          onTap: () {
+                                            Navigator.of(context).pop();
+                                            showDialog<void>(
+                                              context: context,
+                                              useSafeArea: false,
+                                              barrierDismissible: true,
+                                              builder: (context) {
+                                                return ConfirmFullRescanDialog(
+                                                  onConfirm: _attemptRescan,
+                                                );
+                                              },
+                                            );
+                                          },
+                                          child: RoundedWhiteContainer(
+                                            child: Material(
+                                              color: Colors.transparent,
+                                              child: Text(
+                                                "Rescan blockchain",
+                                                style: STextStyles.baseXS(
+                                                  context,
                                                 ),
                                               ),
                                             ),
                                           ),
-                                        ],
-                                      ),
+                                        ),
+                                      ],
                                     ),
                                   ),
-                                ],
-                              );
-                            },
-                          );
-                        },
-                      ),
+                                ),
+                              ],
+                            );
+                          },
+                        );
+                      },
                     ),
                   ),
+                ),
               ],
             ),
             body: SafeArea(
@@ -545,9 +461,9 @@ class _WalletNetworkSettingsViewState
                         Assets.svg.radio,
                         height: isDesktop ? 19 : 14,
                         width: isDesktop ? 19 : 14,
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.accentColorGreen,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorGreen,
                       ),
                     ),
                   ),
@@ -570,12 +486,12 @@ class _WalletNetworkSettingsViewState
                       ProgressBar(
                         width: progressLength,
                         height: 5,
-                        fillColor: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.accentColorGreen,
-                        backgroundColor: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textFieldDefaultBG,
+                        fillColor: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorGreen,
+                        backgroundColor: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textFieldDefaultBG,
                         percent: 1,
                       ),
                     ],
@@ -608,9 +524,9 @@ class _WalletNetworkSettingsViewState
                         Assets.svg.radioSyncing,
                         height: 14,
                         width: 14,
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.accentColorYellow,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorYellow,
                       ),
                     ),
                   ),
@@ -642,26 +558,6 @@ class _WalletNetworkSettingsViewState
                                             .accentColorYellow,
                                       ),
                                 ),
-                                if (coin is Monero ||
-                                    coin is Wownero ||
-                                    coin is Epiccash ||
-                                    coin is Salvium ||
-                                    coin is Mimblewimblecoin ||
-                                    (coin is Litecoin &&
-                                        ref.watch(
-                                          pWalletInfo(
-                                            widget.walletId,
-                                          ).select((s) => s.isMwebEnabled),
-                                        )))
-                                  Text(
-                                    " (Blocks to go: ${_blocksRemaining == -1 ? "?" : _blocksRemaining})",
-                                    style: STextStyles.syncPercent(context)
-                                        .copyWith(
-                                          color: Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .accentColorYellow,
-                                        ),
-                                  ),
                               ],
                             ),
                           ],
@@ -671,12 +567,12 @@ class _WalletNetworkSettingsViewState
                       ProgressBar(
                         width: progressLength,
                         height: 5,
-                        fillColor: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.accentColorYellow,
-                        backgroundColor: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textFieldDefaultBG,
+                        fillColor: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorYellow,
+                        backgroundColor: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textFieldDefaultBG,
                         percent: _percent,
                       ),
                     ],
@@ -709,9 +605,9 @@ class _WalletNetworkSettingsViewState
                         Assets.svg.radioProblem,
                         height: 14,
                         width: 14,
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.accentColorRed,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorRed,
                       ),
                     ),
                   ),
@@ -726,17 +622,17 @@ class _WalletNetworkSettingsViewState
                             Text(
                               "Unable to synchronize",
                               style: STextStyles.w600_12(context).copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.accentColorRed,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorRed,
                               ),
                             ),
                             Text(
                               "0%",
                               style: STextStyles.syncPercent(context).copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.accentColorRed,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorRed,
                               ),
                             ),
                           ],
@@ -746,12 +642,12 @@ class _WalletNetworkSettingsViewState
                       ProgressBar(
                         width: progressLength,
                         height: 5,
-                        fillColor: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.accentColorRed,
-                        backgroundColor: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textFieldDefaultBG,
+                        fillColor: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorRed,
+                        backgroundColor: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textFieldDefaultBG,
                         percent: 0,
                       ),
                     ],
@@ -763,15 +659,15 @@ class _WalletNetworkSettingsViewState
             Padding(
               padding: const EdgeInsets.only(top: 12),
               child: RoundedContainer(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.warningBackground,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .warningBackground,
                 child: Text(
                   "Please check your internet connection and make sure your current node is not having issues.",
                   style: STextStyles.baseXS(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.warningForeground,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .warningForeground,
                   ),
                 ),
               ),
@@ -857,9 +753,9 @@ class _WalletNetworkSettingsViewState
                           Assets.svg.tor,
                           height: isDesktop ? 19 : 14,
                           width: isDesktop ? 19 : 14,
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.accentColorGreen,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .accentColorGreen,
                         ),
                       ),
                     ),
@@ -870,9 +766,10 @@ class _WalletNetworkSettingsViewState
                       width: _iconSize,
                       height: _iconSize,
                       decoration: BoxDecoration(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textDark.withOpacity(0.08),
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark
+                            .withOpacity(0.08),
                         borderRadius: BorderRadius.circular(_iconSize),
                       ),
                       child: Center(
@@ -880,9 +777,9 @@ class _WalletNetworkSettingsViewState
                           Assets.svg.tor,
                           height: isDesktop ? 19 : 14,
                           width: isDesktop ? 19 : 14,
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.textDark,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textDark,
                         ),
                       ),
                     ),
@@ -900,9 +797,9 @@ class _WalletNetworkSettingsViewState
                           "Tor status",
                           style: STextStyles.desktopTextExtraExtraSmall(context)
                               .copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.textDark,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textDark,
                               ),
                         ),
                         if (_torConnectionStatus ==
@@ -967,13 +864,8 @@ class _WalletNetworkSettingsViewState
             coin: ref.watch(pWalletCoin(widget.walletId)),
             popBackToRoute: WalletNetworkSettingsView.routeName,
           ),
-          if (isDesktop &&
-              ref.watch(pWalletCoin(widget.walletId)) is! Epiccash &&
-              ref.watch(pWalletCoin(widget.walletId)) is! Mimblewimblecoin)
-            const SizedBox(height: 32),
-          if (isDesktop &&
-              ref.watch(pWalletCoin(widget.walletId)) is! Epiccash &&
-              ref.watch(pWalletCoin(widget.walletId)) is! Mimblewimblecoin)
+          if (isDesktop) const SizedBox(height: 32),
+          if (isDesktop)
             Padding(
               padding: const EdgeInsets.only(bottom: 12),
               child: Row(
@@ -987,8 +879,7 @@ class _WalletNetworkSettingsViewState
                 ],
               ),
             ),
-          if (isDesktop &&
-              ref.watch(pWalletCoin(widget.walletId)) is! Mimblewimblecoin)
+          if (isDesktop)
             RoundedWhiteContainer(
               borderColor: isDesktop
                   ? Theme.of(context).extension<StackColors>()!.background
@@ -1011,18 +902,18 @@ class _WalletNetworkSettingsViewState
                           width: _iconSize,
                           height: _iconSize,
                           decoration: BoxDecoration(
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.textFieldDefaultBG,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textFieldDefaultBG,
                             borderRadius: BorderRadius.circular(_iconSize),
                           ),
                           child: Center(
                             child: SvgPicture.asset(
                               Assets.svg.networkWired,
                               width: 24,
-                              color: Theme.of(
-                                context,
-                              ).extension<StackColors>()!.textDark,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textDark,
                             ),
                           ),
                         ),
@@ -1037,9 +928,9 @@ class _WalletNetworkSettingsViewState
                                   STextStyles.desktopTextExtraExtraSmall(
                                     context,
                                   ).copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.textDark,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textDark,
                                   ),
                             ),
                             Text(
@@ -1058,9 +949,9 @@ class _WalletNetworkSettingsViewState
                           : Assets.svg.chevronDown,
                       width: 12,
                       height: 6,
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textSubtitle1,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textSubtitle1,
                     ),
                   ],
                 ),

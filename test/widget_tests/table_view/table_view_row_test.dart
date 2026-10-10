@@ -1,11 +1,8 @@
 import 'package:mockito/annotations.dart';
-import 'package:stackwallet/services/wallets.dart';
-import 'package:stackwallet/themes/theme_service.dart';
+import 'package:paymint/services/wallets.dart';
+import 'package:paymint/themes/theme_service.dart';
 
-@GenerateMocks([
-  Wallets,
-  ThemeService,
-], customMocks: [])
+@GenerateMocks([Wallets, ThemeService], customMocks: [])
 void main() {
   // testWidgets('Test table view row', (widgetTester) async {
   //   widgetTester.binding.window.physicalSizeTestValue = const Size(2500, 1800);

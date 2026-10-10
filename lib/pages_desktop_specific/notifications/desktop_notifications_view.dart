@@ -8,15 +8,11 @@
  *
  */
 
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../notifications/notification_feed_entry_card.dart';
-import '../../providers/global/shopin_bit_service_provider.dart';
 import '../../providers/ui/notification_feed_provider.dart';
-import '../../services/shopinbit/shopinbit_service.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/text_styles.dart';
 import '../../widgets/desktop/desktop_app_bar.dart';
@@ -35,22 +31,6 @@ class DesktopNotificationsView extends ConsumerStatefulWidget {
 
 class _DesktopNotificationsViewState
     extends ConsumerState<DesktopNotificationsView> {
-  late final ShopInBitService _shopInBitService;
-
-  @override
-  void initState() {
-    super.initState();
-    _shopInBitService = ref.read(pShopinBitService);
-  }
-
-  @override
-  void dispose() {
-    // Viewing the (always-global) desktop list acknowledges ShopinBit
-    // notifications, clearing the bell/feed like the wallet ones.
-    unawaited(_shopInBitService.markAllNotificationsRead());
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     final entries = ref.watch(pNotificationFeed(null));

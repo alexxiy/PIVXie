@@ -15,7 +15,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../providers/desktop/current_desktop_menu_item.dart';
-import '../providers/global/shopin_bit_service_provider.dart';
+import '../providers/global/notifications_provider.dart';
 import '../themes/stack_colors.dart';
 import '../themes/theme_providers.dart';
 import '../utilities/assets.dart';
@@ -45,69 +45,10 @@ class DesktopMyStackIcon extends ConsumerWidget {
           DesktopMenuItemId.myStack ==
               ref.watch(currentDesktopMenuItemProvider.state).state
           ? Theme.of(context).extension<StackColors>()!.accentColorDark
-          : Theme.of(
-              context,
-            ).extension<StackColors>()!.accentColorDark.withOpacity(0.8),
-    );
-  }
-}
-
-class DesktopExchangeIcon extends ConsumerWidget {
-  const DesktopExchangeIcon({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return SvgPicture.asset(
-      Assets.svg.exchangeDesktop,
-      width: 20,
-      height: 20,
-      color:
-          DesktopMenuItemId.exchange ==
-              ref.watch(currentDesktopMenuItemProvider.state).state
-          ? Theme.of(context).extension<StackColors>()!.accentColorDark
-          : Theme.of(
-              context,
-            ).extension<StackColors>()!.accentColorDark.withOpacity(0.8),
-    );
-  }
-}
-
-class DesktopBuyIcon extends ConsumerWidget {
-  const DesktopBuyIcon({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return SvgPicture.file(
-      File(ref.watch(themeAssetsProvider).buy),
-      width: 20,
-      height: 20,
-      color:
-          DesktopMenuItemId.buy ==
-              ref.watch(currentDesktopMenuItemProvider.state).state
-          ? Theme.of(context).extension<StackColors>()!.accentColorDark
-          : Theme.of(
-              context,
-            ).extension<StackColors>()!.accentColorDark.withOpacity(0.8),
-    );
-  }
-}
-
-class DesktopServicesIcon extends ConsumerWidget {
-  const DesktopServicesIcon({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    return SvgPicture.asset(
-      Assets.svg.solidSliders,
-      width: 20,
-      height: 20,
-      color:
-          DesktopMenuItemId.services ==
-              ref.watch(currentDesktopMenuItemProvider.state).state
-          ? Theme.of(context).extension<StackColors>()!.accentColorDark
-          : Theme.of(
-              context,
-            ).extension<StackColors>()!.accentColorDark.withOpacity(0.8),
+          : Theme.of(context)
+                .extension<StackColors>()!
+                .accentColorDark
+                .withOpacity(0.8),
     );
   }
 }
@@ -134,9 +75,10 @@ class DesktopNotificationsIcon extends ConsumerWidget {
                 DesktopMenuItemId.notifications ==
                     ref.watch(currentDesktopMenuItemProvider.state).state
                 ? Theme.of(context).extension<StackColors>()!.accentColorDark
-                : Theme.of(
-                    context,
-                  ).extension<StackColors>()!.accentColorDark.withOpacity(0.8),
+                : Theme.of(context)
+                      .extension<StackColors>()!
+                      .accentColorDark
+                      .withOpacity(0.8),
           );
   }
 }
@@ -154,9 +96,10 @@ class DesktopAddressBookIcon extends ConsumerWidget {
           DesktopMenuItemId.addressBook ==
               ref.watch(currentDesktopMenuItemProvider.state).state
           ? Theme.of(context).extension<StackColors>()!.accentColorDark
-          : Theme.of(
-              context,
-            ).extension<StackColors>()!.accentColorDark.withOpacity(0.8),
+          : Theme.of(context)
+                .extension<StackColors>()!
+                .accentColorDark
+                .withOpacity(0.8),
     );
   }
 }
@@ -174,9 +117,10 @@ class DesktopSettingsIcon extends ConsumerWidget {
           DesktopMenuItemId.settings ==
               ref.watch(currentDesktopMenuItemProvider.state).state
           ? Theme.of(context).extension<StackColors>()!.accentColorDark
-          : Theme.of(
-              context,
-            ).extension<StackColors>()!.accentColorDark.withOpacity(0.8),
+          : Theme.of(context)
+                .extension<StackColors>()!
+                .accentColorDark
+                .withOpacity(0.8),
     );
   }
 }
@@ -194,9 +138,10 @@ class DesktopSupportIcon extends ConsumerWidget {
           DesktopMenuItemId.support ==
               ref.watch(currentDesktopMenuItemProvider.state).state
           ? Theme.of(context).extension<StackColors>()!.accentColorDark
-          : Theme.of(
-              context,
-            ).extension<StackColors>()!.accentColorDark.withOpacity(0.8),
+          : Theme.of(context)
+                .extension<StackColors>()!
+                .accentColorDark
+                .withOpacity(0.8),
     );
   }
 }
@@ -214,9 +159,10 @@ class DesktopAboutIcon extends ConsumerWidget {
           DesktopMenuItemId.about ==
               ref.watch(currentDesktopMenuItemProvider.state).state
           ? Theme.of(context).extension<StackColors>()!.accentColorDark
-          : Theme.of(
-              context,
-            ).extension<StackColors>()!.accentColorDark.withOpacity(0.8),
+          : Theme.of(context)
+                .extension<StackColors>()!
+                .accentColorDark
+                .withOpacity(0.8),
     );
   }
 }
@@ -230,9 +176,10 @@ class DesktopExitIcon extends ConsumerWidget {
       Assets.svg.exitDesktop,
       width: 20,
       height: 20,
-      color: Theme.of(
-        context,
-      ).extension<StackColors>()!.accentColorDark.withOpacity(0.8),
+      color: Theme.of(context)
+          .extension<StackColors>()!
+          .accentColorDark
+          .withOpacity(0.8),
     );
   }
 }
@@ -327,9 +274,9 @@ class _DesktopMenuItemState<T> extends ConsumerState<DesktopMenuItem<T>>
           ? Theme.of(context)
                 .extension<StackColors>()!
                 .getDesktopMenuButtonStyleSelected(context)
-          : Theme.of(
-              context,
-            ).extension<StackColors>()!.getDesktopMenuButtonStyle(context),
+          : Theme.of(context)
+                .extension<StackColors>()!
+                .getDesktopMenuButtonStyle(context),
       onPressed: () {
         onChanged(value);
       },

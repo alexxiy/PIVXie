@@ -20,8 +20,6 @@ import '../../../services/event_bus/global_event_bus.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/constants.dart';
 import '../../../utilities/util.dart';
-import '../../../wallets/isar/providers/eth/current_token_wallet_provider.dart';
-import '../../../wallets/isar/providers/solana/current_sol_token_wallet_provider.dart';
 import '../../../widgets/animated_widgets/rotating_arrows.dart';
 
 /// [eventBus] should only be set during testing
@@ -30,7 +28,6 @@ class WalletRefreshButton extends ConsumerStatefulWidget {
     super.key,
     required this.walletId,
     required this.initialSyncStatus,
-    this.tokenContractAddress,
     this.onPressed,
     this.eventBus,
     this.overrideIconColor,
@@ -38,7 +35,6 @@ class WalletRefreshButton extends ConsumerStatefulWidget {
 
   final String walletId;
   final WalletSyncStatus initialSyncStatus;
-  final String? tokenContractAddress;
   final VoidCallback? onPressed;
   final EventBus? eventBus;
   final Color? overrideIconColor;
@@ -58,33 +54,33 @@ class _RefreshButtonState extends ConsumerState<WalletRefreshButton> {
   void initState() {
     _spinController = RotatingArrowsController();
 
-    eventBus =
-        widget.eventBus != null ? widget.eventBus! : GlobalEventBus.instance;
+    eventBus = widget.eventBus != null
+        ? widget.eventBus!
+        : GlobalEventBus.instance;
 
-    _syncStatusSubscription =
-        eventBus.on<WalletSyncStatusChangedEvent>().listen(
-      (event) async {
-        if (event.walletId == widget.walletId) {
-          switch (event.newStatus) {
-            case WalletSyncStatus.unableToSync:
-              if (_spinController.hasLoadedAnimation) {
-                _spinController.stop?.call();
-              }
-              break;
-            case WalletSyncStatus.synced:
-              if (_spinController.hasLoadedAnimation) {
-                _spinController.stop?.call();
-              }
-              break;
-            case WalletSyncStatus.syncing:
-              if (_spinController.hasLoadedAnimation) {
-                _spinController.repeat?.call();
-              }
-              break;
+    _syncStatusSubscription = eventBus
+        .on<WalletSyncStatusChangedEvent>()
+        .listen((event) async {
+          if (event.walletId == widget.walletId) {
+            switch (event.newStatus) {
+              case WalletSyncStatus.unableToSync:
+                if (_spinController.hasLoadedAnimation) {
+                  _spinController.stop?.call();
+                }
+                break;
+              case WalletSyncStatus.synced:
+                if (_spinController.hasLoadedAnimation) {
+                  _spinController.stop?.call();
+                }
+                break;
+              case WalletSyncStatus.syncing:
+                if (_spinController.hasLoadedAnimation) {
+                  _spinController.repeat?.call();
+                }
+                break;
+            }
           }
-        }
-      },
-    );
+        });
 
     super.initState();
   }
@@ -112,28 +108,10 @@ class _RefreshButtonState extends ConsumerState<WalletRefreshButton> {
               : null,
           splashColor: Theme.of(context).extension<StackColors>()!.highlight,
           onPressed: () {
-            if (widget.tokenContractAddress == null) {
-              // Solana token - check if there's a current Solana token wallet.
-              final solanaTokenWallet = ref.read(pCurrentSolanaTokenWallet);
-              if (solanaTokenWallet != null) {
-                if (!solanaTokenWallet.refreshMutex.isLocked) {
-                  _spinController.repeat?.call();
-                  solanaTokenWallet.refresh().then((_) => _spinController.stop?.call());
-                }
-              } else {
-                // Fall back to refreshing the parent Solana wallet.
-                final wallet = ref.read(pWallets).getWallet(widget.walletId);
-                final isRefreshing = wallet.refreshMutex.isLocked;
-                if (!isRefreshing) {
-                  _spinController.repeat?.call();
-                  wallet.refresh().then((_) => _spinController.stop?.call());
-                }
-              }
-            } else {
-              // Ethereum token.
-              if (!ref.read(pCurrentTokenWallet)!.refreshMutex.isLocked) {
-                ref.read(pCurrentTokenWallet)!.refresh();
-              }
+            final wallet = ref.read(pWallets).getWallet(widget.walletId);
+            if (!wallet.refreshMutex.isLocked) {
+              _spinController.repeat?.call();
+              wallet.refresh().then((_) => _spinController.stop?.call());
             }
           },
           elevation: 0,
@@ -154,12 +132,10 @@ class _RefreshButtonState extends ConsumerState<WalletRefreshButton> {
             color: widget.overrideIconColor != null
                 ? widget.overrideIconColor!
                 : isDesktop
-                    ? Theme.of(context)
-                        .extension<StackColors>()!
-                        .textFieldDefaultSearchIconRight
-                    : Theme.of(context)
-                        .extension<StackColors>()!
-                        .textFavoriteCard,
+                ? Theme.of(context)
+                      .extension<StackColors>()!
+                      .textFieldDefaultSearchIconRight
+                : Theme.of(context).extension<StackColors>()!.textFavoriteCard,
           ),
         ),
       ),

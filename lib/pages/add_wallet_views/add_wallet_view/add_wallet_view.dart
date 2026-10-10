@@ -8,44 +8,30 @@
  *
  */
 
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:isar_community/isar.dart';
 
 import '../../../app_config.dart';
-import '../../../db/isar/main_db.dart';
 import '../../../models/add_wallet_list_entity/add_wallet_list_entity.dart';
 import '../../../models/add_wallet_list_entity/sub_classes/coin_entity.dart';
-import '../../../models/add_wallet_list_entity/sub_classes/eth_token_entity.dart';
-import '../../../models/add_wallet_list_entity/sub_classes/sol_token_entity.dart';
-import '../../../models/isar/models/ethereum/eth_contract.dart';
-import '../../../models/isar/models/solana/sol_contract.dart';
 import '../../../pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import '../../../providers/providers.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/constants.dart';
-import '../../../utilities/default_eth_tokens.dart';
-import '../../../utilities/default_sol_tokens.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../widgets/background.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/desktop/desktop_app_bar.dart';
-import '../../../widgets/desktop/desktop_dialog.dart';
 import '../../../widgets/desktop/desktop_scaffold.dart';
 import '../../../widgets/expandable.dart';
 import '../../../widgets/icon_widgets/x_icon.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/stack_text_field.dart';
 import '../../../widgets/textfield_icon_button.dart';
-import '../add_token_view/add_custom_solana_token_view.dart';
-import '../add_token_view/add_custom_token_view.dart';
-import '../add_token_view/sub_widgets/add_custom_token_selector.dart';
 import 'sub_widgets/add_wallet_text.dart';
 import 'sub_widgets/expanding_sub_list_item.dart';
 import 'sub_widgets/next_button.dart';
@@ -71,8 +57,6 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
   ];
   final List<AddWalletListEntity> coinEntities = [];
   final List<AddWalletListEntity> coinTestnetEntities = [];
-  final List<EthTokenEntity> tokenEntities = [];
-  final List<SolTokenEntity> solTokenEntities = [];
 
   final bool isDesktop = Util.isDesktop;
 
@@ -87,81 +71,11 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
         (e) =>
             e.ticker.toLowerCase().contains(lowercaseTerm) ||
             e.name.toLowerCase().contains(lowercaseTerm) ||
-            e.cryptoCurrency.identifier.toLowerCase().contains(lowercaseTerm) ||
-            (e is EthTokenEntity &&
-                e.token.address.toLowerCase().contains(lowercaseTerm)) ||
-            (e is SolTokenEntity &&
-                e.token.address.toLowerCase().contains(lowercaseTerm)),
+            e.cryptoCurrency.identifier.toLowerCase().contains(lowercaseTerm),
       );
     }
 
     return _entities;
-  }
-
-  Future<void> _addToken() async {
-    EthContract? contract;
-    if (isDesktop) {
-      contract = await showDialog(
-        context: context,
-        builder:
-            (context) => const DesktopDialog(
-              maxWidth: 580,
-              maxHeight: 500,
-              child: AddCustomTokenView(),
-            ),
-      );
-    } else {
-      contract = await Navigator.of(
-        context,
-      ).pushNamed(AddCustomTokenView.routeName);
-    }
-
-    if (contract != null) {
-      await MainDB.instance.putEthContract(contract);
-      unawaited(ref.read(priceAnd24hChangeNotifierProvider).updatePrice());
-      if (mounted) {
-        setState(() {
-          if (tokenEntities
-              .where((e) => e.token.address == contract!.address)
-              .isEmpty) {
-            tokenEntities.add(EthTokenEntity(contract!));
-            tokenEntities.sort((a, b) => a.token.name.compareTo(b.token.name));
-          }
-        });
-      }
-    }
-  }
-
-  Future<void> _addSolToken() async {
-    SolContract? token;
-    if (isDesktop) {
-      token = await showDialog(
-        context: context,
-        builder:
-            (context) => const DesktopDialog(
-              maxWidth: 580,
-              maxHeight: 500,
-              child: AddCustomSolanaTokenView(),
-            ),
-      );
-    } else {
-      token = await Navigator.of(
-        context,
-      ).pushNamed(AddCustomSolanaTokenView.routeName);
-    }
-
-    if (token != null) {
-      await MainDB.instance.putSolContract(token);
-      if (mounted) {
-        setState(() {
-          if (solTokenEntities
-              .where((e) => e.token.address == token!.address)
-              .isEmpty) {
-            solTokenEntities.add(SolTokenEntity(token!));
-          }
-        });
-      }
-    }
   }
 
   @override
@@ -173,42 +87,6 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
 
     if (ref.read(prefsChangeNotifierProvider).showTestNetCoins) {
       coinTestnetEntities.addAll(_coinsTestnet.map((e) => CoinEntity(e)));
-    }
-
-    if (AppConfig.coins.whereType<Ethereum>().isNotEmpty) {
-      final contracts =
-          MainDB.instance.getEthContracts().sortByName().findAllSync();
-
-      if (contracts.isEmpty) {
-        contracts.addAll(DefaultTokens.list);
-        MainDB.instance
-            .putEthContracts(contracts)
-            .then(
-              (value) =>
-                  ref.read(priceAnd24hChangeNotifierProvider).updatePrice(),
-            );
-      }
-
-      tokenEntities.addAll(contracts.map((e) => EthTokenEntity(e)));
-    }
-
-    if (AppConfig.coins.whereType<Solana>().isNotEmpty) {
-      final contracts = MainDB.instance
-          .getSolContracts()
-          .sortByName()
-          .findAllSync();
-
-      if (contracts.isEmpty) {
-        contracts.addAll(DefaultSolTokens.list);
-        MainDB.instance
-            .putSolContracts(contracts)
-            .then(
-              (value) =>
-                  ref.read(priceAnd24hChangeNotifierProvider).updatePrice(),
-            );
-      }
-
-      solTokenEntities.addAll(contracts.map((e) => SolTokenEntity(e)));
     }
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -274,60 +152,60 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
                                 _searchTerm = value;
                               });
                             },
-                            style: STextStyles.desktopTextMedium(
-                              context,
-                            ).copyWith(height: 2),
-                            decoration: standardInputDecoration(
-                              "Search",
-                              _searchFocusNode,
-                              context,
-                            ).copyWith(
-                              contentPadding: const EdgeInsets.symmetric(
-                                vertical: 10,
-                              ),
-                              prefixIcon: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 16,
-                                  // vertical: 20,
-                                ),
-                                child: SvgPicture.asset(
-                                  Assets.svg.search,
-                                  width: 24,
-                                  height: 24,
-                                  color:
-                                      Theme.of(context)
+                            style: STextStyles.desktopTextMedium(context)
+                                .copyWith(height: 2),
+                            decoration:
+                                standardInputDecoration(
+                                  "Search",
+                                  _searchFocusNode,
+                                  context,
+                                ).copyWith(
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    vertical: 10,
+                                  ),
+                                  prefixIcon: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 16,
+                                      // vertical: 20,
+                                    ),
+                                    child: SvgPicture.asset(
+                                      Assets.svg.search,
+                                      width: 24,
+                                      height: 24,
+                                      color: Theme.of(context)
                                           .extension<StackColors>()!
                                           .textFieldDefaultSearchIconLeft,
-                                ),
-                              ),
-                              suffixIcon:
-                                  _searchFieldController.text.isNotEmpty
+                                    ),
+                                  ),
+                                  suffixIcon:
+                                      _searchFieldController.text.isNotEmpty
                                       ? Padding(
-                                        padding: const EdgeInsets.only(
-                                          right: 10,
-                                        ),
-                                        child: UnconstrainedBox(
-                                          child: Row(
-                                            children: [
-                                              TextFieldIconButton(
-                                                child: const XIcon(
-                                                  width: 24,
-                                                  height: 24,
-                                                ),
-                                                onTap: () async {
-                                                  setState(() {
-                                                    _searchFieldController
-                                                        .text = "";
-                                                    _searchTerm = "";
-                                                  });
-                                                },
-                                              ),
-                                            ],
+                                          padding: const EdgeInsets.only(
+                                            right: 10,
                                           ),
-                                        ),
-                                      )
+                                          child: UnconstrainedBox(
+                                            child: Row(
+                                              children: [
+                                                TextFieldIconButton(
+                                                  child: const XIcon(
+                                                    width: 24,
+                                                    height: 24,
+                                                  ),
+                                                  onTap: () async {
+                                                    setState(() {
+                                                      _searchFieldController
+                                                              .text =
+                                                          "";
+                                                      _searchTerm = "";
+                                                    });
+                                                  },
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        )
                                       : null,
-                            ),
+                                ),
                           ),
                         ),
                       ),
@@ -352,26 +230,6 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
                                   initialState: ExpandableState.expanded,
                                   animationDurationMultiplier: 0.5,
                                 ),
-                              if (tokenEntities.isNotEmpty)
-                                ExpandingSubListItem(
-                                  title: "Ethereum tokens",
-                                  entities: filter(_searchTerm, tokenEntities),
-                                  initialState: ExpandableState.expanded,
-                                  animationDurationMultiplier: 0.5,
-                                  trailing: AddCustomTokenSelector(
-                                    addFunction: _addToken,
-                                  ),
-                                ),
-                              if (solTokenEntities.isNotEmpty)
-                                ExpandingSubListItem(
-                                  title: "Solana tokens",
-                                  entities: filter(_searchTerm, solTokenEntities),
-                                  initialState: ExpandableState.expanded,
-                                  animationDurationMultiplier: 0.5,
-                                  trailing: AddCustomTokenSelector(
-                                    addFunction: _addSolToken,
-                                  ),
-                                ),
                             ],
                           ),
                         ),
@@ -395,8 +253,9 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
     } else {
       return Background(
         child: Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(context)
+              .extension<StackColors>()!
+              .background,
           appBar: AppBar(
             leading: AppBarBackButton(
               onPressed: () {
@@ -419,8 +278,7 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
                         Constants.size.circularBorderRadius,
                       ),
                       child: Semantics(
-                        label:
-                            "Search Text Field. Inputs Text To Search In Wallets.",
+                        label: "Search Text Field. Inputs Text To Search In Wallets.",
                         excludeSemantics: true,
                         child: TextField(
                           autofocus: isDesktop,
@@ -428,49 +286,53 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
                           enableSuggestions: !isDesktop,
                           controller: _searchFieldController,
                           focusNode: _searchFocusNode,
-                          onChanged:
-                              (value) => setState(() => _searchTerm = value),
+                          onChanged: (value) =>
+                              setState(() => _searchTerm = value),
                           style: STextStyles.field(context),
-                          decoration: standardInputDecoration(
-                            "Search",
-                            _searchFocusNode,
-                            context,
-                            desktopMed: isDesktop,
-                          ).copyWith(
-                            prefixIcon: Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 16,
-                              ),
-                              child: SvgPicture.asset(
-                                Assets.svg.search,
-                                width: 16,
-                                height: 16,
-                              ),
-                            ),
-                            suffixIcon:
-                                _searchFieldController.text.isNotEmpty
+                          decoration:
+                              standardInputDecoration(
+                                "Search",
+                                _searchFocusNode,
+                                context,
+                                desktopMed: isDesktop,
+                              ).copyWith(
+                                prefixIcon: Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 16,
+                                  ),
+                                  child: SvgPicture.asset(
+                                    Assets.svg.search,
+                                    width: 16,
+                                    height: 16,
+                                  ),
+                                ),
+                                suffixIcon:
+                                    _searchFieldController.text.isNotEmpty
                                     ? Padding(
-                                      padding: const EdgeInsets.only(right: 0),
-                                      child: UnconstrainedBox(
-                                        child: Row(
-                                          children: [
-                                            TextFieldIconButton(
-                                              child: const XIcon(),
-                                              onTap: () async {
-                                                setState(() {
-                                                  _searchFieldController.text =
-                                                      "";
-                                                  _searchTerm = "";
-                                                });
-                                              },
-                                            ),
-                                          ],
+                                        padding: const EdgeInsets.only(
+                                          right: 0,
                                         ),
-                                      ),
-                                    )
+                                        child: UnconstrainedBox(
+                                          child: Row(
+                                            children: [
+                                              TextFieldIconButton(
+                                                child: const XIcon(),
+                                                onTap: () async {
+                                                  setState(() {
+                                                    _searchFieldController
+                                                            .text =
+                                                        "";
+                                                    _searchTerm = "";
+                                                  });
+                                                },
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      )
                                     : null,
-                          ),
+                              ),
                         ),
                       ),
                     ),
@@ -491,18 +353,6 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
                                   _searchTerm,
                                   coinTestnetEntities,
                                 ),
-                                initialState: ExpandableState.expanded,
-                              ),
-                            if (tokenEntities.isNotEmpty)
-                              ExpandingSubListItem(
-                                title: "Ethereum tokens",
-                                entities: filter(_searchTerm, tokenEntities),
-                                initialState: ExpandableState.expanded,
-                              ),
-                            if (solTokenEntities.isNotEmpty)
-                              ExpandingSubListItem(
-                                title: "Solana tokens",
-                                entities: filter(_searchTerm, solTokenEntities),
                                 initialState: ExpandableState.expanded,
                               ),
                           ],

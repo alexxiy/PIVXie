@@ -11,87 +11,38 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../db/isar/main_db.dart';
-import '../../../models/isar/models/contract.dart';
 import '../../../providers/wallet/public_private_balance_state_provider.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/amount/amount_formatter.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
-import '../../../wallets/crypto_currency/coins/solana.dart';
-import '../../../wallets/isar/providers/eth/token_balance_provider.dart';
-import '../../../wallets/isar/providers/solana/sol_token_balance_provider.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
 
 class WalletInfoRowBalance extends ConsumerWidget {
   const WalletInfoRowBalance({
     super.key,
     required this.walletId,
-    this.contractAddress,
     this.balanceType,
   });
 
   final String walletId;
-  final String? contractAddress;
   final BalanceType? balanceType;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final info = ref.watch(pWalletInfo(walletId));
 
-    final Amount totalBalance;
-    Contract? contract;
-
-    if (contractAddress == null) {
-      totalBalance = balanceType == BalanceType.private
-          ? info.cachedBalanceSecondary.total + info.cachedBalanceTertiary.total
-          : balanceType == BalanceType.public
-          ? info.cachedBalance.total
-          : info.cachedBalance.total +
-                info.cachedBalanceSecondary.total +
-                info.cachedBalanceTertiary.total;
-
-      contract = null;
-    } else {
-      // Check if it's a Solana wallet.
-      if (info.coin is Solana) {
-        contract = MainDB.instance.getSolContractSync(contractAddress!);
-        if (contract != null) {
-          final solanaTokenInfo = ref.watch(
-            pSolanaTokenWalletInfo((
-              walletId: walletId,
-              tokenMint: contractAddress!,
-            )),
-          );
-          totalBalance = solanaTokenInfo.getCachedBalance().total;
-        } else {
-          // Token not yet in database, show zero balance.
-          totalBalance = Amount(rawValue: BigInt.zero, fractionDigits: 0);
-        }
-      } else {
-        // Ethereum token.
-        contract = MainDB.instance.getEthContractSync(contractAddress!);
-        if (contract != null) {
-          totalBalance = ref
-              .watch(
-                pTokenBalance((
-                  walletId: walletId,
-                  contractAddress: contractAddress!,
-                )),
-              )
-              .total;
-        } else {
-          // Contract not yet in database, show zero balance.
-          totalBalance = Amount(rawValue: BigInt.zero, fractionDigits: 0);
-        }
-      }
-    }
+    final Amount totalBalance = balanceType == BalanceType.private
+        ? info.cachedBalanceSecondary.total + info.cachedBalanceTertiary.total
+        : balanceType == BalanceType.public
+        ? info.cachedBalance.total
+        : info.cachedBalance.total +
+              info.cachedBalanceSecondary.total +
+              info.cachedBalanceTertiary.total;
 
     return Text(
-      ref
-          .watch(pAmountFormatter(info.coin))
-          .format(totalBalance, tokenContract: contract),
+      ref.watch(pAmountFormatter(info.coin)).format(totalBalance),
       style: Util.isDesktop
           ? STextStyles.desktopTextExtraSmall(context).copyWith(
               color: Theme.of(context).extension<StackColors>()!.textSubtitle1,

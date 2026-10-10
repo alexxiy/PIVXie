@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../pinpad_views/lock_screen_view.dart';
+import 'security_view.dart';
 import '../../../../../notifications/show_flush_bar.dart';
 import '../../../../../providers/global/prefs_provider.dart';
 import '../../../../../providers/global/secure_store_provider.dart';
@@ -13,8 +15,6 @@ import '../../../../../utilities/text_styles.dart';
 import '../../../../../widgets/background.dart';
 import '../../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../../widgets/custom_pin_put/custom_pin_put.dart';
-import '../../../pinpad_views/lock_screen_view.dart';
-import 'security_view.dart';
 
 class CreateDuressPinView extends ConsumerStatefulWidget {
   const CreateDuressPinView({super.key});
@@ -121,14 +121,14 @@ class _CreateDuressPinViewState extends ConsumerState<CreateDuressPinView> {
                       disabledBorder: InputBorder.none,
                       errorBorder: InputBorder.none,
                       focusedErrorBorder: InputBorder.none,
-                      fillColor:
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.background,
+                      fillColor: Theme.of(context)
+                          .extension<StackColors>()!
+                          .background,
                       counterText: "",
                     ),
-                    isRandom:
-                        ref.read(prefsChangeNotifierProvider).randomizePIN,
+                    isRandom: ref
+                        .read(prefsChangeNotifierProvider)
+                        .randomizePIN,
                     submittedFieldDecoration: _pinPutDecoration,
                     selectedFieldDecoration: _pinPutDecoration,
                     followingFieldDecoration: _pinPutDecoration,
@@ -167,10 +167,9 @@ class _CreateDuressPinViewState extends ConsumerState<CreateDuressPinView> {
                     eachFieldHeight: 12,
                     eachFieldWidth: 12,
                     textStyle: STextStyles.infoSmall(context).copyWith(
-                      color:
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.textSubtitle3,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textSubtitle3,
                       fontSize: 1,
                     ),
                     focusNode: _pinPutFocusNode2,
@@ -184,14 +183,14 @@ class _CreateDuressPinViewState extends ConsumerState<CreateDuressPinView> {
                       disabledBorder: InputBorder.none,
                       errorBorder: InputBorder.none,
                       focusedErrorBorder: InputBorder.none,
-                      fillColor:
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.background,
+                      fillColor: Theme.of(context)
+                          .extension<StackColors>()!
+                          .background,
                       counterText: "",
                     ),
-                    isRandom:
-                        ref.read(prefsChangeNotifierProvider).randomizePIN,
+                    isRandom: ref
+                        .read(prefsChangeNotifierProvider)
+                        .randomizePIN,
                     submittedFieldDecoration: _pinPutDecoration,
                     selectedFieldDecoration: _pinPutDecoration,
                     followingFieldDecoration: _pinPutDecoration,

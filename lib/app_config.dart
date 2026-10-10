@@ -5,17 +5,12 @@ import 'dart:io';
 import 'package:flutter/foundation.dart' show kDebugMode;
 
 import 'wallets/crypto_currency/crypto_currency.dart';
-import 'wallets/crypto_currency/intermediate/frost_currency.dart';
 
 part 'app_config.g.dart';
 
 enum AppFeature {
   themeSelection,
-  buy,
-  swap,
   tor,
-  shopinBit,
-  cakePay,
 
   /// Ships light and dark default themes (no theme store); settings offer
   /// System / Light / Dark.
@@ -30,8 +25,6 @@ abstract class AppConfig {
 
   static const emptyWalletsMessage = _emptyWalletsMessage;
 
-  static const windowsMwebdExeHash = _mwebdExeHash;
-
   static String get appDefaultDataDirName => _appDataDirName;
   static String get shortDescriptionText => _shortDescriptionText;
   static String get commitHash => _commitHash;
@@ -41,9 +34,6 @@ abstract class AppConfig {
   static ({String light, String dark})? get appIconAsset => _appIconAsset;
 
   static List<CryptoCurrency> get coins => _supportedCoins;
-
-  static ({String from, String fromFuzzyNet, String to, String toFuzzyNet})
-  get swapDefaults => _swapDefaults;
 
   static bool get isSingleCoinApp => coins.length == 1;
 
@@ -63,8 +53,8 @@ abstract class AppConfig {
     try {
       return coins.firstWhere(
         caseInsensitive
-            ? (e) => e.ticker.toLowerCase() == _ticker && e is! FrostCurrency
-            : (e) => e.ticker == _ticker && e is! FrostCurrency,
+            ? (e) => e.ticker.toLowerCase() == _ticker
+            : (e) => e.ticker == _ticker,
       );
     } catch (_) {
       return null;
@@ -91,7 +81,6 @@ abstract class AppConfig {
   /// Fuzzy logic. Use with caution!!
   @Deprecated("dangerous")
   static CryptoCurrency getCryptoCurrencyByPrettyName(String prettyName) {
-    // trocador hack
     const hackSplitter = " (Mainnet";
     final name = prettyName.contains(hackSplitter)
         ? prettyName.split(hackSplitter).first.toLowerCase()
@@ -99,10 +88,7 @@ abstract class AppConfig {
 
     try {
       return coins.firstWhere(
-        (e) =>
-            e.identifier.toLowerCase() == name ||
-            e.prettyName == prettyName ||
-            (e is Epiccash && prettyName == "Epic Private Internet Cash"),
+        (e) => e.identifier.toLowerCase() == name || e.prettyName == prettyName,
       );
     } catch (_) {
       throw Exception("getCryptoCurrencyByPrettyName($prettyName) failed!");

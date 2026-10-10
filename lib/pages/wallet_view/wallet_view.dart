@@ -15,26 +15,19 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:isar_community/isar.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../app_config.dart';
-import '../../frost_route_generator.dart';
-import '../../models/isar/exchange_cache/currency.dart';
 import '../../notifications/show_flush_bar.dart';
-import '../../pages_desktop_specific/spark_coins/spark_coins_view.dart';
 import '../../providers/global/active_wallet_provider.dart';
 import '../../providers/global/auto_swb_service_provider.dart';
-import '../../providers/global/paynym_api_provider.dart';
 import '../../providers/providers.dart';
 import '../../providers/ui/transaction_filter_provider.dart';
 import '../../providers/ui/unread_notifications_provider.dart';
-import '../../providers/wallet/my_paynym_account_state_provider.dart';
 import '../../providers/wallet/public_private_balance_state_provider.dart';
 import '../../services/event_bus/events/global/node_connection_status_changed_event.dart';
 import '../../services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import '../../services/event_bus/global_event_bus.dart';
-import '../../services/exchange/exchange_data_loading_service.dart';
 import '../../themes/coin_icon_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../themes/theme_providers.dart';
@@ -44,29 +37,11 @@ import '../../utilities/clipboard_interface.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/enums/backup_frequency_type.dart';
 import '../../utilities/enums/sync_type_enum.dart';
-import '../../utilities/logger.dart';
-import '../../utilities/show_loading.dart';
 import '../../utilities/text_styles.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
-import '../../wallets/crypto_currency/intermediate/frost_currency.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
-import '../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
-import '../../wallets/wallet/impl/epiccash_wallet.dart';
-import '../../wallets/wallet/impl/firo_wallet.dart';
-import '../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
-import '../../wallets/wallet/impl/namecoin_wallet.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
 import '../pivx_masternodes/pivx_masternodes_view.dart';
-import '../../wallets/wallet/impl/salvium_wallet.dart';
-import '../../wallets/wallet/intermediate/cryptonote_wallet.dart';
-import '../../wallets/wallet/intermediate/lib_salvium_wallet.dart';
-import '../../wallets/wallet/wallet_mixin_interfaces/cash_fusion_interface.dart';
-import '../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
-import '../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
-import '../../wallets/wallet/wallet_mixin_interfaces/ordinals_interface.dart';
-import '../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
-import '../../wallets/wallet/wallet_mixin_interfaces/sign_verify_interface.dart';
-import '../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../widgets/background.dart';
 import '../../widgets/conditional_parent.dart';
@@ -74,49 +49,20 @@ import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/custom_buttons/blue_text_button.dart';
 import '../../widgets/custom_loading_overlay.dart';
 import '../../widgets/desktop/secondary_button.dart';
-import '../../widgets/frost_scaffold.dart';
-import '../../widgets/loading_indicator.dart';
 import '../../widgets/small_tor_icon.dart';
 import '../../widgets/stack_dialog.dart';
-import '../../widgets/wallet_navigation_bar/components/icons/buy_nav_icon.dart';
-import '../../widgets/wallet_navigation_bar/components/icons/churn_nav_icon.dart';
 import '../../widgets/wallet_navigation_bar/components/icons/coin_control_nav_icon.dart';
-import '../../widgets/wallet_navigation_bar/components/icons/exchange_nav_icon.dart';
-import '../../widgets/wallet_navigation_bar/components/icons/finalize_nav_icon.dart';
-import '../../widgets/wallet_navigation_bar/components/icons/frost_sign_nav_icon.dart';
-import '../../widgets/wallet_navigation_bar/components/icons/fusion_nav_icon.dart';
-import '../../widgets/wallet_navigation_bar/components/icons/ordinals_nav_icon.dart';
-import '../../widgets/wallet_navigation_bar/components/icons/paynym_nav_icon.dart';
 import '../../widgets/wallet_navigation_bar/components/icons/receive_nav_icon.dart';
 import '../../widgets/wallet_navigation_bar/components/icons/send_nav_icon.dart';
 import '../../widgets/wallet_navigation_bar/components/wallet_navigation_bar_item.dart';
 import '../../widgets/wallet_navigation_bar/wallet_navigation_bar.dart';
-import '../buy_view/buy_in_wallet_view.dart';
-import '../cashfusion/cashfusion_view.dart';
-import '../churning/churning_view.dart';
 import '../coin_control/coin_control_view.dart';
-import '../epic_finalize_view/epic_finalize_view.dart';
-import '../exchange_view/wallet_initiated_exchange_view.dart';
-import '../finalize_view/finalize_view.dart';
-import '../masternodes/masternodes_home_view.dart';
-import '../monkey/monkey_view.dart';
-import '../namecoin_names/namecoin_names_home_view.dart';
 import '../notification_views/notifications_view.dart';
-import '../ordinals/ordinals_view.dart';
-import '../paynym/paynym_claim_view.dart';
-import '../paynym/paynym_home_view.dart';
 import '../receive_view/receive_view.dart';
-import '../salvium_stake/salvium_create_stake_view.dart';
-import '../send_view/frost_ms/frost_send_view.dart';
 import '../send_view/send_view.dart';
 import '../settings_views/wallet_settings_view/wallet_network_settings_view/wallet_network_settings_view.dart';
 import '../settings_views/wallet_settings_view/wallet_settings_view.dart';
-import '../signing/signing_view.dart';
-import '../spark_names/spark_names_home_view.dart';
-import '../token_view/my_tokens_view.dart';
-import 'sub_widgets/transactions_list.dart';
 import 'sub_widgets/wallet_summary.dart';
-import 'transaction_views/all_transactions_view.dart';
 import 'transaction_views/tx_v2/all_transactions_v2_view.dart';
 import 'transaction_views/tx_v2/transaction_v2_list.dart';
 
@@ -146,7 +92,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
   late final String walletId;
   late final CryptoCurrency coin;
 
-  late final bool isSparkWallet;
   late final bool isPivxShield;
 
   // late final bool _shouldDisableAutoSyncOnLogOut;
@@ -179,7 +124,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
       //   _shouldDisableAutoSyncOnLogOut = false;
     }
 
-    isSparkWallet = wallet is SparkInterface;
     isPivxShield = wallet is PivxWallet && wallet.supportsShield;
 
     wallet.refresh();
@@ -345,94 +289,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
     }
   }
 
-  Future<void> _onFrostSignPressed(BuildContext context) async {
-    final wallet = ref.read(pWallets).getWallet(walletId) as BitcoinFrostWallet;
-    ref.read(pFrostScaffoldArgs.state).state = (
-      info: (
-        walletName: wallet.info.name,
-        frostCurrency: wallet.cryptoCurrency,
-      ),
-      walletId: walletId,
-      stepRoutes: FrostRouteGenerator.signFrostTxStepRoutes,
-      parentNav: Navigator.of(context),
-      frostInterruptionDialogType:
-          FrostInterruptionDialogType.transactionCreation,
-      callerRouteName: WalletView.routeName,
-    );
-
-    await Navigator.of(context).pushNamed(FrostStepScaffold.routeName);
-  }
-
-  Future<void> _onExchangePressed(BuildContext context) async {
-    final CryptoCurrency coin = ref.read(pWalletCoin(walletId));
-
-    if (coin.network.isTestNet) {
-      await showDialog<void>(
-        context: context,
-        builder: (_) => const StackOkDialog(
-          title: "Exchange not available for test net coins",
-        ),
-      );
-    } else {
-      Future<Currency?> _future;
-      final isar = await ExchangeDataLoadingService.instance.isar;
-      try {
-        _future = isar.currencies
-            .where()
-            .tickerEqualToAnyExchangeNameName(coin.ticker)
-            .findFirst();
-      } catch (_) {
-        _future = ExchangeDataLoadingService.instance.loadAll().then(
-          (_) => isar.currencies
-              .where()
-              .tickerEqualToAnyExchangeNameName(coin.ticker)
-              .findFirst(),
-        );
-      }
-
-      final currency = await showLoading(
-        whileFuture: _future,
-        context: context,
-        message: "Loading...",
-      );
-
-      if (context.mounted) {
-        unawaited(
-          Navigator.of(context).pushNamed(
-            WalletInitiatedExchangeView.routeName,
-            arguments: Tuple2(
-              walletId,
-              currency == null ? Bitcoin(CryptoCurrencyNetwork.main) : coin,
-            ),
-          ),
-        );
-      }
-    }
-  }
-
-  Future<void> _onBuyPressed(BuildContext context) async {
-    final CryptoCurrency coin = ref.read(pWalletCoin(walletId));
-
-    if (coin.network.isTestNet) {
-      await showDialog<void>(
-        context: context,
-        builder: (_) =>
-            const StackOkDialog(title: "Buy not available for test net coins"),
-      );
-    } else {
-      if (mounted) {
-        unawaited(
-          Navigator.of(context).pushNamed(
-            BuyInWalletView.routeName,
-            arguments: coin.hasBuySupport
-                ? coin
-                : Bitcoin(CryptoCurrencyNetwork.main),
-          ),
-        );
-      }
-    }
-  }
-
   Future<void> attemptAnonymize() async {
     bool shouldPop = false;
     unawaited(
@@ -453,9 +309,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
     if (publicBalance <= Amount.zero) {
       shouldPop = true;
       if (mounted) {
-        Navigator.of(
-          context,
-        ).popUntil(ModalRoute.withName(WalletView.routeName));
+        Navigator.of(context)
+            .popUntil(ModalRoute.withName(WalletView.routeName));
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.info,
@@ -468,18 +323,11 @@ class _WalletViewState extends ConsumerState<WalletView> {
     }
 
     try {
-      if (wallet is PivxWallet) {
-        await wallet.shieldAllTransparent();
-      } else if (wallet is MwebInterface && wallet.info.isMwebEnabled) {
-        await wallet.anonymizeAllMweb();
-      } else {
-        await (wallet as FiroWallet).anonymizeAllSpark();
-      }
+      await (wallet as PivxWallet).shieldAllTransparent();
       shouldPop = true;
       if (mounted) {
-        Navigator.of(
-          context,
-        ).popUntil(ModalRoute.withName(WalletView.routeName));
+        Navigator.of(context)
+            .popUntil(ModalRoute.withName(WalletView.routeName));
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.success,
@@ -491,9 +339,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
     } catch (e) {
       shouldPop = true;
       if (mounted) {
-        Navigator.of(
-          context,
-        ).popUntil(ModalRoute.withName(WalletView.routeName));
+        Navigator.of(context)
+            .popUntil(ModalRoute.withName(WalletView.routeName));
         await showDialog<dynamic>(
           context: context,
           builder: (_) => StackOkDialog(
@@ -511,9 +358,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
 
     final coin = ref.watch(pWalletCoin(walletId));
 
-    final prefs = ref.watch(prefsChangeNotifierProvider);
-    final showExchange = prefs.enableExchange;
-
     final wallet = ref.watch(pWallets).getWallet(walletId);
 
     final viewOnly = wallet is ViewOnlyOptionInterface && wallet.isViewOnly;
@@ -528,13 +372,12 @@ class _WalletViewState extends ConsumerState<WalletView> {
               child,
               Background(
                 child: CustomLoadingOverlay(
-                  message:
-                      "Migration in progress\nThis could take a while\nPlease don't leave this screen",
+                  message: "Migration in progress\nThis could take a while\nPlease don't leave this screen",
                   subMessage: "This only needs to run once per wallet",
                   eventBus: null,
-                  textColor: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.textDark,
+                  textColor: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textDark,
                   actionButton: SecondaryButton(
                     label: "Cancel",
                     onPressed: () async {
@@ -577,9 +420,9 @@ class _WalletViewState extends ConsumerState<WalletView> {
           child: Stack(
             children: [
               Scaffold(
-                backgroundColor: Theme.of(
-                  context,
-                ).extension<StackColors>()!.background,
+                backgroundColor: Theme.of(context)
+                    .extension<StackColors>()!
+                    .background,
                 appBar: AppBar(
                   leading: AppBarBackButton(
                     onPressed: () {
@@ -632,9 +475,9 @@ class _WalletViewState extends ConsumerState<WalletView> {
                           key: const Key("walletViewRadioButton"),
                           size: 36,
                           shadows: const [],
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.background,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .background,
                           icon: _buildNetworkIcon(_currentSyncStatus),
                           onPressed: () {
                             Navigator.of(context).pushNamed(
@@ -658,14 +501,13 @@ class _WalletViewState extends ConsumerState<WalletView> {
                       child: AspectRatio(
                         aspectRatio: 1,
                         child: AppBarIconButton(
-                          semanticsLabel:
-                              "Notifications Button. Takes To Notifications Page.",
+                          semanticsLabel: "Notifications Button. Takes To Notifications Page.",
                           key: const Key("walletViewAlertsButton"),
                           size: 36,
                           shadows: const [],
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.background,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .background,
                           icon:
                               ref.watch(
                                 notificationsProvider.select(
@@ -777,14 +619,14 @@ class _WalletViewState extends ConsumerState<WalletView> {
                           key: const Key("walletViewSettingsButton"),
                           size: 36,
                           shadows: const [],
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.background,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .background,
                           icon: SvgPicture.asset(
                             Assets.svg.bars,
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.accentColorDark,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .accentColorDark,
                             width: 20,
                             height: 20,
                           ),
@@ -808,9 +650,9 @@ class _WalletViewState extends ConsumerState<WalletView> {
                 ),
                 body: SafeArea(
                   child: Container(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.background,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .background,
                     child: Column(
                       children: [
                         const SizedBox(height: 10),
@@ -831,19 +673,9 @@ class _WalletViewState extends ConsumerState<WalletView> {
                             ),
                           ),
                         ),
-                        if ((isSparkWallet ||
-                                isPivxShield ||
-                                ref
-                                    .watch(pWalletInfo(walletId))
-                                    .isMwebEnabled) &&
-                            !viewOnly)
+                        if (isPivxShield && !viewOnly)
                           const SizedBox(height: 10),
-                        if ((isSparkWallet ||
-                                isPivxShield ||
-                                ref
-                                    .watch(pWalletInfo(walletId))
-                                    .isMwebEnabled) &&
-                            !viewOnly)
+                        if (isPivxShield && !viewOnly)
                           Padding(
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             child: Row(
@@ -860,8 +692,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                         context: context,
                                         builder: (context) => StackDialog(
                                           title: "Attention!",
-                                          message:
-                                              "You're about to privatize all of your public funds.",
+                                          message: "You're about to privatize all of your public funds.",
                                           leftButton: TextButton(
                                             onPressed: () {
                                               Navigator.of(context).pop();
@@ -923,22 +754,16 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                 "Transactions",
                                 style: STextStyles.itemSubtitle(context)
                                     .copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.textDark3,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textDark3,
                                     ),
                               ),
                               CustomTextButton(
                                 text: "See all",
                                 onTap: () {
                                   Navigator.of(context).pushNamed(
-                                    ref
-                                                .read(pWallets)
-                                                .getWallet(widget.walletId)
-                                                .isarTransactionVersion ==
-                                            2
-                                        ? AllTransactionsV2View.routeName
-                                        : AllTransactionsView.routeName,
+                                    AllTransactionsV2View.routeName,
                                     arguments: walletId,
                                   );
                                 },
@@ -986,18 +811,9 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                         CrossAxisAlignment.stretch,
                                     children: [
                                       Expanded(
-                                        child:
-                                            ref
-                                                    .read(pWallets)
-                                                    .getWallet(widget.walletId)
-                                                    .isarTransactionVersion ==
-                                                2
-                                            ? TransactionsV2List(
-                                                walletId: widget.walletId,
-                                              )
-                                            : TransactionsList(
-                                                walletId: walletId,
-                                              ),
+                                        child: TransactionsV2List(
+                                          walletId: widget.walletId,
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -1028,42 +844,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
                         }
                       },
                     ),
-                    if (wallet is MimblewimblecoinWallet)
-                      WalletNavigationBarItemData(
-                        label: "Finalize",
-                        icon: const FinalizeNavIcon(),
-                        onTap: () {
-                          if (mounted) {
-                            unawaited(
-                              Navigator.of(context).pushNamed(
-                                FinalizeView.routeName,
-                                arguments: walletId,
-                              ),
-                            );
-                          }
-                        },
-                      ),
-                    if (wallet is EpiccashWallet)
-                      WalletNavigationBarItemData(
-                        label: "Finalize",
-                        icon: const FinalizeNavIcon(),
-                        onTap: () {
-                          if (mounted) {
-                            unawaited(
-                              Navigator.of(context).pushNamed(
-                                EpicFinalizeView.routeName,
-                                arguments: walletId,
-                              ),
-                            );
-                          }
-                        },
-                      ),
-                    if (ref.watch(pWalletCoin(walletId)) is FrostCurrency)
-                      WalletNavigationBarItemData(
-                        label: "Sign",
-                        icon: const FrostSignNavIcon(),
-                        onTap: () => _onFrostSignPressed(context),
-                      ),
                     if (!viewOnly)
                       WalletNavigationBarItemData(
                         label: "Send",
@@ -1085,108 +865,18 @@ class _WalletViewState extends ConsumerState<WalletView> {
                           //     break;
                           // }
                           Navigator.of(context).pushNamed(
-                            wallet is BitcoinFrostWallet
-                                ? FrostSendView.routeName
-                                : SendView.routeName,
+                            SendView.routeName,
                             arguments: (walletId: walletId, coin: coin),
-                          );
-                        },
-                      ),
-                    if (!viewOnly &&
-                        Constants.enableExchange &&
-                        ref.watch(pWalletCoin(walletId)) is! FrostCurrency &&
-                        AppConfig.hasFeature(AppFeature.swap) &&
-                        showExchange)
-                      WalletNavigationBarItemData(
-                        label: "Swap",
-                        icon: const ExchangeNavIcon(),
-                        onTap: () => _onExchangePressed(context),
-                      ),
-                    if (Constants.enableExchange &&
-                        ref.watch(pWalletCoin(walletId)) is! FrostCurrency &&
-                        wallet is! FiroWallet &&
-                        AppConfig.hasFeature(AppFeature.buy) &&
-                        showExchange)
-                      WalletNavigationBarItemData(
-                        label: "Buy",
-                        icon: const BuyNavIcon(),
-                        onTap: () => _onBuyPressed(context),
-                      ),
-                    if (wallet is SparkInterface ||
-                        (viewOnly && wallet.viewOnlyType == .spark))
-                      WalletNavigationBarItemData(
-                        label: "Names",
-                        icon: const PaynymNavIcon(),
-                        onTap: () {
-                          Navigator.of(context).pushNamed(
-                            SparkNamesHomeView.routeName,
-                            arguments: widget.walletId,
                           );
                         },
                       ),
                   ],
                   moreItems: <WalletNavigationBarItemData>[
                     if (ref.watch(
-                      pWallets.select(
-                        (value) => value
-                            .getWallet(widget.walletId)
-                            .cryptoCurrency
-                            .hasTokenSupport,
+                      prefsChangeNotifierProvider.select(
+                        (value) => value.enableCoinControl,
                       ),
                     ))
-                      WalletNavigationBarItemData(
-                        label: "Tokens",
-                        icon: const CoinControlNavIcon(),
-                        onTap: () {
-                          Navigator.of(context).pushNamed(
-                            MyTokensView.routeName,
-                            arguments: walletId,
-                          );
-                        },
-                      ),
-                    if (coin is Banano)
-                      WalletNavigationBarItemData(
-                        icon: SvgPicture.asset(
-                          Assets.svg.monkey,
-                          height: 20,
-                          width: 20,
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.bottomNavIconIcon,
-                        ),
-                        label: "MonKey",
-                        onTap: () {
-                          Navigator.of(context).pushNamed(
-                            MonkeyView.routeName,
-                            arguments: widget.walletId,
-                          );
-                        },
-                      ),
-                    if (wallet is SignVerifyInterface && !viewOnly)
-                      WalletNavigationBarItemData(
-                        icon: SvgPicture.asset(
-                          Assets.svg.pencil,
-                          height: 20,
-                          width: 20,
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.bottomNavIconIcon,
-                        ),
-                        label: "Sign/Verify",
-                        onTap: () {
-                          Navigator.of(context).pushNamed(
-                            SigningView.routeName,
-                            arguments: widget.walletId,
-                          );
-                        },
-                      ),
-                    if (wallet is CoinControlInterface &&
-                        wallet is! SalviumWallet &&
-                        ref.watch(
-                          prefsChangeNotifierProvider.select(
-                            (value) => value.enableCoinControl,
-                          ),
-                        ))
                       WalletNavigationBarItemData(
                         label: "Coin control",
                         icon: const CoinControlNavIcon(),
@@ -1200,176 +890,20 @@ class _WalletViewState extends ConsumerState<WalletView> {
                           );
                         },
                       ),
-                    if (wallet is FiroWallet &&
-                        ref.watch(
-                          prefsChangeNotifierProvider.select(
-                            (value) => value.advancedFiroFeatures,
-                          ),
-                        ))
-                      WalletNavigationBarItemData(
-                        label: "Spark coins",
-                        icon: const CoinControlNavIcon(),
-                        onTap: () {
-                          Navigator.of(context).pushNamed(
-                            SparkCoinsView.routeName,
-                            arguments: widget.walletId,
-                          );
-                        },
-                      ),
-                    if (!viewOnly && wallet is FiroWallet)
-                      WalletNavigationBarItemData(
-                        label: "Masternodes",
-                        icon: SvgPicture.asset(
-                          Assets.svg.recycle,
-                          height: 20,
-                          width: 20,
-                          colorFilter: ColorFilter.mode(
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.bottomNavIconIcon,
-                            BlendMode.srcIn,
-                          ),
-                        ),
-                        onTap: () {
-                          Navigator.of(context).pushNamed(
-                            MasternodesHomeView.routeName,
-                            arguments: widget.walletId,
-                          );
-                        },
-                      ),
                     if (!viewOnly && wallet is PivxWallet)
                       WalletNavigationBarItemData(
                         label: "Masternodes",
                         icon: Icon(
                           Icons.dns_rounded,
                           size: 20,
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.bottomNavIconIcon,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .bottomNavIconIcon,
                         ),
                         onTap: () {
                           Navigator.of(context).pushNamed(
                             PivxMasternodesView.routeName,
                             arguments: widget.walletId,
-                          );
-                        },
-                      ),
-                    if (wallet is NamecoinWallet)
-                      WalletNavigationBarItemData(
-                        label: "Domains",
-                        icon: const PaynymNavIcon(),
-                        onTap: () {
-                          Navigator.of(context).pushNamed(
-                            NamecoinNamesHomeView.routeName,
-                            arguments: widget.walletId,
-                          );
-                        },
-                      ),
-                    if (!viewOnly && wallet is PaynymInterface)
-                      WalletNavigationBarItemData(
-                        label: "PayNym",
-                        icon: const PaynymNavIcon(),
-                        onTap: () async {
-                          unawaited(
-                            showDialog(
-                              context: context,
-                              builder: (context) =>
-                                  const LoadingIndicator(width: 100),
-                            ),
-                          );
-
-                          final wallet = ref
-                              .read(pWallets)
-                              .getWallet(widget.walletId);
-
-                          final paynymInterface = wallet as PaynymInterface;
-
-                          final code = await paynymInterface.getPaymentCode(
-                            isSegwit: false,
-                          );
-
-                          final account = await ref
-                              .read(paynymAPIProvider)
-                              .nym(code.toString());
-
-                          Logging.instance.d("my nym account: $account");
-
-                          if (context.mounted) {
-                            Navigator.of(context).pop();
-
-                            // check if account exists and for matching code to see if claimed
-                            if (account.value != null &&
-                                account.value!.nonSegwitPaymentCode.claimed
-                            // &&
-                            // account.value!.segwit
-                            ) {
-                              ref
-                                      .read(myPaynymAccountStateProvider.state)
-                                      .state =
-                                  account.value!;
-
-                              await Navigator.of(context).pushNamed(
-                                PaynymHomeView.routeName,
-                                arguments: widget.walletId,
-                              );
-                            } else {
-                              await Navigator.of(context).pushNamed(
-                                PaynymClaimView.routeName,
-                                arguments: widget.walletId,
-                              );
-                            }
-                          }
-                        },
-                      ),
-                    if (ref.watch(
-                      pWallets.select(
-                        (value) =>
-                            value.getWallet(widget.walletId)
-                                is OrdinalsInterface,
-                      ),
-                    ))
-                      WalletNavigationBarItemData(
-                        label: "Ordinals",
-                        icon: const OrdinalsNavIcon(),
-                        onTap: () {
-                          Navigator.of(context).pushNamed(
-                            OrdinalsView.routeName,
-                            arguments: widget.walletId,
-                          );
-                        },
-                      ),
-                    if (AppConfig.hasFeature(AppFeature.tor) &&
-                        wallet is CashFusionInterface &&
-                        !viewOnly)
-                      WalletNavigationBarItemData(
-                        label: "Fusion",
-                        icon: const FusionNavIcon(),
-                        onTap: () {
-                          Navigator.of(context).pushNamed(
-                            CashFusionView.routeName,
-                            arguments: walletId,
-                          );
-                        },
-                      ),
-                    if (wallet is LibSalviumWallet)
-                      WalletNavigationBarItemData(
-                        label: "Staking",
-                        icon: const PaynymNavIcon(),
-                        onTap: () {
-                          Navigator.of(context).pushNamed(
-                            SalviumCreateStakeView.routeName,
-                            arguments: widget.walletId,
-                          );
-                        },
-                      ),
-                    if ((wallet is CryptonoteWallet) && !viewOnly)
-                      WalletNavigationBarItemData(
-                        label: "Churn",
-                        icon: const ChurnNavIcon(),
-                        onTap: () {
-                          Navigator.of(context).pushNamed(
-                            ChurningView.routeName,
-                            arguments: walletId,
                           );
                         },
                       ),

@@ -9,9 +9,7 @@
  */
 
 import 'dart:async';
-import 'dart:io';
 
-import 'package:compat/compat.dart' as lib_monero_compat;
 import 'package:isar_community/isar.dart';
 
 import '../app_config.dart';
@@ -21,20 +19,13 @@ import '../utilities/enums/sync_type_enum.dart';
 import '../utilities/flutter_secure_storage_interface.dart';
 import '../utilities/logger.dart';
 import '../utilities/prefs.dart';
-import '../utilities/stack_file_system.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
-import '../wallets/crypto_currency/intermediate/cryptonote_currency.dart';
 import '../wallets/isar/models/wallet_info.dart';
-import '../wallets/wallet/impl/epiccash_wallet.dart';
-import '../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
-import '../wallets/wallet/intermediate/cryptonote_wallet.dart';
-import '../wallets/wallet/intermediate/lib_salvium_wallet.dart';
 import '../wallets/wallet/wallet.dart';
 import 'event_bus/events/wallet_added_event.dart';
 import 'event_bus/global_event_bus.dart';
 import 'node_service.dart';
 import 'notifications_service.dart';
-import 'trade_sent_from_stack_service.dart';
 
 class Wallets {
   Wallets._private();
@@ -71,38 +62,6 @@ class Wallets {
     }
   }
 
-  Future<void> _deleteCryptonoteWalletFilesHelper(WalletInfo info) async {
-    final walletId = info.walletId;
-    if (info.coin is Wownero) {
-      await lib_monero_compat.deleteWalletFiles(
-        name: walletId,
-        type: lib_monero_compat.WalletType.wownero,
-        appRoot: await StackFileSystem.applicationRootDirectory(),
-      );
-      Logging.instance.d("Wownero wallet: $walletId deleted");
-    } else if (info.coin is Monero) {
-      await lib_monero_compat.deleteWalletFiles(
-        name: walletId,
-        type: lib_monero_compat.WalletType.monero,
-        appRoot: await StackFileSystem.applicationRootDirectory(),
-      );
-      Logging.instance.d("Monero wallet: $walletId deleted");
-    } else if (info.coin is Salvium) {
-      final path = await salviumWalletDir(
-        walletId: walletId,
-        appRoot: await StackFileSystem.applicationRootDirectory(),
-      );
-      final file = Directory(path);
-      final isExist = file.existsSync();
-
-      if (isExist) {
-        await file.delete(recursive: true);
-      }
-    } else {
-      throw Exception("Not a valid CN coin");
-    }
-  }
-
   Future<void> deleteWallet(
     WalletInfo info,
     SecureStorageInterface secureStorage,
@@ -123,34 +82,6 @@ class Wallets {
       key: Wallet.getViewOnlyWalletDataSecStoreKey(walletId: walletId),
     );
 
-    if (info.coin is CryptonoteCurrency) {
-      await _deleteCryptonoteWalletFilesHelper(info);
-    } else if (info.coin is Epiccash) {
-      if (wallet is! EpiccashWallet) {
-        Logging.instance.e(
-          "epic wallet: $walletId does not appear to exist???",
-          error: Exception(),
-          stackTrace: StackTrace.current,
-        );
-      } else {
-        final deleteResult = await deleteEpicWallet(
-          wallet: wallet,
-          secureStore: secureStorage,
-        );
-        Logging.instance.d(
-          "epic wallet: $walletId deleted with result: $deleteResult",
-        );
-      }
-    } else if (info.coin is Mimblewimblecoin) {
-      final deleteResult = await deleteMimblewimblecoinWallet(
-        walletId: walletId,
-        secureStore: secureStorage,
-      );
-      Logging.instance.i(
-        "Mimblewimblecoin wallet: $walletId deleted with result: $deleteResult",
-      );
-    }
-
     // delete wallet data in main db
     await MainDB.instance.deleteWalletBlockchainData(walletId);
     await MainDB.instance.deleteAddressLabels(walletId);
@@ -163,18 +94,6 @@ class Wallets {
       boxName: DB.boxNameWalletsToDeleteOnStart,
       value: walletId,
     );
-
-    final lookupService = TradeSentFromStackService();
-    for (final lookup in lookupService.all) {
-      if (lookup.walletIds.contains(walletId)) {
-        // update lookup data to reflect deleted wallet
-        await lookupService.save(
-          tradeWalletLookup: lookup.copyWith(
-            walletIds: lookup.walletIds.where((id) => id != walletId).toList(),
-          ),
-        );
-      }
-    }
 
     // delete notifications tied to deleted wallet
     for (final notification in NotificationsService.instance.notifications) {
@@ -269,17 +188,13 @@ class Wallets {
               shouldAutoSyncAll ||
               walletIdsToEnableAutoSync.contains(walletInfo.walletId);
 
-          if (wallet is CryptonoteWallet) {
-            // walletsToInitLinearly.add(Tuple2(manager, shouldSetAutoSync));
-          } else {
-            walletInitFutures.add(
-              wallet.init().then((_) {
-                if (shouldSetAutoSync) {
-                  wallet.shouldAutoSync = true;
-                }
-              }),
-            );
-          }
+          walletInitFutures.add(
+            wallet.init().then((_) {
+              if (shouldSetAutoSync) {
+                wallet.shouldAutoSync = true;
+              }
+            }),
+          );
 
           _wallets[wallet.walletId] = wallet;
         } else {
@@ -377,13 +292,7 @@ class Wallets {
             nodeService: nodeService,
             prefs: prefs,
           ).then((wallet) {
-            if (wallet is CryptonoteWallet) {
-              // walletsToInitLinearly.add(Tuple2(manager, shouldSetAutoSync));
-
-              walletIdCompleter.complete("dummy_ignore");
-            } else {
-              walletIdCompleter.complete(wallet.walletId);
-            }
+            walletIdCompleter.complete(wallet.walletId);
 
             _wallets[wallet.walletId] = wallet;
           });
@@ -511,13 +420,7 @@ class Wallets {
             nodeService: nodeService,
             prefs: prefs,
           ).then((wallet) {
-            if (wallet is CryptonoteWallet) {
-              // walletsToInitLinearly.add(Tuple2(manager, shouldSetAutoSync));
-
-              walletIdCompleter.complete("dummy_ignore");
-            } else {
-              walletIdCompleter.complete(wallet.walletId);
-            }
+            walletIdCompleter.complete(wallet.walletId);
 
             _wallets[wallet.walletId] = wallet;
           });
@@ -574,9 +477,8 @@ class Wallets {
       );
     } else if (walletInitFutures.isNotEmpty) {
       unawaited(
-        Future.wait(
-          walletInitFutures,
-        ).then((value) => _refreshFutures(idsToRefresh)),
+        Future.wait(walletInitFutures)
+            .then((value) => _refreshFutures(idsToRefresh)),
       );
     } else if (walletsToInitLinearly.isNotEmpty) {
       unawaited(_initLinearly(walletsToInitLinearly));
@@ -621,17 +523,13 @@ class Wallets {
             walletIdsToEnableAutoSync.contains(wallet.walletId);
 
         if (isDesktop) {
-          if (wallet is CryptonoteWallet) {
-            // walletsToInitLinearly.add(Tuple2(manager, shouldSetAutoSync));
-          } else {
-            walletInitFutures.add(
-              wallet.init().then((_) {
-                // if (shouldSetAutoSync) {
-                //   wallet.shouldAutoSync = true;
-                // }
-              }),
-            );
-          }
+          walletInitFutures.add(
+            wallet.init().then((_) {
+              // if (shouldSetAutoSync) {
+              //   wallet.shouldAutoSync = true;
+              // }
+            }),
+          );
         }
 
         _wallets[wallet.walletId] = wallet;

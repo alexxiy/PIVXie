@@ -15,9 +15,7 @@ import 'package:http/http.dart';
 
 import '../app_config.dart';
 import '../db/hive/db.dart';
-import '../models/epicbox_server_model.dart';
 import '../models/node_model.dart';
-import '../utilities/default_epicboxes.dart';
 import '../utilities/default_nodes.dart';
 import '../utilities/flutter_secure_storage_interface.dart';
 import '../utilities/logger.dart';
@@ -198,9 +196,9 @@ class NodeService extends ChangeNotifier {
   }
 
   List<NodeModel> failoverNodesFor({required CryptoCurrency currency}) {
-    return getNodesFor(
-      currency,
-    ).where((e) => e.isFailover && !e.isDown).toList();
+    return getNodesFor(currency)
+        .where((e) => e.isFailover && !e.isDown)
+        .toList();
   }
 
   /// Adds a new node to the database.
@@ -283,103 +281,6 @@ class NodeService extends ChangeNotifier {
         loginName: model.loginName,
         trusted: model.trusted,
       ),
-    );
-    if (shouldNotifyListeners) {
-      notifyListeners();
-    }
-  }
-
-  //============================================================================
-  // Epic Box server management
-  //============================================================================
-
-  Future<void> updateDefaultEpicBoxes() async {
-    // final primaryEpicBox = getPrimaryEpicBox();
-    //
-    // for (final defaultEpicBox in DefaultEpicBoxes.all) {
-    //   final savedEpicBox = DB.instance.get<EpicBoxServerModel>(
-    //     boxName: DB.boxNameEpicBoxModels,
-    //     key: defaultEpicBox.id,
-    //   );
-    //   if (savedEpicBox == null) {
-    //     await DB.instance.put<EpicBoxServerModel>(
-    //       boxName: DB.boxNameEpicBoxModels,
-    //       key: defaultEpicBox.id,
-    //       value: defaultEpicBox,
-    //     );
-    //   } else {
-    //     await DB.instance.put<EpicBoxServerModel>(
-    //       boxName: DB.boxNameEpicBoxModels,
-    //       key: savedEpicBox.id,
-    //       value: defaultEpicBox.copyWith(enabled: savedEpicBox.enabled),
-    //     );
-    //   }
-    //
-    //   if (primaryEpicBox != null && primaryEpicBox.id == defaultEpicBox.id) {
-    //     await setPrimaryEpicBox(
-    //       epicBox: defaultEpicBox.copyWith(enabled: primaryEpicBox.enabled),
-    //     );
-    //   }
-    // }
-
-    // set default primary if none exists
-    if (getPrimaryEpicBox() == null) {
-      await setPrimaryEpicBox(epicBox: DefaultEpicBoxes.defaultEpicBoxServer);
-    }
-  }
-
-  Future<void> setPrimaryEpicBox({
-    required EpicBoxServerModel epicBox,
-    bool shouldNotifyListeners = false,
-  }) async {
-    await DB.instance.put<EpicBoxServerModel>(
-      boxName: DB.boxNamePrimaryEpicBox,
-      key: 'primary',
-      value: epicBox,
-    );
-    if (shouldNotifyListeners) {
-      notifyListeners();
-    }
-  }
-
-  EpicBoxServerModel? getPrimaryEpicBox() {
-    return DB.instance.get<EpicBoxServerModel>(
-      boxName: DB.boxNamePrimaryEpicBox,
-      key: 'primary',
-    );
-  }
-
-  List<EpicBoxServerModel> getEpicBoxes() {
-    return DB.instance
-        .values<EpicBoxServerModel>(boxName: DB.boxNameEpicBoxModels)
-        .toList();
-  }
-
-  EpicBoxServerModel? getEpicBoxById({required String id}) {
-    return DB.instance.get<EpicBoxServerModel>(
-      boxName: DB.boxNameEpicBoxModels,
-      key: id,
-    );
-  }
-
-  Future<void> addEpicBox(
-    EpicBoxServerModel epicBox,
-    bool shouldNotifyListeners,
-  ) async {
-    await DB.instance.put<EpicBoxServerModel>(
-      boxName: DB.boxNameEpicBoxModels,
-      key: epicBox.id,
-      value: epicBox,
-    );
-    if (shouldNotifyListeners) {
-      notifyListeners();
-    }
-  }
-
-  Future<void> deleteEpicBox(String id, bool shouldNotifyListeners) async {
-    await DB.instance.delete<EpicBoxServerModel>(
-      boxName: DB.boxNameEpicBoxModels,
-      key: id,
     );
     if (shouldNotifyListeners) {
       notifyListeners();

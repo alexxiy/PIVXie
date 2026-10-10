@@ -19,9 +19,8 @@ import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
 import '../../widgets/stack_text_field.dart';
-import '../wallet_view/transaction_views/tx_v2/transaction_v2_details_view.dart'
-    show IconCopyButton;
 import 'pivx_masternodes_view.dart';
+import '../../widgets/icon_buttons.dart';
 
 const _kMasternodeSpaceUrl = "https://masternode.space";
 
@@ -181,9 +180,8 @@ class _PivxMasternodeDetailsViewState
               children: [
                 Text(
                   label,
-                  style: STextStyles.w500_12(
-                    context,
-                  ).copyWith(color: colors.textSubtitle1),
+                  style: STextStyles.w500_12(context)
+                      .copyWith(color: colors.textSubtitle1),
                 ),
                 const SizedBox(height: 4),
                 SelectableText(
@@ -214,9 +212,8 @@ class _PivxMasternodeDetailsViewState
           Expanded(
             child: SelectableText(
               code,
-              style: STextStyles.w500_12(
-                context,
-              ).copyWith(fontFamily: "monospace", color: colors.textDark),
+              style: STextStyles.w500_12(context)
+                  .copyWith(fontFamily: "monospace", color: colors.textDark),
             ),
           ),
           const SizedBox(width: 8),

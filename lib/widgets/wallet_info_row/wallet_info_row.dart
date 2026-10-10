@@ -11,14 +11,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../models/isar/models/contract.dart';
 import '../../providers/providers.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
-import '../../wallets/crypto_currency/coins/solana.dart';
-import '../../wallets/isar/providers/wallet_info_provider.dart';
-import '../coin_ticker_tag.dart';
 import '../custom_buttons/blue_text_button.dart';
 import 'sub_widgets/wallet_info_row_balance.dart';
 import 'sub_widgets/wallet_info_row_coin_icon.dart';
@@ -28,39 +24,16 @@ class WalletInfoRow extends ConsumerWidget {
     super.key,
     required this.walletId,
     this.onPressedDesktop,
-    this.contractAddress,
     this.padding = const EdgeInsets.all(0),
   });
 
   final String walletId;
-  final String? contractAddress;
   final VoidCallback? onPressedDesktop;
   final EdgeInsets padding;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final wallet = ref.watch(pWallets).getWallet(walletId);
-    Contract? contract;
-    if (contractAddress != null) {
-      if (wallet.info.coin is Solana) {
-        // Solana token.
-        final solContract = ref.watch(
-          mainDBProvider.select(
-            (value) => value.getSolContractSync(contractAddress!),
-          ),
-        );
-        contract = solContract;
-      } else {
-        // Ethereum token.
-        final ethContract = ref.watch(
-          mainDBProvider.select(
-            (value) => value.getEthContractSync(contractAddress!),
-          ),
-        );
-        contract = ethContract;
-      }
-    }
-
     if (Util.isDesktop) {
       return Padding(
         padding: padding,
@@ -72,54 +45,26 @@ class WalletInfoRow extends ConsumerWidget {
                 flex: 3,
                 child: Row(
                   children: [
-                    WalletInfoCoinIcon(
-                      coin: wallet.info.coin,
-                      contractAddress: contractAddress,
-                    ),
+                    WalletInfoCoinIcon(coin: wallet.info.coin),
                     const SizedBox(width: 12),
-                    contract != null
-                        ? Row(
-                            children: [
-                              Text(
-                                contract.name,
-                                style:
-                                    STextStyles.desktopTextExtraSmall(
-                                      context,
-                                    ).copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.textDark,
-                                    ),
-                              ),
-                              const SizedBox(width: 4),
-                              CoinTickerTag(
-                                ticker: ref.watch(
-                                  pWalletCoin(walletId).select((s) => s.ticker),
-                                ),
-                              ),
-                            ],
-                          )
-                        : Expanded(
-                            child: Text(
-                              wallet.info.name,
-                              overflow: TextOverflow.ellipsis,
-                              style: STextStyles.desktopTextExtraSmall(context)
-                                  .copyWith(
-                                    color: Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.textDark,
-                                  ),
+                    Expanded(
+                      child: Text(
+                        wallet.info.name,
+                        overflow: TextOverflow.ellipsis,
+                        style: STextStyles.desktopTextExtraSmall(context)
+                            .copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textDark,
                             ),
-                          ),
+                      ),
+                    ),
                   ],
                 ),
               ),
               Expanded(
                 flex: 4,
-                child: WalletInfoRowBalance(
-                  walletId: walletId,
-                  contractAddress: contractAddress,
-                ),
+                child: WalletInfoRowBalance(walletId: walletId),
               ),
               Expanded(
                 flex: 2,
@@ -140,41 +85,16 @@ class WalletInfoRow extends ConsumerWidget {
     } else {
       return Row(
         children: [
-          WalletInfoCoinIcon(
-            coin: wallet.info.coin,
-            contractAddress: contractAddress,
-          ),
+          WalletInfoCoinIcon(coin: wallet.info.coin),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (contract != null)
-                  Row(
-                    children: [
-                      Text(
-                        contract.name,
-                        style: STextStyles.titleBold12(context),
-                      ),
-                      const SizedBox(width: 4),
-                      CoinTickerTag(
-                        ticker: ref.watch(
-                          pWalletCoin(walletId).select((s) => s.ticker),
-                        ),
-                      ),
-                    ],
-                  )
-                else
-                  Text(
-                    wallet.info.name,
-                    style: STextStyles.titleBold12(context),
-                  ),
+                Text(wallet.info.name, style: STextStyles.titleBold12(context)),
                 const SizedBox(height: 2),
-                WalletInfoRowBalance(
-                  walletId: walletId,
-                  contractAddress: contractAddress,
-                ),
+                WalletInfoRowBalance(walletId: walletId),
               ],
             ),
           ),

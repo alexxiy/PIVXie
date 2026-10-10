@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stackwallet/models/isar/stack_theme.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/widgets/custom_buttons/draggable_switch_button.dart';
+import 'package:paymint/models/isar/stack_theme.dart';
+import 'package:paymint/themes/stack_colors.dart';
+import 'package:paymint/widgets/custom_buttons/draggable_switch_button.dart';
 
 import '../../sample_data/theme_json.dart';
 
@@ -22,9 +22,7 @@ void main() {
         theme: ThemeData(
           extensions: [
             StackColors.fromStackColorTheme(
-              StackTheme.fromJson(
-                json: lightThemeJsonMap,
-              ),
+              StackTheme.fromJson(json: lightThemeJsonMap),
             ),
           ],
         ),
@@ -53,22 +51,18 @@ void main() {
         theme: ThemeData(
           extensions: [
             StackColors.fromStackColorTheme(
-              StackTheme.fromJson(
-                json: lightThemeJsonMap,
-              ),
+              StackTheme.fromJson(json: lightThemeJsonMap),
             ),
           ],
         ),
-        home: SizedBox(
-          width: 200,
-          height: 60,
-          child: button,
-        ),
+        home: SizedBox(width: 200, height: 60, child: button),
       ),
     );
 
-    await tester.drag(find.byKey(const Key("draggableSwitchButtonSwitch")),
-        const Offset(-800, 0));
+    await tester.drag(
+      find.byKey(const Key("draggableSwitchButtonSwitch")),
+      const Offset(-800, 0),
+    );
     await tester.pumpAndSettle();
 
     expect(isButtonOn, false);
@@ -89,22 +83,18 @@ void main() {
         theme: ThemeData(
           extensions: [
             StackColors.fromStackColorTheme(
-              StackTheme.fromJson(
-                json: lightThemeJsonMap,
-              ),
+              StackTheme.fromJson(json: lightThemeJsonMap),
             ),
           ],
         ),
-        home: SizedBox(
-          width: 200,
-          height: 60,
-          child: button,
-        ),
+        home: SizedBox(width: 200, height: 60, child: button),
       ),
     );
 
-    await tester.drag(find.byKey(const Key("draggableSwitchButtonSwitch")),
-        const Offset(800, 0));
+    await tester.drag(
+      find.byKey(const Key("draggableSwitchButtonSwitch")),
+      const Offset(800, 0),
+    );
     await tester.pumpAndSettle();
 
     expect(isButtonOn, true);

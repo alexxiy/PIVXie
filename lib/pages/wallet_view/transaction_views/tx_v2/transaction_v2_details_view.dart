@@ -13,17 +13,13 @@ import 'dart:async';
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import 'package:isar_community/isar.dart';
 import 'package:tuple/tuple.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../models/isar/models/blockchain_data/transaction.dart';
 import '../../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
-import '../../../../models/isar/models/contract.dart';
-import '../../../../notifications/show_flush_bar.dart';
 import '../../../../providers/global/address_book_service_provider.dart';
 import '../../../../providers/providers.dart';
 import '../../../../themes/stack_colors.dart';
@@ -34,18 +30,11 @@ import '../../../../utilities/block_explorers.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/format.dart';
 import '../../../../utilities/logger.dart';
-import '../../../../utilities/show_loading.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
-import '../../../../wallets/crypto_currency/intermediate/nano_currency.dart';
-import '../../../../wallets/isar/models/spark_coin.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
-import '../../../../wallets/wallet/impl/epiccash_wallet.dart';
-import '../../../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
-import '../../../../wallets/wallet/intermediate/cryptonote_wallet.dart';
-import '../../../../wallets/wallet/wallet_mixin_interfaces/rbf_interface.dart';
-import '../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
+import '../../../../widgets/icon_buttons.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/conditional_parent.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -55,16 +44,10 @@ import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
-import '../../../../widgets/icon_widgets/copy_icon.dart';
-import '../../../../widgets/icon_widgets/pencil_icon.dart';
 import '../../../../widgets/rounded_white_container.dart';
 import '../../../../widgets/stack_dialog.dart';
-import '../../../../widgets/tx_key_widget.dart';
 import '../../sub_widgets/tx_icon.dart';
-import '../../wallet_view.dart';
-import '../dialogs/cancelling_transaction_progress_dialog.dart';
 import '../edit_note_view.dart';
-import 'boost_transaction_view.dart';
 
 class TransactionV2DetailsView extends ConsumerStatefulWidget {
   const TransactionV2DetailsView({
@@ -101,83 +84,10 @@ class _TransactionV2DetailsViewState
   late final String amountPrefix;
   late final String unit;
   late final int minConfirms;
-  late final Contract? tokenContract;
-  late final bool supportsRbf;
-  late final bool hasTxKeyProbably;
-
-  bool get isTokenTx => tokenContract != null;
 
   late List<({List<String> addresses, Amount amount})> data;
 
   bool showFeePending = false;
-
-  String? _sparkMemo;
-
-  bool _boostButtonLock = false;
-  Future<void> _boostPressed() async {
-    final wallet = ref.read(pWallets).getWallet(walletId);
-    if (_boostButtonLock || wallet is! RbfInterface) {
-      return;
-    }
-    _boostButtonLock = true;
-    try {
-      if (Util.isDesktop) {
-        if (_transaction.vSize == null) {
-          final updatedTx = await showLoading(
-            whileFuture: wallet.updateVSize(_transaction),
-            context: context,
-            message: "Fetching transaction vSize...",
-          );
-
-          // TODO handle errors if null
-          _transaction = updatedTx!;
-        }
-
-        // TODO pass the size in to the rbf screen
-
-        if (mounted) {
-          await showDialog<void>(
-            context: context,
-            builder: (context) => DesktopDialog(
-              maxHeight: null,
-              maxWidth: 580,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(left: 32),
-                        child: Text(
-                          "Boost transaction",
-                          style: STextStyles.desktopH3(context),
-                        ),
-                      ),
-                      const DesktopDialogCloseButton(),
-                    ],
-                  ),
-                  Flexible(
-                    child: SingleChildScrollView(
-                      child: BoostTransactionView(transaction: _transaction),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        }
-      } else {
-        unawaited(
-          Navigator.of(
-            context,
-          ).pushNamed(BoostTransactionView.routeName, arguments: _transaction),
-        );
-      }
-    } finally {
-      _boostButtonLock = false;
-    }
-  }
 
   @override
   void initState() {
@@ -185,40 +95,8 @@ class _TransactionV2DetailsViewState
     _transaction = widget.transaction;
     walletId = widget.walletId;
 
-    final wallet = ref.read(pWallets).getWallet(walletId);
-
-    hasTxKeyProbably =
-        (wallet is CryptonoteWallet) &&
-        (_transaction.type == TransactionType.outgoing ||
-            _transaction.type == TransactionType.sentToSelf);
-
-    if (_transaction.type
-        case TransactionType.sentToSelf || TransactionType.outgoing) {
-      supportsRbf =
-          _transaction.subType == TransactionSubType.none &&
-          wallet is RbfInterface;
-    } else {
-      supportsRbf = false;
-    }
-
     coin = widget.coin;
-
-    if (_transaction.subType == TransactionSubType.splToken) {
-      tokenContract = ref
-          .read(mainDBProvider)
-          .getSolContractSync(_transaction.contractAddress!);
-
-      unit = tokenContract!.symbol;
-    } else if (_transaction.subType == TransactionSubType.ethToken) {
-      tokenContract = ref
-          .read(mainDBProvider)
-          .getEthContractSync(_transaction.contractAddress!);
-
-      unit = tokenContract!.symbol;
-    } else {
-      tokenContract = null;
-      unit = coin.ticker;
-    }
+    unit = coin.ticker;
 
     minConfirms = ref
         .read(pWallets)
@@ -226,217 +104,52 @@ class _TransactionV2DetailsViewState
         .cryptoCurrency
         .minConfirms;
 
-    final fractionDigits = tokenContract?.decimals ?? coin.fractionDigits;
+    final fractionDigits = coin.fractionDigits;
 
     fee = _transaction.getFee(fractionDigits: fractionDigits);
 
-    if (_transaction.subType == TransactionSubType.cashFusion ||
-        _transaction.type == TransactionType.sentToSelf) {
-      amountPrefix = "";
-    } else {
-      amountPrefix = _transaction.type == TransactionType.outgoing ? "-" : "+";
+    amountPrefix = switch (_transaction.type) {
+      TransactionType.sentToSelf => "",
+      TransactionType.outgoing => "-",
+      _ => "+",
+    };
+
+    switch (_transaction.type) {
+      case TransactionType.outgoing:
+      case TransactionType.unknown:
+        amount = _transaction.getAmountSentFromThisWallet(
+          fractionDigits: fractionDigits,
+          subtractFee: true,
+        );
+        break;
+
+      case TransactionType.incoming:
+      case TransactionType.sentToSelf:
+        amount = _transaction.getAmountReceivedInThisWallet(
+          fractionDigits: fractionDigits,
+        );
+        break;
     }
 
-    if (_transaction.isEpiccashTransaction) {
-      switch (_transaction.type) {
-        case TransactionType.outgoing:
-        case TransactionType.unknown:
-          amount = _transaction.getAmountSentFromThisWallet(
-            fractionDigits: fractionDigits,
-            subtractFee: coin is! Ethereum,
-          );
-          break;
-
-        case TransactionType.incoming:
-        case TransactionType.sentToSelf:
-          amount = _transaction.getAmountReceivedInThisWallet(
-            fractionDigits: fractionDigits,
-          );
-          break;
-      }
-      data = _transaction.outputs
-          .map(
-            (e) => (
-              addresses: e.addresses,
-              amount: Amount(
-                rawValue: e.value,
-                fractionDigits: coin.fractionDigits,
-              ),
-            ),
-          )
-          .toList();
-    } else if (_transaction.subType == TransactionSubType.cashFusion) {
-      amount = _transaction.getAmountReceivedInThisWallet(
-        fractionDigits: fractionDigits,
-      );
-      data = _transaction.outputs
-          .where((e) => e.walletOwns)
-          .map(
-            (e) => (
-              addresses: e.addresses,
-              amount: Amount(
-                rawValue: e.value,
-                fractionDigits: coin.fractionDigits,
-              ),
-            ),
-          )
-          .toList();
-    } else if (_transaction.isMimblewimblecoinTransaction) {
-      switch (_transaction.type) {
-        case TransactionType.outgoing:
-        case TransactionType.unknown:
-          amount = _transaction.getAmountSentFromThisWallet(
-            fractionDigits: fractionDigits,
-            subtractFee: coin is! Ethereum,
-          );
-          break;
-
-        case TransactionType.incoming:
-        case TransactionType.sentToSelf:
-          amount = _transaction.getAmountReceivedInThisWallet(
-            fractionDigits: fractionDigits,
-          );
-          break;
-      }
-      data = _transaction.outputs
-          .map(
-            (e) => (
-              addresses: e.addresses,
-              amount: Amount(
-                rawValue: e.value,
-                fractionDigits: coin.fractionDigits,
-              ),
-            ),
-          )
-          .toList();
-    } else {
-      switch (_transaction.type) {
-        case TransactionType.outgoing:
-          amount = _transaction.getAmountSentFromThisWallet(
-            fractionDigits: fractionDigits,
-            subtractFee: coin is! Ethereum,
-          );
-          data = _transaction.outputs
-              .where((e) => !e.walletOwns)
-              .map(
-                (e) => (
-                  addresses: e.addresses,
-                  amount: Amount(
-                    rawValue: e.value,
-                    fractionDigits: coin.fractionDigits,
-                  ),
-                ),
-              )
-              .toList();
-          break;
-
-        case TransactionType.incoming:
-        case TransactionType.sentToSelf:
-          if (_transaction.subType == TransactionSubType.sparkMint ||
-              _transaction.subType == TransactionSubType.sparkSpend) {
-            _sparkMemo = ref
-                .read(mainDBProvider)
-                .isar
-                .sparkCoins
-                .where()
-                .walletIdEqualToAnyLTagHash(walletId)
-                .filter()
-                .memoIsNotEmpty()
-                .and()
-                .heightEqualTo(_transaction.height)
-                .anyOf(
-                  _transaction.outputs
-                      .where(
-                        (e) =>
-                            e.walletOwns &&
-                            e.addresses.isEmpty &&
-                            e.scriptPubKeyHex.length >= 488,
-                      )
-                      .map((e) => e.scriptPubKeyHex.substring(2, 488))
-                      .toList(),
-                  (q, element) => q.serializedCoinB64StartsWith(element),
-                )
-                .memoProperty()
-                .findFirstSync();
-          }
-
-          if (_transaction.subType == TransactionSubType.sparkMint) {
-            amount = _transaction.getAmountSparkSelfMinted(
-              fractionDigits: fractionDigits,
-            );
-          } else if (_transaction.subType == TransactionSubType.sparkSpend) {
-            final changeAddress =
-                (ref.read(pWallets).getWallet(walletId) as SparkInterface)
-                    .sparkChangeAddress;
-            amount = Amount(
-              rawValue: _transaction.outputs
-                  .where(
-                    (e) => e.walletOwns && !e.addresses.contains(changeAddress),
-                  )
-                  .fold(BigInt.zero, (p, e) => p + e.value),
-              fractionDigits: coin.fractionDigits,
-            );
-          } else {
-            amount = _transaction.getAmountReceivedInThisWallet(
-              fractionDigits: fractionDigits,
-            );
-          }
-          data = _transaction.outputs
-              .where((e) => e.walletOwns)
-              .map(
-                (e) => (
-                  addresses: e.addresses,
-                  amount: Amount(
-                    rawValue: e.value,
-                    fractionDigits: coin.fractionDigits,
-                  ),
-                ),
-              )
-              .toList();
-          break;
-
-        case TransactionType.unknown:
-          amount = _transaction.getAmountSentFromThisWallet(
-            fractionDigits: fractionDigits,
-            subtractFee: coin is! Ethereum,
-          );
-          data = _transaction.inputs
-              .where((e) => e.walletOwns)
-              .map(
-                (e) => (
-                  addresses: e.addresses,
-                  amount: Amount(
-                    rawValue: e.value,
-                    fractionDigits: coin.fractionDigits,
-                  ),
-                ),
-              )
-              .toList();
-          break;
-      }
-    }
-
-    if (coin is Pivx) {
-      // Like PIVX Core: the destination only, without change. All inputs
-      // and outputs are listed separately ([_PivxTxParts]).
-      final change = _transaction.pivxChangeAddresses;
-      final owned = _transaction.outputs.where((e) => e.walletOwns);
-      var shown = switch (_transaction.type) {
-        TransactionType.outgoing => _transaction.outputs.where(
-          (e) => !e.walletOwns,
+    // Like PIVX Core: the destination only, without change. All inputs
+    // and outputs are listed separately ([_PivxTxParts]).
+    final change = _transaction.pivxChangeAddresses;
+    final owned = _transaction.outputs.where((e) => e.walletOwns);
+    var shown = switch (_transaction.type) {
+      TransactionType.outgoing => _transaction.outputs.where(
+        (e) => !e.walletOwns,
+      ),
+      TransactionType.incoming => owned,
+      _ => owned.where((e) => !e.addresses.any(change.contains)),
+    };
+    if (shown.isEmpty) shown = owned;
+    data = [
+      for (final e in shown)
+        (
+          addresses: e.addresses,
+          amount: Amount(rawValue: e.value, fractionDigits: fractionDigits),
         ),
-        TransactionType.incoming => owned,
-        _ => owned.where((e) => !e.addresses.any(change.contains)),
-      };
-      if (shown.isEmpty) shown = owned;
-      data = [
-        for (final e in shown)
-          (
-            addresses: e.addresses,
-            amount: Amount(rawValue: e.value, fractionDigits: fractionDigits),
-          ),
-      ];
-    }
+    ];
 
     super.initState();
   }
@@ -498,21 +211,13 @@ class _TransactionV2DetailsViewState
       outputLabel = "Sent to";
     }
 
-    final confirmedTxn = _transaction.isConfirmed(
-      currentHeight,
-      coin.minConfirms,
-      coin.minCoinbaseConfirms,
-    );
-
     Decimal? price;
     if (ref.watch(
       prefsChangeNotifierProvider.select((value) => value.externalCalls),
     )) {
       price = ref.watch(
         priceAnd24hChangeNotifierProvider.select(
-          (value) => isTokenTx
-              ? value.getTokenPrice(_transaction.contractAddress!)?.value
-              : value.getPrice(coin)?.value,
+          (value) => value.getPrice(coin)?.value,
         ),
       );
     }
@@ -537,9 +242,9 @@ class _TransactionV2DetailsViewState
         appBar: isDesktop
             ? null
             : AppBar(
-                backgroundColor: Theme.of(
-                  context,
-                ).extension<StackColors>()!.background,
+                backgroundColor: Theme.of(context)
+                    .extension<StackColors>()!
+                    .background,
                 leading: AppBarBackButton(
                   onPressed: () async {
                     // if (FocusScope.of(context).hasFocus) {
@@ -585,9 +290,9 @@ class _TransactionV2DetailsViewState
                       builder: (child) {
                         return RoundedWhiteContainer(
                           borderColor: isDesktop
-                              ? Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.backgroundAppBar
+                              ? Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .backgroundAppBar
                               : null,
                           padding: const EdgeInsets.all(0),
                           child: child,
@@ -614,7 +319,6 @@ class _TransactionV2DetailsViewState
                                 labelStyle: labelStyle,
                                 detailStyle: detailStyle,
                                 amountPrefix: amountPrefix,
-                                tokenContract: tokenContract,
                               ),
                               isDesktop
                                   ? const _Divider()
@@ -663,233 +367,207 @@ class _TransactionV2DetailsViewState
                                   ],
                                 ),
                               ),
-                              if (!((coin is Monero || coin is Wownero) &&
-                                      _transaction.type ==
-                                          TransactionType.outgoing) &&
-                                  !((coin is Firo) &&
-                                      _transaction.subType ==
-                                          TransactionSubType.mint))
-                                isDesktop
-                                    ? const _Divider()
-                                    : const SizedBox(height: 12),
-                              if (!((coin is Monero || coin is Wownero) &&
-                                      _transaction.type ==
-                                          TransactionType.outgoing) &&
-                                  !((coin is Firo) &&
-                                      _transaction.subType ==
-                                          TransactionSubType.mint))
-                                RoundedWhiteContainer(
-                                  padding: isDesktop
-                                      ? const EdgeInsets.all(16)
-                                      : const EdgeInsets.all(12),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Expanded(
-                                        child: Column(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            ConditionalParent(
-                                              condition: kDebugMode,
-                                              builder: (child) {
-                                                return Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceBetween,
-                                                  children: [
-                                                    child,
-                                                    // CustomTextButton(
-                                                    //   text: "Info",
-                                                    //   onTap: () async {
-                                                    //     final adr = await ref
-                                                    //         .read(mainDBProvider)
-                                                    //         .getAddress(walletId,
-                                                    //             addresses.first);
-                                                    //     if (adr != null &&
-                                                    //         mounted) {
-                                                    //       if (isDesktop) {
-                                                    //         await showDialog<
-                                                    //             void>(
-                                                    //           context: context,
-                                                    //           builder: (_) =>
-                                                    //               DesktopDialog(
-                                                    //             maxHeight: double
-                                                    //                 .infinity,
-                                                    //             child:
-                                                    //                 AddressDetailsView(
-                                                    //               addressId:
-                                                    //                   adr.id,
-                                                    //               walletId: widget
-                                                    //                   .walletId,
-                                                    //             ),
-                                                    //           ),
-                                                    //         );
-                                                    //       } else {
-                                                    //         await Navigator.of(
-                                                    //                 context)
-                                                    //             .pushNamed(
-                                                    //           AddressDetailsView
-                                                    //               .routeName,
-                                                    //           arguments: Tuple2(
-                                                    //             adr.id,
-                                                    //             widget.walletId,
-                                                    //           ),
-                                                    //         );
-                                                    //       }
-                                                    //     }
-                                                    //   },
-                                                    // )
-                                                  ],
-                                                );
-                                              },
-                                              child: Text(
-                                                outputLabel,
-                                                style: labelStyle,
-                                              ),
+                              isDesktop
+                                  ? const _Divider()
+                                  : const SizedBox(height: 12),
+                              RoundedWhiteContainer(
+                                padding: isDesktop
+                                    ? const EdgeInsets.all(16)
+                                    : const EdgeInsets.all(12),
+                                child: Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          ConditionalParent(
+                                            condition: kDebugMode,
+                                            builder: (child) {
+                                              return Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: [
+                                                  child,
+                                                  // CustomTextButton(
+                                                  //   text: "Info",
+                                                  //   onTap: () async {
+                                                  //     final adr = await ref
+                                                  //         .read(mainDBProvider)
+                                                  //         .getAddress(walletId,
+                                                  //             addresses.first);
+                                                  //     if (adr != null &&
+                                                  //         mounted) {
+                                                  //       if (isDesktop) {
+                                                  //         await showDialog<
+                                                  //             void>(
+                                                  //           context: context,
+                                                  //           builder: (_) =>
+                                                  //               DesktopDialog(
+                                                  //             maxHeight: double
+                                                  //                 .infinity,
+                                                  //             child:
+                                                  //                 AddressDetailsView(
+                                                  //               addressId:
+                                                  //                   adr.id,
+                                                  //               walletId: widget
+                                                  //                   .walletId,
+                                                  //             ),
+                                                  //           ),
+                                                  //         );
+                                                  //       } else {
+                                                  //         await Navigator.of(
+                                                  //                 context)
+                                                  //             .pushNamed(
+                                                  //           AddressDetailsView
+                                                  //               .routeName,
+                                                  //           arguments: Tuple2(
+                                                  //             adr.id,
+                                                  //             widget.walletId,
+                                                  //           ),
+                                                  //         );
+                                                  //       }
+                                                  //     }
+                                                  //   },
+                                                  // )
+                                                ],
+                                              );
+                                            },
+                                            child: Text(
+                                              outputLabel,
+                                              style: labelStyle,
                                             ),
-                                            const SizedBox(height: 8),
-                                            Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                if (data.length == 1 &&
-                                                    data
-                                                            .first
-                                                            .addresses
-                                                            .length ==
-                                                        1)
-                                                  FutureBuilder(
-                                                    future: fetchContactNameFor(
-                                                      data
-                                                          .first
-                                                          .addresses
-                                                          .first,
-                                                    ),
-                                                    builder:
-                                                        (
-                                                          builderContext,
-                                                          AsyncSnapshot<String>
-                                                          snapshot,
-                                                        ) {
-                                                          String
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              if (data.length == 1 &&
+                                                  data.first.addresses.length ==
+                                                      1)
+                                                FutureBuilder(
+                                                  future: fetchContactNameFor(
+                                                    data.first.addresses.first,
+                                                  ),
+                                                  builder:
+                                                      (
+                                                        builderContext,
+                                                        AsyncSnapshot<String>
+                                                        snapshot,
+                                                      ) {
+                                                        String
+                                                        addressOrContactName =
+                                                            data
+                                                                .first
+                                                                .addresses
+                                                                .first;
+                                                        if (snapshot.connectionState ==
+                                                                ConnectionState
+                                                                    .done &&
+                                                            snapshot.hasData) {
                                                           addressOrContactName =
-                                                              data
-                                                                  .first
-                                                                  .addresses
-                                                                  .first;
-                                                          if (snapshot.connectionState ==
-                                                                  ConnectionState
-                                                                      .done &&
-                                                              snapshot
-                                                                  .hasData) {
-                                                            addressOrContactName =
-                                                                snapshot.data!;
-                                                          }
-                                                          return SelectableText(
-                                                            addressOrContactName,
-                                                            style: isDesktop
-                                                                ? STextStyles.desktopTextExtraExtraSmall(
-                                                                    context,
-                                                                  ).copyWith(
-                                                                    color: Theme.of(context)
-                                                                        .extension<
-                                                                          StackColors
-                                                                        >()!
-                                                                        .textDark,
-                                                                  )
-                                                                : STextStyles.itemSubtitle12(
-                                                                    context,
-                                                                  ),
-                                                          );
-                                                        },
-                                                  )
-                                                else
-                                                  for (
-                                                    int i = 0;
-                                                    i < data.length;
-                                                    i++
-                                                  )
-                                                    ConditionalParent(
-                                                      condition: i > 0,
-                                                      builder: (child) => Column(
+                                                              snapshot.data!;
+                                                        }
+                                                        return SelectableText(
+                                                          addressOrContactName,
+                                                          style: isDesktop
+                                                              ? STextStyles.desktopTextExtraExtraSmall(
+                                                                  context,
+                                                                ).copyWith(
+                                                                  color: Theme.of(context)
+                                                                      .extension<
+                                                                        StackColors
+                                                                      >()!
+                                                                      .textDark,
+                                                                )
+                                                              : STextStyles.itemSubtitle12(
+                                                                  context,
+                                                                ),
+                                                        );
+                                                      },
+                                                )
+                                              else
+                                                for (
+                                                  int i = 0;
+                                                  i < data.length;
+                                                  i++
+                                                )
+                                                  ConditionalParent(
+                                                    condition: i > 0,
+                                                    builder: (child) => Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .stretch,
+                                                      children: [
+                                                        const _Divider(),
+                                                        child,
+                                                      ],
+                                                    ),
+                                                    child: Padding(
+                                                      padding:
+                                                          const EdgeInsets.all(
+                                                            8.0,
+                                                          ),
+                                                      child: Column(
                                                         crossAxisAlignment:
                                                             CrossAxisAlignment
-                                                                .stretch,
+                                                                .start,
                                                         children: [
-                                                          const _Divider(),
-                                                          child,
+                                                          ...data[i].addresses.map((
+                                                            e,
+                                                          ) {
+                                                            return FutureBuilder(
+                                                              future:
+                                                                  fetchContactNameFor(
+                                                                    e,
+                                                                  ),
+                                                              builder: (builderContext, AsyncSnapshot<String> snapshot) {
+                                                                final String
+                                                                addressOrContactName;
+                                                                if (snapshot.connectionState ==
+                                                                        ConnectionState
+                                                                            .done &&
+                                                                    snapshot
+                                                                        .hasData) {
+                                                                  addressOrContactName =
+                                                                      snapshot
+                                                                          .data!;
+                                                                } else {
+                                                                  addressOrContactName =
+                                                                      e;
+                                                                }
+
+                                                                return OutputCard(
+                                                                  address:
+                                                                      addressOrContactName,
+                                                                  amount: data[i]
+                                                                      .amount,
+                                                                  coin: coin,
+                                                                );
+                                                              },
+                                                            );
+                                                          }),
                                                         ],
                                                       ),
-                                                      child: Padding(
-                                                        padding:
-                                                            const EdgeInsets.all(
-                                                              8.0,
-                                                            ),
-                                                        child: Column(
-                                                          crossAxisAlignment:
-                                                              CrossAxisAlignment
-                                                                  .start,
-                                                          children: [
-                                                            ...data[i].addresses.map((
-                                                              e,
-                                                            ) {
-                                                              return FutureBuilder(
-                                                                future:
-                                                                    fetchContactNameFor(
-                                                                      e,
-                                                                    ),
-                                                                builder:
-                                                                    (
-                                                                      builderContext,
-                                                                      AsyncSnapshot<
-                                                                        String
-                                                                      >
-                                                                      snapshot,
-                                                                    ) {
-                                                                      final String
-                                                                      addressOrContactName;
-                                                                      if (snapshot.connectionState ==
-                                                                              ConnectionState.done &&
-                                                                          snapshot
-                                                                              .hasData) {
-                                                                        addressOrContactName =
-                                                                            snapshot.data!;
-                                                                      } else {
-                                                                        addressOrContactName =
-                                                                            e;
-                                                                      }
-
-                                                                      return OutputCard(
-                                                                        address:
-                                                                            addressOrContactName,
-                                                                        amount:
-                                                                            data[i].amount,
-                                                                        coin:
-                                                                            coin,
-                                                                      );
-                                                                    },
-                                                              );
-                                                            }),
-                                                          ],
-                                                        ),
-                                                      ),
                                                     ),
-                                              ],
-                                            ),
-                                          ],
-                                        ),
+                                                  ),
+                                            ],
+                                          ),
+                                        ],
                                       ),
-                                      // if (isDesktop)
-                                      //   IconCopyButton(
-                                      //     data: addresses.first,
-                                      //   ),
-                                    ],
-                                  ),
+                                    ),
+                                    // if (isDesktop)
+                                    //   IconCopyButton(
+                                    //     data: addresses.first,
+                                    //   ),
+                                  ],
                                 ),
+                              ),
                               if (coin is Pivx) ...[
                                 isDesktop
                                     ? const _Divider()
@@ -899,15 +577,11 @@ class _TransactionV2DetailsViewState
                                   coin: coin,
                                 ),
                               ],
-                              if (coin is Epiccash ||
-                                  coin is Mimblewimblecoin ||
-                                  _hasPivxMemo)
+                              if (_hasPivxMemo)
                                 isDesktop
                                     ? const _Divider()
                                     : const SizedBox(height: 12),
-                              if (coin is Epiccash ||
-                                  coin is Mimblewimblecoin ||
-                                  _hasPivxMemo)
+                              if (_hasPivxMemo)
                                 RoundedWhiteContainer(
                                   padding: isDesktop
                                       ? const EdgeInsets.all(16)
@@ -958,13 +632,7 @@ class _TransactionV2DetailsViewState
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Text(
-                                          (coin is Epiccash ||
-                                                  coin is Mimblewimblecoin)
-                                              ? "Local Note"
-                                              : "Note ",
-                                          style: labelStyle,
-                                        ),
+                                        Text("Note ", style: labelStyle),
                                         isDesktop
                                             ? IconPencilButton(
                                                 onPressed: () {
@@ -1041,16 +709,6 @@ class _TransactionV2DetailsViewState
                                   ],
                                 ),
                               ),
-                              if (_sparkMemo != null)
-                                isDesktop
-                                    ? const _Divider()
-                                    : const SizedBox(height: 12),
-                              if (_sparkMemo != null)
-                                _DetailItem(
-                                  label: "Memo",
-                                  detail: _sparkMemo!,
-                                  vertical: true,
-                                ),
                               isDesktop
                                   ? const _Divider()
                                   : const SizedBox(height: 12),
@@ -1095,81 +753,66 @@ class _TransactionV2DetailsViewState
                                   ],
                                 ),
                               ),
-                              if (coin is! NanoCurrency &&
-                                  !(coin is Xelis &&
-                                      _transaction.type ==
-                                          TransactionType.incoming))
-                                isDesktop
-                                    ? const _Divider()
-                                    : const SizedBox(height: 12),
-                              if (coin is! NanoCurrency &&
-                                  !(coin is Xelis &&
-                                      _transaction.type ==
-                                          TransactionType.incoming))
-                                RoundedWhiteContainer(
-                                  padding: isDesktop
-                                      ? const EdgeInsets.all(16)
-                                      : const EdgeInsets.all(12),
-                                  child: Builder(
-                                    builder: (context) {
-                                      final String feeString = showFeePending
-                                          ? _transaction.isConfirmed(
-                                                  currentHeight,
-                                                  minConfirms,
-                                                  coin.minCoinbaseConfirms,
-                                                )
-                                                ? ref
-                                                      .watch(
-                                                        pAmountFormatter(coin),
-                                                      )
-                                                      .format(fee)
-                                                : "Pending"
-                                          : ref
-                                                .watch(pAmountFormatter(coin))
-                                                .format(fee);
+                              isDesktop
+                                  ? const _Divider()
+                                  : const SizedBox(height: 12),
+                              RoundedWhiteContainer(
+                                padding: isDesktop
+                                    ? const EdgeInsets.all(16)
+                                    : const EdgeInsets.all(12),
+                                child: Builder(
+                                  builder: (context) {
+                                    final String feeString = showFeePending
+                                        ? _transaction.isConfirmed(
+                                                currentHeight,
+                                                minConfirms,
+                                                coin.minCoinbaseConfirms,
+                                              )
+                                              ? ref
+                                                    .watch(
+                                                      pAmountFormatter(coin),
+                                                    )
+                                                    .format(fee)
+                                              : "Pending"
+                                        : ref
+                                              .watch(pAmountFormatter(coin))
+                                              .format(fee);
 
-                                      return Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                "Transaction fee",
-                                                style: labelStyle,
-                                              ),
-                                              if (isDesktop)
-                                                const SizedBox(height: 2),
-                                              if (isDesktop)
-                                                SelectableText(
-                                                  feeString,
-                                                  style: detailStyle,
-                                                ),
-                                              if (supportsRbf && !confirmedTxn)
-                                                const SizedBox(height: 8),
-                                              if (supportsRbf && !confirmedTxn)
-                                                CustomTextButton(
-                                                  text: "Boost transaction",
-                                                  onTap: _boostPressed,
-                                                ),
-                                            ],
-                                          ),
-                                          if (!isDesktop)
-                                            SelectableText(
-                                              feeString,
-                                              style: detailStyle,
+                                    return Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              "Transaction fee",
+                                              style: labelStyle,
                                             ),
-                                          if (isDesktop)
-                                            IconCopyButton(data: feeString),
-                                        ],
-                                      );
-                                    },
-                                  ),
+                                            if (isDesktop)
+                                              const SizedBox(height: 2),
+                                            if (isDesktop)
+                                              SelectableText(
+                                                feeString,
+                                                style: detailStyle,
+                                              ),
+                                          ],
+                                        ),
+                                        if (!isDesktop)
+                                          SelectableText(
+                                            feeString,
+                                            style: detailStyle,
+                                          ),
+                                        if (isDesktop)
+                                          IconCopyButton(data: feeString),
+                                      ],
+                                    );
+                                  },
                                 ),
+                              ),
                               isDesktop
                                   ? const _Divider()
                                   : const SizedBox(height: 12),
@@ -1180,36 +823,22 @@ class _TransactionV2DetailsViewState
                                   final confirms = _transaction
                                       .getConfirmations(currentHeight);
 
-                                  if (widget.coin is Bitcoincash ||
-                                      widget.coin is Ecash) {
+                                  final confirmed = _transaction.isConfirmed(
+                                    currentHeight,
+                                    minConfirms,
+                                    coin.minCoinbaseConfirms,
+                                  );
+                                  if (confirmed) {
                                     height =
-                                        _transaction.height != null &&
-                                            _transaction.height! > 0
-                                        ? "${_transaction.height!}"
-                                        : "Pending";
-                                    confirmations = confirms.toString();
-                                  } else if (widget.coin is Epiccash &&
-                                      _transaction.slateId == null) {
-                                    confirmations = "Unknown";
-                                    height = "Unknown";
+                                        "${_transaction.height == 0 ? "Unknow"
+                                                  "n" : _transaction.height}";
                                   } else {
-                                    final confirmed = _transaction.isConfirmed(
-                                      currentHeight,
-                                      minConfirms,
-                                      coin.minCoinbaseConfirms,
-                                    );
-                                    if (widget.coin is! Epiccash && confirmed) {
-                                      height =
-                                          "${_transaction.height == 0 ? "Unknow"
-                                                    "n" : _transaction.height}";
-                                    } else {
-                                      height = confirms > 0
-                                          ? "${_transaction.height}"
-                                          : "Pending";
-                                    }
-
-                                    confirmations = confirms.toString();
+                                    height = confirms > 0
+                                        ? "${_transaction.height}"
+                                        : "Pending";
                                   }
+
+                                  confirmations = confirms.toString();
 
                                   return Column(
                                     children: [
@@ -1294,17 +923,6 @@ class _TransactionV2DetailsViewState
                                   );
                                 },
                               ),
-                              if (coin is Ethereum &&
-                                  _transaction.type != TransactionType.incoming)
-                                isDesktop
-                                    ? const _Divider()
-                                    : const SizedBox(height: 12),
-                              if (coin is Ethereum &&
-                                  _transaction.type != TransactionType.incoming)
-                                _DetailItem(
-                                  label: "Nonce",
-                                  detail: _transaction.nonce.toString(),
-                                ),
                               if (_transaction.memo != null)
                                 isDesktop
                                     ? const _Divider()
@@ -1313,18 +931,6 @@ class _TransactionV2DetailsViewState
                                 _DetailItem(
                                   label: "Memo",
                                   detail: _transaction.memo!,
-                                ),
-                              if (coin is Salvium &&
-                                  _transaction.salviumTypeString != null)
-                                isDesktop
-                                    ? const _Divider()
-                                    : const SizedBox(height: 12),
-                              if (coin is Salvium &&
-                                  _transaction.salviumTypeString != null)
-                                _DetailItem(
-                                  label: "Type",
-                                  detail: _transaction.salviumTypeString!,
-                                  vertical: true,
                                 ),
                               if (kDebugMode)
                                 isDesktop
@@ -1336,15 +942,6 @@ class _TransactionV2DetailsViewState
                                   detail: _transaction.subType.toString(),
                                 ),
 
-                              if (hasTxKeyProbably)
-                                isDesktop
-                                    ? const _Divider()
-                                    : const SizedBox(height: 12),
-                              if (hasTxKeyProbably)
-                                TxKeyWidget(
-                                  walletId: walletId,
-                                  txid: _transaction.txid,
-                                ),
                               isDesktop
                                   ? const _Divider()
                                   : const SizedBox(height: 12),
@@ -1430,15 +1027,11 @@ class _TransactionV2DetailsViewState
                               //       ],
                               //     ),
                               //   ),
-                              if (coin is Epiccash ||
-                                  coin is Mimblewimblecoin ||
-                                  _hasPivxMemo)
+                              if (_hasPivxMemo)
                                 isDesktop
                                     ? const _Divider()
                                     : const SizedBox(height: 12),
-                              if (coin is Epiccash ||
-                                  coin is Mimblewimblecoin ||
-                                  _hasPivxMemo)
+                              if (_hasPivxMemo)
                                 RoundedWhiteContainer(
                                   padding: isDesktop
                                       ? const EdgeInsets.all(16)
@@ -1493,166 +1086,11 @@ class _TransactionV2DetailsViewState
                     ),
                   ),
                 ),
-                if ((coin is Epiccash || coin is Mimblewimblecoin) &&
-                    _transaction.getConfirmations(currentHeight) < 1 &&
-                    _transaction.isCancelled == false)
-                  const SizedBox(height: 40),
               ],
             ),
           ),
         ),
         floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-        floatingActionButton:
-            ((coin is Epiccash || coin is Mimblewimblecoin) &&
-                _transaction.getConfirmations(currentHeight) < 1 &&
-                _transaction.isCancelled == false)
-            ? ConditionalParent(
-                condition: isDesktop,
-                builder: (child) => Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 32,
-                    vertical: 16,
-                  ),
-                  child: child,
-                ),
-                child: SizedBox(
-                  width: MediaQuery.of(context).size.width - 32,
-                  child: TextButton(
-                    style: ButtonStyle(
-                      backgroundColor: MaterialStateProperty.all<Color>(
-                        Theme.of(context).extension<StackColors>()!.textError,
-                      ),
-                    ),
-                    onPressed: () async {
-                      final wallet = ref.read(pWallets).getWallet(walletId);
-
-                      if (wallet is EpiccashWallet) {
-                        final String? id = _transaction.slateId;
-                        if (id == null) {
-                          unawaited(
-                            showFloatingFlushBar(
-                              type: FlushBarType.warning,
-                              message: "Could not find Epic transaction ID",
-                              context: context,
-                            ),
-                          );
-                          return;
-                        }
-
-                        unawaited(
-                          showDialog<void>(
-                            barrierDismissible: false,
-                            context: context,
-                            builder: (_) =>
-                                const CancellingTransactionProgressDialog(),
-                          ),
-                        );
-
-                        final result = await wallet
-                            .cancelPendingTransactionAndPost(id);
-                        if (context.mounted) {
-                          // Pop progress dialog.
-                          Navigator.of(context).pop();
-
-                          if (result.isEmpty) {
-                            await showDialog<dynamic>(
-                              context: context,
-                              builder: (_) => StackOkDialog(
-                                title: "Transaction cancelled",
-                                onOkPressed: (_) {
-                                  Navigator.of(context).popUntil(
-                                    ModalRoute.withName(WalletView.routeName),
-                                  );
-                                },
-                                maxWidth: Util.isDesktop ? 400 : null,
-                              ),
-                            );
-                            unawaited(wallet.refresh());
-                          } else {
-                            await showDialog<dynamic>(
-                              context: context,
-                              builder: (_) => StackOkDialog(
-                                title: "Failed to cancel transaction",
-                                message: result,
-                                maxWidth: Util.isDesktop ? 400 : null,
-                              ),
-                            );
-                          }
-                        }
-                      } else if (wallet is MimblewimblecoinWallet) {
-                        final String? id = _transaction.slateId;
-                        if (id == null) {
-                          unawaited(
-                            showFloatingFlushBar(
-                              type: FlushBarType.warning,
-                              message: "Could not find MWC transaction ID",
-                              context: context,
-                            ),
-                          );
-                          return;
-                        }
-
-                        unawaited(
-                          showDialog<void>(
-                            barrierDismissible: false,
-                            context: context,
-                            builder: (_) =>
-                                const CancellingTransactionProgressDialog(),
-                          ),
-                        );
-
-                        final result = await wallet
-                            .cancelPendingTransactionAndPost(id);
-                        if (context.mounted) {
-                          // pop progress dialog
-                          Navigator.of(context).pop();
-
-                          if (result.isEmpty) {
-                            await showDialog<dynamic>(
-                              context: context,
-                              builder: (_) => StackOkDialog(
-                                title: "Transaction cancelled",
-                                onOkPressed: (_) {
-                                  Navigator.of(context).popUntil(
-                                    ModalRoute.withName(WalletView.routeName),
-                                  );
-                                },
-                                maxWidth: Util.isDesktop ? 400 : null,
-                              ),
-                            );
-                            unawaited(wallet.refresh());
-                          } else {
-                            await showDialog<dynamic>(
-                              context: context,
-                              builder: (_) => StackOkDialog(
-                                title: "Failed to cancel transaction",
-                                message: result,
-                                maxWidth: Util.isDesktop ? 400 : null,
-                              ),
-                            );
-                          }
-                        }
-                      } else {
-                        unawaited(
-                          showFloatingFlushBar(
-                            type: FlushBarType.warning,
-                            message:
-                                "ERROR: Wallet type is not "
-                                "Epic Cash or MimbleWimbleCoin",
-                            context: context,
-                          ),
-                        );
-                        return;
-                      }
-                    },
-                    child: Text(
-                      "Cancel Transaction",
-                      style: STextStyles.button(context),
-                    ),
-                  ),
-                ),
-              )
-            : null,
       ),
     );
   }
@@ -1703,9 +1141,9 @@ class OutputCard extends ConsumerWidget {
               ref.watch(pAmountFormatter(coin)).format(amount),
               style: Util.isDesktop
                   ? STextStyles.desktopTextExtraExtraSmall(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textDark,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textDark,
                     )
                   : STextStyles.itemSubtitle12(context),
             ),
@@ -1845,9 +1283,8 @@ class _PivxPartListState extends ConsumerState<_PivxPartList> {
                       if (e.tag != null)
                         Text(
                           e.tag!,
-                          style: STextStyles.label(
-                            context,
-                          ).copyWith(color: colors.textSubtitle1),
+                          style: STextStyles.label(context)
+                              .copyWith(color: colors.textSubtitle1),
                         ),
                     ],
                   ),
@@ -1870,79 +1307,6 @@ class _Divider extends StatelessWidget {
     return Container(
       height: 1,
       color: Theme.of(context).extension<StackColors>()!.backgroundAppBar,
-    );
-  }
-}
-
-class IconCopyButton extends StatelessWidget {
-  const IconCopyButton({super.key, required this.data});
-
-  final String data;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 26,
-      width: 26,
-      child: RawMaterialButton(
-        fillColor: Theme.of(
-          context,
-        ).extension<StackColors>()!.buttonBackSecondary,
-        elevation: 0,
-        hoverElevation: 0,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-        onPressed: () async {
-          await Clipboard.setData(ClipboardData(text: data));
-          if (context.mounted) {
-            unawaited(
-              showFloatingFlushBar(
-                type: FlushBarType.info,
-                message: "Copied to clipboard",
-                context: context,
-              ),
-            );
-          }
-        },
-        child: Padding(
-          padding: const EdgeInsets.all(5),
-          child: CopyIcon(
-            width: 16,
-            height: 16,
-            color: Theme.of(context).extension<StackColors>()!.textDark,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class IconPencilButton extends StatelessWidget {
-  const IconPencilButton({super.key, this.onPressed});
-
-  final VoidCallback? onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      height: 26,
-      width: 26,
-      child: RawMaterialButton(
-        fillColor: Theme.of(
-          context,
-        ).extension<StackColors>()!.buttonBackSecondary,
-        elevation: 0,
-        hoverElevation: 0,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-        onPressed: () => onPressed?.call(),
-        child: Padding(
-          padding: const EdgeInsets.all(5),
-          child: PencilIcon(
-            width: 16,
-            height: 16,
-            color: Theme.of(context).extension<StackColors>()!.textDark,
-          ),
-        ),
-      ),
     );
   }
 }
@@ -2078,16 +1442,16 @@ class _TxidDetailItemState extends ConsumerState<_TxidDetailItem> {
               child: Text(
                 "Cancel",
                 style: STextStyles.button(context).copyWith(
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.accentColorDark,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .accentColorDark,
                 ),
               ),
             ),
             rightButton: TextButton(
-              style: Theme.of(
-                context,
-              ).extension<StackColors>()!.getPrimaryEnabledButtonStyle(context),
+              style: Theme.of(context)
+                  .extension<StackColors>()!
+                  .getPrimaryEnabledButtonStyle(context),
               onPressed: () {
                 Navigator.of(context).pop(true);
               },
@@ -2215,13 +1579,12 @@ class _TxidDetailItemState extends ConsumerState<_TxidDetailItem> {
                       SelectableText(
                         widget.txid.replaceFirst("mweb_outputId_", ""),
                         style: isDesktop
-                            ? STextStyles.desktopTextExtraExtraSmall(
-                                context,
-                              ).copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.textDark,
-                              )
+                            ? STextStyles.desktopTextExtraExtraSmall(context)
+                                  .copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textDark,
+                                  )
                             : STextStyles.itemSubtitle12(context),
                       ),
                     ],
@@ -2262,64 +1625,59 @@ class _TxidDetailItemState extends ConsumerState<_TxidDetailItem> {
                       SelectableText(
                         widget.txid,
                         style: isDesktop
-                            ? STextStyles.desktopTextExtraExtraSmall(
-                                context,
-                              ).copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.textDark,
-                              )
+                            ? STextStyles.desktopTextExtraExtraSmall(context)
+                                  .copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textDark,
+                                  )
                             : STextStyles.itemSubtitle12(context),
                       ),
-                      if (widget.coin is! Epiccash &&
-                          widget.coin is! Mimblewimblecoin)
-                        const SizedBox(height: 8),
-                      if (widget.coin is! Epiccash &&
-                          widget.coin is! Mimblewimblecoin)
-                        CustomTextButton(
-                          text: "Open in block explorer",
-                          onTap: () async {
-                            final uri = getBlockExplorerTransactionUrlFor(
-                              coin: widget.coin,
-                              txid: widget.txid,
+                      const SizedBox(height: 8),
+                      CustomTextButton(
+                        text: "Open in block explorer",
+                        onTap: () async {
+                          final uri = getBlockExplorerTransactionUrlFor(
+                            coin: widget.coin,
+                            txid: widget.txid,
+                          );
+
+                          if (ref
+                                  .read(prefsChangeNotifierProvider)
+                                  .hideBlockExplorerWarning ==
+                              false) {
+                            final shouldContinue = await showExplorerWarning(
+                              "${uri.scheme}://${uri.host}",
                             );
 
-                            if (ref
-                                    .read(prefsChangeNotifierProvider)
-                                    .hideBlockExplorerWarning ==
-                                false) {
-                              final shouldContinue = await showExplorerWarning(
-                                "${uri.scheme}://${uri.host}",
-                              );
-
-                              if (!shouldContinue) {
-                                return;
-                              }
+                            if (!shouldContinue) {
+                              return;
                             }
+                          }
 
-                            try {
-                              await launchUrl(
-                                uri,
-                                mode: LaunchMode.externalApplication,
-                              );
-                            } catch (_) {
-                              if (context.mounted) {
-                                unawaited(
-                                  showDialog<void>(
-                                    context: context,
-                                    builder: (_) => StackOkDialog(
-                                      title: "Could not open in block explorer",
-                                      message:
-                                          "Failed to open "
-                                          "\"${uri.toString()}\"",
-                                      maxWidth: Util.isDesktop ? 400 : null,
-                                    ),
+                          try {
+                            await launchUrl(
+                              uri,
+                              mode: LaunchMode.externalApplication,
+                            );
+                          } catch (_) {
+                            if (context.mounted) {
+                              unawaited(
+                                showDialog<void>(
+                                  context: context,
+                                  builder: (_) => StackOkDialog(
+                                    title: "Could not open in block explorer",
+                                    message:
+                                        "Failed to open "
+                                        "\"${uri.toString()}\"",
+                                    maxWidth: Util.isDesktop ? 400 : null,
                                   ),
-                                );
-                              }
+                                ),
+                              );
                             }
-                          },
-                        ),
+                          }
+                        },
+                      ),
                     ],
                   ),
                 ),
@@ -2343,7 +1701,6 @@ class _TxDetailsAmountHeader extends ConsumerWidget {
     required this.labelStyle,
     required this.detailStyle,
     required this.amountPrefix,
-    this.tokenContract,
   });
 
   final bool isDesktop;
@@ -2356,7 +1713,6 @@ class _TxDetailsAmountHeader extends ConsumerWidget {
   final TextStyle labelStyle;
   final TextStyle detailStyle;
   final String amountPrefix;
-  final Contract? tokenContract;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -2365,9 +1721,9 @@ class _TxDetailsAmountHeader extends ConsumerWidget {
       child: Container(
         decoration: isDesktop
             ? BoxDecoration(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.backgroundAppBar,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .backgroundAppBar,
                 borderRadius: BorderRadius.vertical(
                   top: Radius.circular(Constants.size.circularBorderRadius),
                 ),
@@ -2404,7 +1760,7 @@ class _TxDetailsAmountHeader extends ConsumerWidget {
                     builder: (context) {
                       final formattedAmount = ref
                           .watch(pAmountFormatter(coin))
-                          .format(amount, tokenContract: tokenContract);
+                          .format(amount);
                       return SelectableText(
                         "$amountPrefix$formattedAmount",
                         style: detailStyle,

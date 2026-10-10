@@ -32,16 +32,9 @@ import '../../utilities/show_loading.dart';
 import '../../utilities/text_styles.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
-import '../../wallets/wallet/impl/bitcoin_wallet.dart';
-import '../../wallets/wallet/impl/epiccash_wallet.dart';
-import '../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
 import '../../wallets/wallet/intermediate/bip39_hd_wallet.dart';
-import '../../wallets/wallet/wallet_mixin_interfaces/bcash_interface.dart';
-import '../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/multi_address_interface.dart';
-import '../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
-import '../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../widgets/background.dart';
 import '../../widgets/conditional_parent.dart';
@@ -50,29 +43,21 @@ import '../../widgets/custom_buttons/blue_text_button.dart';
 import '../../widgets/custom_loading_overlay.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
-import '../../widgets/dialogs/s_dialog.dart';
 import '../../widgets/qr.dart';
 import '../../widgets/rounded_white_container.dart';
-import '../../widgets/stack_dialog.dart';
 import 'addresses/wallet_addresses_view.dart';
 import 'generate_receiving_uri_qr_code_view.dart';
-import 'sub_widgets/epic_slatepack_entry_dialog.dart';
-import 'sub_widgets/epic_slatepack_import_dialog.dart';
-import 'sub_widgets/mwc_slatepack_import_dialog.dart';
-import 'sub_widgets/slatepack_entry_dialog.dart';
 
 class ReceiveView extends ConsumerStatefulWidget {
   const ReceiveView({
     super.key,
     required this.walletId,
-    this.tokenContract,
     this.clipboard = const ClipboardWrapper(),
   });
 
   static const String routeName = "/receiveView";
 
   final String walletId;
-  final EthContract? tokenContract;
   final ClipboardInterface clipboard;
 
   @override
@@ -83,138 +68,14 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
   late final CryptoCurrency coin;
   late final String walletId;
   late final ClipboardInterface clipboard;
-  late final bool _supportsSpark;
   late final bool _supportsPivxShield;
   late final bool _showMultiType;
-  late bool supportsMweb;
 
   int _currentIndex = 0;
 
   final List<AddressType> _walletAddressTypes = [];
   final Map<AddressType, String> _addressMap = {};
   final Map<AddressType, StreamSubscription<Address?>> _addressSubMap = {};
-
-  Future<void> _importSlatepack() async {
-    final slatepackString = await showDialog<String>(
-      context: context,
-      builder: (context) => const SlatepackEntryDialog(),
-    );
-
-    if (slatepackString == null) return;
-    if (mounted) {
-      final wallet =
-          ref.read(pWallets).getWallet(walletId) as MimblewimblecoinWallet;
-
-      Exception? ex;
-      final result = await showLoading(
-        whileFuture: wallet.fullDecodeSlatepack(slatepackString),
-        context: context,
-        message: "Decoding slatepack...",
-        onException: (e) => ex = e,
-      );
-
-      if (result == null || ex != null) {
-        if (mounted) {
-          await showDialog<void>(
-            context: context,
-            builder: (context) => StackOkDialog(
-              title: "Slatepack receive error",
-              message: ex?.toString() ?? "Unexpected result without exception",
-            ),
-          );
-        }
-        return;
-      }
-
-      if (mounted) {
-        final response =
-            await showDialog<({String responseSlatepack, bool wasEncrypted})>(
-              context: context,
-              builder: (context) => SDialog(
-                child: MwcSlatepackImportDialog(
-                  walletId: widget.walletId,
-                  clipboard: widget.clipboard,
-                  rawSlatepack: result.raw,
-                  decoded: result.result,
-                  slatepackType: result.type,
-                ),
-              ),
-            );
-
-        if (mounted && response != null) {
-          await showDialog<void>(
-            context: context,
-            barrierDismissible: false,
-            builder: (context) => SlatepackResponseDialog(
-              responseSlatepack: response.responseSlatepack,
-              wasEncrypted: response.wasEncrypted,
-            ),
-          );
-        }
-      }
-    }
-  }
-
-  Future<void> _importEpicSlatepack() async {
-    final slatepackString = await showDialog<String>(
-      context: context,
-      builder: (context) => const EpicSlatepackEntryDialog(),
-    );
-
-    if (slatepackString == null) return;
-    if (mounted) {
-      final wallet =
-          ref.read(pWallets).getWallet(walletId) as EpiccashWallet;
-
-      Exception? ex;
-      final result = await showLoading(
-        whileFuture: wallet.fullDecodeSlatepack(slatepackString),
-        context: context,
-        message: "Decoding slate...",
-        onException: (e) => ex = e,
-      );
-
-      if (result == null || ex != null) {
-        if (mounted) {
-          await showDialog<void>(
-            context: context,
-            builder: (context) => StackOkDialog(
-              title: "Slate receive error",
-              message: ex?.toString() ?? "Unexpected result without exception",
-            ),
-          );
-        }
-        return;
-      }
-
-      if (mounted) {
-        final response =
-            await showDialog<({String responseSlatepack, bool wasEncrypted})>(
-              context: context,
-              builder: (context) => SDialog(
-                child: EpicSlatepackImportDialog(
-                  walletId: widget.walletId,
-                  clipboard: widget.clipboard,
-                  rawSlatepack: result.raw,
-                  decoded: result.result,
-                  slatepackType: result.type,
-                ),
-              ),
-            );
-
-        if (mounted && response != null) {
-          await showDialog<void>(
-            context: context,
-            barrierDismissible: false,
-            builder: (context) => EpicSlatepackResponseDialog(
-              responseSlatepack: response.responseSlatepack,
-              wasEncrypted: response.wasEncrypted,
-            ),
-          );
-        }
-      }
-    }
-  }
 
   Future<void> generateNewAddress() async {
     final wallet = ref.read(pWallets).getWallet(walletId);
@@ -228,9 +89,10 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
             return WillPopScope(
               onWillPop: () async => shouldPop,
               child: Container(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.overlay.withOpacity(0.5),
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .overlay
+                    .withOpacity(0.5),
                 child: const CustomLoadingOverlay(
                   message: "Generating address",
                   eventBus: null,
@@ -242,33 +104,12 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
       );
 
       final Address? address;
-      if (wallet is Bip39HDWallet && wallet is! BCashInterface) {
-        DerivePathType? type;
-        if (wallet.isViewOnly &&
-            wallet is ExtendedKeysInterface &&
-            wallet.viewOnlyType != .spark) {
-          final voData =
-              await wallet.getViewOnlyWalletData()
-                  as ExtendedKeysViewOnlyWalletData;
-          for (final t in wallet.cryptoCurrency.supportedDerivationPathTypes) {
-            final testPath = wallet.cryptoCurrency.constructDerivePath(
-              derivePathType: t,
-              chain: 0,
-              index: 0,
-            );
-            if (testPath.startsWith(voData.xPubs.first.path)) {
-              type = t;
-              break;
-            }
-          }
-        } else {
-          type = DerivePathType.values.firstWhere(
-            (e) => e.getAddressType() == _walletAddressTypes[_currentIndex],
-          );
-        }
-
+      if (wallet is Bip39HDWallet) {
+        final DerivePathType type = DerivePathType.values.firstWhere(
+          (e) => e.getAddressType() == _walletAddressTypes[_currentIndex],
+        );
         address = await wallet.generateNextReceivingAddress(
-          derivePathType: type!,
+          derivePathType: type,
         );
         final isar = ref.read(mainDBProvider).isar;
         await isar.writeTxn(() async {
@@ -287,9 +128,8 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
       shouldPop = true;
 
       if (mounted) {
-        Navigator.of(
-          context,
-        ).popUntil(ModalRoute.withName(ReceiveView.routeName));
+        Navigator.of(context)
+            .popUntil(ModalRoute.withName(ReceiveView.routeName));
 
         setState(() {
           _addressMap[_walletAddressTypes[_currentIndex]] =
@@ -297,54 +137,6 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
         });
       }
     }
-  }
-
-  Future<void> generateNewSparkAddress() async {
-    final wallet = ref.read(pWallets).getWallet(walletId);
-    if (wallet is SparkInterface) {
-      bool shouldPop = false;
-      unawaited(
-        showDialog(
-          context: context,
-          builder: (_) {
-            return WillPopScope(
-              onWillPop: () async => shouldPop,
-              child: Container(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.overlay.withOpacity(0.5),
-                child: const CustomLoadingOverlay(
-                  message: "Generating address",
-                  eventBus: null,
-                ),
-              ),
-            );
-          },
-        ),
-      );
-
-      final address = await wallet.generateNextSparkAddress(saveToDB: true);
-
-      shouldPop = true;
-
-      if (mounted) {
-        Navigator.of(context, rootNavigator: true).pop();
-        setState(() {
-          _addressMap[AddressType.spark] = address.value;
-        });
-      }
-    }
-  }
-
-  Future<Address> _generateNewMwebAddress() async {
-    final wallet = ref.read(pWallets).getWallet(walletId) as MwebInterface;
-
-    final address = await wallet.generateNextMwebAddress();
-    await ref.read(mainDBProvider).isar.writeTxn(() async {
-      await ref.read(mainDBProvider).isar.addresses.put(address);
-    });
-
-    return address;
   }
 
   Future<void> generateNewPivxShieldAddress() async {
@@ -359,22 +151,8 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
     }
   }
 
-  Future<void> generateNewMwebAddress() async {
-    final address = await showLoading<Address>(
-      whileFuture: _generateNewMwebAddress(),
-      context: context,
-      message: "Generating address",
-    );
-
-    if (mounted && address != null) {
-      setState(() {
-        _addressMap[AddressType.mweb] = address.value;
-      });
-    }
-  }
-
   String _addressTypeLabel(AddressType type) =>
-      (_supportsSpark || _supportsPivxShield) && type == AddressType.p2pkh
+      _supportsPivxShield && type == AddressType.p2pkh
       ? "Transparent address"
       : "${type.readableName} address";
 
@@ -410,26 +188,14 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
     coin = ref.read(pWalletCoin(walletId));
     clipboard = widget.clipboard;
     final wallet = ref.read(pWallets).getWallet(walletId);
-    _supportsSpark = wallet is SparkInterface;
     _supportsPivxShield = wallet is PivxWallet && wallet.supportsShield;
-    supportsMweb =
-        wallet is MwebInterface &&
-        !wallet.info.isViewOnly &&
-        wallet.info.isMwebEnabled;
 
     if (wallet is ViewOnlyOptionInterface && wallet.isViewOnly) {
       _showMultiType = false;
-      if (wallet.viewOnlyType == .spark) {
-        _walletAddressTypes.add(.spark);
-      }
     } else {
       _showMultiType =
-          _supportsSpark ||
           _supportsPivxShield ||
-          supportsMweb ||
-          (wallet is! BCashInterface &&
-              wallet is Bip39HDWallet &&
-              wallet.supportedAddressTypes.length > 1);
+          (wallet is Bip39HDWallet && wallet.supportedAddressTypes.length > 1);
     }
 
     if (_walletAddressTypes.isEmpty) {
@@ -437,9 +203,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
     }
 
     if (_showMultiType) {
-      if (_supportsSpark) {
-        _walletAddressTypes.insert(0, AddressType.spark);
-      } else if (_supportsPivxShield) {
+      if (_supportsPivxShield) {
         // Shield first: private by default.
         _walletAddressTypes.insert(0, AddressType.pivxShield);
       } else {
@@ -448,17 +212,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
             (e) => e != wallet.info.mainAddressType,
           ),
         );
-
-        if (supportsMweb) {
-          _walletAddressTypes.insert(0, AddressType.mweb);
-        }
       }
-    }
-
-    if (_walletAddressTypes.length > 1 &&
-        wallet is BitcoinWallet &&
-        !wallet.info.isLegacyAddressesEnabled) {
-      _walletAddressTypes.removeWhere((e) => e == AddressType.p2pkh);
     }
 
     if (_supportsPivxShield) {
@@ -498,56 +252,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    final ticker = widget.tokenContract?.symbol ?? coin.ticker;
-
-    ref.listen(pWalletInfo(walletId), (prev, next) {
-      if (prev?.isMwebEnabled != next.isMwebEnabled) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            const type = AddressType.mweb;
-            setState(() {
-              supportsMweb = next.isMwebEnabled;
-
-              if (supportsMweb && !_walletAddressTypes.contains(type)) {
-                _walletAddressTypes.insert(0, type);
-
-                _addressSubMap[type] = _sub(type);
-              } else {
-                _walletAddressTypes.remove(type);
-                _addressSubMap[type]?.cancel();
-                _addressSubMap.remove(type);
-              }
-
-              if (_currentIndex >= _walletAddressTypes.length) {
-                _currentIndex = _walletAddressTypes.length - 1;
-              }
-            });
-          }
-        });
-      }
-
-      if (prev?.isLegacyAddressesEnabled != next.isLegacyAddressesEnabled) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            const type = AddressType.p2pkh;
-            setState(() {
-              if (!_walletAddressTypes.contains(type)) {
-                _walletAddressTypes.insert(0, type);
-                _addressSubMap[type] = _sub(type);
-              } else {
-                _walletAddressTypes.remove(type);
-                _addressSubMap[type]?.cancel();
-                _addressSubMap.remove(type);
-              }
-
-              if (_currentIndex >= _walletAddressTypes.length) {
-                _currentIndex = _walletAddressTypes.length - 1;
-              }
-            });
-          }
-        });
-      }
-    });
+    final ticker = coin.ticker;
 
     final String address;
     if (_showMultiType) {
@@ -566,11 +271,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
         wallet.viewOnlyType == ViewOnlyWalletType.addressOnly) {
       canGen = false;
     } else {
-      canGen =
-          (wallet is MultiAddressInterface ||
-              _supportsSpark ||
-              _supportsPivxShield ||
-              supportsMweb);
+      canGen = wallet is MultiAddressInterface || _supportsPivxShield;
     }
 
     return Background(
@@ -592,17 +293,16 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
               child: AspectRatio(
                 aspectRatio: 1,
                 child: AppBarIconButton(
-                  semanticsLabel:
-                      "Address List Pop-up Button. Opens A Pop-up For Address List Button.",
+                  semanticsLabel: "Address List Pop-up Button. Opens A Pop-up For Address List Button.",
                   key: const Key("walletNetworkSettingsAddNewNodeViewButton"),
                   size: 36,
                   shadows: const [],
                   color: Theme.of(context).extension<StackColors>()!.background,
                   icon: SvgPicture.asset(
                     Assets.svg.verticalEllipsis,
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.accentColorDark,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorDark,
                     width: 20,
                     height: 20,
                   ),
@@ -619,9 +319,9 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                               right: 10,
                               child: Container(
                                 decoration: BoxDecoration(
-                                  color: Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.popupBG,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .popupBG,
                                   borderRadius: BorderRadius.circular(
                                     Constants.size.circularBorderRadius,
                                   ),
@@ -702,9 +402,9 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                           Text(
                             "Address type",
                             style: STextStyles.w500_14(context).copyWith(
-                              color: Theme.of(
-                                context,
-                              ).extension<StackColors>()!.infoItemLabel,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .infoItemLabel,
                             ),
                           ),
                           const SizedBox(height: 10),
@@ -857,36 +557,12 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                       SecondaryButton(
                         label: "Generate new address",
                         onPressed:
-                            supportsMweb &&
+                            _supportsPivxShield &&
                                 _walletAddressTypes[_currentIndex] ==
-                                    AddressType.mweb
-                            ? generateNewMwebAddress
-                            : _supportsSpark &&
-                                  _walletAddressTypes[_currentIndex] ==
-                                      AddressType.spark
-                            ? generateNewSparkAddress
-                            : _supportsPivxShield &&
-                                  _walletAddressTypes[_currentIndex] ==
-                                      AddressType.pivxShield
+                                    AddressType.pivxShield
                             ? generateNewPivxShieldAddress
                             : generateNewAddress,
                       ),
-                    // MWC Slatepack import button.
-                    if (coin is Mimblewimblecoin) ...[
-                      const SizedBox(height: 12),
-                      SecondaryButton(
-                        label: "Import Slatepack",
-                        onPressed: _importSlatepack,
-                      ),
-                    ],
-                    // Epic Cash Slate import button.
-                    if (coin is Epiccash) ...[
-                      const SizedBox(height: 12),
-                      SecondaryButton(
-                        label: "Import Slate",
-                        onPressed: _importEpicSlatepack,
-                      ),
-                    ],
                     const SizedBox(height: 30),
                     RoundedWhiteContainer(
                       child: Padding(

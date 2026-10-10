@@ -13,7 +13,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:logger/logger.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../../../pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
@@ -21,38 +20,25 @@ import '../../../../providers/ui/verify_recovery_phrase/mnemonic_word_count_stat
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/constants.dart';
-import '../../../../utilities/format.dart';
-import '../../../../utilities/logger.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../wallets/crypto_currency/interfaces/view_only_option_currency_interface.dart';
-import '../../../../wallets/crypto_currency/intermediate/cryptonote_currency.dart';
 import '../../../../widgets/conditional_parent.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
-import '../../../../widgets/custom_buttons/blue_text_button.dart';
-import '../../../../widgets/date_picker/date_picker.dart';
 import '../../../../widgets/desktop/desktop_app_bar.dart';
 import '../../../../widgets/desktop/desktop_scaffold.dart';
 import '../../../../widgets/expandable.dart';
-import '../../../../widgets/icon_widgets/x_icon.dart';
 import '../../../../widgets/rounded_white_container.dart';
 import '../../../../widgets/stack_text_field.dart';
-import '../../../../widgets/textfield_icon_button.dart';
 import '../../../../widgets/toggle.dart';
-import '../../../../wl_gen/interfaces/cs_monero_interface.dart';
-import '../../../../wl_gen/interfaces/cs_salvium_interface.dart';
-import '../../../../wl_gen/interfaces/cs_wownero_interface.dart';
 import '../../create_or_restore_wallet_view/sub_widgets/coin_image.dart';
 import '../restore_view_only_wallet_view.dart';
 import '../restore_wallet_view.dart';
 import '../sub_widgets/mnemonic_word_count_select_sheet.dart';
 import 'sub_widgets/mobile_mnemonic_length_selector.dart';
-import 'sub_widgets/restore_from_date_picker.dart';
 import 'sub_widgets/restore_options_next_button.dart';
 import 'sub_widgets/restore_options_platform_layout.dart';
-
-final _pIsUsingDate = StateProvider.autoDispose((_) => true);
 
 class RestoreOptionsView extends ConsumerStatefulWidget {
   const RestoreOptionsView({
@@ -75,15 +61,10 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
   late final CryptoCurrency coin;
   late final bool isDesktop;
 
-  late TextEditingController _dateController;
-  late TextEditingController _blockHeightController;
-  late FocusNode _blockHeightFocusNode;
   late FocusNode textFieldFocusNode;
   late final FocusNode passwordFocusNode;
   late final TextEditingController passwordController;
 
-  bool _hasBlockHeight = false;
-  DateTime? _restoreFromDate;
   bool hidePassword = true;
 
   @override
@@ -93,30 +74,13 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
     coin = widget.coin;
     isDesktop = Util.isDesktop;
 
-    _dateController = TextEditingController();
     textFieldFocusNode = FocusNode();
     passwordController = TextEditingController();
     passwordFocusNode = FocusNode();
-    _blockHeightController = TextEditingController();
-    _blockHeightFocusNode = FocusNode();
-
-    _blockHeightController.addListener(() {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          if (!ref.read(_pIsUsingDate)) {
-            setState(() {
-              _hasBlockHeight = _blockHeightController.text.isNotEmpty;
-            });
-          }
-        }
-      });
-    });
   }
 
   @override
   void dispose() {
-    _dateController.dispose();
-    _blockHeightController.dispose();
     textFieldFocusNode.dispose();
     passwordController.dispose();
     passwordFocusNode.dispose();
@@ -137,12 +101,8 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
       }
 
       if (mounted) {
-        int height = 0;
-        if (ref.read(_pIsUsingDate)) {
-          height = getBlockHeightFromDate(_restoreFromDate);
-        } else {
-          height = int.tryParse(_blockHeightController.text) ?? 0;
-        }
+        // PIVX wallets scan from the start.
+        const height = 0;
         if (!_showViewOnlyOption) {
           await Navigator.of(context).pushNamed(
             RestoreWalletView.routeName,
@@ -170,30 +130,6 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
     }
   }
 
-  Future<void> chooseDate() async {
-    // check and hide keyboard
-    if (FocusScope.of(context).hasFocus) {
-      FocusScope.of(context).unfocus();
-      await Future<void>.delayed(const Duration(milliseconds: 125));
-    }
-
-    if (mounted) {
-      final date = (await showSWDatePicker(context))?.first;
-      if (date != null) {
-        _restoreFromDate = date;
-        _dateController.text = Format.formatDate(date);
-      }
-    }
-  }
-
-  Future<void> chooseDesktopDate() async {
-    final date = (await showSWDatePicker(context))?.first;
-    if (date != null) {
-      _restoreFromDate = date;
-      _dateController.text = Format.formatDate(date);
-    }
-  }
-
   Future<void> chooseMnemonicLength() async {
     await showModalBottomSheet<dynamic>(
       backgroundColor: Colors.transparent,
@@ -207,51 +143,6 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
         );
       },
     );
-  }
-
-  int getBlockHeightFromDate(DateTime? date) {
-    try {
-      int height = 0;
-      if (date != null) {
-        if (widget.coin is Monero) {
-          height = csMonero.getHeightByDate(date);
-        }
-        if (widget.coin is Wownero) {
-          height = csWownero.getHeightByDate(date);
-        }
-        if (widget.coin is Salvium) {
-          height = csSalvium.getHeightByDate(
-            DateTime.now().subtract(const Duration(days: 7)),
-          );
-        }
-        if (height < 0) {
-          height = 0;
-        }
-
-        if (widget.coin is Epiccash) {
-          final int secondsSinceEpoch = date.millisecondsSinceEpoch ~/ 1000;
-          const int epicCashFirstBlock = 1565370278;
-          const double overestimateSecondsPerBlock = 61;
-          final int chosenSeconds = secondsSinceEpoch - epicCashFirstBlock;
-          final int approximateHeight =
-              chosenSeconds ~/ overestimateSecondsPerBlock;
-
-          height = approximateHeight;
-          if (height < 0) {
-            height = 0;
-          }
-        }
-      } else {
-        height = 0;
-      }
-      return height;
-    } catch (e) {
-      Logging.instance.log(
-        Level.info,
-        "Error getting block height from date: $e",
-      );
-      return 0;
-    }
   }
 
   bool _showViewOnlyOption = false;
@@ -273,9 +164,8 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                 onPressed: () {
                   if (textFieldFocusNode.hasFocus) {
                     textFieldFocusNode.unfocus();
-                    Future<void>.delayed(
-                      const Duration(milliseconds: 100),
-                    ).then((value) => Navigator.of(context).pop());
+                    Future<void>.delayed(const Duration(milliseconds: 100))
+                        .then((value) => Navigator.of(context).pop());
                   } else {
                     Navigator.of(context).pop();
                   }
@@ -310,12 +200,12 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                     key: UniqueKey(),
                     onText: "Seed",
                     offText: "View Only",
-                    onColor: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.popupBG,
-                    offColor: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldDefaultBG,
+                    onColor: Theme.of(context)
+                        .extension<StackColors>()!
+                        .popupBG,
+                    offColor: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldDefaultBG,
                     isOn: _showViewOnlyOption,
                     onValueChanged: (value) {
                       setState(() {
@@ -332,35 +222,18 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                 ),
               if (coin is ViewOnlyOptionCurrencyInterface)
                 SizedBox(height: isDesktop ? 40 : 24),
-              _showViewOnlyOption
-                  ? ViewOnlyRestoreOption(
-                      coin: coin,
-                      dateController: _dateController,
-                      dateChooserFunction: isDesktop
-                          ? chooseDesktopDate
-                          : chooseDate,
-                      blockHeightController: _blockHeightController,
-                      blockHeightFocusNode: _blockHeightFocusNode,
-                    )
-                  : SeedRestoreOption(
-                      coin: coin,
-                      dateController: _dateController,
-                      blockHeightController: _blockHeightController,
-                      blockHeightFocusNode: _blockHeightFocusNode,
-                      pwController: passwordController,
-                      pwFocusNode: passwordFocusNode,
-                      dateChooserFunction: isDesktop
-                          ? chooseDesktopDate
-                          : chooseDate,
-                      chooseMnemonicLength: chooseMnemonicLength,
-                    ),
+              if (!_showViewOnlyOption)
+                SeedRestoreOption(
+                  coin: coin,
+                  pwController: passwordController,
+                  pwFocusNode: passwordFocusNode,
+                  chooseMnemonicLength: chooseMnemonicLength,
+                ),
               if (!isDesktop) const Spacer(flex: 3),
               SizedBox(height: isDesktop ? 32 : 12),
               RestoreOptionsNextButton(
                 isDesktop: isDesktop,
-                onPressed: ref.watch(_pIsUsingDate) || _hasBlockHeight
-                    ? nextPressed
-                    : null,
+                onPressed: nextPressed,
               ),
               if (isDesktop) const Spacer(flex: 15),
             ],
@@ -375,23 +248,15 @@ class SeedRestoreOption extends ConsumerStatefulWidget {
   const SeedRestoreOption({
     super.key,
     required this.coin,
-    required this.dateController,
-    required this.blockHeightController,
-    required this.blockHeightFocusNode,
     required this.pwController,
     required this.pwFocusNode,
-    required this.dateChooserFunction,
     required this.chooseMnemonicLength,
   });
 
   final CryptoCurrency coin;
-  final TextEditingController dateController;
-  final TextEditingController blockHeightController;
-  final FocusNode blockHeightFocusNode;
   final TextEditingController pwController;
   final FocusNode pwFocusNode;
 
-  final Future<void> Function() dateChooserFunction;
   final Future<void> Function() chooseMnemonicLength;
 
   @override
@@ -401,145 +266,15 @@ class SeedRestoreOption extends ConsumerStatefulWidget {
 class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
   bool _hidePassword = true;
   bool _expandedAdvanced = false;
-  bool _blockFieldEmpty = true;
 
   @override
   Widget build(BuildContext context) {
     final lengths = widget.coin.possibleMnemonicLengths;
 
-    final currentLength = ref.watch(mnemonicWordCountStateProvider);
-
-    final isCnAnd25 = widget.coin is CryptonoteCurrency && currentLength == 25;
-
-    final bool supportsPassphrase;
-    if (widget.coin.hasMnemonicPassphraseSupport) {
-      supportsPassphrase = true;
-    } else if (widget.coin is CryptonoteCurrency) {
-      // partial see offset support. Currently only on restore
-      // and not wownero 14 word seeds
-      supportsPassphrase = currentLength == 16 || currentLength == 25;
-    } else {
-      supportsPassphrase = false;
-    }
+    final supportsPassphrase = widget.coin.hasMnemonicPassphraseSupport;
 
     return Column(
       children: [
-        if (isCnAnd25 ||
-            widget.coin is Epiccash ||
-            widget.coin is Mimblewimblecoin)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                ref.watch(_pIsUsingDate) ? "Choose start date" : "Block height",
-                style: Util.isDesktop
-                    ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textDark3,
-                      )
-                    : STextStyles.smallMed12(context),
-                textAlign: TextAlign.left,
-              ),
-              CustomTextButton(
-                text: ref.watch(_pIsUsingDate)
-                    ? "Use block height"
-                    : "Use date",
-                onTap: () => ref.read(_pIsUsingDate.notifier).state = !ref.read(
-                  _pIsUsingDate,
-                ),
-              ),
-            ],
-          ),
-        if (isCnAnd25 ||
-            widget.coin is Epiccash ||
-            widget.coin is Mimblewimblecoin)
-          SizedBox(height: Util.isDesktop ? 16 : 8),
-        if (isCnAnd25 ||
-            widget.coin is Epiccash ||
-            widget.coin is Mimblewimblecoin)
-          ref.watch(_pIsUsingDate)
-              ? RestoreFromDatePicker(
-                  onTap: widget.dateChooserFunction,
-                  controller: widget.dateController,
-                )
-              : ClipRRect(
-                  borderRadius: BorderRadius.circular(
-                    Constants.size.circularBorderRadius,
-                  ),
-                  child: TextField(
-                    focusNode: widget.blockHeightFocusNode,
-                    controller: widget.blockHeightController,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    textInputAction: TextInputAction.done,
-                    style: Util.isDesktop
-                        ? STextStyles.desktopTextMedium(
-                            context,
-                          ).copyWith(height: 2)
-                        : STextStyles.field(context),
-                    onChanged: (value) {
-                      setState(() {
-                        _blockFieldEmpty = value.isEmpty;
-                      });
-                    },
-                    decoration:
-                        standardInputDecoration(
-                          "Start scanning from...",
-                          widget.blockHeightFocusNode,
-                          context,
-                        ).copyWith(
-                          suffixIcon: UnconstrainedBox(
-                            child: TextFieldIconButton(
-                              child: Semantics(
-                                label:
-                                    "Clear Block Height Field Button. Clears the block height field",
-                                excludeSemantics: true,
-                                child: !_blockFieldEmpty
-                                    ? XIcon(
-                                        width: Util.isDesktop ? 24 : 16,
-                                        height: Util.isDesktop ? 24 : 16,
-                                      )
-                                    : const SizedBox.shrink(),
-                              ),
-                              onTap: () {
-                                widget.blockHeightController.text = "";
-                                setState(() {
-                                  _blockFieldEmpty = true;
-                                });
-                              },
-                            ),
-                          ),
-                        ),
-                  ),
-                ),
-        if (isCnAnd25 ||
-            widget.coin is Epiccash ||
-            widget.coin is Mimblewimblecoin)
-          const SizedBox(height: 8),
-        if (isCnAnd25 ||
-            widget.coin is Epiccash ||
-            widget.coin is Mimblewimblecoin)
-          RoundedWhiteContainer(
-            child: Center(
-              child: Text(
-                ref.watch(_pIsUsingDate)
-                    ? "Choose the date you made the wallet (approximate is fine)"
-                    : "Enter the initial block height of the wallet",
-                style: Util.isDesktop
-                    ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textSubtitle1,
-                      )
-                    : STextStyles.smallMed12(context).copyWith(fontSize: 10),
-              ),
-            ),
-          ),
-        if (isCnAnd25 ||
-            widget.coin is Epiccash ||
-            widget.coin is Mimblewimblecoin)
-          SizedBox(height: Util.isDesktop ? 24 : 16),
         Text(
           "Choose recovery phrase length",
           style: Util.isDesktop
@@ -582,9 +317,9 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
                     Assets.svg.chevronDown,
                     width: 12,
                     height: 6,
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldActiveSearchIconRight,
                   ),
                 ),
               ),
@@ -592,9 +327,9 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
                 offset: const Offset(0, -10),
                 elevation: 0,
                 decoration: BoxDecoration(
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.textFieldDefaultBG,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textFieldDefaultBG,
                   borderRadius: BorderRadius.circular(
                     Constants.size.circularBorderRadius,
                   ),
@@ -632,13 +367,12 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
                     Text(
                       "Advanced",
                       style: Util.isDesktop
-                          ? STextStyles.desktopTextExtraExtraSmall(
-                              context,
-                            ).copyWith(
-                              color: Theme.of(
-                                context,
-                              ).extension<StackColors>()!.textDark3,
-                            )
+                          ? STextStyles.desktopTextExtraExtraSmall(context)
+                                .copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textDark3,
+                                )
                           : STextStyles.smallMed12(context),
                       textAlign: TextAlign.left,
                     ),
@@ -660,7 +394,6 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
               color: Colors.transparent,
               child: Column(
                 children: [
-                  if (widget.coin is Firo) const SizedBox(height: 8),
                   ClipRRect(
                     borderRadius: BorderRadius.circular(
                       Constants.size.circularBorderRadius,
@@ -670,18 +403,15 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
                       focusNode: widget.pwFocusNode,
                       controller: widget.pwController,
                       style: Util.isDesktop
-                          ? STextStyles.desktopTextMedium(
-                              context,
-                            ).copyWith(height: 2)
+                          ? STextStyles.desktopTextMedium(context)
+                                .copyWith(height: 2)
                           : STextStyles.field(context),
                       obscureText: _hidePassword,
                       enableSuggestions: false,
                       autocorrect: false,
                       decoration:
                           standardInputDecoration(
-                            widget.coin is CryptonoteCurrency
-                                ? "Seed Offset"
-                                : "BIP39 passphrase",
+                            "BIP39 passphrase",
                             widget.pwFocusNode,
                             context,
                           ).copyWith(
@@ -706,9 +436,9 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
                                         _hidePassword
                                             ? Assets.svg.eye
                                             : Assets.svg.eyeSlash,
-                                        color: Theme.of(
-                                          context,
-                                        ).extension<StackColors>()!.textDark3,
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .textDark3,
                                         width: Util.isDesktop ? 24 : 16,
                                         height: Util.isDesktop ? 24 : 16,
                                       ),
@@ -725,22 +455,16 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
                   RoundedWhiteContainer(
                     child: Center(
                       child: Text(
-                        widget.coin is CryptonoteCurrency
-                            ? "(Optional) An offset used to derive a different "
-                                  "wallet from the given mnemonic, allowing recovery "
-                                  "of a hidden or alternate wallet based on the same "
-                                  "seed phrase."
-                            : "If the recovery phrase you are about to restore "
-                                  "was created with an optional BIP39 passphrase "
-                                  "you can enter it here.",
+                        "If the recovery phrase you are about to restore "
+                        "was created with an optional BIP39 passphrase "
+                        "you can enter it here.",
                         style: Util.isDesktop
-                            ? STextStyles.desktopTextExtraSmall(
-                                context,
-                              ).copyWith(
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.textSubtitle1,
-                              )
+                            ? STextStyles.desktopTextExtraSmall(context)
+                                  .copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textSubtitle1,
+                                  )
                             : STextStyles.itemSubtitle(context),
                       ),
                     ),
@@ -752,157 +476,5 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
           ),
       ],
     );
-  }
-
-  @override
-  void initState() {
-    super.initState();
-
-    _blockFieldEmpty = widget.blockHeightController.text.isEmpty;
-  }
-}
-
-class ViewOnlyRestoreOption extends ConsumerStatefulWidget {
-  const ViewOnlyRestoreOption({
-    super.key,
-    required this.coin,
-    required this.dateController,
-    required this.dateChooserFunction,
-    required this.blockHeightController,
-    required this.blockHeightFocusNode,
-  });
-
-  final CryptoCurrency coin;
-  final TextEditingController dateController;
-  final TextEditingController blockHeightController;
-  final FocusNode blockHeightFocusNode;
-
-  final Future<void> Function() dateChooserFunction;
-
-  @override
-  ConsumerState<ViewOnlyRestoreOption> createState() =>
-      _ViewOnlyRestoreOptionState();
-}
-
-class _ViewOnlyRestoreOptionState extends ConsumerState<ViewOnlyRestoreOption> {
-  bool _blockFieldEmpty = true;
-
-  @override
-  Widget build(BuildContext context) {
-    final showDateOption = widget.coin is CryptonoteCurrency;
-    return Column(
-      children: [
-        if (showDateOption)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                ref.watch(_pIsUsingDate) ? "Choose start date" : "Block height",
-                style: Util.isDesktop
-                    ? STextStyles.desktopTextExtraExtraSmall(context).copyWith(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textDark3,
-                      )
-                    : STextStyles.smallMed12(context),
-                textAlign: TextAlign.left,
-              ),
-              CustomTextButton(
-                text: ref.watch(_pIsUsingDate)
-                    ? "Use block height"
-                    : "Use date",
-                onTap: () {
-                  ref.read(_pIsUsingDate.notifier).state = !ref.read(
-                    _pIsUsingDate,
-                  );
-                },
-              ),
-            ],
-          ),
-        if (showDateOption) SizedBox(height: Util.isDesktop ? 16 : 8),
-        if (showDateOption)
-          ref.watch(_pIsUsingDate)
-              ? RestoreFromDatePicker(
-                  onTap: widget.dateChooserFunction,
-                  controller: widget.dateController,
-                )
-              : ClipRRect(
-                  borderRadius: BorderRadius.circular(
-                    Constants.size.circularBorderRadius,
-                  ),
-                  child: TextField(
-                    focusNode: widget.blockHeightFocusNode,
-                    controller: widget.blockHeightController,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                    textInputAction: TextInputAction.done,
-                    style: Util.isDesktop
-                        ? STextStyles.desktopTextMedium(
-                            context,
-                          ).copyWith(height: 2)
-                        : STextStyles.field(context),
-                    onChanged: (value) {
-                      setState(() {
-                        _blockFieldEmpty = value.isEmpty;
-                      });
-                    },
-                    decoration:
-                        standardInputDecoration(
-                          "Start scanning from...",
-                          widget.blockHeightFocusNode,
-                          context,
-                        ).copyWith(
-                          suffixIcon: UnconstrainedBox(
-                            child: TextFieldIconButton(
-                              child: Semantics(
-                                label:
-                                    "Clear Block Height Field Button. Clears the block height field",
-                                excludeSemantics: true,
-                                child: !_blockFieldEmpty
-                                    ? XIcon(
-                                        width: Util.isDesktop ? 24 : 16,
-                                        height: Util.isDesktop ? 24 : 16,
-                                      )
-                                    : const SizedBox.shrink(),
-                              ),
-                              onTap: () {
-                                widget.blockHeightController.text = "";
-                                setState(() {
-                                  _blockFieldEmpty = true;
-                                });
-                              },
-                            ),
-                          ),
-                        ),
-                  ),
-                ),
-        if (showDateOption) const SizedBox(height: 8),
-        if (showDateOption)
-          RoundedWhiteContainer(
-            child: Center(
-              child: Text(
-                ref.watch(_pIsUsingDate)
-                    ? "Choose the date you made the wallet (approximate is fine)"
-                    : "Enter the initial block height of the wallet",
-                style: Util.isDesktop
-                    ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textSubtitle1,
-                      )
-                    : STextStyles.smallMed12(context).copyWith(fontSize: 10),
-              ),
-            ),
-          ),
-        if (showDateOption) SizedBox(height: Util.isDesktop ? 24 : 16),
-      ],
-    );
-  }
-
-  @override
-  void initState() {
-    super.initState();
-
-    _blockFieldEmpty = widget.blockHeightController.text.isEmpty;
   }
 }

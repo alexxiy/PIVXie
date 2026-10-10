@@ -13,6 +13,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+
 import '../providers/providers.dart';
 import '../app_config.dart';
 import '../themes/coin_icon_provider.dart';
@@ -56,9 +57,6 @@ class _ChooseCoinViewState extends ConsumerState<ChooseCoinView> {
   @override
   void initState() {
     _coins = _coins.toList();
-    _coins.removeWhere(
-      (e) => e.identifier == Firo(CryptoCurrencyNetwork.test).identifier,
-    );
     super.initState();
   }
 
@@ -75,11 +73,7 @@ class _ChooseCoinViewState extends ConsumerState<ChooseCoinView> {
 
     final List<CryptoCurrency> coins = showTestNet
         ? _coins
-        : _coins
-            .where(
-              (e) => e.network == CryptoCurrencyNetwork.main,
-            )
-            .toList();
+        : _coins.where((e) => e.network == CryptoCurrencyNetwork.main).toList();
 
     return Background(
       child: Scaffold(
@@ -90,73 +84,57 @@ class _ChooseCoinViewState extends ConsumerState<ChooseCoinView> {
               Navigator.of(context).pop();
             },
           ),
-          title: Text(
-            widget.title,
-            style: STextStyles.navBarTitle(context),
-          ),
+          title: Text(widget.title, style: STextStyles.navBarTitle(context)),
         ),
         body: Padding(
-          padding: const EdgeInsets.only(
-            top: 12,
-            left: 12,
-            right: 12,
-          ),
+          padding: const EdgeInsets.only(top: 12, left: 12, right: 12),
           child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                ...coins.map(
-                  (coin) {
-                    return Padding(
-                      padding: const EdgeInsets.all(4),
-                      child: RoundedWhiteContainer(
-                        padding: const EdgeInsets.all(0),
-                        child: RawMaterialButton(
-                          // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(
-                              Constants.size.circularBorderRadius,
-                            ),
+                ...coins.map((coin) {
+                  return Padding(
+                    padding: const EdgeInsets.all(4),
+                    child: RoundedWhiteContainer(
+                      padding: const EdgeInsets.all(0),
+                      child: RawMaterialButton(
+                        // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(
+                            Constants.size.circularBorderRadius,
                           ),
-                          materialTapTargetSize:
-                              MaterialTapTargetSize.shrinkWrap,
-                          onPressed: () {
-                            Navigator.of(context).pushNamed(
-                              widget.nextRouteName,
-                              arguments: coin,
-                            );
-                          },
-                          child: Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Row(
-                              children: [
-                                SvgPicture.file(
-                                  File(
-                                    ref.watch(coinIconProvider(coin)),
+                        ),
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        onPressed: () {
+                          Navigator.of(context)
+                              .pushNamed(widget.nextRouteName, arguments: coin);
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.all(12),
+                          child: Row(
+                            children: [
+                              SvgPicture.file(
+                                File(ref.watch(coinIconProvider(coin))),
+                                width: 24,
+                                height: 24,
+                              ),
+                              const SizedBox(width: 12),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "${coin.prettyName} ${widget.coinAdditional}",
+                                    style: STextStyles.titleBold12(context),
                                   ),
-                                  width: 24,
-                                  height: 24,
-                                ),
-                                const SizedBox(
-                                  width: 12,
-                                ),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      "${coin.prettyName} ${widget.coinAdditional}",
-                                      style: STextStyles.titleBold12(context),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
+                                ],
+                              ),
+                            ],
                           ),
                         ),
                       ),
-                    );
-                  },
-                ),
+                    ),
+                  );
+                }),
               ],
             ),
           ),

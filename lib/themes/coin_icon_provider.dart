@@ -18,32 +18,8 @@ final coinIconProvider = Provider.family<String, CryptoCurrency>((ref, coin) {
   final assets = ref.watch(themeAssetsProvider);
 
   if (assets is ThemeAssets) {
-    switch (coin.runtimeType) {
-      case const (Bitcoin):
-        return assets.bitcoin;
-      case const (Litecoin):
-        return assets.litecoin;
-      case const (Bitcoincash):
-        return assets.bitcoincash;
-      case const (Dogecoin):
-        return assets.dogecoin;
-      case const (Epiccash):
-        return assets.epicCash;
-      case const (Firo):
-        return assets.firo;
-      case const (Monero):
-        return assets.monero;
-      case const (Wownero):
-        return assets.wownero;
-      case const (Namecoin):
-        return assets.namecoin;
-      case const (Particl):
-        return assets.particl;
-      case const (Ethereum):
-        return assets.ethereum;
-      default:
-        return assets.stackIcon;
-    }
+    // Legacy v1 theme assets have no PIVX icon.
+    return assets.stackIcon;
   } else if (assets is ThemeAssetsV2) {
     return (assets).coinIcons[coin.mainNetId]!;
   } else {

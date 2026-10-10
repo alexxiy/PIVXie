@@ -11,7 +11,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../models/balance.dart';
 import '../../../providers/wallet/public_private_balance_state_provider.dart';
 import '../../../providers/wallet/wallet_balance_toggle_state_provider.dart';
 import '../../../themes/stack_colors.dart';
@@ -35,38 +34,25 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
     final maxHeight = MediaQuery.of(context).size.height * 0.90;
 
     final coin = ref.watch(pWalletCoin(walletId));
-    // MWEB and PIVX shield keep their private balance as the secondary
-    // balance; Firo keeps Spark in the tertiary one.
-    final isMweb =
-        coin is Pivx ||
-        ref.watch(pWalletInfo(walletId).select((s) => s.isMwebEnabled));
-    final hasPrivate = isMweb || coin is Firo;
+    // The PIVX shield balance is the secondary balance.
+    final balancePrivate = ref.watch(pWalletBalanceSecondary(walletId));
 
     final balance = ref.watch(pWalletBalance(walletId));
 
     _BalanceType _bal =
         ref.watch(walletBalanceToggleStateProvider.state).state ==
-                WalletBalanceToggleState.available
-            ? _BalanceType.available
-            : _BalanceType.full;
+            WalletBalanceToggleState.available
+        ? _BalanceType.available
+        : _BalanceType.full;
 
-    Balance? balancePrivate;
-    if (hasPrivate) {
-      balancePrivate =
-          isMweb
-              ? ref.watch(pWalletBalanceSecondary(walletId))
-              : ref.watch(pWalletBalanceTertiary(walletId));
-
-      if (ref.watch(publicPrivateBalanceStateProvider.state).state ==
-          BalanceType.private) {
-        _bal =
-            _bal == _BalanceType.available
-                ? _BalanceType.privateAvailable
-                : _BalanceType.privateFull;
-      }
+    if (ref.watch(publicPrivateBalanceStateProvider.state).state ==
+        BalanceType.private) {
+      _bal = _bal == _BalanceType.available
+          ? _BalanceType.privateAvailable
+          : _BalanceType.privateFull;
     }
 
-    if (balancePrivate != null && ref.watch(showTotalBalanceProvider)) {
+    if (ref.watch(showTotalBalanceProvider)) {
       _bal = _BalanceType.total;
     }
 
@@ -91,10 +77,9 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
               Center(
                 child: Container(
                   decoration: BoxDecoration(
-                    color:
-                        Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textFieldDefaultBG,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldDefaultBG,
                     borderRadius: BorderRadius.circular(
                       Constants.size.circularBorderRadius,
                     ),
@@ -113,26 +98,24 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 24),
-              if (balancePrivate != null) ...[
-                BalanceSelector(
-                  title: "Total balance",
-                  coin: coin,
-                  balance: balance.total + balancePrivate.total,
-                  onPressed: () {
-                    ref.read(showTotalBalanceProvider.notifier).state = true;
-                    Navigator.of(context).pop();
-                  },
-                  onChanged: (_) {
-                    ref.read(showTotalBalanceProvider.notifier).state = true;
-                    Navigator.of(context).pop();
-                  },
-                  value: _BalanceType.total,
-                  groupValue: _bal,
-                ),
-                const SizedBox(height: 12),
-              ],
               BalanceSelector(
-                title: "Available${hasPrivate ? " public" : ""} balance",
+                title: "Total balance",
+                coin: coin,
+                balance: balance.total + balancePrivate.total,
+                onPressed: () {
+                  ref.read(showTotalBalanceProvider.notifier).state = true;
+                  Navigator.of(context).pop();
+                },
+                onChanged: (_) {
+                  ref.read(showTotalBalanceProvider.notifier).state = true;
+                  Navigator.of(context).pop();
+                },
+                value: _BalanceType.total,
+                groupValue: _bal,
+              ),
+              const SizedBox(height: 12),
+              BalanceSelector(
+                title: "Available public balance",
                 coin: coin,
                 balance: balance.spendable,
                 onPressed: () {
@@ -156,7 +139,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
               ),
               const SizedBox(height: 12),
               BalanceSelector(
-                title: "Full${hasPrivate ? " public" : ""} balance",
+                title: "Full public balance",
                 coin: coin,
                 balance: balance.total,
                 onPressed: () {
@@ -178,56 +161,54 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                 value: _BalanceType.full,
                 groupValue: _bal,
               ),
-              if (balancePrivate != null) const SizedBox(height: 12),
-              if (balancePrivate != null)
-                BalanceSelector(
-                  title: "Available Private balance",
-                  coin: coin,
-                  balance: balancePrivate.spendable,
-                  onPressed: () {
-                    ref.read(walletBalanceToggleStateProvider.state).state =
-                        WalletBalanceToggleState.available;
-                    ref.read(publicPrivateBalanceStateProvider.state).state =
-                        BalanceType.private;
-                    ref.read(showTotalBalanceProvider.notifier).state = false;
-                    Navigator.of(context).pop();
-                  },
-                  onChanged: (_) {
-                    ref.read(walletBalanceToggleStateProvider.state).state =
-                        WalletBalanceToggleState.available;
-                    ref.read(publicPrivateBalanceStateProvider.state).state =
-                        BalanceType.private;
-                    ref.read(showTotalBalanceProvider.notifier).state = false;
-                    Navigator.of(context).pop();
-                  },
-                  value: _BalanceType.privateAvailable,
-                  groupValue: _bal,
-                ),
-              if (balancePrivate != null) const SizedBox(height: 12),
-              if (balancePrivate != null)
-                BalanceSelector(
-                  title: "Full Private balance",
-                  coin: coin,
-                  balance: balancePrivate.total,
-                  onPressed: () {
-                    ref.read(walletBalanceToggleStateProvider.state).state =
-                        WalletBalanceToggleState.full;
-                    ref.read(publicPrivateBalanceStateProvider.state).state =
-                        BalanceType.private;
-                    ref.read(showTotalBalanceProvider.notifier).state = false;
-                    Navigator.of(context).pop();
-                  },
-                  onChanged: (_) {
-                    ref.read(walletBalanceToggleStateProvider.state).state =
-                        WalletBalanceToggleState.full;
-                    ref.read(publicPrivateBalanceStateProvider.state).state =
-                        BalanceType.private;
-                    ref.read(showTotalBalanceProvider.notifier).state = false;
-                    Navigator.of(context).pop();
-                  },
-                  value: _BalanceType.privateFull,
-                  groupValue: _bal,
-                ),
+              const SizedBox(height: 12),
+              BalanceSelector(
+                title: "Available Private balance",
+                coin: coin,
+                balance: balancePrivate.spendable,
+                onPressed: () {
+                  ref.read(walletBalanceToggleStateProvider.state).state =
+                      WalletBalanceToggleState.available;
+                  ref.read(publicPrivateBalanceStateProvider.state).state =
+                      BalanceType.private;
+                  ref.read(showTotalBalanceProvider.notifier).state = false;
+                  Navigator.of(context).pop();
+                },
+                onChanged: (_) {
+                  ref.read(walletBalanceToggleStateProvider.state).state =
+                      WalletBalanceToggleState.available;
+                  ref.read(publicPrivateBalanceStateProvider.state).state =
+                      BalanceType.private;
+                  ref.read(showTotalBalanceProvider.notifier).state = false;
+                  Navigator.of(context).pop();
+                },
+                value: _BalanceType.privateAvailable,
+                groupValue: _bal,
+              ),
+              const SizedBox(height: 12),
+              BalanceSelector(
+                title: "Full Private balance",
+                coin: coin,
+                balance: balancePrivate.total,
+                onPressed: () {
+                  ref.read(walletBalanceToggleStateProvider.state).state =
+                      WalletBalanceToggleState.full;
+                  ref.read(publicPrivateBalanceStateProvider.state).state =
+                      BalanceType.private;
+                  ref.read(showTotalBalanceProvider.notifier).state = false;
+                  Navigator.of(context).pop();
+                },
+                onChanged: (_) {
+                  ref.read(walletBalanceToggleStateProvider.state).state =
+                      WalletBalanceToggleState.full;
+                  ref.read(publicPrivateBalanceStateProvider.state).state =
+                      BalanceType.private;
+                  ref.read(showTotalBalanceProvider.notifier).state = false;
+                  Navigator.of(context).pop();
+                },
+                value: _BalanceType.privateFull,
+                groupValue: _bal,
+              ),
               const SizedBox(height: 40),
             ],
           ),
@@ -276,10 +257,9 @@ class BalanceSelector<T> extends ConsumerWidget {
               width: 20,
               height: 20,
               child: Radio(
-                activeColor:
-                    Theme.of(
-                      context,
-                    ).extension<StackColors>()!.radioButtonIconEnabled,
+                activeColor: Theme.of(context)
+                    .extension<StackColors>()!
+                    .radioButtonIconEnabled,
                 value: value,
                 groupValue: groupValue,
                 onChanged: onChanged,
@@ -294,10 +274,9 @@ class BalanceSelector<T> extends ConsumerWidget {
                 Text(
                   ref.watch(pAmountFormatter(coin)).format(balance),
                   style: STextStyles.itemSubtitle12(context).copyWith(
-                    color:
-                        Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textSubtitle1,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textSubtitle1,
                   ),
                 ),
               ],

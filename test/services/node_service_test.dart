@@ -1,12 +1,12 @@
 // TODO MWC
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stackwallet/app_config.dart';
-import 'package:stackwallet/db/hive/db.dart';
-import 'package:stackwallet/models/node_model.dart';
-import 'package:stackwallet/services/node_service.dart';
-import 'package:stackwallet/utilities/flutter_secure_storage_interface.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
+import 'package:paymint/app_config.dart';
+import 'package:paymint/db/hive/db.dart';
+import 'package:paymint/models/node_model.dart';
+import 'package:paymint/services/node_service.dart';
+import 'package:paymint/utilities/flutter_secure_storage_interface.dart';
+import 'package:paymint/wallets/crypto_currency/crypto_currency.dart';
 
 import '../hive/hive_ce_test_utils.dart';
 
@@ -35,7 +35,7 @@ void main() {
       final fakeStore = FakeSecureStorage();
       final service = NodeService(secureStorageInterface: fakeStore);
       final node = service.getPrimaryNodeFor(
-        currency: Bitcoin(CryptoCurrencyNetwork.main),
+        currency: Pivx(CryptoCurrencyNetwork.main),
       );
       expect(node, null);
       expect(fakeStore.interactions, 0);
@@ -45,7 +45,7 @@ void main() {
       final fakeStore = FakeSecureStorage();
       final service = NodeService(secureStorageInterface: fakeStore);
       final node = service.getPrimaryNodeFor(
-        currency: Bitcoin(CryptoCurrencyNetwork.main),
+        currency: Pivx(CryptoCurrencyNetwork.main),
       );
       expect(node, null);
       final node1 = NodeModel(
@@ -55,7 +55,7 @@ void main() {
         id: "pnodeID",
         useSSL: true,
         enabled: true,
-        coinName: "bitcoin",
+        coinName: "pivx",
         isFailover: true,
         isDown: false,
         torEnabled: true,
@@ -63,14 +63,14 @@ void main() {
         isPrimary: true,
       );
       await service.setPrimaryNodeFor(
-        coin: Bitcoin(CryptoCurrencyNetwork.main),
+        coin: Pivx(CryptoCurrencyNetwork.main),
         node: node1,
         shouldNotifyListeners: true,
       );
 
       expect(
         service
-            .getPrimaryNodeFor(currency: Bitcoin(CryptoCurrencyNetwork.main))
+            .getPrimaryNodeFor(currency: Pivx(CryptoCurrencyNetwork.main))
             .toString(),
         node1.toString(),
       );
@@ -80,7 +80,7 @@ void main() {
     test("getNodesFor", () {
       final fakeStore = FakeSecureStorage();
       final service = NodeService(secureStorageInterface: fakeStore);
-      final nodes = service.getNodesFor(Bitcoin(CryptoCurrencyNetwork.main));
+      final nodes = service.getNodesFor(Pivx(CryptoCurrencyNetwork.main));
       expect(nodes.isEmpty, true);
       expect(fakeStore.interactions, 0);
     });
@@ -105,7 +105,7 @@ void main() {
       final fakeStore = FakeSecureStorage();
       final service = NodeService(secureStorageInterface: fakeStore);
       final nodes = service.failoverNodesFor(
-        currency: Bitcoin(CryptoCurrencyNetwork.main),
+        currency: Pivx(CryptoCurrencyNetwork.main),
       );
       expect(nodes.isEmpty, true);
       expect(fakeStore.interactions, 0);
@@ -136,7 +136,7 @@ void main() {
       id: "pnodeID1",
       useSSL: true,
       enabled: true,
-      coinName: "bitcoin",
+      coinName: "pivx",
       isFailover: true,
       isDown: false,
       torEnabled: true,
@@ -150,7 +150,7 @@ void main() {
       id: "pnodeID2",
       useSSL: true,
       enabled: true,
-      coinName: "monero",
+      coinName: "pivxTestNet",
       isFailover: true,
       isDown: false,
       torEnabled: true,
@@ -173,9 +173,8 @@ void main() {
     );
 
     setUp(() async {
-      await NodeService(
-        secureStorageInterface: FakeSecureStorage(),
-      ).updateDefaults();
+      await NodeService(secureStorageInterface: FakeSecureStorage())
+          .updateDefaults();
     });
 
     test("setPrimaryNodeFor and getPrimaryNodeFor", () async {
@@ -183,23 +182,23 @@ void main() {
       final service = NodeService(secureStorageInterface: fakeStore);
       expect(
         service
-            .getPrimaryNodeFor(currency: Bitcoin(CryptoCurrencyNetwork.main))
+            .getPrimaryNodeFor(currency: Pivx(CryptoCurrencyNetwork.main))
             ?.toString(),
-        Bitcoin(
-          CryptoCurrencyNetwork.main,
-        ).defaultNode(isPrimary: true).toString(),
+        Pivx(CryptoCurrencyNetwork.main)
+            .defaultNode(isPrimary: true)
+            .toString(),
       );
       await service.setPrimaryNodeFor(
-        coin: Bitcoin(CryptoCurrencyNetwork.main),
-        node: Bitcoin(CryptoCurrencyNetwork.main).defaultNode(isPrimary: true),
+        coin: Pivx(CryptoCurrencyNetwork.main),
+        node: Pivx(CryptoCurrencyNetwork.main).defaultNode(isPrimary: true),
       );
       expect(
         service
-            .getPrimaryNodeFor(currency: Bitcoin(CryptoCurrencyNetwork.main))
+            .getPrimaryNodeFor(currency: Pivx(CryptoCurrencyNetwork.main))
             .toString(),
-        Bitcoin(
-          CryptoCurrencyNetwork.main,
-        ).defaultNode(isPrimary: true).toString(),
+        Pivx(CryptoCurrencyNetwork.main)
+            .defaultNode(isPrimary: true)
+            .toString(),
       );
       expect(fakeStore.interactions, 0);
     });
@@ -208,12 +207,12 @@ void main() {
       final fakeStore = FakeSecureStorage();
       final service = NodeService(secureStorageInterface: fakeStore);
       await service.setPrimaryNodeFor(
-        coin: Bitcoin(CryptoCurrencyNetwork.main),
-        node: Bitcoin(CryptoCurrencyNetwork.main).defaultNode(isPrimary: true),
+        coin: Pivx(CryptoCurrencyNetwork.main),
+        node: Pivx(CryptoCurrencyNetwork.main).defaultNode(isPrimary: true),
       );
       await service.setPrimaryNodeFor(
-        coin: Monero(CryptoCurrencyNetwork.main),
-        node: Monero(CryptoCurrencyNetwork.main).defaultNode(isPrimary: true),
+        coin: Pivx(CryptoCurrencyNetwork.test),
+        node: Pivx(CryptoCurrencyNetwork.test).defaultNode(isPrimary: true),
       );
       final primaryNodes = service.primaryNodes;
       final expectedPrimaryNodes = [...expectedPrimaryDefaults]

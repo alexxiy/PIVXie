@@ -15,16 +15,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import '../../../../../db/sqlite/firo_cache.dart';
 import '../../../../../providers/providers.dart';
 import '../../../../../themes/stack_colors.dart';
-import '../../../../../themes/theme_providers.dart';
-import '../../../../../utilities/assets.dart';
 import '../../../../../utilities/text_styles.dart';
-import '../../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../../wallets/isar/models/wallet_info.dart';
 import '../../../../../wallets/isar/providers/wallet_info_provider.dart';
-import '../../../../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
 import '../../../../../widgets/custom_buttons/draggable_switch_button.dart';
 import '../../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../../widgets/desktop/desktop_dialog_close_button.dart';
@@ -48,50 +43,7 @@ class MoreFeaturesDialog extends ConsumerStatefulWidget {
 }
 
 class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
-  bool _switchRbfToggledLock = false; // Mutex.
-  Future<void> _switchRbfToggled(bool newValue) async {
-    if (_switchRbfToggledLock) {
-      return;
-    }
-    _switchRbfToggledLock = true; // Lock mutex.
-
-    try {
-      // Toggle enableOptInRbf in wallet info.
-      await ref
-          .read(pWalletInfo(widget.walletId))
-          .updateOtherData(
-            newEntries: {WalletInfoKeys.enableOptInRbf: newValue},
-            isar: ref.read(mainDBProvider).isar,
-          );
-    } finally {
-      // ensure _switchRbfToggledLock is set to false no matter what
-      _switchRbfToggledLock = false;
-    }
-  }
-
-  bool _switchLegacyToggledLock = false; // Mutex.
-  Future<void> _switchLegacyToggled(bool newValue) async {
-    if (_switchLegacyToggledLock) {
-      return;
-    }
-    _switchLegacyToggledLock = true; // Lock mutex.
-
-    try {
-      // Toggle enableLegacyAddresses in wallet info.
-      await ref
-          .read(pWalletInfo(widget.walletId))
-          .updateOtherData(
-            newEntries: {WalletInfoKeys.enableLegacyAddresses: newValue},
-            isar: ref.read(mainDBProvider).isar,
-          );
-    } finally {
-      // ensure _switchLegacyToggledLock is set to false no matter what
-      _switchLegacyToggledLock = false;
-    }
-  }
-
   late final DSBController _switchControllerAddressReuse;
-  late final DSBController _switchControllerMwebToggle;
 
   bool _switchReuseAddressToggledLock = false; // Mutex.
   Future<void> _switchReuseAddressToggled() async {
@@ -199,138 +151,14 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
     }
   }
 
-  bool _switchMwebToggleToggledLock = false; // Mutex.
-  Future<void> _switchMwebToggleToggled() async {
-    if (_switchMwebToggleToggledLock) {
-      return;
-    }
-    _switchMwebToggleToggledLock = true; // Lock mutex.
-
-    try {
-      if (_switchControllerMwebToggle.isOn?.call() != true) {
-        final canContinue = await showDialog<bool?>(
-          context: context,
-          builder: (context) {
-            return DesktopDialog(
-              maxWidth: 576,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(left: 32),
-                        child: Text(
-                          "Notice",
-                          style: STextStyles.desktopH3(context),
-                        ),
-                      ),
-                      const DesktopDialogCloseButton(),
-                    ],
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(
-                      top: 8,
-                      left: 32,
-                      right: 32,
-                      bottom: 32,
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          "Activating MWEB requires synchronizing on-chain "
-                          "MWEB related data. This currently requires about "
-                          "800 MB of storage.",
-                          style: STextStyles.desktopTextSmall(context),
-                        ),
-                        const SizedBox(height: 43),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: SecondaryButton(
-                                buttonHeight: ButtonHeight.l,
-                                onPressed: () {
-                                  Navigator.of(context).pop(false);
-                                },
-                                label: "Cancel",
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: PrimaryButton(
-                                buttonHeight: ButtonHeight.l,
-                                onPressed: () {
-                                  Navigator.of(context).pop(true);
-                                },
-                                label: "Continue",
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            );
-          },
-        );
-
-        if (canContinue == true) {
-          await _updateMwebToggle(true);
-
-          unawaited(
-            (ref.read(pWallets).getWallet(widget.walletId) as MwebInterface)
-                .open(),
-          );
-        }
-      } else {
-        await _updateMwebToggle(false);
-      }
-    } finally {
-      // ensure _switchMwebToggleToggledLock is set to false no matter what.
-      _switchMwebToggleToggledLock = false;
-    }
-  }
-
-  Future<void> _updateMwebToggle(bool value) async {
-    if (value) {
-      unawaited(
-        ref
-            .read(pMwebService)
-            .initService(ref.read(pWalletCoin(widget.walletId)).network),
-      );
-    }
-
-    await ref
-        .read(pWalletInfo(widget.walletId))
-        .updateOtherData(
-          newEntries: {WalletInfoKeys.mwebEnabled: value},
-          isar: ref.read(mainDBProvider).isar,
-        );
-
-    if (_switchControllerMwebToggle.isOn != null) {
-      if (_switchControllerMwebToggle.isOn!.call() != value) {
-        _switchControllerMwebToggle.activate?.call();
-      }
-    }
-  }
-
   @override
   void initState() {
     _switchControllerAddressReuse = DSBController();
-    _switchControllerMwebToggle = DSBController();
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    final wallet = ref.watch(
-      pWallets.select((value) => value.getWallet(widget.walletId)),
-    );
-
     final maxDialogHeight = MediaQuery.sizeOf(context).height - 64;
 
     return DesktopDialog(
@@ -361,95 +189,6 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
                 children: [
                   ...widget.options.map((option) {
                     switch (option.$1) {
-                      case WalletFeature.buy:
-                        // Buy has a special icon
-                        return _MoreFeaturesItem(
-                          label: option.$1.label,
-                          detail: option.$1.description,
-                          isSvgFile: true,
-                          iconAsset: ref.watch(
-                            themeProvider.select((value) => value.assets.buy),
-                          ),
-                          onPressed: () async {
-                            Navigator.of(context, rootNavigator: true).pop();
-                            option.$3();
-                          },
-                        );
-
-                      case WalletFeature.clearSparkCache:
-                        return _MoreFeaturesClearSparkCacheItem(
-                          cryptoCurrency: wallet.cryptoCurrency,
-                        );
-
-                      case WalletFeature.rbf:
-                        return _MoreFeaturesItemBase(
-                          child: Row(
-                            children: [
-                              const SizedBox(width: 3),
-                              SizedBox(
-                                height: 20,
-                                width: 40,
-                                child: DraggableSwitchButton(
-                                  isOn:
-                                      ref.watch(
-                                            pWalletInfo(widget.walletId).select(
-                                              (value) => value.otherData,
-                                            ),
-                                          )[WalletInfoKeys.enableOptInRbf]
-                                          as bool? ??
-                                      false,
-                                  onValueChanged: _switchRbfToggled,
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Flag outgoing transactions with opt-in RBF",
-                                    style: STextStyles.w600_20(context),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        );
-
-                      case WalletFeature.enableLegacyAddresses:
-                        return _MoreFeaturesItemBase(
-                          child: Row(
-                            children: [
-                              const SizedBox(width: 3),
-                              SizedBox(
-                                height: 20,
-                                width: 40,
-                                child: DraggableSwitchButton(
-                                  isOn:
-                                      ref.watch(
-                                            pWalletInfo(widget.walletId).select(
-                                              (value) => value.otherData,
-                                            ),
-                                          )[WalletInfoKeys
-                                              .enableLegacyAddresses]
-                                          as bool? ??
-                                      false,
-                                  onValueChanged: _switchLegacyToggled,
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Enable legacy (P2PKH) address generation",
-                                    style: STextStyles.w600_20(context),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        );
-
                       case WalletFeature.reuseAddress:
                         return _MoreFeaturesItemBase(
                           onPressed: _switchReuseAddressToggled,
@@ -463,11 +202,10 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
                                   child: DraggableSwitchButton(
                                     isOn:
                                         ref.watch(
-                                              pWalletInfo(
-                                                widget.walletId,
-                                              ).select(
-                                                (value) => value.otherData,
-                                              ),
+                                              pWalletInfo(widget.walletId)
+                                                  .select(
+                                                    (value) => value.otherData,
+                                                  ),
                                             )[WalletInfoKeys.reuseAddress]
                                             as bool? ??
                                         false,
@@ -481,45 +219,6 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
                                 children: [
                                   Text(
                                     "Reuse receiving address",
-                                    style: STextStyles.w600_20(context),
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        );
-
-                      case WalletFeature.enableMweb:
-                        return _MoreFeaturesItemBase(
-                          onPressed: _switchMwebToggleToggled,
-                          child: Row(
-                            children: [
-                              const SizedBox(width: 3),
-                              SizedBox(
-                                height: 20,
-                                width: 40,
-                                child: IgnorePointer(
-                                  child: DraggableSwitchButton(
-                                    isOn:
-                                        ref.watch(
-                                              pWalletInfo(
-                                                widget.walletId,
-                                              ).select(
-                                                (value) => value.otherData,
-                                              ),
-                                            )[WalletInfoKeys.mwebEnabled]
-                                            as bool? ??
-                                        false,
-                                    controller: _switchControllerMwebToggle,
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "Enable MWEB",
                                     style: STextStyles.w600_20(context),
                                   ),
                                 ],
@@ -606,17 +305,17 @@ class _MoreFeaturesItemState extends State<_MoreFeaturesItem> {
                       File(widget.iconAsset),
                       width: _MoreFeaturesItem.iconSize,
                       height: _MoreFeaturesItem.iconSize,
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.settingsIconIcon,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .settingsIconIcon,
                     )
                   : SvgPicture.asset(
                       widget.iconAsset,
                       width: _MoreFeaturesItem.iconSize,
                       height: _MoreFeaturesItem.iconSize,
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.settingsIconIcon,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .settingsIconIcon,
                     ),
             ),
           ),
@@ -649,92 +348,11 @@ class _MoreFeaturesItemBase extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 32),
       child: RoundedContainer(
         color: Colors.transparent,
-        borderColor: Theme.of(
-          context,
-        ).extension<StackColors>()!.textFieldDefaultBG,
+        borderColor: Theme.of(context)
+            .extension<StackColors>()!
+            .textFieldDefaultBG,
         onPressed: onPressed,
         child: child,
-      ),
-    );
-  }
-}
-
-class _MoreFeaturesClearSparkCacheItem extends StatefulWidget {
-  const _MoreFeaturesClearSparkCacheItem({
-    super.key,
-    required this.cryptoCurrency,
-  });
-
-  final CryptoCurrency cryptoCurrency;
-
-  @override
-  State<_MoreFeaturesClearSparkCacheItem> createState() =>
-      _MoreFeaturesClearSparkCacheItemState();
-}
-
-class _MoreFeaturesClearSparkCacheItemState
-    extends State<_MoreFeaturesClearSparkCacheItem> {
-  bool _onPressedLock = false;
-
-  static const label = "Reset Spark electrumx cache";
-
-  @override
-  Widget build(BuildContext context) {
-    return _MoreFeaturesItemBase(
-      onPressed: () async {
-        if (_onPressedLock) {
-          return;
-        }
-        _onPressedLock = true;
-        try {
-          await FiroCacheCoordinator.clearSharedCache(
-            widget.cryptoCurrency.network,
-          );
-          setState(() {
-            // trigger rebuild for cache size display
-          });
-        } finally {
-          _onPressedLock = false;
-        }
-      },
-      child: Row(
-        children: [
-          RoundedContainer(
-            padding: const EdgeInsets.all(0),
-            color: Theme.of(context).extension<StackColors>()!.settingsIconBack,
-            width: _MoreFeaturesItem.iconSizeBG,
-            height: _MoreFeaturesItem.iconSizeBG,
-            radiusMultiplier: _MoreFeaturesItem.iconSizeBG,
-            child: Center(
-              child: SvgPicture.asset(
-                Assets.svg.x,
-                width: _MoreFeaturesItem.iconSize,
-                height: _MoreFeaturesItem.iconSize,
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.settingsIconIcon,
-              ),
-            ),
-          ),
-          const SizedBox(width: 16),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label, style: STextStyles.w600_20(context)),
-              FutureBuilder(
-                future: FiroCacheCoordinator.getSparkCacheSize(
-                  widget.cryptoCurrency.network,
-                ),
-                builder: (_, snapshot) {
-                  return Text(
-                    snapshot.data ?? "",
-                    style: STextStyles.desktopTextExtraExtraSmall(context),
-                  );
-                },
-              ),
-            ],
-          ),
-        ],
       ),
     );
   }

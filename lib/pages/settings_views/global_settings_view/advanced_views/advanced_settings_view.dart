@@ -64,9 +64,8 @@ class AdvancedSettingsView extends StatelessWidget {
                       ),
                     ),
                     onPressed: () {
-                      Navigator.of(
-                        context,
-                      ).pushNamed(LoggingSettingsView.routeName);
+                      Navigator.of(context)
+                          .pushNamed(LoggingSettingsView.routeName);
                     },
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
@@ -119,8 +118,9 @@ class AdvancedSettingsView extends StatelessWidget {
                                   ),
                                   onValueChanged: (newValue) {
                                     ref
-                                        .read(prefsChangeNotifierProvider)
-                                        .showTestNetCoins = newValue;
+                                            .read(prefsChangeNotifierProvider)
+                                            .showTestNetCoins =
+                                        newValue;
                                   },
                                 ),
                               ),
@@ -165,8 +165,9 @@ class AdvancedSettingsView extends StatelessWidget {
                                   ),
                                   onValueChanged: (newValue) {
                                     ref
-                                        .read(prefsChangeNotifierProvider)
-                                        .enableCoinControl = newValue;
+                                            .read(prefsChangeNotifierProvider)
+                                            .enableCoinControl =
+                                        newValue;
                                   },
                                 ),
                               ),
@@ -177,55 +178,6 @@ class AdvancedSettingsView extends StatelessWidget {
                     },
                   ),
                 ),
-                // showExchange pref.
-                if (Constants.enableExchange) const SizedBox(height: 8),
-                if (Constants.enableExchange)
-                  RoundedWhiteContainer(
-                    child: Consumer(
-                      builder: (_, ref, __) {
-                        return RawMaterialButton(
-                          // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
-                          materialTapTargetSize:
-                              MaterialTapTargetSize.shrinkWrap,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(
-                              Constants.size.circularBorderRadius,
-                            ),
-                          ),
-                          onPressed: null,
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  "Enable exchange features",
-                                  style: STextStyles.titleBold12(context),
-                                  textAlign: TextAlign.left,
-                                ),
-                                SizedBox(
-                                  height: 20,
-                                  width: 40,
-                                  child: DraggableSwitchButton(
-                                    isOn: ref.watch(
-                                      prefsChangeNotifierProvider.select(
-                                        (value) => value.enableExchange,
-                                      ),
-                                    ),
-                                    onValueChanged: (newValue) {
-                                      ref
-                                          .read(prefsChangeNotifierProvider)
-                                          .enableExchange = newValue;
-                                    },
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
                 const SizedBox(height: 8),
                 RoundedWhiteContainer(
                   padding: const EdgeInsets.all(0),
@@ -265,13 +217,11 @@ class AdvancedSettingsView extends StatelessWidget {
                                       style: STextStyles.titleBold12(context),
                                     ),
                                     TextSpan(
-                                      text:
-                                          externalCalls
-                                              ? "\nEasy crypto"
-                                              : "\nIncognito",
-                                      style: STextStyles.label(
-                                        context,
-                                      ).copyWith(fontSize: 15.0),
+                                      text: externalCalls
+                                          ? "\nEasy crypto"
+                                          : "\nIncognito",
+                                      style: STextStyles.label(context)
+                                          .copyWith(fontSize: 15.0),
                                     ),
                                   ],
                                 ),
@@ -333,9 +283,8 @@ class AdvancedSettingsView extends StatelessWidget {
                       ),
                     ),
                     onPressed: () {
-                      Navigator.of(
-                        context,
-                      ).pushNamed(ManageCoinUnitsView.routeName);
+                      Navigator.of(context)
+                          .pushNamed(ManageCoinUnitsView.routeName);
                     },
                     child: Padding(
                       padding: const EdgeInsets.symmetric(

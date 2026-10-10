@@ -13,32 +13,15 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../models/isar/models/ethereum/eth_contract.dart';
-import '../models/isar/models/solana/sol_contract.dart';
-import '../pages/token_view/sol_token_view.dart';
-import '../pages/token_view/token_view.dart';
 import '../pages/wallet_view/wallet_view.dart';
-import '../pages_desktop_specific/my_stack_view/wallet_view/desktop_sol_token_view.dart';
-import '../pages_desktop_specific/my_stack_view/wallet_view/desktop_token_view.dart';
 import '../pages_desktop_specific/my_stack_view/wallet_view/desktop_wallet_view.dart';
 import '../providers/providers.dart';
 import '../utilities/constants.dart';
-import '../utilities/logger.dart';
 import '../utilities/show_loading.dart';
 import '../utilities/show_node_tor_settings_mismatch.dart';
 import '../utilities/util.dart';
-import '../wallets/crypto_currency/coins/solana.dart';
-import '../wallets/isar/providers/eth/current_token_wallet_provider.dart';
-import '../wallets/isar/providers/solana/current_sol_token_wallet_provider.dart';
-import '../wallets/wallet/impl/ethereum_wallet.dart';
-import '../wallets/wallet/impl/solana_wallet.dart';
-import '../wallets/wallet/impl/sub_wallets/eth_token_wallet.dart';
-import '../wallets/wallet/impl/sub_wallets/solana_token_wallet.dart';
 import '../wallets/wallet/intermediate/external_wallet.dart';
-import '../wallets/wallet/wallet.dart';
 import 'conditional_parent.dart';
-import 'desktop/primary_button.dart';
-import 'dialogs/basic_dialog.dart';
 import 'rounded_white_container.dart';
 import 'wallet_info_row/wallet_info_row.dart';
 
@@ -46,101 +29,13 @@ class SimpleWalletCard extends ConsumerWidget {
   const SimpleWalletCard({
     super.key,
     required this.walletId,
-    this.contractAddress,
     this.popPrevious = false,
     this.desktopNavigatorState,
   });
 
   final String walletId;
-  final String? contractAddress;
   final bool popPrevious;
   final NavigatorState? desktopNavigatorState;
-
-  Future<bool> _loadEthTokenWallet(
-    BuildContext context,
-    WidgetRef ref,
-    Wallet wallet,
-    EthContract contract,
-  ) async {
-    final old = ref.read(tokenServiceStateProvider);
-    // exit previous if there is one
-    unawaited(old?.exit());
-    ref.read(tokenServiceStateProvider.state).state =
-        Wallet.loadTokenWallet(
-              ethWallet: wallet as EthereumWallet,
-              contract: contract,
-            )
-            as EthTokenWallet;
-
-    try {
-      await ref.read(pCurrentTokenWallet)!.init();
-      return true;
-    } catch (_) {
-      await showDialog<void>(
-        barrierDismissible: false,
-        context: context,
-        builder: (context) => BasicDialog(
-          title: "Failed to load token data",
-          desktopHeight: double.infinity,
-          desktopWidth: 450,
-          rightButton: PrimaryButton(
-            label: "OK",
-            onPressed: () {
-              Navigator.of(context).pop();
-              Navigator.of(context).pop();
-              if (desktopNavigatorState == null) {
-                Navigator.of(context).pop();
-              }
-            },
-          ),
-        ),
-      );
-      return false;
-    }
-  }
-
-  Future<bool> _loadSolanaTokenWallet(
-    BuildContext context,
-    WidgetRef ref,
-    Wallet wallet,
-    SolContract token,
-  ) async {
-    final old = ref.read(solanaTokenServiceStateProvider);
-    // exit previous if there is one
-    unawaited(old?.exit());
-    ref.read(solanaTokenServiceStateProvider.state).state =
-        Wallet.loadSolTokenWallet(
-              solWallet: wallet as SolanaWallet,
-              contract: token,
-            )
-            as SolanaTokenWallet;
-
-    try {
-      await ref.read(pCurrentSolanaTokenWallet)!.init();
-      return true;
-    } catch (_) {
-      await showDialog<void>(
-        barrierDismissible: false,
-        context: context,
-        builder: (context) => BasicDialog(
-          title: "Failed to load token data",
-          desktopHeight: double.infinity,
-          desktopWidth: 450,
-          rightButton: PrimaryButton(
-            label: "OK",
-            onPressed: () {
-              Navigator.of(context).pop();
-              Navigator.of(context).pop();
-              if (desktopNavigatorState == null) {
-                Navigator.of(context).pop();
-              }
-            },
-          ),
-        ),
-      );
-      return false;
-    }
-  }
 
   void _openWallet(BuildContext context, WidgetRef ref) async {
     final nav = Navigator.of(context);
@@ -175,105 +70,15 @@ class SimpleWalletCard extends ConsumerWidget {
       );
       if (popPrevious) nav.pop();
 
-      if (contractAddress == null) {
-        if (desktopNavigatorState != null) {
-          unawaited(
-            desktopNavigatorState!.pushNamed(
-              DesktopWalletView.routeName,
-              arguments: walletId,
-            ),
-          );
-        } else {
-          unawaited(nav.pushNamed(WalletView.routeName, arguments: walletId));
-        }
-      }
-
-      if (contractAddress != null) {
-        if (wallet.cryptoCurrency is Solana) {
-          // Handle Solana token.
-          final token = ref
-              .read(mainDBProvider)
-              .getSolContractSync(contractAddress!);
-
-          if (token == null) {
-            Logging.instance.e(
-              "Failed to find Solana token with address: $contractAddress",
-            );
-            return;
-          }
-
-          final success = await showLoading<bool>(
-            whileFuture: _loadSolanaTokenWallet(
-              desktopNavigatorState?.context ?? context,
-              ref,
-              wallet,
-              token,
-            ),
-            context: desktopNavigatorState?.context ?? context,
-            opaqueBG: true,
-            message: "Loading ${token.name}",
-            rootNavigator: Util.isDesktop,
-          );
-
-          if (!success!) {
-            Logging.instance.e("Failed to load token wallet for $token");
-            return;
-          }
-
-          if (desktopNavigatorState != null) {
-            await desktopNavigatorState!.pushNamed(
-              DesktopSolTokenView.routeName,
-              arguments: walletId,
-            );
-          } else {
-            await nav.pushNamed(
-              SolTokenView.routeName,
-              arguments: (walletId: walletId, popPrevious: !Util.isDesktop),
-            );
-          }
-        } else {
-          // Handle Ethereum token (default).
-          final contract = ref
-              .read(mainDBProvider)
-              .getEthContractSync(contractAddress!);
-
-          if (contract == null) {
-            Logging.instance.e(
-              "Failed to find Ethereum contract with address: $contractAddress",
-            );
-            return;
-          }
-
-          final success = await showLoading<bool>(
-            whileFuture: _loadEthTokenWallet(
-              desktopNavigatorState?.context ?? context,
-              ref,
-              wallet,
-              contract,
-            ),
-            context: desktopNavigatorState?.context ?? context,
-            opaqueBG: true,
-            message: "Loading ${contract.name}",
-            rootNavigator: Util.isDesktop,
-          );
-
-          if (!success!) {
-            Logging.instance.e("Failed to load token wallet for $contract");
-            return;
-          }
-
-          if (desktopNavigatorState != null) {
-            await desktopNavigatorState!.pushNamed(
-              DesktopTokenView.routeName,
-              arguments: walletId,
-            );
-          } else {
-            await nav.pushNamed(
-              TokenView.routeName,
-              arguments: (walletId: walletId, popPrevious: !Util.isDesktop),
-            );
-          }
-        }
+      if (desktopNavigatorState != null) {
+        unawaited(
+          desktopNavigatorState!.pushNamed(
+            DesktopWalletView.routeName,
+            arguments: walletId,
+          ),
+        );
+      } else {
+        unawaited(nav.pushNamed(WalletView.routeName, arguments: walletId));
       }
     }
   }
@@ -300,7 +105,6 @@ class SimpleWalletCard extends ConsumerWidget {
       ),
       child: WalletInfoRow(
         walletId: walletId,
-        contractAddress: contractAddress,
         onPressedDesktop: Util.isDesktop
             ? () => _openWallet(context, ref)
             : null,

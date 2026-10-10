@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/ui/unread_notifications_provider.dart';
 import 'notification_card.dart';
 import 'notification_feed_entry.dart';
-import 'shopinbit_notification_card.dart';
 
 class NotificationFeedEntryCard extends ConsumerWidget {
   const NotificationFeedEntryCard({super.key, required this.entry});
@@ -23,7 +22,6 @@ class NotificationFeedEntryCard extends ConsumerWidget {
 
     return switch (entry) {
       HiveFeedEntry e => NotificationCard(notification: e.model),
-      AppFeedEntry e => ShopInBitNotificationCard(notification: e.notification),
     };
   }
 }

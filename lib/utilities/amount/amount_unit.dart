@@ -12,11 +12,7 @@ import 'dart:math' as math;
 
 import 'package:decimal/decimal.dart';
 
-import '../../models/isar/models/contract.dart';
-import '../../models/isar/models/ethereum/eth_contract.dart';
-import '../../models/isar/models/solana/sol_contract.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
-import '../../wallets/crypto_currency/intermediate/nano_currency.dart';
 import '../util.dart';
 import 'amount.dart';
 
@@ -96,103 +92,9 @@ extension AmountUnitExt on AmountUnit {
       case AmountUnit.micro:
         return "µ${coin.ticker}";
       case AmountUnit.nano:
-        if (coin is Ethereum) {
-          return "gwei";
-        } else if (coin is Wownero || coin is Monero || coin is NanoCurrency) {
-          return "n${coin.ticker}";
-        } else {
-          return "sats";
-        }
-      case AmountUnit.pico:
-        if (coin is Ethereum) {
-          return "mwei";
-        } else if (coin is Wownero || coin is Monero || coin is NanoCurrency) {
-          return "p${coin.ticker}";
-        } else {
-          return "invalid";
-        }
-      case AmountUnit.femto:
-        if (coin is Ethereum) {
-          return "kwei";
-        } else if (coin is NanoCurrency) {
-          return "f${coin.ticker}";
-        } else {
-          return "invalid";
-        }
-      case AmountUnit.atto:
-        if (coin is Ethereum) {
-          return "wei";
-        } else if (coin is NanoCurrency) {
-          return "a${coin.ticker}";
-        } else {
-          return "invalid";
-        }
-      case AmountUnit.zepto:
-        if (coin is NanoCurrency) {
-          return "z${coin.ticker}";
-        } else {
-          return "invalid";
-        }
-      case AmountUnit.yocto:
-        if (coin is NanoCurrency) {
-          return "y${coin.ticker}";
-        } else {
-          return "invalid";
-        }
-      case AmountUnit.ronto:
-        if (coin is NanoCurrency) {
-          return "r${coin.ticker}";
-        } else {
-          return "invalid";
-        }
-      case AmountUnit.quecto:
-        if (coin is NanoCurrency) {
-          return "q${coin.ticker}";
-        } else {
-          return "invalid";
-        }
-    }
-  }
-
-  String unitForContract(EthContract contract) {
-    switch (this) {
-      case AmountUnit.normal:
-        return contract.symbol;
-      case AmountUnit.milli:
-        return "m${contract.symbol}";
-      case AmountUnit.micro:
-        return "µ${contract.symbol}";
-      case AmountUnit.nano:
-        return "gwei";
-      case AmountUnit.pico:
-        return "mwei";
-      case AmountUnit.femto:
-        return "kwei";
-      case AmountUnit.atto:
-        return "wei";
+        return "sats";
       default:
-        throw ArgumentError("Does eth even allow more than 18 decimal places?");
-    }
-  }
-
-  String unitForSplToken(SolContract token) {
-    switch (this) {
-      case AmountUnit.normal:
-        return token.symbol;
-      case AmountUnit.milli:
-        return "m${token.symbol}";
-      case AmountUnit.micro:
-        return "µ${token.symbol}";
-      case AmountUnit.nano:
-      case AmountUnit.pico:
-      case AmountUnit.femto:
-      case AmountUnit.atto:
-      case AmountUnit.zepto:
-      case AmountUnit.yocto:
-      case AmountUnit.ronto:
-      case AmountUnit.quecto:
-        // For SOL tokens, just use the symbol with the prefix if applicable.
-        return token.symbol;
+        return "invalid";
     }
   }
 
@@ -200,7 +102,6 @@ extension AmountUnitExt on AmountUnit {
     String value, {
     required String locale,
     required CryptoCurrency coin,
-     Contract? tokenContract,
     bool overrideWithDecimalPlacesFromString = false,
   }) {
     final precisionLost = value.startsWith("~");
@@ -237,7 +138,7 @@ extension AmountUnitExt on AmountUnit {
 
     final decimalPlaces = overrideWithDecimalPlacesFromString
         ? decimal.scale
-        : tokenContract?.decimals ?? coin.fractionDigits;
+        : coin.fractionDigits;
     final realShift = math.min(shift, decimalPlaces);
 
     return decimal.shift(0 - realShift).toAmount(fractionDigits: decimalPlaces);
@@ -251,7 +152,6 @@ extension AmountUnitExt on AmountUnit {
     bool withUnitName = true,
     bool indicatePrecisionLoss = true,
     String? overrideUnit,
-    Contract? tokenContract,
   }) {
     assert(maxDecimalPlaces >= 0);
 
@@ -290,16 +190,9 @@ extension AmountUnitExt on AmountUnit {
 
       // get final decimal based on max precision wanted while ensuring that
       // maxDecimalPlaces doesn't exceed the max per coin
-      final int updatedMax;
-      if (tokenContract != null) {
-        updatedMax = maxDecimalPlaces > tokenContract.decimals
-            ? tokenContract.decimals
-            : maxDecimalPlaces;
-      } else {
-        updatedMax = maxDecimalPlaces > coin.fractionDigits
-            ? coin.fractionDigits
-            : maxDecimalPlaces;
-      }
+      final int updatedMax = maxDecimalPlaces > coin.fractionDigits
+          ? coin.fractionDigits
+          : maxDecimalPlaces;
       final int actualDecimalPlaces = math.min(places, updatedMax);
 
       // get remainder string without the prepending "0."
@@ -352,12 +245,6 @@ extension AmountUnitExt on AmountUnit {
     }
 
     // return the value with the proper unit symbol
-    if (tokenContract is EthContract) {
-      overrideUnit = unitForContract(tokenContract);
-    } else if (tokenContract is SolContract) {
-      overrideUnit = unitForSplToken(tokenContract);
-    }
-
     return "$returnValue ${overrideUnit ?? unitForCoin(coin)}";
   }
 }

@@ -14,6 +14,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../app_config.dart';
+import '../../notifications/show_flush_bar.dart';
+import '../../utilities/show_loading.dart';
+import '../../widgets/desktop/desktop_dialog.dart';
 import '../../../../providers/desktop/storage_crypto_handler_provider.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
@@ -21,10 +25,6 @@ import '../../../../utilities/constants.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/stack_text_field.dart';
-import '../../app_config.dart';
-import '../../notifications/show_flush_bar.dart';
-import '../../utilities/show_loading.dart';
-import '../../widgets/desktop/desktop_dialog.dart';
 
 class DesktopUnlockAppDialog extends ConsumerStatefulWidget {
   const DesktopUnlockAppDialog({super.key});
@@ -126,9 +126,8 @@ class _DesktopUnlockAppDialogState
                 key: const Key("desktopUnlockAppPasswordFieldKey"),
                 focusNode: passwordFocusNode,
                 controller: passwordController,
-                style: STextStyles.desktopTextMedium(
-                  context,
-                ).copyWith(height: 2),
+                style: STextStyles.desktopTextMedium(context)
+                    .copyWith(height: 2),
                 obscureText: hidePassword,
                 enableSuggestions: false,
                 autocorrect: false,
@@ -138,44 +137,44 @@ class _DesktopUnlockAppDialogState
                     _confirmPressed();
                   }
                 },
-                decoration: standardInputDecoration(
-                  "Enter password",
-                  passwordFocusNode,
-                  context,
-                ).copyWith(
-                  suffixIcon: UnconstrainedBox(
-                    child: SizedBox(
-                      height: 70,
-                      child: Row(
-                        children: [
-                          const SizedBox(width: 24),
-                          GestureDetector(
-                            key: const Key(
-                              "desktopUnlockAppPasswordFieldShowPasswordButtonKey",
-                            ),
-                            onTap: () async {
-                              setState(() {
-                                hidePassword = !hidePassword;
-                              });
-                            },
-                            child: SvgPicture.asset(
-                              hidePassword
-                                  ? Assets.svg.eye
-                                  : Assets.svg.eyeSlash,
-                              color:
-                                  Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.textDark3,
-                              width: 24,
-                              height: 24,
-                            ),
+                decoration:
+                    standardInputDecoration(
+                      "Enter password",
+                      passwordFocusNode,
+                      context,
+                    ).copyWith(
+                      suffixIcon: UnconstrainedBox(
+                        child: SizedBox(
+                          height: 70,
+                          child: Row(
+                            children: [
+                              const SizedBox(width: 24),
+                              GestureDetector(
+                                key: const Key(
+                                  "desktopUnlockAppPasswordFieldShowPasswordButtonKey",
+                                ),
+                                onTap: () async {
+                                  setState(() {
+                                    hidePassword = !hidePassword;
+                                  });
+                                },
+                                child: SvgPicture.asset(
+                                  hidePassword
+                                      ? Assets.svg.eye
+                                      : Assets.svg.eyeSlash,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textDark3,
+                                  width: 24,
+                                  height: 24,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                            ],
                           ),
-                          const SizedBox(width: 12),
-                        ],
+                        ),
                       ),
                     ),
-                  ),
-                ),
                 onChanged: (newValue) {
                   setState(() {
                     _confirmEnabled = passwordController.text.isNotEmpty;

@@ -13,88 +13,36 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:isar_community/isar.dart';
 
-import '../../../models/isar/exchange_cache/currency.dart';
-import '../../../services/exchange/change_now/change_now_exchange.dart';
-import '../../../services/exchange/exchange_data_loading_service.dart';
 import '../../../themes/coin_icon_provider.dart';
 import '../../../themes/theme_providers.dart';
 import '../../../utilities/constants.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 
-class WalletInfoCoinIcon extends ConsumerStatefulWidget {
-  const WalletInfoCoinIcon({
-    super.key,
-    required this.coin,
-    this.size = 32,
-    this.contractAddress,
-  });
+class WalletInfoCoinIcon extends ConsumerWidget {
+  const WalletInfoCoinIcon({super.key, required this.coin, this.size = 32});
 
   final CryptoCurrency coin;
-  final String? contractAddress;
   final double size;
 
   @override
-  ConsumerState<WalletInfoCoinIcon> createState() => _WalletInfoCoinIconState();
-}
-
-class _WalletInfoCoinIconState extends ConsumerState<WalletInfoCoinIcon> {
-  String? imageUrl;
-
-  @override
-  void initState() {
-    super.initState();
-
-    ExchangeDataLoadingService.instance.isar.then((isar) async {
-      if (widget.contractAddress != null) {
-        final currency =
-            await isar.currencies
-                .where()
-                .exchangeNameEqualTo(ChangeNowExchange.exchangeName)
-                .filter()
-                .tokenContractEqualTo(
-                  widget.contractAddress!,
-                  caseSensitive: false,
-                )
-                .and()
-                .imageIsNotEmpty()
-                .findFirst();
-
-        if (mounted) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) {
-              setState(() {
-                imageUrl = currency?.image;
-              });
-            }
-          });
-        }
-      }
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
-      width: widget.size,
-      height: widget.size,
+      width: size,
+      height: size,
       decoration: BoxDecoration(
-        color: ref.watch(pCoinColor(widget.coin)).withOpacity(0.4),
+        color: ref.watch(pCoinColor(coin)).withOpacity(0.4),
         borderRadius: BorderRadius.circular(
           Constants.size.circularBorderRadius,
         ),
       ),
       child: Padding(
-        padding: EdgeInsets.all(widget.size / 5),
-        child:
-            imageUrl != null && imageUrl!.isNotEmpty
-                ? SvgPicture.network(imageUrl!, width: 20, height: 20)
-                : SvgPicture.file(
-                  File(ref.watch(coinIconProvider(widget.coin))),
-                  width: 20,
-                  height: 20,
-                ),
+        padding: EdgeInsets.all(size / 5),
+        child: SvgPicture.file(
+          File(ref.watch(coinIconProvider(coin))),
+          width: 20,
+          height: 20,
+        ),
       ),
     );
   }

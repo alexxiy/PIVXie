@@ -19,15 +19,11 @@ import '../../models/isar/models/block_explorer.dart';
 import '../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../models/isar/models/contact_entry.dart';
 import '../../models/isar/models/isar_models.dart';
-import '../../models/isar/ordinal.dart';
 import '../../models/isar/stack_theme.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/extensions/extensions.dart';
 import '../../utilities/stack_file_system.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
-import '../../wallets/isar/models/frost_wallet_info.dart';
-import '../../wallets/isar/models/spark_coin.dart';
-import '../../wallets/isar/models/token_wallet_info.dart';
 import '../../wallets/isar/models/wallet_info.dart';
 import '../../wallets/isar/models/wallet_info_meta.dart';
 
@@ -60,19 +56,12 @@ class MainDB {
         UTXOSchema,
         AddressSchema,
         AddressLabelSchema,
-        EthContractSchema,
-        SolContractSchema,
         TransactionBlockExplorerSchema,
         StackThemeSchema,
         ContactEntrySchema,
-        OrdinalSchema,
         WalletInfoSchema,
         TransactionV2Schema,
-        SparkCoinSchema,
         WalletInfoMetaSchema,
-        TokenWalletInfoSchema,
-        FrostWalletInfoSchema,
-        WalletSolanaTokenInfoSchema,
       ],
       directory: (await StackFileSystem.applicationIsarDirectory()).path,
       // inspector: kDebugMode,
@@ -475,9 +464,11 @@ class MainDB {
 
       // transactions
       for (int i = 0; i < transactionCount; i += paginateLimit) {
-        final txnIds = await getTransactions(
-          walletId,
-        ).offset(i).limit(paginateLimit).idProperty().findAll();
+        final txnIds = await getTransactions(walletId)
+            .offset(i)
+            .limit(paginateLimit)
+            .idProperty()
+            .findAll();
         await isar.transactions.deleteAll(txnIds);
       }
 
@@ -495,25 +486,23 @@ class MainDB {
 
       // addresses
       for (int i = 0; i < addressCount; i += paginateLimit) {
-        final addressIds = await getAddresses(
-          walletId,
-        ).offset(i).limit(paginateLimit).idProperty().findAll();
+        final addressIds = await getAddresses(walletId)
+            .offset(i)
+            .limit(paginateLimit)
+            .idProperty()
+            .findAll();
         await isar.addresses.deleteAll(addressIds);
       }
 
       // utxos
       for (int i = 0; i < utxoCount; i += paginateLimit) {
-        final utxoIds = await getUTXOs(
-          walletId,
-        ).offset(i).limit(paginateLimit).idProperty().findAll();
+        final utxoIds = await getUTXOs(walletId)
+            .offset(i)
+            .limit(paginateLimit)
+            .idProperty()
+            .findAll();
         await isar.utxos.deleteAll(utxoIds);
       }
-
-      // spark coins
-      await isar.sparkCoins
-          .where()
-          .walletIdEqualToAnyLTagHash(walletId)
-          .deleteAll();
     });
   }
 
@@ -522,9 +511,11 @@ class MainDB {
     await isar.writeTxn(() async {
       const paginateLimit = 50;
       for (int i = 0; i < addressLabelCount; i += paginateLimit) {
-        final labelIds = await getAddressLabels(
-          walletId,
-        ).offset(i).limit(paginateLimit).idProperty().findAll();
+        final labelIds = await getAddressLabels(walletId)
+            .offset(i)
+            .limit(paginateLimit)
+            .idProperty()
+            .findAll();
         await isar.addressLabels.deleteAll(labelIds);
       }
     });
@@ -535,9 +526,11 @@ class MainDB {
     await isar.writeTxn(() async {
       const paginateLimit = 50;
       for (int i = 0; i < noteCount; i += paginateLimit) {
-        final labelIds = await getTransactionNotes(
-          walletId,
-        ).offset(i).limit(paginateLimit).idProperty().findAll();
+        final labelIds = await getTransactionNotes(walletId)
+            .offset(i)
+            .limit(paginateLimit)
+            .idProperty()
+            .findAll();
         await isar.transactionNotes.deleteAll(labelIds);
       }
     });
@@ -616,48 +609,4 @@ class MainDB {
       );
     }
   }
-
-  // ========== Ethereum =======================================================
-
-  // eth contracts
-
-  QueryBuilder<EthContract, EthContract, QWhere> getEthContracts() =>
-      isar.ethContracts.where();
-
-  Future<EthContract?> getEthContract(String contractAddress) =>
-      isar.ethContracts.where().addressEqualTo(contractAddress).findFirst();
-
-  EthContract? getEthContractSync(String contractAddress) =>
-      isar.ethContracts.where().addressEqualTo(contractAddress).findFirstSync();
-
-  Future<int> putEthContract(EthContract contract) => isar.writeTxn(() async {
-    return await isar.ethContracts.put(contract);
-  });
-
-  Future<void> putEthContracts(List<EthContract> contracts) =>
-      isar.writeTxn(() async {
-        await isar.ethContracts.putAll(contracts);
-      });
-
-  // ========== Solana =========================================================
-
-  // Solana tokens.
-
-  QueryBuilder<SolContract, SolContract, QWhere> getSolContracts() =>
-      isar.solContracts.where();
-
-  Future<SolContract?> getSolContract(String tokenMint) =>
-      isar.solContracts.where().addressEqualTo(tokenMint).findFirst();
-
-  SolContract? getSolContractSync(String tokenMint) =>
-      isar.solContracts.where().addressEqualTo(tokenMint).findFirstSync();
-
-  Future<int> putSolContract(SolContract token) => isar.writeTxn(() async {
-    return await isar.solContracts.put(token);
-  });
-
-  Future<void> putSolContracts(List<SolContract> tokens) =>
-      isar.writeTxn(() async {
-        await isar.solContracts.putAll(tokens);
-      });
 }

@@ -29,15 +29,10 @@ class CoinSelectSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final maxHeight = MediaQuery.of(context).size.height * 0.60;
     final coins_ = [...AppConfig.coins];
-    coins_.removeWhere(
-      (e) => e is Firo && e.network.isTestNet,
-    );
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).extension<StackColors>()!.popupBG,
-        borderRadius: const BorderRadius.vertical(
-          top: Radius.circular(20),
-        ),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: LimitedBox(
         maxHeight: maxHeight,
@@ -66,23 +61,20 @@ class CoinSelectSheet extends StatelessWidget {
                   height: 4,
                 ),
               ),
-              const SizedBox(
-                height: 36,
-              ),
+              const SizedBox(height: 36),
               Text(
                 "Select address cryptocurrency",
                 style: STextStyles.pageTitleH2(context),
                 textAlign: TextAlign.left,
               ),
-              const SizedBox(
-                height: 16,
-              ),
+              const SizedBox(height: 16),
               Flexible(
                 child: Consumer(
                   builder: (_, ref, __) {
                     final bool showTestNet = ref.watch(
-                      prefsChangeNotifierProvider
-                          .select((value) => value.showTestNetCoins),
+                      prefsChangeNotifierProvider.select(
+                        (value) => value.showTestNetCoins,
+                      ),
                     );
 
                     return ListView.builder(
@@ -90,10 +82,11 @@ class CoinSelectSheet extends StatelessWidget {
                       itemCount: showTestNet
                           ? coins_.length
                           : coins_
-                              .where(
-                                (e) => e.network != CryptoCurrencyNetwork.test,
-                              )
-                              .length,
+                                .where(
+                                  (e) =>
+                                      e.network != CryptoCurrencyNetwork.test,
+                                )
+                                .length,
                       itemBuilder: (builderContext, index) {
                         final coin = coins_[index];
                         return Padding(
@@ -108,15 +101,11 @@ class CoinSelectSheet extends StatelessWidget {
                               child: Row(
                                 children: [
                                   SvgPicture.file(
-                                    File(
-                                      ref.watch(coinImageProvider(coin)),
-                                    ),
+                                    File(ref.watch(coinImageProvider(coin))),
                                     height: 20,
                                     width: 20,
                                   ),
-                                  const SizedBox(
-                                    width: 12,
-                                  ),
+                                  const SizedBox(width: 12),
                                   Text(
                                     coin.prettyName,
                                     style: STextStyles.itemSubtitle12(context),
@@ -131,9 +120,7 @@ class CoinSelectSheet extends StatelessWidget {
                   },
                 ),
               ),
-              const SizedBox(
-                height: 24,
-              ),
+              const SizedBox(height: 24),
             ],
           ),
         ),

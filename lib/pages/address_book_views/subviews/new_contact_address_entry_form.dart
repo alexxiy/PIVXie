@@ -174,7 +174,6 @@ class _NewContactAddressEntryFormState
     final isDesktop = Util.isDesktop;
     if (isDesktop) {
       coins = [...AppConfig.coins];
-      coins.removeWhere((e) => e is Firo && e.network.isTestNet);
 
       final showTestNet = ref
           .read(prefsChangeNotifierProvider)
@@ -201,9 +200,9 @@ class _NewContactAddressEntryFormState
                 offset: const Offset(0, -10),
                 elevation: 0,
                 decoration: BoxDecoration(
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.textFieldDefaultBG,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textFieldDefaultBG,
                   borderRadius: BorderRadius.circular(
                     Constants.size.circularBorderRadius,
                   ),
@@ -214,9 +213,8 @@ class _NewContactAddressEntryFormState
               ),
               isExpanded: true,
               value: ref.watch(
-                addressEntryDataProvider(
-                  widget.id,
-                ).select((value) => value.coin),
+                addressEntryDataProvider(widget.id)
+                    .select((value) => value.coin),
               ),
               onChanged: (value) {
                 if (value is CryptoCurrency) {
@@ -248,13 +246,12 @@ class _NewContactAddressEntryFormState
                           Text(
                             coin.prettyName,
                             style:
-                                STextStyles.desktopTextExtraExtraSmall(
-                                  context,
-                                ).copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.textDark,
-                                ),
+                                STextStyles.desktopTextExtraExtraSmall(context)
+                                    .copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textDark,
+                                    ),
                           ),
                         ],
                       ),
@@ -277,9 +274,9 @@ class _NewContactAddressEntryFormState
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 12),
                   child: RawMaterialButton(
-                    splashColor: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.highlight,
+                    splashColor: Theme.of(context)
+                        .extension<StackColors>()!
+                        .highlight,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(
                         Constants.size.circularBorderRadius,
@@ -301,9 +298,8 @@ class _NewContactAddressEntryFormState
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         ref.watch(
-                                  addressEntryDataProvider(
-                                    widget.id,
-                                  ).select((value) => value.coin),
+                                  addressEntryDataProvider(widget.id)
+                                      .select((value) => value.coin),
                                 ) ==
                                 null
                             ? Text(
@@ -317,9 +313,8 @@ class _NewContactAddressEntryFormState
                                       ref.watch(
                                         coinIconProvider(
                                           ref.watch(
-                                            addressEntryDataProvider(
-                                              widget.id,
-                                            ).select((value) => value.coin),
+                                            addressEntryDataProvider(widget.id)
+                                                .select((value) => value.coin),
                                           )!,
                                         ),
                                       ),
@@ -331,9 +326,8 @@ class _NewContactAddressEntryFormState
                                   Text(
                                     ref
                                         .watch(
-                                          addressEntryDataProvider(
-                                            widget.id,
-                                          ).select((value) => value.coin),
+                                          addressEntryDataProvider(widget.id)
+                                              .select((value) => value.coin),
                                         )!
                                         .prettyName,
                                     style: STextStyles.itemSubtitle12(context),
@@ -345,9 +339,9 @@ class _NewContactAddressEntryFormState
                             Assets.svg.chevronDown,
                             width: 8,
                             height: 4,
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.textSubtitle2,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textSubtitle2,
                           ),
                       ],
                     ),
@@ -426,9 +420,8 @@ class _NewContactAddressEntryFormState
                     child: Row(
                       children: [
                         if (ref.watch(
-                              addressEntryDataProvider(
-                                widget.id,
-                              ).select((value) => value.address),
+                              addressEntryDataProvider(widget.id)
+                                  .select((value) => value.address),
                             ) !=
                             null)
                           TextFieldIconButton(
@@ -445,9 +438,8 @@ class _NewContactAddressEntryFormState
                             child: const XIcon(),
                           ),
                         if (ref.watch(
-                              addressEntryDataProvider(
-                                widget.id,
-                              ).select((value) => value.address),
+                              addressEntryDataProvider(widget.id)
+                                  .select((value) => value.address),
                             ) ==
                             null)
                           TextFieldIconButton(
@@ -477,9 +469,8 @@ class _NewContactAddressEntryFormState
                           ),
                         if (!Util.isDesktop &&
                             ref.watch(
-                                  addressEntryDataProvider(
-                                    widget.id,
-                                  ).select((value) => value.address),
+                                  addressEntryDataProvider(widget.id)
+                                      .select((value) => value.address),
                                 ) ==
                                 null)
                           TextFieldIconButton(
@@ -512,9 +503,8 @@ class _NewContactAddressEntryFormState
           ),
         ),
         if (!ref.watch(
-              addressEntryDataProvider(
-                widget.id,
-              ).select((value) => value.isValidAddress),
+              addressEntryDataProvider(widget.id)
+                  .select((value) => value.isValidAddress),
             ) &&
             addressController.text.isNotEmpty)
           Row(
@@ -528,9 +518,9 @@ class _NewContactAddressEntryFormState
                     "Invalid address",
                     textAlign: TextAlign.left,
                     style: STextStyles.label(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textError,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textError,
                     ),
                   ),
                 ],

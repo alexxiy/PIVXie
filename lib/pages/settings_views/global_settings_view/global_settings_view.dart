@@ -16,14 +16,12 @@ import '../../../app_config.dart';
 import '../../../route_generator.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
-import '../../../utilities/constants.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../widgets/background.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../address_book_views/address_book_view.dart';
 import '../../pinpad_views/lock_screen_view.dart';
-import '../../shopinbit/shopinbit_settings_view.dart';
 import '../sub_widgets/settings_list_button.dart';
 import 'about_view.dart';
 import 'advanced_views/advanced_settings_view.dart';
@@ -84,9 +82,8 @@ class GlobalSettingsView extends StatelessWidget {
                                     iconSize: 16,
                                     title: "Address book",
                                     onPressed: () {
-                                      Navigator.of(
-                                        context,
-                                      ).pushNamed(AddressBookView.routeName);
+                                      Navigator.of(context)
+                                          .pushNamed(AddressBookView.routeName);
                                     },
                                   ),
                                   const SizedBox(height: 8),
@@ -125,9 +122,8 @@ class GlobalSettingsView extends StatelessWidget {
                                     iconSize: 16,
                                     title: "Security",
                                     onPressed: () {
-                                      Navigator.of(
-                                        context,
-                                      ).pushNamed(SecurityView.routeName);
+                                      Navigator.of(context)
+                                          .pushNamed(SecurityView.routeName);
                                     },
                                   ),
                                   const SizedBox(height: 8),
@@ -158,9 +154,8 @@ class GlobalSettingsView extends StatelessWidget {
                                     iconSize: 18,
                                     title: "Tor Settings",
                                     onPressed: () {
-                                      Navigator.of(
-                                        context,
-                                      ).pushNamed(TorSettingsView.routeName);
+                                      Navigator.of(context)
+                                          .pushNamed(TorSettingsView.routeName);
                                     },
                                   ),
                                   const SizedBox(height: 8),
@@ -169,9 +164,8 @@ class GlobalSettingsView extends StatelessWidget {
                                     iconSize: 16,
                                     title: "Manage nodes",
                                     onPressed: () {
-                                      Navigator.of(
-                                        context,
-                                      ).pushNamed(ManageNodesView.routeName);
+                                      Navigator.of(context)
+                                          .pushNamed(ManageNodesView.routeName);
                                     },
                                   ),
                                   const SizedBox(height: 8),
@@ -225,9 +219,8 @@ class GlobalSettingsView extends StatelessWidget {
                                       iconSize: 18,
                                       title: "Appearance",
                                       onPressed: () {
-                                        Navigator.of(
-                                          context,
-                                        ).pushNamed(ThemeModeView.routeName);
+                                        Navigator.of(context)
+                                            .pushNamed(ThemeModeView.routeName);
                                       },
                                     ),
                                   ],
@@ -249,9 +242,8 @@ class GlobalSettingsView extends StatelessWidget {
                                     iconSize: 18,
                                     title: "About",
                                     onPressed: () {
-                                      Navigator.of(
-                                        context,
-                                      ).pushNamed(AboutView.routeName);
+                                      Navigator.of(context)
+                                          .pushNamed(AboutView.routeName);
                                     },
                                   ),
                                   const SizedBox(height: 8),
@@ -265,34 +257,14 @@ class GlobalSettingsView extends StatelessWidget {
                                       );
                                     },
                                   ),
-                                  if (Constants.enableExchange &&
-                                      AppConfig.hasFeature(
-                                        AppFeature.shopinBit,
-                                      ))
-                                    Column(
-                                      children: [
-                                        const SizedBox(height: 8),
-                                        SettingsListButton(
-                                          iconAssetName: Assets.svg.key,
-                                          iconSize: 16,
-                                          title: "ShopinBit",
-                                          onPressed: () {
-                                            Navigator.of(context).pushNamed(
-                                              ShopInBitSettingsView.routeName,
-                                            );
-                                          },
-                                        ),
-                                      ],
-                                    ),
                                   const SizedBox(height: 8),
                                   SettingsListButton(
                                     iconAssetName: Assets.svg.questionMessage,
                                     iconSize: 16,
                                     title: "Support",
                                     onPressed: () {
-                                      Navigator.of(
-                                        context,
-                                      ).pushNamed(SupportView.routeName);
+                                      Navigator.of(context)
+                                          .pushNamed(SupportView.routeName);
                                     },
                                   ),
                                   // TextButton(

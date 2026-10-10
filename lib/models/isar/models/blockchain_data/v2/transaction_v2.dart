@@ -4,8 +4,6 @@ import 'dart:math';
 import 'package:isar_community/isar.dart';
 
 import '../../../../../utilities/amount/amount.dart';
-import '../../../../../utilities/extensions/extensions.dart';
-import '../../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../transaction.dart';
 import 'input_v2.dart';
 import 'output_v2.dart';
@@ -172,17 +170,6 @@ class TransactionV2 {
     return Amount(rawValue: outSum, fractionDigits: fractionDigits);
   }
 
-  Amount getAmountSparkSelfMinted({required int fractionDigits}) {
-    final outSum = outputs
-        .where((e) {
-          final op = e.scriptPubKeyHex.substring(0, 2).toUint8ListFromHex.first;
-          return e.walletOwns && (op == OP_SPARKMINT);
-        })
-        .fold(BigInt.zero, (p, e) => p + e.value);
-
-    return Amount(rawValue: outSum, fractionDigits: fractionDigits);
-  }
-
   Amount getAmountSentFromThisWallet({
     required int fractionDigits,
     required bool subtractFee,
@@ -225,7 +212,8 @@ class TransactionV2 {
   };
 
   @ignore
-  String? get pivxKind => _getFromOtherData(key: TxV2OdKeys.pivxKind) as String?;
+  String? get pivxKind =>
+      _getFromOtherData(key: TxV2OdKeys.pivxKind) as String?;
 
   /// PIVX change addresses among the outputs.
   @ignore
@@ -235,7 +223,8 @@ class TransactionV2 {
   };
 
   @ignore
-  bool get isPivxOwnSend => _getFromOtherData(key: TxV2OdKeys.pivxOwnSend) == true;
+  bool get isPivxOwnSend =>
+      _getFromOtherData(key: TxV2OdKeys.pivxOwnSend) == true;
 
   Amount? _getPivxAmount() {
     try {
@@ -403,7 +392,10 @@ class TransactionV2 {
     }
   }
 
-  String? _pivxStatusLabel({required bool confirmed, required String confirms}) {
+  String? _pivxStatusLabel({
+    required bool confirmed,
+    required String confirms,
+  }) {
     String label(String done, String pending) =>
         confirmed ? done : "$pending $confirms";
     switch (pivxKind) {

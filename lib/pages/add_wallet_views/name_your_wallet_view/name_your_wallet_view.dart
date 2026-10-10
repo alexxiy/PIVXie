@@ -26,23 +26,17 @@ import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../wallets/crypto_currency/interfaces/view_only_option_currency_interface.dart';
-import '../../../wallets/crypto_currency/intermediate/frost_currency.dart';
 import '../../../wallets/isar/models/wallet_info.dart';
 import '../../../widgets/background.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/desktop/desktop_app_bar.dart';
 import '../../../widgets/desktop/desktop_scaffold.dart';
-import '../../../widgets/desktop/primary_button.dart';
-import '../../../widgets/desktop/secondary_button.dart';
 import '../../../widgets/icon_widgets/dice_icon.dart';
 import '../../../widgets/icon_widgets/x_icon.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/stack_text_field.dart';
 import '../../../widgets/textfield_icon_button.dart';
 import '../create_or_restore_wallet_view/sub_widgets/coin_image.dart';
-import '../frost_ms/new/create_new_frost_ms_wallet_view.dart';
-import '../frost_ms/new/select_new_frost_import_type_view.dart';
-import '../frost_ms/restore/restore_frost_ms_wallet_view.dart';
 import '../new_wallet_options/new_wallet_options_view.dart';
 import '../new_wallet_recovery_phrase_warning_view/new_wallet_recovery_phrase_warning_view.dart';
 import '../restore_wallet_view/restore_options_view/restore_options_view.dart';
@@ -174,16 +168,16 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
     } else {
       return Background(
         child: Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(context)
+              .extension<StackColors>()!
+              .background,
           appBar: AppBar(
             leading: AppBarBackButton(
               onPressed: () {
                 if (textFieldFocusNode.hasFocus) {
                   textFieldFocusNode.unfocus();
-                  Future<void>.delayed(
-                    const Duration(milliseconds: 100),
-                  ).then((value) => Navigator.of(context).pop());
+                  Future<void>.delayed(const Duration(milliseconds: 100))
+                      .then((value) => Navigator.of(context).pop());
                 } else {
                   if (mounted) {
                     Navigator.of(context).pop();
@@ -218,29 +212,28 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
   }
 
   Widget _content() => Column(
-    crossAxisAlignment:
-        isDesktop ? CrossAxisAlignment.center : CrossAxisAlignment.stretch,
+    crossAxisAlignment: isDesktop
+        ? CrossAxisAlignment.center
+        : CrossAxisAlignment.stretch,
     children: [
       if (isDesktop) const Spacer(flex: 10),
       if (!isDesktop) const Spacer(flex: 1),
       if (!isDesktop) CoinImage(coin: coin, height: 100, width: 100),
       SizedBox(height: isDesktop ? 0 : 16),
       Text(
-        "Name your ${coin.prettyName} ${coin is FrostCurrency ? "multisig " : ""}wallet",
+        "Name your ${coin.prettyName} wallet",
         textAlign: TextAlign.center,
-        style:
-            isDesktop
-                ? STextStyles.desktopH2(context)
-                : STextStyles.pageTitleH1(context),
+        style: isDesktop
+            ? STextStyles.desktopH2(context)
+            : STextStyles.pageTitleH1(context),
       ),
       SizedBox(height: isDesktop ? 16 : 8),
       Text(
-        "Enter a label for your wallet (e.g. ${coin is FrostCurrency ? "Multisig" : "Savings"})",
+        "Enter a label for your wallet (e.g. Savings)",
         textAlign: TextAlign.center,
-        style:
-            isDesktop
-                ? STextStyles.desktopSubtitleH2(context)
-                : STextStyles.subtitle(context),
+        style: isDesktop
+            ? STextStyles.desktopSubtitleH2(context)
+            : STextStyles.subtitle(context),
       ),
       SizedBox(height: isDesktop ? 40 : 16),
       ClipRRect(
@@ -269,64 +262,61 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
           },
           focusNode: textFieldFocusNode,
           controller: textEditingController,
-          style:
-              isDesktop
-                  ? STextStyles.desktopTextMedium(context).copyWith(height: 2)
-                  : STextStyles.field(context),
-          decoration: standardInputDecoration(
-            "Enter wallet name",
-            textFieldFocusNode,
-            context,
-          ).copyWith(
-            suffixIcon: Padding(
-              padding: EdgeInsets.only(right: isDesktop ? 6 : 0),
-              child: UnconstrainedBox(
-                child: Row(
-                  children: [
-                    TextFieldIconButton(
-                      key: const Key("genRandomWalletNameButtonKey"),
-                      child:
-                          _showDiceIcon
+          style: isDesktop
+              ? STextStyles.desktopTextMedium(context).copyWith(height: 2)
+              : STextStyles.field(context),
+          decoration:
+              standardInputDecoration(
+                "Enter wallet name",
+                textFieldFocusNode,
+                context,
+              ).copyWith(
+                suffixIcon: Padding(
+                  padding: EdgeInsets.only(right: isDesktop ? 6 : 0),
+                  child: UnconstrainedBox(
+                    child: Row(
+                      children: [
+                        TextFieldIconButton(
+                          key: const Key("genRandomWalletNameButtonKey"),
+                          child: _showDiceIcon
                               ? Semantics(
-                                label:
-                                    "Generate Random Wallet Name Button. Generates A Random Name For Wallet.",
-                                excludeSemantics: true,
-                                child: DiceIcon(
-                                  width: isDesktop ? 20 : 17,
-                                  height: isDesktop ? 20 : 17,
-                                ),
-                              )
+                                  label: "Generate Random Wallet Name Button. Generates A Random Name For Wallet.",
+                                  excludeSemantics: true,
+                                  child: DiceIcon(
+                                    width: isDesktop ? 20 : 17,
+                                    height: isDesktop ? 20 : 17,
+                                  ),
+                                )
                               : Semantics(
-                                label:
-                                    "Clear Wallet Name Field Button. Clears the wallet name field.",
-                                excludeSemantics: true,
-                                child: XIcon(
-                                  width: isDesktop ? 21 : 18,
-                                  height: isDesktop ? 21 : 18,
+                                  label: "Clear Wallet Name Field Button. Clears the wallet name field.",
+                                  excludeSemantics: true,
+                                  child: XIcon(
+                                    width: isDesktop ? 21 : 18,
+                                    height: isDesktop ? 21 : 18,
+                                  ),
                                 ),
-                              ),
-                      onTap: () async {
-                        if (_showDiceIcon) {
-                          textEditingController.text =
-                              await _generateRandomWalletName();
-                          setState(() {
-                            _nextEnabled = true;
-                            _showDiceIcon = false;
-                          });
-                        } else {
-                          textEditingController.text = "";
-                          setState(() {
-                            _nextEnabled = false;
-                            _showDiceIcon = true;
-                          });
-                        }
-                      },
+                          onTap: () async {
+                            if (_showDiceIcon) {
+                              textEditingController.text =
+                                  await _generateRandomWalletName();
+                              setState(() {
+                                _nextEnabled = true;
+                                _showDiceIcon = false;
+                              });
+                            } else {
+                              textEditingController.text = "";
+                              setState(() {
+                                _nextEnabled = false;
+                                _showDiceIcon = true;
+                              });
+                            }
+                          },
+                        ),
+                      ],
                     ),
-                  ],
+                  ),
                 ),
               ),
-            ),
-          ),
         ),
       ),
       SizedBox(height: isDesktop ? 16 : 8),
@@ -342,126 +332,43 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
           child: Center(
             child: Text(
               "Roll the dice to pick a random name.",
-              style:
-                  isDesktop
-                      ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                        color:
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.textSubtitle1,
-                      )
-                      : STextStyles.itemSubtitle(context),
+              style: isDesktop
+                  ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textSubtitle1,
+                    )
+                  : STextStyles.itemSubtitle(context),
             ),
           ),
         ),
       ),
       if (!isDesktop) const Spacer(flex: 4),
       if (isDesktop) const SizedBox(height: 32),
-      if (widget.coin is FrostCurrency)
-        if (widget.addWalletType == AddWalletType.Restore)
-          PrimaryButton(
-            label: "Next",
-            enabled: _nextEnabled,
-            onPressed: () async {
-              final name = textEditingController.text;
-
-              await Navigator.of(context).pushNamed(
-                RestoreFrostMsWalletView.routeName,
-                arguments: (walletName: name, frostCurrency: coin),
-              );
-            },
-          ),
-      if (widget.coin is FrostCurrency &&
-          widget.addWalletType == AddWalletType.New)
-        Column(
-          children: [
-            PrimaryButton(
-              label: "Create new group",
-              enabled: _nextEnabled,
-              onPressed: () async {
-                final name = textEditingController.text;
-
-                await Navigator.of(context).pushNamed(
-                  CreateNewFrostMsWalletView.routeName,
-                  arguments: (walletName: name, frostCurrency: coin),
-                );
-              },
-            ),
-            const SizedBox(height: 12),
-            SecondaryButton(
-              label: "Join group",
-              enabled: _nextEnabled,
-              onPressed: () async {
-                final name = textEditingController.text;
-
-                await Navigator.of(context).pushNamed(
-                  SelectNewFrostImportTypeView.routeName,
-                  arguments: (walletName: name, frostCurrency: coin),
-                );
-              },
-            ),
-            // SecondaryButton(
-            //   label: "Import multisig config",
-            //   enabled: _nextEnabled,
-            //   onPressed: () async {
-            //     final name = textEditingController.text;
-            //
-            //     await Navigator.of(context).pushNamed(
-            //       ImportNewFrostMsWalletView.routeName,
-            //       arguments: (
-            //         walletName: name,
-            //         coin: coin,
-            //       ),
-            //     );
-            //   },
-            // ),
-            // const SizedBox(
-            //   height: 12,
-            // ),
-            // SecondaryButton(
-            //   label: "Import resharer config",
-            //   enabled: _nextEnabled,
-            //   onPressed: () async {
-            //     final name = textEditingController.text;
-            //
-            //     await Navigator.of(context).pushNamed(
-            //       NewImportResharerConfigView.routeName,
-            //       arguments: (
-            //         walletName: name,
-            //         coin: coin,
-            //       ),
-            //     );
-            //   },
-            // ),
-          ],
+      ConstrainedBox(
+        constraints: BoxConstraints(
+          minWidth: isDesktop ? 480 : 0,
+          minHeight: isDesktop ? 70 : 0,
         ),
-      if (widget.coin is! FrostCurrency)
-        ConstrainedBox(
-          constraints: BoxConstraints(
-            minWidth: isDesktop ? 480 : 0,
-            minHeight: isDesktop ? 70 : 0,
-          ),
-          child: TextButton(
-            onPressed: _nextEnabled ? _nextPressed : null,
-            style:
-                _nextEnabled
-                    ? Theme.of(context)
-                        .extension<StackColors>()!
-                        .getPrimaryEnabledButtonStyle(context)
-                    : Theme.of(context)
-                        .extension<StackColors>()!
-                        .getPrimaryDisabledButtonStyle(context),
-            child: Text(
-              "Next",
-              style:
-                  isDesktop
-                      ? _nextEnabled
-                          ? STextStyles.desktopButtonEnabled(context)
-                          : STextStyles.desktopButtonDisabled(context)
-                      : STextStyles.button(context),
-            ),
+        child: TextButton(
+          onPressed: _nextEnabled ? _nextPressed : null,
+          style: _nextEnabled
+              ? Theme.of(context)
+                    .extension<StackColors>()!
+                    .getPrimaryEnabledButtonStyle(context)
+              : Theme.of(context)
+                    .extension<StackColors>()!
+                    .getPrimaryDisabledButtonStyle(context),
+          child: Text(
+            "Next",
+            style: isDesktop
+                ? _nextEnabled
+                      ? STextStyles.desktopButtonEnabled(context)
+                      : STextStyles.desktopButtonDisabled(context)
+                : STextStyles.button(context),
           ),
         ),
+      ),
       if (isDesktop) const Spacer(flex: 15),
     ],
   );

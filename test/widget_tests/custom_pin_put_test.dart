@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:stackwallet/models/isar/stack_theme.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/text_styles.dart';
-import 'package:stackwallet/widgets/custom_pin_put/custom_pin_put.dart';
-import 'package:stackwallet/widgets/custom_pin_put/pin_keyboard.dart';
+import 'package:paymint/models/isar/stack_theme.dart';
+import 'package:paymint/themes/stack_colors.dart';
+import 'package:paymint/utilities/text_styles.dart';
+import 'package:paymint/widgets/custom_pin_put/custom_pin_put.dart';
+import 'package:paymint/widgets/custom_pin_put/pin_keyboard.dart';
 
 import '../sample_data/theme_json.dart';
 
@@ -40,9 +40,7 @@ class PinWidgetState extends State<PinWidget> {
       useNativeKeyboard: false,
       eachFieldHeight: 12,
       eachFieldWidth: 12,
-      textStyle: STextStyles.label(context).copyWith(
-        fontSize: 1,
-      ),
+      textStyle: STextStyles.label(context).copyWith(fontSize: 1),
       obscureText: "",
       onPinLengthChanged: (newLength) {
         setState(() {
@@ -58,16 +56,15 @@ class PinWidgetState extends State<PinWidget> {
 
 void main() {
   group("CustomPinPut tests, non-random PIN", () {
-    testWidgets("CustomPinPut with 4 fields builds correctly, non-random PIN",
-        (tester) async {
+    testWidgets("CustomPinPut with 4 fields builds correctly, non-random PIN", (
+      tester,
+    ) async {
       await tester.pumpWidget(
         MaterialApp(
           theme: ThemeData(
             extensions: [
               StackColors.fromStackColorTheme(
-                StackTheme.fromJson(
-                  json: lightThemeJsonMap,
-                ),
+                StackTheme.fromJson(json: lightThemeJsonMap),
               ),
             ],
           ),
@@ -87,8 +84,9 @@ void main() {
       expect(find.byType(NumberKey), findsNWidgets(10));
     });
 
-    testWidgets("CustomPinPut entering a pin successfully, non-random PIN",
-        (tester) async {
+    testWidgets("CustomPinPut entering a pin successfully, non-random PIN", (
+      tester,
+    ) async {
       bool submittedPinMatches = false;
 
       await tester.pumpWidget(
@@ -96,9 +94,7 @@ void main() {
           theme: ThemeData(
             extensions: [
               StackColors.fromStackColorTheme(
-                StackTheme.fromJson(
-                  json: lightThemeJsonMap,
-                ),
+                StackTheme.fromJson(json: lightThemeJsonMap),
               ),
             ],
           ),
@@ -115,22 +111,37 @@ void main() {
         ),
       );
 
-      await tester.tap(find.byWidgetPredicate(
-          (widget) => widget is NumberKey && widget.number == "1"));
+      await tester.tap(
+        find.byWidgetPredicate(
+          (widget) => widget is NumberKey && widget.number == "1",
+        ),
+      );
       await tester.pumpAndSettle();
-      await tester.tap(find.byWidgetPredicate(
-          (widget) => widget is NumberKey && widget.number == "2"));
+      await tester.tap(
+        find.byWidgetPredicate(
+          (widget) => widget is NumberKey && widget.number == "2",
+        ),
+      );
       await tester.pumpAndSettle();
-      await tester.tap(find.byWidgetPredicate(
-          (widget) => widget is NumberKey && widget.number == "6"));
+      await tester.tap(
+        find.byWidgetPredicate(
+          (widget) => widget is NumberKey && widget.number == "6",
+        ),
+      );
       await tester.pumpAndSettle();
       await tester.tap(find.byType(BackspaceKey));
       await tester.pumpAndSettle();
-      await tester.tap(find.byWidgetPredicate(
-          (widget) => widget is NumberKey && widget.number == "3"));
+      await tester.tap(
+        find.byWidgetPredicate(
+          (widget) => widget is NumberKey && widget.number == "3",
+        ),
+      );
       await tester.pumpAndSettle();
-      await tester.tap(find.byWidgetPredicate(
-          (widget) => widget is NumberKey && widget.number == "4"));
+      await tester.tap(
+        find.byWidgetPredicate(
+          (widget) => widget is NumberKey && widget.number == "4",
+        ),
+      );
       await tester.pumpAndSettle();
       await tester.tap(find.byType(SubmitKey));
       await tester.pumpAndSettle();
@@ -138,8 +149,9 @@ void main() {
       expect(submittedPinMatches, true);
     });
 
-    testWidgets("CustomPinPut pin enter fade animation, non-random PIN",
-        (tester) async {
+    testWidgets("CustomPinPut pin enter fade animation, non-random PIN", (
+      tester,
+    ) async {
       final controller = TextEditingController();
 
       await tester.pumpWidget(
@@ -147,9 +159,7 @@ void main() {
           theme: ThemeData(
             extensions: [
               StackColors.fromStackColorTheme(
-                StackTheme.fromJson(
-                  json: lightThemeJsonMap,
-                ),
+                StackTheme.fromJson(json: lightThemeJsonMap),
               ),
             ],
           ),
@@ -163,8 +173,11 @@ void main() {
         ),
       );
 
-      await tester.tap(find.byWidgetPredicate(
-          (widget) => widget is NumberKey && widget.number == "1"));
+      await tester.tap(
+        find.byWidgetPredicate(
+          (widget) => widget is NumberKey && widget.number == "1",
+        ),
+      );
       await tester.pumpAndSettle();
       expect(controller.text, "1");
 
@@ -173,8 +186,9 @@ void main() {
       expect(controller.text, "");
     });
 
-    testWidgets("CustomPinPut pin enter scale animation, non-random PIN",
-        (tester) async {
+    testWidgets("CustomPinPut pin enter scale animation, non-random PIN", (
+      tester,
+    ) async {
       final controller = TextEditingController();
 
       await tester.pumpWidget(
@@ -182,9 +196,7 @@ void main() {
           theme: ThemeData(
             extensions: [
               StackColors.fromStackColorTheme(
-                StackTheme.fromJson(
-                  json: lightThemeJsonMap,
-                ),
+                StackTheme.fromJson(json: lightThemeJsonMap),
               ),
             ],
           ),
@@ -198,8 +210,11 @@ void main() {
         ),
       );
 
-      await tester.tap(find.byWidgetPredicate(
-          (widget) => widget is NumberKey && widget.number == "1"));
+      await tester.tap(
+        find.byWidgetPredicate(
+          (widget) => widget is NumberKey && widget.number == "1",
+        ),
+      );
       await tester.pumpAndSettle();
       expect(controller.text, "1");
 
@@ -208,8 +223,9 @@ void main() {
       expect(controller.text, "");
     });
 
-    testWidgets("CustomPinPut pin enter rotate animation, non-random PIN",
-        (tester) async {
+    testWidgets("CustomPinPut pin enter rotate animation, non-random PIN", (
+      tester,
+    ) async {
       final controller = TextEditingController();
 
       await tester.pumpWidget(
@@ -217,9 +233,7 @@ void main() {
           theme: ThemeData(
             extensions: [
               StackColors.fromStackColorTheme(
-                StackTheme.fromJson(
-                  json: lightThemeJsonMap,
-                ),
+                StackTheme.fromJson(json: lightThemeJsonMap),
               ),
             ],
           ),
@@ -233,8 +247,11 @@ void main() {
         ),
       );
 
-      await tester.tap(find.byWidgetPredicate(
-          (widget) => widget is NumberKey && widget.number == "1"));
+      await tester.tap(
+        find.byWidgetPredicate(
+          (widget) => widget is NumberKey && widget.number == "1",
+        ),
+      );
       await tester.pumpAndSettle();
       expect(controller.text, "1");
 
@@ -257,15 +274,11 @@ void main() {
         theme: ThemeData(
           extensions: [
             StackColors.fromStackColorTheme(
-              StackTheme.fromJson(
-                json: lightThemeJsonMap,
-              ),
+              StackTheme.fromJson(json: lightThemeJsonMap),
             ),
           ],
         ),
-        home: Material(
-          child: keyboard,
-        ),
+        home: Material(child: keyboard),
       ),
     );
 
@@ -286,34 +299,34 @@ void main() {
   });
 
   group("CustomPinPut tests, with random PIN", () {
-    testWidgets("CustomPinPut with 4 fields builds correctly, with random PIN",
-        (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          theme: ThemeData(
-            extensions: [
-              StackColors.fromStackColorTheme(
-                StackTheme.fromJson(
-                  json: lightThemeJsonMap,
+    testWidgets(
+      "CustomPinPut with 4 fields builds correctly, with random PIN",
+      (tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            theme: ThemeData(
+              extensions: [
+                StackColors.fromStackColorTheme(
+                  StackTheme.fromJson(json: lightThemeJsonMap),
                 ),
+              ],
+            ),
+            home: const Material(
+              child: PinWidget(
+                pinAnimation: PinAnimationType.none,
+                isRandom: true,
               ),
-            ],
-          ),
-          home: const Material(
-            child: PinWidget(
-              pinAnimation: PinAnimationType.none,
-              isRandom: true,
             ),
           ),
-        ),
-      );
+        );
 
-      // expects 5 here. Four + the actual text field text
-      expect(find.text(""), findsNWidgets(1));
-      expect(find.byType(PinKeyboard), findsOneWidget);
-      expect(find.byType(BackspaceKey), findsOneWidget);
-      expect(find.byType(NumberKey), findsNWidgets(10));
-    });
+        // expects 5 here. Four + the actual text field text
+        expect(find.text(""), findsNWidgets(1));
+        expect(find.byType(PinKeyboard), findsOneWidget);
+        expect(find.byType(BackspaceKey), findsOneWidget);
+        expect(find.byType(NumberKey), findsNWidgets(10));
+      },
+    );
 
     // testWidgets("CustomPinPut entering a pin successfully, with random PIN",
     //     (tester) async {
@@ -367,8 +380,9 @@ void main() {
     //   expect(submittedPinMatches, true);
     // });
 
-    testWidgets("CustomPinPut pin enter fade animation, with random PIN",
-        (tester) async {
+    testWidgets("CustomPinPut pin enter fade animation, with random PIN", (
+      tester,
+    ) async {
       final controller = TextEditingController();
 
       await tester.pumpWidget(
@@ -376,9 +390,7 @@ void main() {
           theme: ThemeData(
             extensions: [
               StackColors.fromStackColorTheme(
-                StackTheme.fromJson(
-                  json: lightThemeJsonMap,
-                ),
+                StackTheme.fromJson(json: lightThemeJsonMap),
               ),
             ],
           ),
@@ -392,8 +404,11 @@ void main() {
         ),
       );
 
-      await tester.tap(find.byWidgetPredicate(
-          (widget) => widget is NumberKey && widget.number == "1"));
+      await tester.tap(
+        find.byWidgetPredicate(
+          (widget) => widget is NumberKey && widget.number == "1",
+        ),
+      );
       await tester.pumpAndSettle();
       expect(controller.text, "1");
 
@@ -402,8 +417,9 @@ void main() {
       expect(controller.text, "");
     });
 
-    testWidgets("CustomPinPut pin enter scale animation, with random PIN",
-        (tester) async {
+    testWidgets("CustomPinPut pin enter scale animation, with random PIN", (
+      tester,
+    ) async {
       final controller = TextEditingController();
       final pinPut = CustomPinPut(
         fieldsCount: 4,
@@ -417,9 +433,7 @@ void main() {
           theme: ThemeData(
             extensions: [
               StackColors.fromStackColorTheme(
-                StackTheme.fromJson(
-                  json: lightThemeJsonMap,
-                ),
+                StackTheme.fromJson(json: lightThemeJsonMap),
               ),
             ],
           ),
@@ -433,8 +447,11 @@ void main() {
         ),
       );
 
-      await tester.tap(find.byWidgetPredicate(
-          (widget) => widget is NumberKey && widget.number == "1"));
+      await tester.tap(
+        find.byWidgetPredicate(
+          (widget) => widget is NumberKey && widget.number == "1",
+        ),
+      );
       await tester.pumpAndSettle();
       expect(controller.text, "1");
 
@@ -443,8 +460,9 @@ void main() {
       expect(controller.text, "");
     });
 
-    testWidgets("CustomPinPut pin enter rotate animation, with random PIN",
-        (tester) async {
+    testWidgets("CustomPinPut pin enter rotate animation, with random PIN", (
+      tester,
+    ) async {
       final controller = TextEditingController();
       final pinPut = CustomPinPut(
         fieldsCount: 4,
@@ -458,9 +476,7 @@ void main() {
           theme: ThemeData(
             extensions: [
               StackColors.fromStackColorTheme(
-                StackTheme.fromJson(
-                  json: lightThemeJsonMap,
-                ),
+                StackTheme.fromJson(json: lightThemeJsonMap),
               ),
             ],
           ),
@@ -474,8 +490,11 @@ void main() {
         ),
       );
 
-      await tester.tap(find.byWidgetPredicate(
-          (widget) => widget is NumberKey && widget.number == "1"));
+      await tester.tap(
+        find.byWidgetPredicate(
+          (widget) => widget is NumberKey && widget.number == "1",
+        ),
+      );
       await tester.pumpAndSettle();
       expect(controller.text, "1");
 
@@ -498,15 +517,11 @@ void main() {
         theme: ThemeData(
           extensions: [
             StackColors.fromStackColorTheme(
-              StackTheme.fromJson(
-                json: lightThemeJsonMap,
-              ),
+              StackTheme.fromJson(json: lightThemeJsonMap),
             ),
           ],
         ),
-        home: Material(
-          child: keyboard,
-        ),
+        home: Material(child: keyboard),
       ),
     );
 

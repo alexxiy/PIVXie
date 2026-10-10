@@ -12,6 +12,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../themes/coin_image_provider.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/text_styles.dart';
@@ -26,12 +27,10 @@ class BuildingTransactionDialog extends ConsumerStatefulWidget {
     super.key,
     required this.onCancel,
     required this.coin,
-    required this.isSpark,
   });
 
   final VoidCallback onCancel;
   final CryptoCurrency coin;
-  final bool isSpark;
 
   @override
   ConsumerState<BuildingTransactionDialog> createState() =>
@@ -57,12 +56,6 @@ class _RestoringDialogState extends ConsumerState<BuildingTransactionDialog> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text("Generating transaction", style: STextStyles.desktopH3(context)),
-          if (widget.isSpark) const SizedBox(height: 16),
-          if (widget.isSpark)
-            Text(
-              "This may take a few minutes...",
-              style: STextStyles.desktopSubtitleH2(context),
-            ),
           const SizedBox(height: 40),
           assetPath.endsWith(".gif")
               ? Image.file(File(assetPath))
@@ -94,13 +87,6 @@ class _RestoringDialogState extends ConsumerState<BuildingTransactionDialog> {
                       textAlign: TextAlign.center,
                       style: STextStyles.pageTitleH2(context),
                     ),
-                    if (widget.isSpark) const SizedBox(height: 12),
-                    if (widget.isSpark)
-                      Text(
-                        "This may take a few minutes...",
-                        textAlign: TextAlign.center,
-                        style: STextStyles.w500_16(context),
-                      ),
                     const SizedBox(height: 32),
                     Row(
                       children: [
@@ -127,9 +113,6 @@ class _RestoringDialogState extends ConsumerState<BuildingTransactionDialog> {
               )
             : StackDialog(
                 title: "Generating transaction",
-                message: widget.isSpark
-                    ? "This may take a few minutes..."
-                    : null,
                 icon: const RotatingArrows(width: 24, height: 24),
                 rightButton: TextButton(
                   style: Theme.of(context)

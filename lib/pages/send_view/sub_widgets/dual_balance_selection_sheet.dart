@@ -16,7 +16,6 @@ import '../../../themes/stack_colors.dart';
 import '../../../utilities/amount/amount_formatter.dart';
 import '../../../utilities/constants.dart';
 import '../../../utilities/text_styles.dart';
-import '../../../wallets/crypto_currency/coins/firo.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
 
 class DualBalanceSelectionSheet extends ConsumerStatefulWidget {
@@ -59,10 +58,9 @@ class _FiroBalanceSelectionSheetState
             Center(
               child: Container(
                 decoration: BoxDecoration(
-                  color:
-                      Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textFieldDefaultBG,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textFieldDefaultBG,
                   borderRadius: BorderRadius.circular(
                     Constants.size.circularBorderRadius,
                   ),
@@ -83,8 +81,9 @@ class _FiroBalanceSelectionSheetState
                 const SizedBox(height: 16),
                 GestureDetector(
                   onTap: () {
-                    final state =
-                        ref.read(publicPrivateBalanceStateProvider.state).state;
+                    final state = ref
+                        .read(publicPrivateBalanceStateProvider.state)
+                        .state;
                     if (state != BalanceType.private) {
                       ref.read(publicPrivateBalanceStateProvider.state).state =
                           BalanceType.private;
@@ -103,24 +102,22 @@ class _FiroBalanceSelectionSheetState
                               width: 20,
                               height: 20,
                               child: Radio(
-                                activeColor:
-                                    Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .radioButtonIconEnabled,
+                                activeColor: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .radioButtonIconEnabled,
                                 value: BalanceType.private,
-                                groupValue:
-                                    ref
-                                        .watch(
-                                          publicPrivateBalanceStateProvider
-                                              .state,
-                                        )
-                                        .state,
+                                groupValue: ref
+                                    .watch(
+                                      publicPrivateBalanceStateProvider.state,
+                                    )
+                                    .state,
                                 onChanged: (x) {
                                   ref
                                       .read(
                                         publicPrivateBalanceStateProvider.state,
                                       )
-                                      .state = BalanceType.private;
+                                      .state = BalanceType
+                                      .private;
 
                                   Navigator.of(context).pop();
                                 },
@@ -147,13 +144,7 @@ class _FiroBalanceSelectionSheetState
                                     .format(
                                       ref
                                           .watch(
-                                            coin is Firo
-                                                ? pWalletBalanceTertiary(
-                                                  walletId,
-                                                )
-                                                : pWalletBalanceSecondary(
-                                                  walletId,
-                                                ),
+                                            pWalletBalanceSecondary(walletId),
                                           )
                                           .spendable,
                                     ),
@@ -173,8 +164,9 @@ class _FiroBalanceSelectionSheetState
                 const SizedBox(height: 16),
                 GestureDetector(
                   onTap: () {
-                    final state =
-                        ref.read(publicPrivateBalanceStateProvider.state).state;
+                    final state = ref
+                        .read(publicPrivateBalanceStateProvider.state)
+                        .state;
                     if (state != BalanceType.public) {
                       ref.read(publicPrivateBalanceStateProvider.state).state =
                           BalanceType.public;
@@ -192,24 +184,22 @@ class _FiroBalanceSelectionSheetState
                               width: 20,
                               height: 20,
                               child: Radio(
-                                activeColor:
-                                    Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .radioButtonIconEnabled,
+                                activeColor: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .radioButtonIconEnabled,
                                 value: BalanceType.public,
-                                groupValue:
-                                    ref
-                                        .watch(
-                                          publicPrivateBalanceStateProvider
-                                              .state,
-                                        )
-                                        .state,
+                                groupValue: ref
+                                    .watch(
+                                      publicPrivateBalanceStateProvider.state,
+                                    )
+                                    .state,
                                 onChanged: (x) {
                                   ref
                                       .read(
                                         publicPrivateBalanceStateProvider.state,
                                       )
-                                      .state = BalanceType.public;
+                                      .state = BalanceType
+                                      .public;
                                   Navigator.of(context).pop();
                                 },
                               ),

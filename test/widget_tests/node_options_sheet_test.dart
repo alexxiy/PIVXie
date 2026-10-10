@@ -4,18 +4,18 @@ import 'package:flutter_svg/svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:stackwallet/models/isar/stack_theme.dart';
-import 'package:stackwallet/models/node_model.dart';
-import 'package:stackwallet/pages/settings_views/global_settings_view/manage_nodes_views/node_details_view.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/services/node_service.dart';
-import 'package:stackwallet/services/tor_service.dart';
-import 'package:stackwallet/services/wallets.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/enums/sync_type_enum.dart';
-import 'package:stackwallet/utilities/prefs.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
-import 'package:stackwallet/widgets/node_options_sheet.dart';
+import 'package:paymint/models/isar/stack_theme.dart';
+import 'package:paymint/models/node_model.dart';
+import 'package:paymint/pages/settings_views/global_settings_view/manage_nodes_views/node_details_view.dart';
+import 'package:paymint/providers/providers.dart';
+import 'package:paymint/services/node_service.dart';
+import 'package:paymint/services/tor_service.dart';
+import 'package:paymint/services/wallets.dart';
+import 'package:paymint/themes/stack_colors.dart';
+import 'package:paymint/utilities/enums/sync_type_enum.dart';
+import 'package:paymint/utilities/prefs.dart';
+import 'package:paymint/wallets/crypto_currency/crypto_currency.dart';
+import 'package:paymint/widgets/node_options_sheet.dart';
 
 import '../sample_data/theme_json.dart';
 import 'node_options_sheet_test.mocks.dart';
@@ -23,7 +23,7 @@ import 'support/platform_test_overrides.dart';
 
 @GenerateMocks([Wallets, Prefs, NodeService, TorService])
 void main() {
-  final bitcoin = Bitcoin(CryptoCurrencyNetwork.main);
+  final pivx = Pivx(CryptoCurrencyNetwork.main);
 
   NodeModel buildNode({required String id, required String name}) {
     return NodeModel(
@@ -33,7 +33,7 @@ void main() {
       id: id,
       useSSL: true,
       enabled: true,
-      coinName: 'Bitcoin',
+      coinName: 'PIVX',
       isFailover: false,
       isDown: false,
       torEnabled: true,
@@ -62,9 +62,8 @@ void main() {
     when(wallets.wallets).thenReturn([]);
     when(prefs.syncType).thenReturn(SyncingType.currentWalletOnly);
     when(nodeService.getNodeById(id: node.id)).thenAnswer((_) => node);
-    when(
-      nodeService.getPrimaryNodeFor(currency: bitcoin),
-    ).thenAnswer((_) => primaryNode);
+    when(nodeService.getPrimaryNodeFor(currency: pivx))
+        .thenAnswer((_) => primaryNode);
   }
 
   Future<void> pumpSubject(
@@ -91,7 +90,7 @@ void main() {
           onGenerateRoute: onGenerateRoute,
           home: NodeOptionsSheet(
             nodeId: 'node id',
-            coin: bitcoin,
+            coin: pivx,
             popBackToRoute: popBackToRoute,
           ),
         ),
@@ -138,7 +137,7 @@ void main() {
       isNull,
     );
 
-    verify(mockNodeService.getPrimaryNodeFor(currency: bitcoin)).called(1);
+    verify(mockNodeService.getPrimaryNodeFor(currency: pivx)).called(1);
     verify(mockNodeService.getNodeById(id: 'node id')).called(1);
     verify(mockNodeService.addListener(any)).called(1);
     verifyNoMoreInteractions(mockNodeService);
@@ -210,7 +209,7 @@ void main() {
     );
     when(
       mockNodeService.setPrimaryNodeFor(
-        coin: bitcoin,
+        coin: pivx,
         node: node,
         shouldNotifyListeners: true,
       ),
@@ -239,7 +238,7 @@ void main() {
 
     verify(
       mockNodeService.setPrimaryNodeFor(
-        coin: bitcoin,
+        coin: pivx,
         node: node,
         shouldNotifyListeners: true,
       ),
@@ -286,7 +285,7 @@ void main() {
 
       verifyNever(
         mockNodeService.setPrimaryNodeFor(
-          coin: bitcoin,
+          coin: pivx,
           node: anyNamed('node'),
           shouldNotifyListeners: anyNamed('shouldNotifyListeners'),
         ),

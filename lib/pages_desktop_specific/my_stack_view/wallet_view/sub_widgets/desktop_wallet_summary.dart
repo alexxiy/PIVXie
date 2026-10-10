@@ -11,11 +11,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../../models/balance.dart';
-import '../../../../models/isar/models/contract.dart';
 import '../../../../pages/wallet_view/sub_widgets/wallet_refresh_button.dart';
 import '../../../../providers/providers.dart';
-import '../../../../providers/wallet/public_private_balance_state_provider.dart';
 import '../../../../providers/wallet/wallet_balance_toggle_state_provider.dart';
 import '../../../../services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import '../../../../themes/stack_colors.dart';
@@ -23,15 +20,6 @@ import '../../../../utilities/amount/amount.dart';
 import '../../../../utilities/amount/amount_formatter.dart';
 import '../../../../utilities/enums/wallet_balance_toggle_state.dart';
 import '../../../../utilities/text_styles.dart';
-import '../../../../wallets/crypto_currency/coins/ethereum.dart';
-import '../../../../wallets/crypto_currency/coins/firo.dart';
-import '../../../../wallets/crypto_currency/coins/solana.dart';
-import '../../../../wallets/crypto_currency/crypto_currency.dart'
-    show CryptoCurrency;
-import '../../../../wallets/isar/providers/eth/current_token_wallet_provider.dart';
-import '../../../../wallets/isar/providers/eth/token_balance_provider.dart';
-import '../../../../wallets/isar/providers/solana/current_sol_token_wallet_provider.dart';
-import '../../../../wallets/isar/providers/solana/sol_token_balance_provider.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import 'desktop_balance_toggle_button.dart';
 
@@ -40,12 +28,10 @@ class DesktopWalletSummary extends ConsumerStatefulWidget {
     super.key,
     required this.walletId,
     required this.initialSyncStatus,
-    this.isToken = false,
   });
 
   final String walletId;
   final WalletSyncStatus initialSyncStatus;
-  final bool isToken;
 
   @override
   ConsumerState<DesktopWalletSummary> createState() =>
@@ -55,15 +41,10 @@ class DesktopWalletSummary extends ConsumerStatefulWidget {
 class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
   late final String walletId;
 
-  late final CryptoCurrency coin;
-  late final bool isFiro;
-
   @override
   void initState() {
     super.initState();
     walletId = widget.walletId;
-    coin = ref.read(pWalletCoin(widget.walletId));
-    isFiro = coin is Firo;
   }
 
   @override
@@ -83,83 +64,16 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
     );
 
     final coin = ref.watch(pWalletCoin(walletId));
-    final Contract? tokenContract;
-
-    if (widget.isToken) {
-      switch (coin) {
-        case Ethereum():
-          tokenContract = ref.watch(
-            pCurrentTokenWallet.select((value) => value!.tokenContract),
-          );
-          break;
-
-        case Solana():
-          tokenContract = ref.watch(
-            pCurrentSolanaTokenWallet.select((value) => value!.solContract),
-          );
-          break;
-
-        default:
-          tokenContract = null;
-      }
-    } else {
-      tokenContract = null;
-    }
-
-    final price = tokenContract != null
-        ? ref.watch(
-            priceAnd24hChangeNotifierProvider.select(
-              (value) => value.getTokenPrice(tokenContract!.address),
-            ),
-          )
-        : ref.watch(
-            priceAnd24hChangeNotifierProvider.select(
-              (value) => value.getPrice(coin),
-            ),
-          );
+    final price = ref.watch(
+      priceAnd24hChangeNotifierProvider.select((value) => value.getPrice(coin)),
+    );
 
     final _showAvailable =
         ref.watch(walletBalanceToggleStateProvider.state).state ==
         WalletBalanceToggleState.available;
 
-    final Amount balanceToShow;
-    if (isFiro) {
-      switch (ref.watch(publicPrivateBalanceStateProvider.state).state) {
-        case BalanceType.private:
-          final balance = ref.watch(pWalletBalanceTertiary(walletId));
-          balanceToShow = _showAvailable ? balance.spendable : balance.total;
-          break;
-
-        case BalanceType.public:
-          final balance = ref.watch(pWalletBalance(walletId));
-          balanceToShow = _showAvailable ? balance.spendable : balance.total;
-          break;
-      }
-    } else {
-      final Balance balance;
-      if (tokenContract != null && coin is Ethereum) {
-        // Ethereum token balance
-        balance = ref.watch(
-          pTokenBalance((
-            walletId: walletId,
-            contractAddress: tokenContract.address,
-          )),
-        );
-      } else if (tokenContract != null && coin is Solana) {
-        // Watch Solana token balance from db.
-        balance = ref.watch(
-          pSolanaTokenBalance((
-            walletId: walletId,
-            tokenMint: tokenContract.address,
-          )),
-        );
-      } else {
-        // Regular wallet balance.
-        balance = ref.watch(pWalletBalance(walletId));
-      }
-
-      balanceToShow = _showAvailable ? balance.spendable : balance.total;
-    }
+    final balance = ref.watch(pWalletBalance(walletId));
+    final balanceToShow = _showAvailable ? balance.spendable : balance.total;
 
     return Consumer(
       builder: (context, ref, __) {
@@ -172,9 +86,7 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
                 FittedBox(
                   fit: BoxFit.scaleDown,
                   child: SelectableText(
-                    ref
-                        .watch(pAmountFormatter(coin))
-                        .format(balanceToShow, tokenContract: tokenContract),
+                    ref.watch(pAmountFormatter(coin)).format(balanceToShow),
                     style: STextStyles.desktopH3(context),
                   ),
                 ),
@@ -182,32 +94,17 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
                   SelectableText(
                     "${Amount.fromDecimal(price.value * balanceToShow.decimal, fractionDigits: 2).fiatString(locale: locale)} $baseCurrency",
                     style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textSubtitle1,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textSubtitle1,
                     ),
                   ),
-                // if (coin is Firo)
-                //   Row(
-                //     children: [
-                //       DesktopPrivateBalanceToggleButton(
-                //         walletId: walletId,
-                //       ),
-                //       const SizedBox(
-                //         width: 8,
-                //       ),
-                //       const DesktopBalanceToggleButton(),
-                //     ],
-                //   ),
               ],
             ),
             const SizedBox(width: 8),
             WalletRefreshButton(
               walletId: walletId,
               initialSyncStatus: widget.initialSyncStatus,
-              tokenContractAddress: widget.isToken && tokenContract != null
-                  ? tokenContract.address
-                  : null,
             ),
 
             const SizedBox(width: 8),

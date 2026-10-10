@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockingjay/mockingjay.dart' as mockingjay;
-import 'package:stackwallet/models/isar/stack_theme.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/widgets/emoji_select_sheet.dart';
+import 'package:paymint/models/isar/stack_theme.dart';
+import 'package:paymint/themes/stack_colors.dart';
+import 'package:paymint/widgets/emoji_select_sheet.dart';
 
 import '../sample_data/theme_json.dart';
 
@@ -18,15 +18,11 @@ void main() {
         theme: ThemeData(
           extensions: [
             StackColors.fromStackColorTheme(
-              StackTheme.fromJson(
-                json: lightThemeJsonMap,
-              ),
+              StackTheme.fromJson(json: lightThemeJsonMap),
             ),
           ],
         ),
-        home: const Material(
-          child: emojiSelectSheet,
-        ),
+        home: const Material(child: emojiSelectSheet),
       ),
     );
 

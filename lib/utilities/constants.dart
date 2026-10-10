@@ -8,10 +8,6 @@
  *
  */
 
-import 'dart:io';
-
-import 'util.dart';
-
 class _LayoutSizing {
   const _LayoutSizing();
 
@@ -23,16 +19,6 @@ class _LayoutSizing {
 
 abstract class Constants {
   static const size = _LayoutSizing();
-
-  static void exchangeForExperiencedUsers(int count) {
-    enableExchange =
-        Util.isDesktop || Platform.isAndroid || count > 5 || !Platform.isIOS;
-  }
-
-  static bool enableExchange = Util.isDesktop || !Platform.isIOS;
-  // just use enable exchange flag
-  // static bool enableBuy = enableExchange;
-  // // true; // true for development,
 
   static const int notificationsMax = 0xFFFFFFFF;
   static const Duration networkAliveTimerDuration = Duration(seconds: 30);

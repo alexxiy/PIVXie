@@ -12,38 +12,23 @@ import 'dart:async';
 
 import 'package:decimal/decimal.dart';
 import 'package:flutter/foundation.dart';
-import 'package:isar_community/isar.dart';
 
-import '../db/isar/main_db.dart';
-import '../models/isar/models/isar_models.dart';
 import '../networking/http.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 import 'price.dart';
 
 class PriceService extends ChangeNotifier {
   late final String baseTicker;
-  Future<Set<String>> get tokenContractAddressesToCheck async =>
-      (await MainDB.instance.getEthContracts().addressProperty().findAll())
-          .toSet();
-  Future<Set<String>> get solTokenContractAddressesToCheck async =>
-      (await MainDB.instance.getSolContracts().addressProperty().findAll())
-          .toSet();
   final Duration updateInterval = const Duration(seconds: 60);
 
   Timer? _timer;
   final Map<CryptoCurrency, ({Decimal value, double change24h})> _cachedPrices =
       {};
 
-  final Map<String, ({Decimal value, double change24h})> _cachedTokenPrices =
-      {};
-
   final _priceAPI = PriceAPI(HTTP());
 
   ({Decimal value, double change24h})? getPrice(CryptoCurrency coin) =>
       _cachedPrices[coin];
-
-  ({Decimal value, double change24h})? getTokenPrice(String contractAddress) =>
-      _cachedTokenPrices[contractAddress.toLowerCase()];
 
   PriceService(this.baseTicker);
 
@@ -57,38 +42,6 @@ class PriceService extends ChangeNotifier {
       if (_cachedPrices[map.key] != map.value) {
         _cachedPrices[map.key] = map.value;
         shouldNotify = true;
-      }
-    }
-
-    final _tokenContractAddressesToCheck = await tokenContractAddressesToCheck;
-
-    if (_tokenContractAddressesToCheck.isNotEmpty) {
-      final tokenPriceMap = await _priceAPI.getPricesAnd24hChangeForEthTokens(
-        contractAddresses: _tokenContractAddressesToCheck,
-        baseCurrency: baseTicker,
-      );
-
-      for (final map in tokenPriceMap.entries) {
-        if (_cachedTokenPrices[map.key] != map.value) {
-          _cachedTokenPrices[map.key] = map.value;
-          shouldNotify = true;
-        }
-      }
-    }
-
-    final _solTokenContractAddressesToCheck = await solTokenContractAddressesToCheck;
-
-    if (_solTokenContractAddressesToCheck.isNotEmpty) {
-      final solTokenPriceMap = await _priceAPI.getPricesAnd24hChangeForSolTokens(
-        contractAddresses: _solTokenContractAddressesToCheck,
-        baseCurrency: baseTicker,
-      );
-
-      for (final map in solTokenPriceMap.entries) {
-        if (_cachedTokenPrices[map.key] != map.value) {
-          _cachedTokenPrices[map.key] = map.value;
-          shouldNotify = true;
-        }
       }
     }
 

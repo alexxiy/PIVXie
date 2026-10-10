@@ -1,29 +1,19 @@
 import 'package:decimal/decimal.dart';
 import 'package:mockito/annotations.dart';
-import 'package:stackwallet/services/locale_service.dart';
-import 'package:stackwallet/services/node_service.dart';
-import 'package:stackwallet/services/wallets.dart';
-import 'package:stackwallet/themes/theme_service.dart';
-import 'package:stackwallet/utilities/amount/amount.dart';
-import 'package:stackwallet/utilities/prefs.dart';
+import 'package:paymint/services/locale_service.dart';
+import 'package:paymint/services/node_service.dart';
+import 'package:paymint/services/wallets.dart';
+import 'package:paymint/themes/theme_service.dart';
+import 'package:paymint/utilities/amount/amount.dart';
+import 'package:paymint/utilities/prefs.dart';
 
 /// quick amount constructor wrapper. Using an int is bad practice but for
 /// testing with small amounts this should be fine
-Amount _a(int i) => Amount.fromDecimal(
-      Decimal.fromInt(i),
-      fractionDigits: 8,
-    );
+Amount _a(int i) => Amount.fromDecimal(Decimal.fromInt(i), fractionDigits: 8);
 
 @GenerateMocks(
-  [
-    Wallets,
-    ThemeService,
-    Prefs,
-    LocaleService,
-  ],
-  customMocks: [
-    MockSpec<NodeService>(),
-  ],
+  [Wallets, ThemeService, Prefs, LocaleService],
+  customMocks: [MockSpec<NodeService>()],
 )
 void main() {
   // testWidgets("Test wallet info row displays correctly", (widgetTester) async {

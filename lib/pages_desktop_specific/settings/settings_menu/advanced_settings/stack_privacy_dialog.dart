@@ -8,7 +8,6 @@
  *
  */
 
-import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
@@ -19,7 +18,6 @@ import '../../../../app_config.dart';
 import '../../../../db/hive/db.dart';
 import '../../../../providers/global/prefs_provider.dart';
 import '../../../../providers/global/price_provider.dart';
-import '../../../../services/exchange/exchange_data_loading_service.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../themes/theme_providers.dart';
 import '../../../../utilities/assets.dart';
@@ -78,9 +76,7 @@ class _StackPrivacyDialog extends ConsumerState<StackPrivacyDialog> {
               const DesktopDialogCloseButton(),
             ],
           ),
-          const SizedBox(
-            height: 35,
-          ),
+          const SizedBox(height: 35),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32),
             child: PrivacyToggle(
@@ -105,19 +101,11 @@ class _StackPrivacyDialog extends ConsumerState<StackPrivacyDialog> {
                   text: TextSpan(
                     style: isDesktop
                         ? STextStyles.desktopTextExtraExtraSmall(context)
-                        : STextStyles.label(context).copyWith(
-                            fontSize: 12.0,
-                          ),
+                        : STextStyles.label(context).copyWith(fontSize: 12.0),
                     children: infoToggle
                         ? [
-                            if (Constants.enableExchange)
-                              const TextSpan(
-                                text:
-                                    "Exchange data preloaded for a seamless experience.",
-                              ),
                             const TextSpan(
-                              text:
-                                  "\n\nCoinGecko enabled: (24 hour price change shown in-app, total wallet value shown in USD or other currency).",
+                              text: "CoinGecko enabled: (24 hour price change shown in-app, total wallet value shown in USD or other currency).",
                             ),
                             TextSpan(
                               text: "\n\nRecommended for most crypto users.",
@@ -135,12 +123,7 @@ class _StackPrivacyDialog extends ConsumerState<StackPrivacyDialog> {
                           ]
                         : [
                             const TextSpan(
-                              text:
-                                  "Exchange data not preloaded (slower experience).",
-                            ),
-                            const TextSpan(
-                              text:
-                                  "\n\nCoinGecko disabled (price changes not shown, no wallet value shown in other currencies).",
+                              text: "CoinGecko disabled (price changes not shown, no wallet value shown in other currencies).",
                             ),
                             TextSpan(
                               text:
@@ -175,9 +158,7 @@ class _StackPrivacyDialog extends ConsumerState<StackPrivacyDialog> {
                     },
                   ),
                 ),
-                const SizedBox(
-                  width: 16,
-                ),
+                const SizedBox(width: 16),
                 Expanded(
                   child: PrimaryButton(
                     label: "Save",
@@ -187,22 +168,17 @@ class _StackPrivacyDialog extends ConsumerState<StackPrivacyDialog> {
 
                       DB.instance
                           .put<dynamic>(
-                        boxName: DB.boxNamePrefs,
-                        key: "externalCalls",
-                        value: isEasy,
-                      )
+                            boxName: DB.boxNamePrefs,
+                            key: "externalCalls",
+                            value: isEasy,
+                          )
                           .then((_) {
-                        if (isEasy) {
-                          if (AppConfig.hasFeature(AppFeature.swap)) {
-                            unawaited(
-                              ExchangeDataLoadingService.instance.loadAll(),
-                            );
-                          }
-                          ref
-                              .read(priceAnd24hChangeNotifierProvider)
-                              .start(true);
-                        }
-                      });
+                            if (isEasy) {
+                              ref
+                                  .read(priceAnd24hChangeNotifierProvider)
+                                  .start(true);
+                            }
+                          });
                       if (isDesktop) {
                         Navigator.pop(context);
                       }
@@ -247,10 +223,12 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
 
   @override
   Widget build(BuildContext context) {
-    final easyFile =
-        ref.watch(themeProvider.select((value) => value.assets.personaEasy));
-    final incognitoFile = ref
-        .watch(themeProvider.select((value) => value.assets.personaIncognito));
+    final easyFile = ref.watch(
+      themeProvider.select((value) => value.assets.personaEasy),
+    );
+    final incognitoFile = ref.watch(
+      themeProvider.select((value) => value.assets.personaIncognito),
+    );
 
     return Row(
       children: [
@@ -281,38 +259,22 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
               widget.onChanged?.call(externalCallsEnabled);
             },
             child: Padding(
-              padding: const EdgeInsets.all(
-                12,
-              ),
+              padding: const EdgeInsets.all(12),
               child: Stack(
                 children: [
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      if (isDesktop)
-                        const SizedBox(
-                          height: 10,
-                        ),
+                      if (isDesktop) const SizedBox(height: 10),
                       //
                       (easyFile.endsWith(".png"))
-                          ? Image.file(
-                              File(
-                                easyFile,
-                              ),
-                              width: 120,
-                              height: 120,
-                            )
+                          ? Image.file(File(easyFile), width: 120, height: 120)
                           : SvgPicture.file(
-                              File(
-                                easyFile,
-                              ),
+                              File(easyFile),
                               width: 120,
                               height: 120,
                             ),
-                      if (isDesktop)
-                        const SizedBox(
-                          height: 12,
-                        ),
+                      if (isDesktop) const SizedBox(height: 12),
                       Center(
                         child: Text(
                           "Easy Crypto",
@@ -329,10 +291,7 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                               : STextStyles.label(context),
                         ),
                       ),
-                      if (isDesktop)
-                        const SizedBox(
-                          height: 12,
-                        ),
+                      if (isDesktop) const SizedBox(height: 12),
                     ],
                   ),
                   if (externalCallsEnabled)
@@ -368,9 +327,7 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
             ),
           ),
         ),
-        const SizedBox(
-          width: 16,
-        ),
+        const SizedBox(width: 16),
         Expanded(
           child: RawMaterialButton(
             elevation: 0,
@@ -398,30 +355,21 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
               widget.onChanged?.call(externalCallsEnabled);
             },
             child: Padding(
-              padding: const EdgeInsets.all(
-                12,
-              ),
+              padding: const EdgeInsets.all(12),
               child: Stack(
                 children: [
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      if (isDesktop)
-                        const SizedBox(
-                          height: 10,
-                        ),
+                      if (isDesktop) const SizedBox(height: 10),
                       (incognitoFile.endsWith(".png"))
                           ? Image.file(
-                              File(
-                                incognitoFile,
-                              ),
+                              File(incognitoFile),
                               width: 120,
                               height: 120,
                             )
                           : SvgPicture.file(
-                              File(
-                                incognitoFile,
-                              ),
+                              File(incognitoFile),
                               width: 120,
                               height: 120,
                             ),
@@ -430,10 +378,7 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                       //   width: 120,
                       //   height: 120,
                       // ),
-                      if (isDesktop)
-                        const SizedBox(
-                          height: 12,
-                        ),
+                      if (isDesktop) const SizedBox(height: 12),
                       Center(
                         child: Text(
                           "Incognito",
@@ -450,10 +395,7 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                               : STextStyles.label(context),
                         ),
                       ),
-                      if (isDesktop)
-                        const SizedBox(
-                          height: 12,
-                        ),
+                      if (isDesktop) const SizedBox(height: 12),
                     ],
                   ),
                   if (!externalCallsEnabled)

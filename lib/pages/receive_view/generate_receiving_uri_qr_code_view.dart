@@ -186,12 +186,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
       queryParams["message"] = noteString;
     }
 
-    String receivingAddress = widget.receivingAddress;
-    if ((widget.coin is Bitcoincash || widget.coin is Ecash) &&
-        receivingAddress.contains(":")) {
-      // remove cash addr prefix
-      receivingAddress = receivingAddress.split(":").sublist(1).join();
-    }
+    final receivingAddress = widget.receivingAddress;
 
     final uriString = AddressUtils.buildUriString(
       widget.coin.uriScheme,
@@ -248,10 +243,9 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                       Assets.svg.share,
                       width: 14,
                       height: 14,
-                      color:
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.buttonTextSecondary,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .buttonTextSecondary,
                     ),
                     onPressed: () async {
                       await _capturePng(false);
@@ -270,12 +264,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
   void initState() {
     isDesktop = Util.isDesktop;
 
-    String receivingAddress = widget.receivingAddress;
-    if ((widget.coin is Bitcoincash || widget.coin is Ecash) &&
-        receivingAddress.contains(":")) {
-      // remove cash addr prefix
-      receivingAddress = receivingAddress.split(":").sublist(1).join();
-    }
+    final receivingAddress = widget.receivingAddress;
 
     _uriString = AddressUtils.buildUriString(
       widget.coin.uriScheme,
@@ -304,68 +293,56 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
 
     return ConditionalParent(
       condition: !isDesktop,
-      builder:
-          (child) => Background(
-            child: Scaffold(
-              backgroundColor:
-                  Theme.of(context).extension<StackColors>()!.background,
-              appBar: AppBar(
-                leading: AppBarBackButton(
-                  onPressed: () async {
-                    if (FocusScope.of(context).hasFocus) {
-                      FocusScope.of(context).unfocus();
-                      await Future<void>.delayed(
-                        const Duration(milliseconds: 70),
-                      );
-                    }
-                    if (context.mounted) {
-                      Navigator.of(context).pop();
-                    }
-                  },
-                ),
-                title: Text(
-                  "Generate QR code",
-                  style: STextStyles.navBarTitle(context),
-                ),
-              ),
-              body: SafeArea(
-                child: LayoutBuilder(
-                  builder: (buildContext, constraints) {
-                    return Padding(
-                      padding: const EdgeInsets.only(
-                        left: 12,
-                        top: 12,
-                        right: 12,
-                      ),
-                      child: SingleChildScrollView(
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(
-                            minHeight: constraints.maxHeight - 24,
-                          ),
-                          child: IntrinsicHeight(
-                            child: Padding(
-                              padding: const EdgeInsets.all(4),
-                              child: child,
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
+      builder: (child) => Background(
+        child: Scaffold(
+          backgroundColor: Theme.of(context)
+              .extension<StackColors>()!
+              .background,
+          appBar: AppBar(
+            leading: AppBarBackButton(
+              onPressed: () async {
+                if (FocusScope.of(context).hasFocus) {
+                  FocusScope.of(context).unfocus();
+                  await Future<void>.delayed(const Duration(milliseconds: 70));
+                }
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                }
+              },
+            ),
+            title: Text(
+              "Generate QR code",
+              style: STextStyles.navBarTitle(context),
             ),
           ),
+          body: SafeArea(
+            child: LayoutBuilder(
+              builder: (buildContext, constraints) {
+                return Padding(
+                  padding: const EdgeInsets.only(left: 12, top: 12, right: 12),
+                  child: SingleChildScrollView(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight - 24,
+                      ),
+                      child: IntrinsicHeight(
+                        child: Padding(
+                          padding: const EdgeInsets.all(4),
+                          child: child,
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      ),
       child: Padding(
-        padding:
-            isDesktop
-                ? const EdgeInsets.only(
-                  top: 12,
-                  left: 32,
-                  right: 32,
-                  bottom: 32,
-                )
-                : const EdgeInsets.all(0),
+        padding: isDesktop
+            ? const EdgeInsets.only(top: 12, left: 32, right: 32, bottom: 32)
+            : const EdgeInsets.all(0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           mainAxisSize: isDesktop ? MainAxisSize.min : MainAxisSize.max,
@@ -374,7 +351,11 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
               RoundedWhiteContainer(
                 child: Text(
                   "The new QR code with your address, amount"
-                  "${_pivxShield ? " and shielded memo" : _isPivx ? "" : " and note"}"
+                  "${_pivxShield
+                      ? " and shielded memo"
+                      : _isPivx
+                      ? ""
+                      : " and note"}"
                   " will appear in the pop up window.",
                   style: STextStyles.itemSubtitle(context),
                 ),
@@ -382,17 +363,13 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
             if (!isDesktop) const SizedBox(height: 12),
             Text(
               "Amount (Optional)",
-              style:
-                  isDesktop
-                      ? STextStyles.desktopTextExtraExtraSmall(
-                        context,
-                      ).copyWith(
-                        color:
-                            Theme.of(context)
-                                .extension<StackColors>()!
-                                .textFieldActiveSearchIconRight,
-                      )
-                      : STextStyles.smallMed12(context),
+              style: isDesktop
+                  ? STextStyles.desktopTextExtraExtraSmall(context).copyWith(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textFieldActiveSearchIconRight,
+                    )
+                  : STextStyles.smallMed12(context),
               textAlign: TextAlign.left,
             ),
             SizedBox(height: isDesktop ? 10 : 8),
@@ -405,155 +382,140 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                 enableSuggestions: Util.isDesktop ? false : true,
                 controller: amountController,
                 focusNode: _amountFocusNode,
-                style:
-                    isDesktop
-                        ? STextStyles.desktopTextExtraExtraSmall(
-                          context,
-                        ).copyWith(
-                          color:
-                              Theme.of(
-                                context,
-                              ).extension<StackColors>()!.textFieldDefaultText,
-                          height: 1.8,
-                        )
-                        : STextStyles.field(context),
-                keyboardType:
-                    Util.isDesktop
-                        ? null
-                        : const TextInputType.numberWithOptions(decimal: true),
+                style: isDesktop
+                    ? STextStyles.desktopTextExtraExtraSmall(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textFieldDefaultText,
+                        height: 1.8,
+                      )
+                    : STextStyles.field(context),
+                keyboardType: Util.isDesktop
+                    ? null
+                    : const TextInputType.numberWithOptions(decimal: true),
                 onChanged: (_) => setState(() {}),
-                decoration: standardInputDecoration(
-                  "Amount",
-                  _amountFocusNode,
-                  context,
-                ).copyWith(
-                  contentPadding:
-                      isDesktop
+                decoration:
+                    standardInputDecoration(
+                      "Amount",
+                      _amountFocusNode,
+                      context,
+                    ).copyWith(
+                      contentPadding: isDesktop
                           ? const EdgeInsets.only(
-                            left: 16,
-                            top: 11,
-                            bottom: 12,
-                            right: 5,
-                          )
+                              left: 16,
+                              top: 11,
+                              bottom: 12,
+                              right: 5,
+                            )
                           : null,
-                  suffixIcon:
-                      amountController.text.isNotEmpty
+                      suffixIcon: amountController.text.isNotEmpty
                           ? Padding(
-                            padding: const EdgeInsets.only(right: 0),
-                            child: UnconstrainedBox(
-                              child: Row(
-                                children: [
-                                  TextFieldIconButton(
-                                    child: const XIcon(),
-                                    onTap: () async {
-                                      setState(() {
-                                        amountController.text = "";
-                                      });
-                                    },
-                                  ),
-                                ],
+                              padding: const EdgeInsets.only(right: 0),
+                              child: UnconstrainedBox(
+                                child: Row(
+                                  children: [
+                                    TextFieldIconButton(
+                                      child: const XIcon(),
+                                      onTap: () async {
+                                        setState(() {
+                                          amountController.text = "";
+                                        });
+                                      },
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                          )
+                            )
                           : null,
-                ),
+                    ),
               ),
             ),
             if (_showNote) ...[
-            SizedBox(height: isDesktop ? 20 : 12),
-            Text(
-              _pivxShield ? "Shielded memo (Optional)" : "Note (Optional)",
-              style:
-                  isDesktop
-                      ? STextStyles.desktopTextExtraExtraSmall(
+              SizedBox(height: isDesktop ? 20 : 12),
+              Text(
+                _pivxShield ? "Shielded memo (Optional)" : "Note (Optional)",
+                style: isDesktop
+                    ? STextStyles.desktopTextExtraExtraSmall(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textFieldActiveSearchIconRight,
+                      )
+                    : STextStyles.smallMed12(context),
+                textAlign: TextAlign.left,
+              ),
+              SizedBox(height: isDesktop ? 10 : 8),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(
+                  Constants.size.circularBorderRadius,
+                ),
+                child: TextField(
+                  autocorrect: Util.isDesktop ? false : true,
+                  enableSuggestions: Util.isDesktop ? false : true,
+                  controller: noteController,
+                  focusNode: _noteFocusNode,
+                  style: isDesktop
+                      ? STextStyles.desktopTextExtraExtraSmall(context)
+                            .copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textFieldDefaultText,
+                              height: 1.8,
+                            )
+                      : STextStyles.field(context),
+                  onChanged: (_) => setState(() {}),
+                  decoration:
+                      standardInputDecoration(
+                        _pivxShield ? "Shielded memo" : "Note",
+                        _noteFocusNode,
                         context,
                       ).copyWith(
-                        color:
-                            Theme.of(context)
-                                .extension<StackColors>()!
-                                .textFieldActiveSearchIconRight,
-                      )
-                      : STextStyles.smallMed12(context),
-              textAlign: TextAlign.left,
-            ),
-            SizedBox(height: isDesktop ? 10 : 8),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(
-                Constants.size.circularBorderRadius,
-              ),
-              child: TextField(
-                autocorrect: Util.isDesktop ? false : true,
-                enableSuggestions: Util.isDesktop ? false : true,
-                controller: noteController,
-                focusNode: _noteFocusNode,
-                style:
-                    isDesktop
-                        ? STextStyles.desktopTextExtraExtraSmall(
-                          context,
-                        ).copyWith(
-                          color:
-                              Theme.of(
-                                context,
-                              ).extension<StackColors>()!.textFieldDefaultText,
-                          height: 1.8,
-                        )
-                        : STextStyles.field(context),
-                onChanged: (_) => setState(() {}),
-                decoration: standardInputDecoration(
-                  _pivxShield ? "Shielded memo" : "Note",
-                  _noteFocusNode,
-                  context,
-                ).copyWith(
-                  contentPadding:
-                      isDesktop
-                          ? const EdgeInsets.only(
-                            left: 16,
-                            top: 11,
-                            bottom: 12,
-                            right: 5,
-                          )
-                          : null,
-                  suffixIcon:
-                      noteController.text.isNotEmpty
-                          ? Padding(
-                            padding: const EdgeInsets.only(right: 0),
-                            child: UnconstrainedBox(
-                              child: Row(
-                                children: [
-                                  TextFieldIconButton(
-                                    child: const XIcon(),
-                                    onTap: () async {
-                                      setState(() {
-                                        noteController.text = "";
-                                      });
-                                    },
+                        contentPadding: isDesktop
+                            ? const EdgeInsets.only(
+                                left: 16,
+                                top: 11,
+                                bottom: 12,
+                                right: 5,
+                              )
+                            : null,
+                        suffixIcon: noteController.text.isNotEmpty
+                            ? Padding(
+                                padding: const EdgeInsets.only(right: 0),
+                                child: UnconstrainedBox(
+                                  child: Row(
+                                    children: [
+                                      TextFieldIconButton(
+                                        child: const XIcon(),
+                                        onTap: () async {
+                                          setState(() {
+                                            noteController.text = "";
+                                          });
+                                        },
+                                      ),
+                                    ],
                                   ),
-                                ],
-                              ),
-                            ),
-                          )
-                          : null,
+                                ),
+                              )
+                            : null,
+                      ),
                 ),
               ),
-            ),
             ],
             SizedBox(height: isDesktop ? 20 : 8),
             PrimaryButton(
               label: "Generate QR code",
-              onPressed:
-                  isDesktop
-                      ? () {
-                        final uriString = _generateURI();
-                        if (uriString == null) {
-                          return;
-                        }
-
-                        setState(() {
-                          didGenerate = true;
-                          _uriString = uriString;
-                        });
+              onPressed: isDesktop
+                  ? () {
+                      final uriString = _generateURI();
+                      if (uriString == null) {
+                        return;
                       }
-                      : onGeneratePressed,
+
+                      setState(() {
+                        didGenerate = true;
+                        _uriString = uriString;
+                      });
+                    }
+                  : onGeneratePressed,
               buttonHeight: isDesktop ? ButtonHeight.l : null,
             ),
             if (isDesktop && didGenerate)
@@ -566,10 +528,9 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                     children: [
                       const SizedBox(height: 20),
                       RoundedWhiteContainer(
-                        borderColor:
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.background,
+                        borderColor: Theme.of(context)
+                            .extension<StackColors>()!
+                            .background,
                         width: isDesktop ? 370 : null,
                         child: Column(
                           children: [
@@ -590,16 +551,16 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                             ),
                             const SizedBox(height: 12),
                             Row(
-                              mainAxisAlignment:
-                                  isDesktop
-                                      ? MainAxisAlignment.center
-                                      : MainAxisAlignment.start,
+                              mainAxisAlignment: isDesktop
+                                  ? MainAxisAlignment.center
+                                  : MainAxisAlignment.start,
                               children: [
                                 if (!isDesktop)
                                   SecondaryButton(
                                     width: 170,
-                                    buttonHeight:
-                                        isDesktop ? ButtonHeight.l : null,
+                                    buttonHeight: isDesktop
+                                        ? ButtonHeight.l
+                                        : null,
                                     onPressed: () async {
                                       await _capturePng(false);
                                     },
@@ -608,17 +569,17 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                                       Assets.svg.share,
                                       width: 20,
                                       height: 20,
-                                      color:
-                                          Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .buttonTextSecondary,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .buttonTextSecondary,
                                     ),
                                   ),
                                 if (!isDesktop) const SizedBox(width: 16),
                                 PrimaryButton(
                                   width: 170,
-                                  buttonHeight:
-                                      isDesktop ? ButtonHeight.l : null,
+                                  buttonHeight: isDesktop
+                                      ? ButtonHeight.l
+                                      : null,
                                   onPressed: () async {
                                     // TODO: add save functionality instead of share
                                     // save works on linux at the moment
@@ -629,10 +590,9 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                                     Assets.svg.arrowDown,
                                     width: 20,
                                     height: 20,
-                                    color:
-                                        Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .buttonTextPrimary,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .buttonTextPrimary,
                                   ),
                                 ),
                               ],

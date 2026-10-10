@@ -20,7 +20,6 @@ import '../../../models/send_view_auto_fill_data.dart';
 import '../../../notifications/show_flush_bar.dart';
 import '../../../providers/global/active_wallet_provider.dart';
 import '../../../providers/global/address_book_service_provider.dart';
-import '../../../providers/providers.dart';
 import '../../../themes/coin_icon_provider.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
@@ -31,12 +30,8 @@ import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../widgets/app_icon.dart';
 import '../../../widgets/rounded_container.dart';
 import '../../../widgets/rounded_white_container.dart';
-import '../../exchange_view/exchange_step_views/step_2_view.dart';
 import '../../send_view/send_view.dart';
 import 'contact_details_view.dart';
-
-final exchangeFromAddressBookAddressStateProvider =
-    StateProvider<String>((ref) => "");
 
 class ContactPopUp extends ConsumerWidget {
   const ContactPopUp({
@@ -52,23 +47,24 @@ class ContactPopUp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final maxHeight = MediaQuery.of(context).size.height * 0.6;
     final contact = ref.watch(
-      addressBookServiceProvider
-          .select((value) => value.getContactById(contactId)),
+      addressBookServiceProvider.select(
+        (value) => value.getContactById(contactId),
+      ),
     );
 
     final active = ref.read(currentWalletIdProvider);
 
     final bool hasActiveWallet = active != null;
-    final bool isExchangeFlow =
-        ref.watch(exchangeFlowIsActiveStateProvider.state).state;
 
-    final addresses = contact.addressesSorted.where((e) {
-      if (hasActiveWallet && !isExchangeFlow) {
-        return e.coin == ref.watch(pWalletCoin(active));
-      } else {
-        return true;
-      }
-    }).toList(growable: false);
+    final addresses = contact.addressesSorted
+        .where((e) {
+          if (hasActiveWallet) {
+            return e.coin == ref.watch(pWalletCoin(active));
+          } else {
+            return true;
+          }
+        })
+        .toList(growable: false);
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
@@ -81,33 +77,27 @@ class ContactPopUp extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Material(
-                  borderRadius: BorderRadius.circular(
-                    20,
-                  ),
+                  borderRadius: BorderRadius.circular(20),
                   child: Container(
                     decoration: BoxDecoration(
-                      color:
-                          Theme.of(context).extension<StackColors>()!.popupBG,
-                      borderRadius: BorderRadius.circular(
-                        20,
-                      ),
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .popupBG,
+                      borderRadius: BorderRadius.circular(20),
                     ),
                     child: LimitedBox(
                       maxHeight: maxHeight,
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(
-                          20,
-                        ),
+                        borderRadius: BorderRadius.circular(20),
                         child: SingleChildScrollView(
                           child: Column(
                             // spacing: 10,
                             children: [
-                              const SizedBox(
-                                height: 24,
-                              ),
+                              const SizedBox(height: 24),
                               Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 24),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 24,
+                                ),
                                 child: Row(
                                   children: [
                                     Container(
@@ -121,30 +111,26 @@ class ContactPopUp extends ConsumerWidget {
                                       ),
                                       child: contact.customId == "default"
                                           ? const Center(
-                                              child: AppIcon(
-                                                width: 20,
-                                              ),
+                                              child: AppIcon(width: 20),
                                             )
                                           : contact.emojiChar != null
-                                              ? Center(
-                                                  child:
-                                                      Text(contact.emojiChar!),
-                                                )
-                                              : Center(
-                                                  child: SvgPicture.asset(
-                                                    Assets.svg.user,
-                                                    width: 18,
-                                                  ),
-                                                ),
+                                          ? Center(
+                                              child: Text(contact.emojiChar!),
+                                            )
+                                          : Center(
+                                              child: SvgPicture.asset(
+                                                Assets.svg.user,
+                                                width: 18,
+                                              ),
+                                            ),
                                     ),
-                                    const SizedBox(
-                                      width: 12,
-                                    ),
+                                    const SizedBox(width: 12),
                                     Expanded(
                                       child: Text(
                                         contact.name,
-                                        style:
-                                            STextStyles.itemSubtitle12(context),
+                                        style: STextStyles.itemSubtitle12(
+                                          context,
+                                        ),
                                       ),
                                     ),
                                     if (contact.customId != "default")
@@ -164,7 +150,8 @@ class ContactPopUp extends ConsumerWidget {
                                             .copyWith(
                                               minimumSize:
                                                   MaterialStateProperty.all<
-                                                      Size>(const Size(46, 32)),
+                                                    Size
+                                                  >(const Size(46, 32)),
                                             ),
                                         child: Padding(
                                           padding: const EdgeInsets.symmetric(
@@ -199,8 +186,9 @@ class ContactPopUp extends ConsumerWidget {
                                     child: Center(
                                       child: Text(
                                         "No ${ref.watch(pWalletCoin(active!)).prettyName} addresses found",
-                                        style:
-                                            STextStyles.itemSubtitle(context),
+                                        style: STextStyles.itemSubtitle(
+                                          context,
+                                        ),
                                       ),
                                     ),
                                   ),
@@ -219,9 +207,7 @@ class ContactPopUp extends ConsumerWidget {
                                     children: [
                                       Column(
                                         children: [
-                                          const SizedBox(
-                                            height: 2,
-                                          ),
+                                          const SizedBox(height: 2),
                                           SvgPicture.file(
                                             File(
                                               ref.watch(
@@ -232,9 +218,7 @@ class ContactPopUp extends ConsumerWidget {
                                           ),
                                         ],
                                       ),
-                                      const SizedBox(
-                                        width: 12,
-                                      ),
+                                      const SizedBox(width: 12),
                                       Expanded(
                                         child: Column(
                                           crossAxisAlignment:
@@ -245,39 +229,31 @@ class ContactPopUp extends ConsumerWidget {
                                                 e.other!,
                                                 style:
                                                     STextStyles.itemSubtitle12(
-                                                  context,
-                                                ),
+                                                      context,
+                                                    ),
                                               ),
                                             if (contact.customId != "default")
                                               Text(
                                                 "${e.label} (${e.coin.ticker})",
                                                 style:
                                                     STextStyles.itemSubtitle12(
-                                                  context,
-                                                ),
+                                                      context,
+                                                    ),
                                               ),
-                                            const SizedBox(
-                                              height: 2,
-                                            ),
+                                            const SizedBox(height: 2),
                                             Text(
                                               e.address,
                                               style: STextStyles.itemSubtitle(
                                                 context,
-                                              ).copyWith(
-                                                fontSize: 8,
-                                              ),
+                                              ).copyWith(fontSize: 8),
                                             ),
                                           ],
                                         ),
                                       ),
-                                      const SizedBox(
-                                        width: 10,
-                                      ),
+                                      const SizedBox(width: 10),
                                       Column(
                                         children: [
-                                          const SizedBox(
-                                            height: 2,
-                                          ),
+                                          const SizedBox(height: 2),
                                           GestureDetector(
                                             onTap: () {
                                               clipboard.setData(
@@ -307,62 +283,14 @@ class ContactPopUp extends ConsumerWidget {
                                           ),
                                         ],
                                       ),
-                                      if (isExchangeFlow)
-                                        const SizedBox(
-                                          width: 6,
-                                        ),
-                                      if (isExchangeFlow)
+                                      if (contact.customId != "default" &&
+                                          hasActiveWallet)
+                                        const SizedBox(width: 4),
+                                      if (contact.customId != "default" &&
+                                          hasActiveWallet)
                                         Column(
                                           children: [
-                                            const SizedBox(
-                                              height: 2,
-                                            ),
-                                            GestureDetector(
-                                              onTap: () {
-                                                ref
-                                                    .read(
-                                                      exchangeFromAddressBookAddressStateProvider
-                                                          .state,
-                                                    )
-                                                    .state = e.address;
-                                                Navigator.of(context).popUntil(
-                                                  ModalRoute.withName(
-                                                    Step2View.routeName,
-                                                  ),
-                                                );
-                                              },
-                                              child: RoundedContainer(
-                                                color: Theme.of(context)
-                                                    .extension<StackColors>()!
-                                                    .textFieldDefaultBG,
-                                                padding:
-                                                    const EdgeInsets.all(6),
-                                                child: SvgPicture.asset(
-                                                  Assets.svg.chevronRight,
-                                                  width: 16,
-                                                  height: 16,
-                                                  color: Theme.of(context)
-                                                      .extension<StackColors>()!
-                                                      .accentColorDark,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      if (contact.customId != "default" &&
-                                          hasActiveWallet &&
-                                          !isExchangeFlow)
-                                        const SizedBox(
-                                          width: 4,
-                                        ),
-                                      if (contact.customId != "default" &&
-                                          hasActiveWallet &&
-                                          !isExchangeFlow)
-                                        Column(
-                                          children: [
-                                            const SizedBox(
-                                              height: 2,
-                                            ),
+                                            const SizedBox(height: 2),
                                             GestureDetector(
                                               onTap: () {
                                                 final String contactLabel =
@@ -373,19 +301,19 @@ class ContactPopUp extends ConsumerWidget {
                                                 if (hasActiveWallet) {
                                                   Navigator.of(context)
                                                       .pushNamed(
-                                                    SendView.routeName,
-                                                    arguments: Tuple3(
-                                                      active,
-                                                      ref.read(
-                                                        pWalletCoin(active),
-                                                      ),
-                                                      SendViewAutoFillData(
-                                                        address: address,
-                                                        contactLabel:
-                                                            contactLabel,
-                                                      ),
-                                                    ),
-                                                  );
+                                                        SendView.routeName,
+                                                        arguments: Tuple3(
+                                                          active,
+                                                          ref.read(
+                                                            pWalletCoin(active),
+                                                          ),
+                                                          SendViewAutoFillData(
+                                                            address: address,
+                                                            contactLabel:
+                                                                contactLabel,
+                                                          ),
+                                                        ),
+                                                      );
                                                 }
                                               },
                                               child: RoundedContainer(
@@ -397,10 +325,12 @@ class ContactPopUp extends ConsumerWidget {
                                                 ),
                                                 child: SvgPicture.asset(
                                                   Assets.svg.circleArrowUpRight,
-                                                  width:
-                                                      Util.isDesktop ? 12 : 16,
-                                                  height:
-                                                      Util.isDesktop ? 12 : 16,
+                                                  width: Util.isDesktop
+                                                      ? 12
+                                                      : 16,
+                                                  height: Util.isDesktop
+                                                      ? 12
+                                                      : 16,
                                                   color: Theme.of(context)
                                                       .extension<StackColors>()!
                                                       .accentColorDark,
@@ -413,9 +343,7 @@ class ContactPopUp extends ConsumerWidget {
                                   ),
                                 ),
                               ),
-                              const SizedBox(
-                                height: 12,
-                              ),
+                              const SizedBox(height: 12),
                             ],
                           ),
                         ),

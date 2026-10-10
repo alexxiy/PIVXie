@@ -13,7 +13,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../app_config.dart';
-import '../../models/isar/models/blockchain_data/address.dart';
 import '../../models/isar/models/contact_entry.dart';
 import '../../pages/address_book_views/subviews/add_address_book_entry_view.dart';
 import '../../pages/address_book_views/subviews/address_book_filter_view.dart';
@@ -26,7 +25,6 @@ import '../../utilities/constants.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
-import '../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../widgets/address_book_card.dart';
 import '../../widgets/desktop/desktop_app_bar.dart';
 import '../../widgets/desktop/desktop_dialog.dart';
@@ -98,7 +96,6 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
 
     // if (widget.coin == null) {
     final coins = AppConfig.coins.toList();
-    coins.removeWhere((e) => e is Firo && e.network.isTestNet);
 
     final bool showTestNet = ref
         .read(prefsChangeNotifierProvider)
@@ -122,16 +119,9 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
       final List<ContactAddressEntry> addresses = [];
       final wallets = ref.read(pWallets).wallets;
       for (final wallet in wallets) {
-        final String addressString;
-        if (wallet is SparkInterface &&
-            !(wallet.isViewOnly && wallet.viewOnlyType != .spark)) {
-          Address? address = await wallet.getCurrentReceivingSparkAddress();
-          address ??= await wallet.generateNextSparkAddress(saveToDB: true);
-          addressString = address.value;
-        } else {
-          final address = await wallet.getCurrentReceivingAddress();
-          addressString = address?.value ?? wallet.info.cachedReceivingAddress;
-        }
+        final address = await wallet.getCurrentReceivingAddress();
+        final addressString =
+            address?.value ?? wallet.info.cachedReceivingAddress;
 
         addresses.add(
           ContactAddressEntry()
@@ -286,9 +276,9 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
                 buttonHeight: ButtonHeight.l,
                 icon: SvgPicture.asset(
                   Assets.svg.filter,
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.buttonTextSecondary,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .buttonTextSecondary,
                 ),
                 onPressed: selectCryptocurrency,
               ),
@@ -299,9 +289,9 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
                 buttonHeight: ButtonHeight.l,
                 icon: SvgPicture.asset(
                   Assets.svg.circlePlus,
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.buttonTextPrimary,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .buttonTextPrimary,
                 ),
                 onPressed: newContact,
               ),
@@ -343,9 +333,9 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
                           children: [
                             if (i > 0)
                               Container(
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.background,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .background,
                                 height: 1,
                               ),
                             Padding(
@@ -414,9 +404,9 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
                               children: [
                                 if (i > 0)
                                   Container(
-                                    color: Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.background,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .background,
                                     height: 1,
                                   ),
                                 Padding(

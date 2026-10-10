@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:hive_test/hive_test.dart';
-import 'package:stackwallet/db/hive/db.dart';
+import 'package:paymint/db/hive/db.dart';
 
 void main() {
   group("DB box names", () {
@@ -15,16 +15,6 @@ void main() {
       "watched transactions",
       () =>
           expect(DB.boxNameWatchedTransactions, "watchedTxNotificationModels"),
-    );
-    test(
-      "watched trades",
-      () => expect(DB.boxNameWatchedTrades, "watchedTradesNotificationModels"),
-    );
-    test("trades", () => expect(DB.boxNameTrades, "exchangeTransactionsBox"));
-    test("trade notes", () => expect(DB.boxNameTradeNotes, "tradeNotesBox"));
-    test(
-      "tx <> trade lookup table",
-      () => expect(DB.boxNameTradeLookup, "tradeToTxidLookUpBox"),
     );
     test(
       "favorite wallets",

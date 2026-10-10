@@ -15,8 +15,6 @@ import 'package:isar_community/isar.dart';
 
 import '../../app_config.dart';
 import '../../models/add_wallet_list_entity/sub_classes/coin_entity.dart';
-import '../../models/isar/models/contract.dart';
-import '../../pages_desktop_specific/my_stack_view/dialogs/desktop_expanding_wallet_card.dart';
 import '../../providers/providers.dart';
 import '../../services/event_bus/events/wallet_added_event.dart';
 import '../../services/event_bus/global_event_bus.dart';
@@ -28,13 +26,11 @@ import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../wallets/isar/models/wallet_info.dart';
 import '../../wallets/isar/providers/all_wallets_info_provider.dart';
-import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/wallet/wallet.dart';
 import '../../widgets/background.dart';
 import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/icon_widgets/x_icon.dart';
-import '../../widgets/master_wallet_card.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_text_field.dart';
 import '../../widgets/textfield_icon_button.dart';
@@ -64,7 +60,7 @@ class WalletsOverview extends ConsumerStatefulWidget {
   ConsumerState<WalletsOverview> createState() => _EthWalletsOverviewState();
 }
 
-typedef WalletListItemData = ({Wallet wallet, List<Contract> contracts});
+typedef WalletListItemData = ({Wallet wallet});
 
 class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
   final isDesktop = Util.isDesktop;
@@ -104,19 +100,7 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
         term,
       );
 
-      final List<Contract> contracts = [];
-
-      for (final contract in entry.value.contracts) {
-        if (_elementContains(contract.name, term)) {
-          contracts.add(contract);
-        } else if (_elementContains(contract.symbol, term)) {
-          contracts.add(contract);
-        } else if (_elementContains(contract.address, term)) {
-          contracts.add(contract);
-        }
-      }
-
-      if (includeManager || contracts.isNotEmpty) {
+      if (includeManager) {
         results.addEntries([entry]);
       }
     }
@@ -141,68 +125,14 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
           : e.coin != widget.coin,
     );
 
-    if (widget.coin is Ethereum) {
-      for (final data in walletsData) {
-        final List<Contract> contracts = [];
-        final contractAddresses = ref.read(
-          pWalletTokenAddresses(data.walletId),
-        );
-
-        // fetch each contract
-        for (final contractAddress in contractAddresses) {
-          final contract = ref
-              .read(mainDBProvider)
-              .getEthContractSync(contractAddress);
-
-          // add it to list if it exists in DB
-          if (contract != null) {
-            contracts.add(contract);
-          }
-        }
-
-        // add tuple to list
+    for (final data in walletsData) {
+      // desktop single coin apps may cause issues so lets just ignore the error and move on
+      try {
         wallets[data.walletId] = (
           wallet: ref.read(pWallets).getWallet(data.walletId),
-          contracts: contracts,
         );
-      }
-    } else if (widget.coin is Solana) {
-      for (final data in walletsData) {
-        final List<Contract> contracts = [];
-        final tokenMintAddresses = ref.read(
-          pWalletTokenAddresses(data.walletId),
-        );
-
-        // fetch each token
-        for (final tokenAddress in tokenMintAddresses) {
-          final token = ref
-              .read(mainDBProvider)
-              .getSolContractSync(tokenAddress);
-
-          // add it to list if it exists in DB
-          if (token != null) {
-            contracts.add(token);
-          }
-        }
-
-        // add tuple to list
-        wallets[data.walletId] = (
-          wallet: ref.read(pWallets).getWallet(data.walletId),
-          contracts: contracts,
-        );
-      }
-    } else {
-      // add non token wallet tuple to list
-      for (final data in walletsData) {
-        // desktop single coin apps may cause issues so lets just ignore the error and move on
-        try {
-          wallets[data.walletId] = (
-            wallet: ref.read(pWallets).getWallet(data.walletId),
-            contracts: [],
-          );
-        } catch (_) {
-          // lol bandaid for single coin based apps
-        }
+      } catch (_) {
+        // lol bandaid for single coin based apps
       }
     }
   }
@@ -241,9 +171,9 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
       condition: !isDesktop && !_embedded,
       builder: (child) => Background(
         child: Scaffold(
-          backgroundColor: Theme.of(
-            context,
-          ).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(context)
+              .extension<StackColors>()!
+              .background,
           appBar: AppBar(
             leading: const AppBarBackButton(),
             title: Text(
@@ -258,9 +188,9 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
                     Assets.svg.plus,
                     width: 18,
                     height: 18,
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.topNavIconPrimary,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .topNavIconPrimary,
                   ),
                   onPressed: () {
                     Navigator.of(context).pushNamed(
@@ -295,9 +225,9 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
               },
               style: isDesktop
                   ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textFieldActiveText,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textFieldActiveText,
                       height: 1.8,
                     )
                   : STextStyles.field(context),
@@ -352,50 +282,32 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
                     final entry = data[index];
                     final wallet = entry.wallet;
 
-                    if (wallet.cryptoCurrency.hasTokenSupport) {
-                      if (isDesktop) {
-                        return DesktopExpandingWalletCard(
-                          key: Key(
-                            "${wallet.walletId}_${entry.contracts.map((e) => e.address).join()}",
-                          ),
-                          data: entry,
-                          navigatorState: widget.navigatorState!,
-                        );
-                        // }
-                      } else {
-                        return MasterWalletCard(
-                          key: Key(wallet.walletId),
-                          walletId: wallet.walletId,
-                        );
-                      }
-                    } else {
-                      return ConditionalParent(
-                        key: Key(wallet.walletId),
-                        condition: isDesktop,
-                        builder: (child) => RoundedWhiteContainer(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 14,
-                            horizontal: 20,
-                          ),
-                          borderColor: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.backgroundAppBar,
-                          child: child,
+                    return ConditionalParent(
+                      key: Key(wallet.walletId),
+                      condition: isDesktop,
+                      builder: (child) => RoundedWhiteContainer(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 14,
+                          horizontal: 20,
                         ),
-                        child: SimpleWalletCard(
-                          walletId: wallet.walletId,
-                          popPrevious:
-                              widget.overrideSimpleWalletCardPopPreviousValueWith ==
-                                  null
-                              ? isDesktop
-                              : widget
-                                    .overrideSimpleWalletCardPopPreviousValueWith!,
-                          desktopNavigatorState: isDesktop
-                              ? widget.navigatorState
-                              : null,
-                        ),
-                      );
-                    }
+                        borderColor: Theme.of(context)
+                            .extension<StackColors>()!
+                            .backgroundAppBar,
+                        child: child,
+                      ),
+                      child: SimpleWalletCard(
+                        walletId: wallet.walletId,
+                        popPrevious:
+                            widget.overrideSimpleWalletCardPopPreviousValueWith ==
+                                null
+                            ? isDesktop
+                            : widget
+                                  .overrideSimpleWalletCardPopPreviousValueWith!,
+                        desktopNavigatorState: isDesktop
+                            ? widget.navigatorState
+                            : null,
+                      ),
+                    );
                   },
                   separatorBuilder: (_, __) =>
                       SizedBox(height: isDesktop ? 10 : 8),

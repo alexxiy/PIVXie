@@ -16,7 +16,6 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../app_config.dart';
 import '../providers/desktop/current_desktop_menu_item.dart';
-import '../providers/providers.dart';
 import '../themes/stack_colors.dart';
 import '../utilities/assets.dart';
 import '../utilities/text_styles.dart';
@@ -27,9 +26,6 @@ import 'settings/settings_menu.dart';
 
 enum DesktopMenuItemId {
   myStack,
-  exchange,
-  buy,
-  services,
   notifications,
   addressBook,
   settings,
@@ -94,9 +90,6 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
       DMIController(),
       DMIController(),
       DMIController(),
-      DMIController(),
-      DMIController(),
-      DMIController(),
     ];
 
     torButtonController = DMIController();
@@ -116,10 +109,6 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
 
   @override
   Widget build(BuildContext context) {
-    final prefs = ref.watch(prefsChangeNotifierProvider);
-
-    final showExchange = prefs.enableExchange;
-
     return Material(
       color: Theme.of(context).extension<StackColors>()!.popupBG,
       child: AnimatedContainer(
@@ -142,9 +131,8 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                 height: 28,
                 child: Text(
                   AppConfig.appName,
-                  style: STextStyles.desktopH2(
-                    context,
-                  ).copyWith(fontSize: 18, height: 23.4 / 18),
+                  style: STextStyles.desktopH2(context)
+                      .copyWith(fontSize: 18, height: 23.4 / 18),
                 ),
               ),
             ),
@@ -195,48 +183,6 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                               controller: controllers[0],
                               isExpandedInitially: !_isMinimized,
                             ),
-                            if (AppConfig.hasFeature(AppFeature.swap) &&
-                                showExchange) ...[
-                              const SizedBox(height: 2),
-                              DesktopMenuItem(
-                                key: const ValueKey('swap'),
-                                duration: duration,
-                                icon: const DesktopExchangeIcon(),
-                                label: "Swap",
-                                value: DesktopMenuItemId.exchange,
-                                onChanged: updateSelectedMenuItem,
-                                controller: controllers[1],
-                                isExpandedInitially: !_isMinimized,
-                              ),
-                            ],
-                            if (AppConfig.hasFeature(AppFeature.buy) &&
-                                showExchange) ...[
-                              const SizedBox(height: 2),
-                              DesktopMenuItem(
-                                key: const ValueKey('buy'),
-                                duration: duration,
-                                icon: const DesktopBuyIcon(),
-                                label: "Buy crypto",
-                                value: DesktopMenuItemId.buy,
-                                onChanged: updateSelectedMenuItem,
-                                controller: controllers[2],
-                                isExpandedInitially: !_isMinimized,
-                              ),
-                            ],
-                            if (AppConfig.hasFeature(.shopinBit) ||
-                                AppConfig.hasFeature(.cakePay)) ...[
-                              const SizedBox(height: 2),
-                              DesktopMenuItem(
-                                key: const ValueKey('services'),
-                                duration: duration,
-                                icon: const DesktopServicesIcon(),
-                                label: "Services",
-                                value: DesktopMenuItemId.services,
-                                onChanged: updateSelectedMenuItem,
-                                controller: controllers[3],
-                                isExpandedInitially: !_isMinimized,
-                              ),
-                            ],
                             const SizedBox(height: 2),
                             DesktopMenuItem(
                               key: const ValueKey('notifications'),
@@ -245,7 +191,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                               label: "Notifications",
                               value: DesktopMenuItemId.notifications,
                               onChanged: updateSelectedMenuItem,
-                              controller: controllers[4],
+                              controller: controllers[1],
                               isExpandedInitially: !_isMinimized,
                             ),
                             const SizedBox(height: 2),
@@ -256,7 +202,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                               label: "Address Book",
                               value: DesktopMenuItemId.addressBook,
                               onChanged: updateSelectedMenuItem,
-                              controller: controllers[5],
+                              controller: controllers[2],
                               isExpandedInitially: !_isMinimized,
                             ),
                             const SizedBox(height: 2),
@@ -267,7 +213,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                               label: "Settings",
                               value: DesktopMenuItemId.settings,
                               onChanged: updateSelectedMenuItem,
-                              controller: controllers[6],
+                              controller: controllers[3],
                               isExpandedInitially: !_isMinimized,
                             ),
                             const SizedBox(height: 2),
@@ -278,7 +224,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                               label: "Support",
                               value: DesktopMenuItemId.support,
                               onChanged: updateSelectedMenuItem,
-                              controller: controllers[7],
+                              controller: controllers[4],
                               isExpandedInitially: !_isMinimized,
                             ),
                             const SizedBox(height: 2),
@@ -289,7 +235,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                               label: "About",
                               value: DesktopMenuItemId.about,
                               onChanged: updateSelectedMenuItem,
-                              controller: controllers[8],
+                              controller: controllers[5],
                               isExpandedInitially: !_isMinimized,
                             ),
                           ],
@@ -316,7 +262,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                           //     SystemNavigator.pop();
                           //   }
                         },
-                        controller: controllers[9],
+                        controller: controllers[6],
                         isExpandedInitially: !_isMinimized,
                       ),
                     ],

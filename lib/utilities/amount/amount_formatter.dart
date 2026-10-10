@@ -1,6 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../models/isar/models/contract.dart';
 import '../../providers/global/locale_provider.dart';
 import '../../providers/global/prefs_provider.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
@@ -50,7 +49,6 @@ class AmountFormatter {
   String format(
     Amount amount, {
     String? overrideUnit,
-    Contract? tokenContract,
     bool withUnitName = true,
     bool indicatePrecisionLoss = true,
   }) {
@@ -62,16 +60,10 @@ class AmountFormatter {
       withUnitName: withUnitName,
       indicatePrecisionLoss: indicatePrecisionLoss,
       overrideUnit: overrideUnit,
-      tokenContract: tokenContract,
     );
   }
 
-  Amount? tryParse(String string, {Contract? tokenContract}) {
-    return unit.tryParse(
-      string,
-      locale: locale,
-      coin: coin,
-      tokenContract: tokenContract,
-    );
+  Amount? tryParse(String string) {
+    return unit.tryParse(string, locale: locale, coin: coin);
   }
 }

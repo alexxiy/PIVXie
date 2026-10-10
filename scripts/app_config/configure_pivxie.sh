@@ -58,8 +58,6 @@ const _appDataDirName = "pivxie";
 const _shortDescriptionText = "Your privacy. Your keys. Your PIVX.";
 const _commitHash = "$BUILT_COMMIT_HASH";
 
-const _mwebdExeHash = "";
-
 const Set<AppFeature> _features = {
   AppFeature.tor,
   AppFeature.darkTheme,
@@ -79,13 +77,5 @@ final List<CryptoCurrency> _supportedCoins = List.unmodifiable([
   Pivx(CryptoCurrencyNetwork.main),
   if (kDebugMode || _pivxTestnet) Pivx(CryptoCurrencyNetwork.test),
 ]);
-
-final ({String from, String fromFuzzyNet, String to, String toFuzzyNet})
-_swapDefaults = (
-  from: "BTC",
-  fromFuzzyNet: "btc",
-  to: "PIVX",
-  toFuzzyNet: "pivx",
-);
 
 EOF

@@ -41,7 +41,6 @@ class _ManageNodesViewState extends ConsumerState<ManageNodesView> {
   @override
   void initState() {
     _coins = _coins.toList();
-    _coins.removeWhere((e) => e is Firo && e.network.isTestNet);
     super.initState();
   }
 
@@ -56,10 +55,9 @@ class _ManageNodesViewState extends ConsumerState<ManageNodesView> {
       prefsChangeNotifierProvider.select((value) => value.showTestNetCoins),
     );
 
-    final coins =
-        showTestNet
-            ? _coins
-            : _coins.where((e) => !e.network.isTestNet).toList();
+    final coins = showTestNet
+        ? _coins
+        : _coins.where((e) => !e.network.isTestNet).toList();
 
     return Background(
       child: Scaffold(
@@ -80,14 +78,13 @@ class _ManageNodesViewState extends ConsumerState<ManageNodesView> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   ...coins.map((coin) {
-                    final count =
-                        ref
-                            .watch(
-                              nodeServiceChangeNotifierProvider.select(
-                                (value) => value.getNodesFor(coin),
-                              ),
-                            )
-                            .length;
+                    final count = ref
+                        .watch(
+                          nodeServiceChangeNotifierProvider.select(
+                            (value) => value.getNodesFor(coin),
+                          ),
+                        )
+                        .length;
 
                     return Padding(
                       padding: const EdgeInsets.all(4),

@@ -10,21 +10,11 @@
 
 import 'package:flutter/material.dart';
 
-import '../services/exchange/change_now/change_now_exchange.dart';
-import '../services/exchange/cyphergoat/cyphergoat_exchange.dart';
-import '../services/exchange/exolix/exolix_exchange.dart';
-import '../services/exchange/lets_exchange/lets_exchange_exchange.dart';
-import '../services/exchange/nanswap/nanswap_exchange.dart';
-import '../services/exchange/simpleswap/simpleswap_exchange.dart';
-import '../services/exchange/trocador/trocador_exchange.dart';
-import '../services/exchange/wizard_swap/wizard_swap_exchange.dart';
-
 abstract class Assets {
   static const svg = _SVG();
   static const png = _PNG();
   static const lottie = _ANIMATIONS();
   static const socials = _SOCIALS();
-  static const exchange = _EXCHANGE();
   static const buy = _BUY();
   static const gif = _GIF();
 }
@@ -38,53 +28,6 @@ class _SOCIALS {
   String get reddit => "${_path}reddit-alien-brands.svg";
   String get twitter => "${_path}x.svg";
   String get telegram => "${_path}telegram-brands.svg";
-}
-
-class _EXCHANGE {
-  const _EXCHANGE();
-
-  static const _path = "assets/svg/exchange_icons/";
-
-  String get changeNow => "${_path}change_now_logo_1.svg";
-  String get simpleSwap => "${_path}simpleswap-icon.svg";
-  // String get majesticBankBlue => "${_path}mb_blue.svg";
-  // String get majesticBankGreen => "${_path}mb_green.svg";
-  String get trocador => "${_path}trocador.svg";
-  String get nanswap => "${_path}nanswap.svg";
-  String get wizard => "${_path}wizard.svg";
-
-  String get exolix => "${_path}exolix.png";
-  String get cypherGoat => "${_path}cyphergoat.svg";
-
-  String get letsexchange => "${_path}letsexchange.svg";
-
-  String getIconFor({required String exchangeName}) {
-    switch (exchangeName) {
-      case SimpleSwapExchange.exchangeName:
-        return simpleSwap;
-      case ChangeNowExchange.exchangeName:
-        return changeNow;
-      // case MajesticBankExchange.exchangeName:
-      //   return majesticBankBlue;
-      case TrocadorExchange.exchangeName:
-        return trocador;
-      case NanswapExchange.exchangeName:
-        return nanswap;
-      case WizardSwapExchange.exchangeName:
-        return wizard;
-      case ExolixExchange.exchangeName:
-        return exolix;
-      case CypherGoatExchange.exchangeName:
-        return cypherGoat;
-      case LetsExchangeExchange.exchangeName:
-        return letsexchange;
-      default:
-        throw ArgumentError(
-          "Invalid exchange name passed to "
-          "Assets.exchange.getIconFor()",
-        );
-    }
-  }
 }
 
 class _BUY {

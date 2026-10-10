@@ -6,9 +6,9 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:stackwallet/db/hive/db.dart';
-import 'package:stackwallet/networking/http.dart';
-import 'package:stackwallet/services/price.dart';
+import 'package:paymint/db/hive/db.dart';
+import 'package:paymint/networking/http.dart';
+import 'package:paymint/services/price.dart';
 
 import 'hive/hive_ce_test_utils.dart';
 import 'price_test.mocks.dart';
@@ -27,55 +27,11 @@ void main() {
   });
 
   void expectFetchedPriceSnapshot(String prices) {
+    // Mainnet PIVX prices as coingecko's "pivx"; testnet has no price.
     expect(
       prices,
-      contains("Instance of 'Bitcoin': (change24h: 0.0, value: 1)"),
-    );
-    expect(
-      prices,
-      contains(
-        "Instance of 'Monero': (change24h: -0.77656, value: 0.00717236)",
-      ),
-    );
-    expect(
-      prices,
-      contains(
-        "Instance of 'Dogecoin': (change24h: -2.68533, value: 0.00000315)",
-      ),
-    );
-    expect(
-      prices,
-      contains(
-        "Instance of 'Epiccash': (change24h: 7.27524, value: 0.00002803)",
-      ),
-    );
-    expect(
-      prices,
-      contains("Instance of 'Firo': (change24h: -0.89304, value: 0.0001096)"),
-    );
-    expect(
-      prices,
-      contains("Instance of 'Xelis': (change24h: 5.67, value: 0.00001234)"),
-    );
-    expect(
-      prices,
-      contains("Instance of 'Cardano': (change24h: 0.0, value: 0)"),
-    );
-    expect(
-      prices,
-      contains("Instance of 'Fact0rn': (change24h: 0.0, value: 0)"),
-    );
-    expect(
-      prices,
-      contains("Instance of 'Peercoin': (change24h: 0.0, value: 0)"),
-    );
-    expect(
-      prices,
-      contains("Instance of 'Salvium': (change24h: 0.0, value: 0)"),
-    );
-    expect(
-      prices,
-      contains("Instance of 'Solana': (change24h: 0.0, value: 0)"),
+      "{Instance of 'Pivx': (change24h: 0.0, value: 1), "
+      "Instance of 'Pivx': (change24h: 0.0, value: 0)}",
     );
     expect(prices, isNot('{}'));
   }
@@ -96,7 +52,7 @@ void main() {
     ).thenAnswer(
       (_) async => Response(
         utf8.encode(
-          '[{"id":"bitcoin","symbol":"btc","name":"Bitcoin","image":"https://asse'
+          '[{"id":"pivx","symbol":"piv","name":"PIVX","image":"https://asse'
           'ts.coingecko.com/coins/images/1/large/bitcoin.png?1547033579","curr'
           'ent_price":1.0,"market_cap":19128800,"market_cap_rank":1,"fully_dil'
           'uted_valuation":21000000,"total_volume":1272132,"high_24h":1.0,"low'
@@ -190,7 +146,7 @@ void main() {
     ).thenAnswer(
       (_) async => Response(
         utf8.encode(
-          '[{"id":"bitcoin","symbol":"btc","name":"Bitcoin","image":"https://a'
+          '[{"id":"pivx","symbol":"piv","name":"PIVX","image":"https://a'
           'ssets.coingecko.com/coins/images/1/large/bitcoin.png?1547033579","c'
           'urrent_price":1.0,"market_cap":19128800,"market_cap_rank":1,"fully_'
           'diluted_valuation":21000000,"total_volume":1272132,"high_24h":1.0,"'

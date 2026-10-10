@@ -22,7 +22,6 @@ import '../../utilities/assets.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/text_styles.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
-import '../../wallets/wallet/impl/namecoin_wallet.dart';
 import '../../wallets/wallet/wallet.dart';
 import '../../widgets/conditional_parent.dart';
 import '../../widgets/icon_widgets/utxo_status_icon.dart';
@@ -57,15 +56,11 @@ class _UtxoCardState extends ConsumerState<UtxoCard> {
   late bool _selected;
 
   bool _isConfirmed(UTXO utxo, int currentChainHeight, Wallet wallet) {
-    if (wallet is NamecoinWallet) {
-      return wallet.checkUtxoConfirmed(utxo, currentChainHeight);
-    } else {
-      return utxo.isConfirmed(
-        currentChainHeight,
-        wallet.cryptoCurrency.minConfirms,
-        wallet.cryptoCurrency.minCoinbaseConfirms,
-      );
-    }
+    return utxo.isConfirmed(
+      currentChainHeight,
+      wallet.cryptoCurrency.minConfirms,
+      wallet.cryptoCurrency.minCoinbaseConfirms,
+    );
   }
 
   @override
@@ -104,8 +99,9 @@ class _UtxoCardState extends ConsumerState<UtxoCard> {
         focusElevation: 0,
         highlightElevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius:
-              BorderRadius.circular(Constants.size.circularBorderRadius),
+          borderRadius: BorderRadius.circular(
+            Constants.size.circularBorderRadius,
+          ),
         ),
         onPressed: widget.canSelect ? _toggle : widget.onPressed,
         onLongPress: widget.onPressed,
@@ -125,51 +121,47 @@ class _UtxoCardState extends ConsumerState<UtxoCard> {
               children: [
                 ConditionalParent(
                   condition: widget.canSelect,
-                  builder: (child) => GestureDetector(
-                    onTap: _toggle,
-                    child: child,
-                  ),
+                  builder: (child) =>
+                      GestureDetector(onTap: _toggle, child: child),
                   child: UTXOStatusIcon(
                     blocked: utxo.isBlocked,
-                    status: _isConfirmed(
-                      utxo,
-                      currentHeight,
-                      ref.watch(
-                        pWallets.select(
-                          (s) => s.getWallet(
-                            widget.walletId,
+                    status:
+                        _isConfirmed(
+                          utxo,
+                          currentHeight,
+                          ref.watch(
+                            pWallets.select(
+                              (s) => s.getWallet(widget.walletId),
+                            ),
                           ),
-                        ),
-                      ),
-                    )
+                        )
                         ? UTXOStatusIconStatus.confirmed
                         : UTXOStatusIconStatus.unconfirmed,
-                    background:
-                        Theme.of(context).extension<StackColors>()!.popupBG,
+                    background: Theme.of(context)
+                        .extension<StackColors>()!
+                        .popupBG,
                     selected: _selected,
                     width: 32,
                     height: 32,
                   ),
                 ),
-                const SizedBox(
-                  width: 10,
-                ),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
-                        ref.watch(pAmountFormatter(coin)).format(
+                        ref
+                            .watch(pAmountFormatter(coin))
+                            .format(
                               utxo.value.toAmountAsRaw(
                                 fractionDigits: coin.fractionDigits,
                               ),
                             ),
                         style: STextStyles.w600_14(context),
                       ),
-                      const SizedBox(
-                        height: 2,
-                      ),
+                      const SizedBox(height: 2),
                       Row(
                         children: [
                           Flexible(
@@ -186,13 +178,12 @@ class _UtxoCardState extends ConsumerState<UtxoCard> {
                           ),
                         ],
                       ),
-                      const SizedBox(
-                        height: 2,
-                      ),
+                      const SizedBox(height: 2),
                       Builder(
                         builder: (context) {
-                          final confirmations =
-                              utxo.getConfirmations(currentHeight);
+                          final confirmations = utxo.getConfirmations(
+                            currentHeight,
+                          );
                           return Text(
                             "$confirmations confirmation"
                             "${confirmations == 1 ? "" : "s"}",

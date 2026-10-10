@@ -52,10 +52,7 @@ class _FeeSliderState extends State<FeeSlider> {
               widget.overrideLabel ?? (widget.showWU ? "sat/WU" : "sat/vByte"),
               style: STextStyles.smallMed12(context),
             ),
-            Text(
-              "$rate",
-              style: STextStyles.smallMed12(context),
-            ),
+            Text("$rate", style: STextStyles.smallMed12(context)),
           ],
         ),
         Slider(
@@ -67,11 +64,7 @@ class _FeeSliderState extends State<FeeSlider> {
                 sliderValue * (widget.max - widget.min) + widget.min,
                 widget.pow,
               ).toDouble();
-              if (widget.coin is Dogecoin) {
-                rate = (number * 1000).toInt();
-              } else {
-                rate = number.toInt();
-              }
+              rate = number.toInt();
             });
             widget.onSatVByteChanged(rate);
           },

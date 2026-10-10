@@ -4,16 +4,16 @@ import 'package:flutter_svg/svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:stackwallet/models/isar/stack_theme.dart';
-import 'package:stackwallet/models/node_model.dart';
-import 'package:stackwallet/providers/providers.dart';
-import 'package:stackwallet/services/node_service.dart';
-import 'package:stackwallet/themes/stack_colors.dart';
-import 'package:stackwallet/utilities/util.dart';
-import 'package:stackwallet/wallets/crypto_currency/crypto_currency.dart';
-import 'package:stackwallet/widgets/custom_buttons/blue_text_button.dart';
-import 'package:stackwallet/widgets/node_card.dart';
-import 'package:stackwallet/widgets/node_options_sheet.dart';
+import 'package:paymint/models/isar/stack_theme.dart';
+import 'package:paymint/models/node_model.dart';
+import 'package:paymint/providers/providers.dart';
+import 'package:paymint/services/node_service.dart';
+import 'package:paymint/themes/stack_colors.dart';
+import 'package:paymint/utilities/util.dart';
+import 'package:paymint/wallets/crypto_currency/crypto_currency.dart';
+import 'package:paymint/widgets/custom_buttons/blue_text_button.dart';
+import 'package:paymint/widgets/node_card.dart';
+import 'package:paymint/widgets/node_options_sheet.dart';
 
 import '../sample_data/theme_json.dart';
 import 'node_card_test.mocks.dart';
@@ -21,7 +21,7 @@ import 'support/platform_test_overrides.dart';
 
 @GenerateMocks([NodeService])
 void main() {
-  final bitcoin = Bitcoin(CryptoCurrencyNetwork.main);
+  final pivx = Pivx(CryptoCurrencyNetwork.main);
 
   NodeModel buildNode({required String id, required String name}) {
     return NodeModel(
@@ -31,7 +31,7 @@ void main() {
       id: id,
       useSSL: true,
       enabled: true,
-      coinName: 'Bitcoin',
+      coinName: 'PIVX',
       isFailover: false,
       isDown: false,
       torEnabled: true,
@@ -63,7 +63,7 @@ void main() {
         ],
         child: MaterialApp(
           theme: buildTheme(),
-          home: NodeCard(nodeId: 'node id', coin: bitcoin, popBackToRoute: ''),
+          home: NodeCard(nodeId: 'node id', coin: pivx, popBackToRoute: ''),
         ),
       ),
     );
@@ -75,11 +75,10 @@ void main() {
     final nodeService = MockNodeService();
 
     when(
-      nodeService.getPrimaryNodeFor(currency: bitcoin),
+      nodeService.getPrimaryNodeFor(currency: pivx),
     ).thenAnswer((_) => buildNode(id: 'other node id', name: 'Stack Default'));
-    when(
-      nodeService.getNodeById(id: 'node id'),
-    ).thenAnswer((_) => buildNode(id: 'node id', name: 'some other name'));
+    when(nodeService.getNodeById(id: 'node id'))
+        .thenAnswer((_) => buildNode(id: 'node id', name: 'some other name'));
 
     await pumpSubject(
       tester,
@@ -91,7 +90,7 @@ void main() {
     expect(find.text('Disconnected'), findsOneWidget);
     expect(find.byType(SvgPicture), findsWidgets);
 
-    verify(nodeService.getPrimaryNodeFor(currency: bitcoin)).called(1);
+    verify(nodeService.getPrimaryNodeFor(currency: pivx)).called(1);
     verify(nodeService.getNodeById(id: 'node id')).called(1);
     verify(nodeService.addListener(any)).called(1);
     verifyNoMoreInteractions(nodeService);
@@ -101,9 +100,8 @@ void main() {
     final nodeService = MockNodeService();
     final activeNode = buildNode(id: 'node id', name: 'Some other node name');
 
-    when(
-      nodeService.getPrimaryNodeFor(currency: bitcoin),
-    ).thenAnswer((_) => activeNode);
+    when(nodeService.getPrimaryNodeFor(currency: pivx))
+        .thenAnswer((_) => activeNode);
     when(nodeService.getNodeById(id: 'node id')).thenAnswer((_) => activeNode);
 
     await pumpSubject(
@@ -117,7 +115,7 @@ void main() {
     expect(find.byType(Text), findsNWidgets(2));
     expect(find.byType(SvgPicture), findsWidgets);
 
-    verify(nodeService.getPrimaryNodeFor(currency: bitcoin)).called(1);
+    verify(nodeService.getPrimaryNodeFor(currency: pivx)).called(1);
     verify(nodeService.getNodeById(id: 'node id')).called(1);
     verify(nodeService.addListener(any)).called(1);
     verifyNoMoreInteractions(nodeService);
@@ -127,9 +125,8 @@ void main() {
     final nodeService = MockNodeService();
     final activeNode = buildNode(id: 'node id', name: 'Stack Default');
 
-    when(
-      nodeService.getPrimaryNodeFor(currency: bitcoin),
-    ).thenAnswer((_) => activeNode);
+    when(nodeService.getPrimaryNodeFor(currency: pivx))
+        .thenAnswer((_) => activeNode);
     when(nodeService.getNodeById(id: 'node id')).thenAnswer((_) => activeNode);
 
     await pumpSubject(
@@ -150,7 +147,7 @@ void main() {
       expect(find.text('Connect'), findsNothing);
       expect(find.text('Details'), findsNothing);
 
-      verify(nodeService.getPrimaryNodeFor(currency: bitcoin)).called(1);
+      verify(nodeService.getPrimaryNodeFor(currency: pivx)).called(1);
       verify(nodeService.getNodeById(id: 'node id')).called(1);
     } else {
       expect(find.text('Connect'), findsOneWidget);
@@ -158,7 +155,7 @@ void main() {
       expect(find.byType(NodeOptionsSheet), findsOneWidget);
       expect(find.byType(Text), findsNWidgets(7));
 
-      verify(nodeService.getPrimaryNodeFor(currency: bitcoin)).called(2);
+      verify(nodeService.getPrimaryNodeFor(currency: pivx)).called(2);
       verify(nodeService.getNodeById(id: 'node id')).called(2);
     }
 
@@ -175,12 +172,11 @@ void main() {
       );
       final disconnectedNode = buildNode(id: 'node id', name: 'Stack Default');
 
-      when(nodeService.getPrimaryNodeFor(currency: bitcoin)).thenAnswer(
+      when(nodeService.getPrimaryNodeFor(currency: pivx)).thenAnswer(
         (_) => buildNode(id: 'other node id', name: 'Some other node name'),
       );
-      when(
-        nodeService.getNodeById(id: 'node id'),
-      ).thenAnswer((_) => disconnectedNode);
+      when(nodeService.getNodeById(id: 'node id'))
+          .thenAnswer((_) => disconnectedNode);
 
       await pumpSubject(
         tester,
@@ -212,7 +208,7 @@ void main() {
 
       verifyNever(
         nodeService.setPrimaryNodeFor(
-          coin: bitcoin,
+          coin: pivx,
           node: anyNamed('node'),
           shouldNotifyListeners: anyNamed('shouldNotifyListeners'),
         ),

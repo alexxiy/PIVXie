@@ -54,11 +54,8 @@ class _WalletTableState extends ConsumerState<WalletSummaryTable> {
 
         return ConditionalParent(
           condition: index + 1 == walletsByCoin.length,
-          builder:
-              (child) => Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: child,
-              ),
+          builder: (child) =>
+              Padding(padding: const EdgeInsets.only(bottom: 16), child: child),
           child: DesktopWalletSummaryRow(
             key: Key("DesktopWalletSummaryRow_key_${coin.identifier}"),
             coin: coin,
@@ -107,8 +104,7 @@ class _DesktopWalletSummaryRowState
     }
   }
 
-  bool get goStraightIntoWallet =>
-      Util.isDesktop && widget.walletCount == 1 && !widget.coin.hasTokenSupport;
+  bool get goStraightIntoWallet => Util.isDesktop && widget.walletCount == 1;
 
   bool _buttonLock = false;
   Future<void> _onPressedSingleWalletDesktop() async {
@@ -174,41 +170,40 @@ class _DesktopWalletSummaryRowState
       if (mounted) {
         await showDialog<void>(
           context: context,
-          builder:
-              (_) => DesktopDialog(
-                maxHeight: 600,
-                maxWidth: 700,
-                child: Column(
+          builder: (_) => DesktopDialog(
+            maxHeight: 600,
+            maxWidth: 700,
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Padding(
-                          padding: const EdgeInsets.only(left: 32),
-                          child: Text(
-                            "${widget.coin.prettyName} (${widget.coin.ticker}) wallets",
-                            style: STextStyles.desktopH3(context),
-                          ),
-                        ),
-                        const DesktopDialogCloseButton(),
-                      ],
-                    ),
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.only(
-                          left: 32,
-                          right: 32,
-                          bottom: 32,
-                        ),
-                        child: WalletsOverview(
-                          coin: widget.coin,
-                          navigatorState: Navigator.of(context),
-                        ),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 32),
+                      child: Text(
+                        "${widget.coin.prettyName} (${widget.coin.ticker}) wallets",
+                        style: STextStyles.desktopH3(context),
                       ),
                     ),
+                    const DesktopDialogCloseButton(),
                   ],
                 ),
-              ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(
+                      left: 32,
+                      right: 32,
+                      bottom: 32,
+                    ),
+                    child: WalletsOverview(
+                      coin: widget.coin,
+                      navigatorState: Navigator.of(context),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         );
       }
     } finally {
@@ -228,8 +223,9 @@ class _DesktopWalletSummaryRowState
       child: RoundedWhiteContainer(
         padding: const EdgeInsets.all(20),
         hoverColor: Colors.transparent,
-        onPressed:
-            goStraightIntoWallet ? _onPressedSingleWalletDesktop : _onPressed,
+        onPressed: goStraightIntoWallet
+            ? _onPressedSingleWalletDesktop
+            : _onPressed,
         child: Row(
           children: [
             Expanded(
@@ -245,8 +241,9 @@ class _DesktopWalletSummaryRowState
                   Text(
                     widget.coin.prettyName,
                     style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                      color:
-                          Theme.of(context).extension<StackColors>()!.textDark,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textDark,
                     ),
                   ),
                 ],
@@ -259,8 +256,9 @@ class _DesktopWalletSummaryRowState
                     ? "${widget.walletCount} wallet"
                     : "${widget.walletCount} wallets",
                 style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                  color:
-                      Theme.of(context).extension<StackColors>()!.textSubtitle1,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textSubtitle1,
                 ),
               ),
             ),
@@ -288,21 +286,24 @@ class TablePriceInfo extends ConsumerWidget {
       prefsChangeNotifierProvider.select((value) => value.currency),
     );
 
-    final priceString = Amount.fromDecimal(
-      price.value,
-      fractionDigits: 2,
-    ).fiatString(
-      locale: ref.watch(localeServiceChangeNotifierProvider.notifier).locale,
-    );
+    final priceString = Amount.fromDecimal(price.value, fractionDigits: 2)
+        .fiatString(
+          locale: ref
+              .watch(localeServiceChangeNotifierProvider.notifier)
+              .locale,
+        );
 
-    var percentChangedColor =
-        Theme.of(context).extension<StackColors>()!.textDark;
+    var percentChangedColor = Theme.of(context)
+        .extension<StackColors>()!
+        .textDark;
     if (price.change24h > 0) {
-      percentChangedColor =
-          Theme.of(context).extension<StackColors>()!.accentColorGreen;
+      percentChangedColor = Theme.of(context)
+          .extension<StackColors>()!
+          .accentColorGreen;
     } else if (price.change24h < 0) {
-      percentChangedColor =
-          Theme.of(context).extension<StackColors>()!.accentColorRed;
+      percentChangedColor = Theme.of(context)
+          .extension<StackColors>()!
+          .accentColorRed;
     }
 
     return Row(
@@ -316,9 +317,8 @@ class TablePriceInfo extends ConsumerWidget {
         ),
         Text(
           "${price.change24h.toStringAsFixed(2)}%",
-          style: STextStyles.desktopTextExtraSmall(
-            context,
-          ).copyWith(color: percentChangedColor),
+          style: STextStyles.desktopTextExtraSmall(context)
+              .copyWith(color: percentChangedColor),
         ),
       ],
     );

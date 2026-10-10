@@ -68,7 +68,6 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
   @override
   void initState() {
     _coins = _coins.toList();
-    _coins.removeWhere((e) => e is Firo && e.network.isTestNet);
 
     searchNodeController = TextEditingController();
     searchNodeFocusNode = FocusNode();
@@ -198,9 +197,9 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
                   Flexible(
                     child: RoundedWhiteContainer(
                       padding: const EdgeInsets.all(0),
-                      borderColor: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.background,
+                      borderColor: Theme.of(context)
+                          .extension<StackColors>()!
+                          .background,
                       child: ListView.separated(
                         controller: nodeScrollController,
                         physics: const AlwaysScrollableScrollPhysics(),
@@ -295,9 +294,9 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
                         },
                         separatorBuilder: (context, index) => Container(
                           height: 1,
-                          color: Theme.of(
-                            context,
-                          ).extension<StackColors>()!.background,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .background,
                         ),
                         itemCount: coins.length,
                       ),

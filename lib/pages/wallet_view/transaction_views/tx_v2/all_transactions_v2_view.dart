@@ -19,7 +19,6 @@ import 'package:isar_community/isar.dart';
 
 import '../../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../../models/isar/models/contact_entry.dart';
-import '../../../../models/isar/models/contract.dart';
 import '../../../../models/isar/models/isar_models.dart';
 import '../../../../models/transaction_filter.dart';
 import '../../../../providers/global/address_book_service_provider.dart';
@@ -33,11 +32,7 @@ import '../../../../utilities/constants.dart';
 import '../../../../utilities/format.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
-import '../../../../wallets/crypto_currency/coins/ethereum.dart';
-import '../../../../wallets/crypto_currency/coins/solana.dart';
-import '../../../../wallets/isar/providers/eth/current_token_wallet_provider.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
-import '../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../../../widgets/conditional_parent.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/desktop/desktop_app_bar.dart';
@@ -61,16 +56,11 @@ typedef _GroupedTransactions = ({
 });
 
 class AllTransactionsV2View extends ConsumerStatefulWidget {
-  const AllTransactionsV2View({
-    super.key,
-    required this.walletId,
-    this.contractAddress,
-  });
+  const AllTransactionsV2View({super.key, required this.walletId});
 
   static const String routeName = "/allTransactionsV2";
 
   final String walletId;
-  final String? contractAddress;
 
   @override
   ConsumerState<AllTransactionsV2View> createState() =>
@@ -209,9 +199,9 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
     contains |= tx.type.name.toLowerCase().contains(keyword);
 
     // check if date contains
-    contains |= Format.extractDateFrom(
-      tx.timestamp,
-    ).toLowerCase().contains(keyword);
+    contains |= Format.extractDateFrom(tx.timestamp)
+        .toLowerCase()
+        .contains(keyword);
 
     // on chain / shielded memo
     contains |= tx.onChainNote?.toLowerCase().contains(keyword) ?? false;
@@ -300,17 +290,17 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
                   const SizedBox(width: 32),
                   AppBarIconButton(
                     size: 32,
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textFieldDefaultBG,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textFieldDefaultBG,
                     shadows: const [],
                     icon: SvgPicture.asset(
                       Assets.svg.arrowLeft,
                       width: 18,
                       height: 18,
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.topNavIconPrimary,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .topNavIconPrimary,
                     ),
                     onPressed: Navigator.of(context).pop,
                   ),
@@ -320,9 +310,9 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
               ),
             )
           : AppBar(
-              backgroundColor: Theme.of(
-                context,
-              ).extension<StackColors>()!.background,
+              backgroundColor: Theme.of(context)
+                  .extension<StackColors>()!
+                  .background,
               leading: AppBarBackButton(
                 onPressed: () async {
                   if (FocusScope.of(context).hasFocus) {
@@ -353,14 +343,14 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
                       key: const Key("transactionSearchFilterViewButton"),
                       size: 36,
                       shadows: const [],
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.background,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .background,
                       icon: SvgPicture.asset(
                         Assets.svg.filter,
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.accentColorDark,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark,
                         width: 20,
                         height: 20,
                       ),
@@ -408,14 +398,13 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
                             });
                           },
                           style: isDesktop
-                              ? STextStyles.desktopTextExtraSmall(
-                                  context,
-                                ).copyWith(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textFieldActiveText,
-                                  height: 1.8,
-                                )
+                              ? STextStyles.desktopTextExtraSmall(context)
+                                    .copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textFieldActiveText,
+                                      height: 1.8,
+                                    )
                               : STextStyles.field(context),
                           decoration:
                               standardInputDecoration(
@@ -470,9 +459,9 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
                       label: "Filter",
                       icon: SvgPicture.asset(
                         Assets.svg.filter,
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.accentColorDark,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark,
                         width: 20,
                         height: 20,
                       ),
@@ -524,14 +513,10 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
                               value: [widget.walletId],
                             ),
                           ],
-                          filter: widget.contractAddress == null
-                              ? ref
-                                    .watch(pWallets)
-                                    .getWallet(widget.walletId)
-                                    .transactionFilterOperation
-                              : ref
-                                    .read(pCurrentTokenWallet)!
-                                    .transactionFilterOperation,
+                          filter: ref
+                              .watch(pWallets)
+                              .getWallet(widget.walletId)
+                              .transactionFilterOperation,
                           sortBy: [
                             const SortProperty(
                               property: "timestamp",
@@ -822,9 +807,9 @@ class TransactionFilterOptionBarItem extends StatelessWidget {
       child: Container(
         height: 32,
         decoration: BoxDecoration(
-          color: Theme.of(
-            context,
-          ).extension<StackColors>()!.buttonBackSecondary,
+          color: Theme.of(context)
+              .extension<StackColors>()!
+              .buttonBackSecondary,
           borderRadius: BorderRadius.circular(1000),
         ),
         child: Padding(
@@ -840,9 +825,9 @@ class TransactionFilterOptionBarItem extends StatelessWidget {
                     label,
                     textAlign: TextAlign.center,
                     style: STextStyles.labelExtraExtraSmall(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textDark,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textDark,
                     ),
                   ),
                 ),
@@ -881,9 +866,6 @@ class _DesktopTransactionCardRowState
   late final TransactionV2 _transaction;
   late final String walletId;
   late final int minConfirms;
-  late final Contract? contract;
-
-  bool get isTokenTx => contract != null;
 
   String whatIsIt(TransactionV2 tx, int height) => tx.statusLabel(
     currentChainHeight: height,
@@ -904,18 +886,6 @@ class _DesktopTransactionCardRowState
         .cryptoCurrency
         .minConfirms;
     _transaction = widget.transaction;
-
-    if (_transaction.subType == TransactionSubType.splToken) {
-      contract = ref
-          .read(mainDBProvider)
-          .getSolContractSync(_transaction.contractAddress!);
-    } else if (_transaction.subType == TransactionSubType.ethToken) {
-      contract = ref
-          .read(mainDBProvider)
-          .getEthContractSync(_transaction.contractAddress!);
-    } else {
-      contract = null;
-    }
 
     super.initState();
   }
@@ -938,9 +908,7 @@ class _DesktopTransactionCardRowState
     )) {
       price = ref.watch(
         priceAnd24hChangeNotifierProvider.select(
-          (value) => isTokenTx
-              ? value.getTokenPrice(_transaction.contractAddress!)?.value
-              : value.getPrice(coin)?.value,
+          (value) => value.getPrice(coin)?.value,
         ),
       );
     }
@@ -961,52 +929,22 @@ class _DesktopTransactionCardRowState
     final currentHeight = ref.watch(pWalletChainHeight(walletId));
 
     final Amount amount;
-    final fractionDigits = contract?.decimals ?? coin.fractionDigits;
-    if (_transaction.subType == TransactionSubType.cashFusion) {
-      amount = _transaction.getAmountReceivedInThisWallet(
-        fractionDigits: fractionDigits,
-      );
-    } else {
-      switch (_transaction.type) {
-        case TransactionType.outgoing:
-          amount = _transaction.getAmountSentFromThisWallet(
-            fractionDigits: fractionDigits,
-            subtractFee: !(coin is Ethereum || coin is Solana),
-          );
-          break;
+    final fractionDigits = coin.fractionDigits;
+    switch (_transaction.type) {
+      case TransactionType.outgoing:
+      case TransactionType.unknown:
+        amount = _transaction.getAmountSentFromThisWallet(
+          fractionDigits: fractionDigits,
+          subtractFee: true,
+        );
+        break;
 
-        case TransactionType.incoming:
-        case TransactionType.sentToSelf:
-          if (_transaction.subType == TransactionSubType.sparkMint) {
-            amount = _transaction.getAmountSparkSelfMinted(
-              fractionDigits: fractionDigits,
-            );
-          } else if (_transaction.subType == TransactionSubType.sparkSpend) {
-            final changeAddress =
-                (ref.watch(pWallets).getWallet(walletId) as SparkInterface)
-                    .sparkChangeAddress;
-            amount = Amount(
-              rawValue: _transaction.outputs
-                  .where(
-                    (e) => e.walletOwns && !e.addresses.contains(changeAddress),
-                  )
-                  .fold(BigInt.zero, (p, e) => p + e.value),
-              fractionDigits: coin.fractionDigits,
-            );
-          } else {
-            amount = _transaction.getAmountReceivedInThisWallet(
-              fractionDigits: fractionDigits,
-            );
-          }
-          break;
-
-        case TransactionType.unknown:
-          amount = _transaction.getAmountSentFromThisWallet(
-            fractionDigits: fractionDigits,
-            subtractFee: !(coin is Ethereum || coin is Solana),
-          );
-          break;
-      }
+      case TransactionType.incoming:
+      case TransactionType.sentToSelf:
+        amount = _transaction.getAmountReceivedInThisWallet(
+          fractionDigits: fractionDigits,
+        );
+        break;
     }
 
     return Material(
@@ -1062,9 +1000,9 @@ class _DesktopTransactionCardRowState
                   whatIsIt(_transaction, currentHeight),
                   style: STextStyles.desktopTextExtraExtraSmall(context)
                       .copyWith(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textDark,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark,
                       ),
                 ),
               ),
@@ -1089,15 +1027,15 @@ class _DesktopTransactionCardRowState
                   builder: (context) {
                     final formattedAmount = ref
                         .watch(pAmountFormatter(coin))
-                        .format(amount, tokenContract: contract);
+                        .format(amount);
 
                     return Text(
                       "$prefix$formattedAmount",
                       style: STextStyles.desktopTextExtraExtraSmall(context)
                           .copyWith(
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.textDark,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark,
                           ),
                     );
                   },
@@ -1123,9 +1061,9 @@ class _DesktopTransactionCardRowState
                 Assets.svg.circleInfo,
                 width: 20,
                 height: 20,
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.textSubtitle2,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textSubtitle2,
               ),
             ],
           ),

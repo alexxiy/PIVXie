@@ -22,27 +22,16 @@ import '../../../../utilities/logger.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../wallets/isar/models/wallet_info.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
-import '../../../../wallets/wallet/impl/bitcoin_wallet.dart';
-import '../../../../wallets/wallet/impl/epiccash_wallet.dart';
-import '../../../../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/multi_address_interface.dart';
-import '../../../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
-import '../../../../wallets/wallet/wallet_mixin_interfaces/rbf_interface.dart';
-import '../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/custom_buttons/draggable_switch_button.dart';
-import '../../../../widgets/desktop/primary_button.dart';
-import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/rounded_white_container.dart';
 import '../../../../widgets/stack_dialog.dart';
 import '../../../pinpad_views/lock_screen_view.dart';
 import 'delete_wallet_warning_view.dart';
-import 'edit_refresh_height_view.dart';
-import 'rbf_settings_view.dart';
 import 'rename_wallet_view.dart';
-import 'spark_info.dart';
 
 class WalletSettingsWalletSettingsView extends ConsumerStatefulWidget {
   const WalletSettingsWalletSettingsView({super.key, required this.walletId});
@@ -59,7 +48,6 @@ class WalletSettingsWalletSettingsView extends ConsumerStatefulWidget {
 class _WalletSettingsWalletSettingsViewState
     extends ConsumerState<WalletSettingsWalletSettingsView> {
   late final DSBController _switchController;
-  late final DSBController _switchControllerMwebToggle;
 
   bool _switchDuressToggleLock = false; // Mutex.
   Future<void> _switchDuressToggled() async {
@@ -86,37 +74,6 @@ class _WalletSettingsWalletSettingsViewState
     } finally {
       // ensure _switchDuressToggleLock is set to false no matter what.
       _switchDuressToggleLock = false;
-    }
-  }
-
-  bool _switchLegacyToggledLock = false; // Mutex.
-  Future<void> _switchLegacyToggled() async {
-    if (_switchLegacyToggledLock) {
-      return;
-    }
-    _switchLegacyToggledLock = true; // Lock mutex.
-
-    try {
-      // Toggle enableLegacyAddresses in wallet info.
-      await ref
-          .read(pWalletInfo(widget.walletId))
-          .updateOtherData(
-            newEntries: {
-              WalletInfoKeys.enableLegacyAddresses: !ref
-                  .read(pWalletInfo(widget.walletId))
-                  .isLegacyAddressesEnabled,
-            },
-            isar: ref.read(mainDBProvider).isar,
-          );
-    } catch (e, s) {
-      Logging.instance.f(
-        "Failed to update enableLegacyAddresses for wallet",
-        error: e,
-        stackTrace: s,
-      );
-    } finally {
-      // ensure _switchLegacyToggledLock is set to false no matter what
-      _switchLegacyToggledLock = false;
     }
   }
 
@@ -175,72 +132,6 @@ class _WalletSettingsWalletSettingsViewState
     }
   }
 
-  bool _switchMwebToggleToggledLock = false; // Mutex.
-  Future<void> _switchMwebToggleToggled() async {
-    if (_switchMwebToggleToggledLock) {
-      return;
-    }
-    _switchMwebToggleToggledLock = true; // Lock mutex.
-
-    try {
-      if (_switchControllerMwebToggle.isOn?.call() != true) {
-        final canContinue = await showDialog<bool?>(
-          context: context,
-          builder: (context) {
-            return StackDialog(
-              title: "Notice",
-              message:
-                  "Activating MWEB requires synchronizing on-chain MWEB "
-                  "related data. This currently requires about "
-                  "800 MB of storage.",
-              leftButton: SecondaryButton(
-                onPressed: () {
-                  Navigator.of(context).pop(false);
-                },
-                label: "Cancel",
-              ),
-              rightButton: PrimaryButton(
-                onPressed: () {
-                  Navigator.of(context).pop(true);
-                },
-                label: "Continue",
-              ),
-            );
-          },
-        );
-
-        if (canContinue == true) {
-          await _updateMwebToggle(true);
-
-          unawaited(
-            (ref.read(pWallets).getWallet(widget.walletId) as MwebInterface)
-                .open(),
-          );
-        }
-      } else {
-        await _updateMwebToggle(false);
-      }
-    } finally {
-      // ensure _switchMwebToggleToggledLock is set to false no matter what.
-      _switchMwebToggleToggledLock = false;
-    }
-  }
-
-  Future<void> _updateMwebToggle(bool value) async {
-    await ref
-        .read(pWalletInfo(widget.walletId))
-        .updateOtherData(
-          newEntries: {WalletInfoKeys.mwebEnabled: value},
-          isar: ref.read(mainDBProvider).isar,
-        );
-
-    if (_switchControllerMwebToggle.isOn != null) {
-      if (_switchControllerMwebToggle.isOn!.call() != value) {
-        _switchControllerMwebToggle.activate?.call();
-      }
-    }
-  }
-
   Future<void> _updateAddressReuse(bool shouldReuse) async {
     await ref
         .read(pWalletInfo(widget.walletId))
@@ -259,7 +150,6 @@ class _WalletSettingsWalletSettingsViewState
   @override
   void initState() {
     _switchController = DSBController();
-    _switchControllerMwebToggle = DSBController();
     super.initState();
   }
 
@@ -324,39 +214,6 @@ class _WalletSettingsWalletSettingsViewState
                       ),
                     ),
                   ),
-                  if (wallet is RbfInterface) const SizedBox(height: 8),
-                  if (wallet is RbfInterface)
-                    RoundedWhiteContainer(
-                      padding: const EdgeInsets.all(0),
-                      child: RawMaterialButton(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                            Constants.size.circularBorderRadius,
-                          ),
-                        ),
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        onPressed: () {
-                          Navigator.of(context).pushNamed(
-                            RbfSettingsView.routeName,
-                            arguments: widget.walletId,
-                          );
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12.0,
-                            vertical: 20,
-                          ),
-                          child: Row(
-                            children: [
-                              Text(
-                                "RBF settings",
-                                style: STextStyles.titleBold12(context),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
                   if (wallet is MultiAddressInterface &&
                       !isViewOnlyNoAddressGen)
                     const SizedBox(height: 8),
@@ -392,64 +249,14 @@ class _WalletSettingsWalletSettingsViewState
                                   child: DraggableSwitchButton(
                                     isOn:
                                         ref.watch(
-                                              pWalletInfo(
-                                                widget.walletId,
-                                              ).select(
-                                                (value) => value.otherData,
-                                              ),
+                                              pWalletInfo(widget.walletId)
+                                                  .select(
+                                                    (value) => value.otherData,
+                                                  ),
                                             )[WalletInfoKeys.reuseAddress]
                                             as bool? ??
                                         false,
                                     controller: _switchController,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  if (wallet is MwebInterface) const SizedBox(height: 8),
-                  if (wallet is MwebInterface)
-                    RoundedWhiteContainer(
-                      padding: const EdgeInsets.all(0),
-                      child: RawMaterialButton(
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                            Constants.size.circularBorderRadius,
-                          ),
-                        ),
-                        onPressed: _switchMwebToggleToggled,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12.0,
-                            vertical: 20,
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "Enable MWEB",
-                                style: STextStyles.titleBold12(context),
-                                textAlign: TextAlign.left,
-                              ),
-                              SizedBox(
-                                height: 20,
-                                width: 40,
-                                child: IgnorePointer(
-                                  child: DraggableSwitchButton(
-                                    isOn:
-                                        ref.watch(
-                                              pWalletInfo(
-                                                widget.walletId,
-                                              ).select(
-                                                (value) => value.otherData,
-                                              ),
-                                            )[WalletInfoKeys.mwebEnabled]
-                                            as bool? ??
-                                        false,
-                                    controller: _switchControllerMwebToggle,
                                   ),
                                 ),
                               ),
@@ -490,11 +297,10 @@ class _WalletSettingsWalletSettingsViewState
                                   child: DraggableSwitch(
                                     value:
                                         ref.watch(
-                                              pWalletInfo(
-                                                widget.walletId,
-                                              ).select(
-                                                (value) => value.otherData,
-                                              ),
+                                              pWalletInfo(widget.walletId)
+                                                  .select(
+                                                    (value) => value.otherData,
+                                                  ),
                                             )[WalletInfoKeys
                                                 .duressMarkedVisibleWalletKey]
                                             as bool? ??
@@ -502,124 +308,6 @@ class _WalletSettingsWalletSettingsViewState
                                     onChanged: (_) => (),
                                   ),
                                 ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  if (wallet is BitcoinWallet) const SizedBox(height: 8),
-                  if (wallet is BitcoinWallet)
-                    RoundedWhiteContainer(
-                      padding: const EdgeInsets.all(0),
-                      child: RawMaterialButton(
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                            Constants.size.circularBorderRadius,
-                          ),
-                        ),
-                        onPressed: _switchLegacyToggled,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12.0,
-                            vertical: 20,
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                "Enable legacy addresses",
-                                style: STextStyles.titleBold12(context),
-                                textAlign: TextAlign.left,
-                              ),
-                              SizedBox(
-                                height: 20,
-                                width: 40,
-                                child: IgnorePointer(
-                                  child: DraggableSwitch(
-                                    value:
-                                        ref.watch(
-                                              pWalletInfo(
-                                                widget.walletId,
-                                              ).select(
-                                                (value) => value.otherData,
-                                              ),
-                                            )[WalletInfoKeys
-                                                .enableLegacyAddresses]
-                                            as bool? ??
-                                        false,
-                                    onChanged: (_) => (),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  if (wallet is SparkInterface && !wallet.isViewOnly)
-                    const SizedBox(height: 8),
-                  if (wallet is SparkInterface && !wallet.isViewOnly)
-                    RoundedWhiteContainer(
-                      padding: const EdgeInsets.all(0),
-                      child: RawMaterialButton(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                            Constants.size.circularBorderRadius,
-                          ),
-                        ),
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        onPressed: () {
-                          Navigator.of(context).pushNamed(
-                            SparkInfoView.routeName,
-                            arguments: widget.walletId,
-                          );
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12.0,
-                            vertical: 20,
-                          ),
-                          child: Row(
-                            children: [
-                              Text(
-                                "Spark info",
-                                style: STextStyles.titleBold12(context),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  if (wallet is CryptonoteWallet || wallet is EpiccashWallet)
-                    const SizedBox(height: 8),
-                  if (wallet is CryptonoteWallet || wallet is EpiccashWallet)
-                    RoundedWhiteContainer(
-                      padding: const EdgeInsets.all(0),
-                      child: RawMaterialButton(
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                            Constants.size.circularBorderRadius,
-                          ),
-                        ),
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        onPressed: () {
-                          Navigator.of(context).pushNamed(
-                            EditRefreshHeightView.routeName,
-                            arguments: widget.walletId,
-                          );
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12.0,
-                            vertical: 20,
-                          ),
-                          child: Row(
-                            children: [
-                              Text(
-                                "Restore height",
-                                style: STextStyles.titleBold12(context),
                               ),
                             ],
                           ),
@@ -655,9 +343,9 @@ class _WalletSettingsWalletSettingsViewState
                               child: Text(
                                 "Cancel",
                                 style: STextStyles.button(context).copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.accentColorDark,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .accentColorDark,
                                 ),
                               ),
                             ),

@@ -13,22 +13,15 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:isar_community/isar.dart';
 
 import '../../../../models/add_wallet_list_entity/add_wallet_list_entity.dart';
-import '../../../../models/add_wallet_list_entity/sub_classes/eth_token_entity.dart';
-import '../../../../models/add_wallet_list_entity/sub_classes/sol_token_entity.dart';
-import '../../../../models/isar/exchange_cache/currency.dart';
 import '../../../../providers/providers.dart';
-import '../../../../services/exchange/change_now/change_now_exchange.dart';
-import '../../../../services/exchange/exchange_data_loading_service.dart';
 import '../../../../themes/coin_icon_provider.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
-import '../../../../widgets/app_icon.dart';
 
 class CoinSelectItem extends ConsumerStatefulWidget {
   const CoinSelectItem({super.key, required this.entity});
@@ -40,69 +33,6 @@ class CoinSelectItem extends ConsumerStatefulWidget {
 }
 
 class _CoinSelectItemState extends ConsumerState<CoinSelectItem> {
-  String? tokenImageUri;
-
-  @override
-  void initState() {
-    super.initState();
-
-    if (widget.entity is EthTokenEntity) {
-      ExchangeDataLoadingService.instance.isar.then((isar) async {
-        final currency = await isar.currencies
-            .where()
-            .exchangeNameEqualTo(ChangeNowExchange.exchangeName)
-            .filter()
-            .tokenContractEqualTo(
-              (widget.entity as EthTokenEntity).token.address,
-              caseSensitive: false,
-            )
-            .and()
-            .imageIsNotEmpty()
-            .findFirst();
-
-        if (mounted) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) {
-              setState(() {
-                tokenImageUri = currency?.image;
-              });
-            }
-          });
-        }
-      });
-    } else if (widget.entity is SolTokenEntity) {
-      final solToken = (widget.entity as SolTokenEntity).token;
-
-      ExchangeDataLoadingService.instance.isar.then((isar) async {
-        final currency = await isar.currencies
-            .where()
-            .exchangeNameEqualTo(ChangeNowExchange.exchangeName)
-            .filter()
-            .tokenContractEqualTo(solToken.address, caseSensitive: false)
-            .and()
-            .imageIsNotEmpty()
-            .findFirst();
-
-        if (mounted) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) {
-              setState(() {
-                // Use exchange cache image if available,
-                // otherwise use logoUri if it's a PNG.
-                String? fallbackUri;
-                if (solToken.logoUri != null &&
-                    solToken.logoUri!.endsWith('.png')) {
-                  fallbackUri = solToken.logoUri;
-                }
-                tokenImageUri = currency?.image ?? fallbackUri;
-              });
-            }
-          });
-        }
-      });
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: CoinSelectItem for ${widget.entity.name}");
@@ -137,40 +67,11 @@ class _CoinSelectItemState extends ConsumerState<CoinSelectItem> {
           constraints: BoxConstraints(minHeight: isDesktop ? 70 : 0),
           child: Row(
             children: [
-              tokenImageUri != null
-                  ? tokenImageUri!.toLowerCase().endsWith(".svg")
-                        ? SvgPicture.network(
-                            tokenImageUri!,
-                            width: 26,
-                            height: 26,
-                            placeholderBuilder: (_) =>
-                                const AppIcon(width: 26, height: 26),
-                          )
-                        : Image.network(
-                            tokenImageUri!,
-                            width: 26,
-                            height: 26,
-                            errorBuilder: (_, _, _) => SvgPicture.file(
-                              File(
-                                ref.watch(
-                                  coinIconProvider(
-                                    widget.entity.cryptoCurrency,
-                                  ),
-                                ),
-                              ),
-                              width: 26,
-                              height: 26,
-                            ),
-                          )
-                  : SvgPicture.file(
-                      File(
-                        ref.watch(
-                          coinIconProvider(widget.entity.cryptoCurrency),
-                        ),
-                      ),
-                      width: 26,
-                      height: 26,
-                    ),
+              SvgPicture.file(
+                File(ref.watch(coinIconProvider(widget.entity.cryptoCurrency))),
+                width: 26,
+                height: 26,
+              ),
               SizedBox(width: isDesktop ? 12 : 10),
               Text(
                 "${widget.entity.name} (${widget.entity.ticker})",
@@ -187,9 +88,9 @@ class _CoinSelectItemState extends ConsumerState<CoinSelectItem> {
                     height: 24,
                     child: SvgPicture.asset(
                       Assets.svg.check,
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.accentColorDark,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
                     ),
                   ),
                 ),

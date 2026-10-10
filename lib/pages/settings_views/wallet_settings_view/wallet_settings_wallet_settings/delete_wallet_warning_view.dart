@@ -16,7 +16,6 @@ import '../../../../models/keys/view_only_wallet_data.dart';
 import '../../../../providers/providers.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/text_styles.dart';
-import '../../../../wallets/wallet/impl/bitcoin_frost_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../../../widgets/background.dart';
@@ -59,10 +58,9 @@ class DeleteWalletWarningView extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
                 RoundedContainer(
-                  color:
-                      Theme.of(
-                        context,
-                      ).extension<StackColors>()!.warningBackground,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .warningBackground,
                   child: Text(
                     "You are going to permanently delete your wallet.\n\n"
                     "If you delete your wallet, the only way you can have access"
@@ -70,10 +68,9 @@ class DeleteWalletWarningView extends ConsumerWidget {
                     "${AppConfig.appName} does not keep nor is able to restore "
                     "your backup key or your wallet.\n\nPLEASE SAVE YOUR BACKUP KEY.",
                     style: STextStyles.baseXS(context).copyWith(
-                      color:
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.warningForeground,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .warningForeground,
                     ),
                   ),
                 ),
@@ -88,10 +85,9 @@ class DeleteWalletWarningView extends ConsumerWidget {
                   child: Text(
                     "Cancel",
                     style: STextStyles.button(context).copyWith(
-                      color:
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.accentColorDark,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
                     ),
                   ),
                 ),
@@ -106,43 +102,13 @@ class DeleteWalletWarningView extends ConsumerWidget {
                     // TODO: [prio=med] take wallets that don't have a mnemonic into account
 
                     List<String>? mnemonic;
-                    ({
-                      String myName,
-                      String config,
-                      String keys,
-                      ({String config, String keys})? prevGen,
-                    })?
-                    frostWalletData;
                     ViewOnlyWalletData? viewOnlyData;
 
-                    if (wallet is BitcoinFrostWallet) {
-                      final futures = [
-                        wallet.getSerializedKeys(),
-                        wallet.getMultisigConfig(),
-                        wallet.getSerializedKeysPrevGen(),
-                        wallet.getMultisigConfigPrevGen(),
-                      ];
-
-                      final results = await Future.wait(futures);
-
-                      if (results.length == 4) {
-                        frostWalletData = (
-                          myName: wallet.frostInfo.myName,
-                          config: results[1]!,
-                          keys: results[0]!,
-                          prevGen:
-                              results[2] == null || results[3] == null
-                                  ? null
-                                  : (config: results[3]!, keys: results[2]!),
-                        );
-                      }
-                    } else {
-                      if (wallet is ViewOnlyOptionInterface &&
-                          wallet.isViewOnly) {
-                        viewOnlyData = await wallet.getViewOnlyWalletData();
-                      } else if (wallet is MnemonicInterface) {
-                        mnemonic = await wallet.getMnemonicAsWords();
-                      }
+                    if (wallet is ViewOnlyOptionInterface &&
+                        wallet.isViewOnly) {
+                      viewOnlyData = await wallet.getViewOnlyWalletData();
+                    } else if (wallet is MnemonicInterface) {
+                      mnemonic = await wallet.getMnemonicAsWords();
                     }
                     if (context.mounted) {
                       if (viewOnlyData != null) {
@@ -156,7 +122,6 @@ class DeleteWalletWarningView extends ConsumerWidget {
                           arguments: (
                             walletId: walletId,
                             mnemonicWords: mnemonic ?? [],
-                            frostWalletData: frostWalletData,
                           ),
                         );
                       }

@@ -1,11 +1,11 @@
 import 'package:mockito/annotations.dart';
-import 'package:stackwallet/db/isar/main_db.dart';
-import 'package:stackwallet/models/isar/stack_theme.dart';
-import 'package:stackwallet/services/locale_service.dart';
-import 'package:stackwallet/services/price_service.dart';
-import 'package:stackwallet/services/wallets.dart';
-import 'package:stackwallet/themes/theme_service.dart';
-import 'package:stackwallet/utilities/prefs.dart';
+import 'package:paymint/db/isar/main_db.dart';
+import 'package:paymint/models/isar/stack_theme.dart';
+import 'package:paymint/services/locale_service.dart';
+import 'package:paymint/services/price_service.dart';
+import 'package:paymint/services/wallets.dart';
+import 'package:paymint/themes/theme_service.dart';
+import 'package:paymint/utilities/prefs.dart';
 
 @GenerateMocks([
   Wallets,

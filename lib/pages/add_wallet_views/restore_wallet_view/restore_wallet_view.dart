@@ -10,7 +10,6 @@
 
 import 'dart:async';
 import 'dart:collection';
-import 'dart:convert';
 import 'dart:io';
 import 'dart:math';
 
@@ -40,16 +39,8 @@ import '../../../utilities/logger.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
-import '../../../wallets/crypto_currency/coins/ethereum.dart';
-import '../../../wallets/crypto_currency/coins/solana.dart';
 import '../../../wallets/isar/models/wallet_info.dart';
-import '../../../wallets/wallet/impl/epiccash_wallet.dart';
-import '../../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
-import '../../../wallets/wallet/impl/xelis_wallet.dart';
-import '../../../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import '../../../wallets/wallet/intermediate/external_wallet.dart';
-import '../../../wallets/wallet/supporting/epiccash_wallet_info_extension.dart';
-import '../../../wallets/wallet/supporting/mimblewimblecoin_wallet_info_extension.dart';
 import '../../../wallets/wallet/wallet.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/desktop/desktop_app_bar.dart';
@@ -60,13 +51,7 @@ import '../../../widgets/icon_widgets/qrcode_icon.dart';
 import '../../../widgets/table_view/table_view.dart';
 import '../../../widgets/table_view/table_view_cell.dart';
 import '../../../widgets/table_view/table_view_row.dart';
-import '../../../wl_gen/interfaces/cs_monero_interface.dart';
-import '../../../wl_gen/interfaces/cs_wownero_interface.dart';
-import '../../../wl_gen/interfaces/lib_xelis_interface.dart';
 import '../../home_view/home_view.dart';
-import '../add_token_view/edit_wallet_tokens_view.dart';
-import '../select_wallet_for_token_view.dart';
-import '../verify_recovery_phrase_view/verify_recovery_phrase_view.dart';
 import 'confirm_recovery_dialog.dart';
 import 'sub_widgets/restore_failed_dialog.dart';
 import 'sub_widgets/restore_succeeded_dialog.dart';
@@ -175,32 +160,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
     super.dispose();
   }
 
-  // TODO: check for wownero wordlist?
-  bool _isValidMnemonicWord(String word) {
-    // TODO: get the actual language
-    if (widget.coin is Monero || widget.coin is Salvium) {
-      // Salvium use's Monero's wordlists.
-      switch (widget.seedWordsLength) {
-        case 25:
-          return csMonero.getMoneroWordList("English").contains(word);
-        case 16:
-          return Monero.sixteenWordsWordList.contains(word);
-        default:
-          return false;
-      }
-    }
-    if (widget.coin is Wownero) {
-      final wowneroWordList = csWownero.getWowneroWordList(
-        "English",
-        widget.seedWordsLength,
-      );
-      return wowneroWordList.contains(word);
-    }
-    if (widget.coin is Xelis) {
-      return libXelis.validateSeedWord(word);
-    }
-    return _wordListHashSet.contains(word);
-  }
+  bool _isValidMnemonicWord(String word) => _wordListHashSet.contains(word);
 
   OutlineInputBorder _buildOutlineInputBorder(Color color) {
     return OutlineInputBorder(
@@ -219,60 +179,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
       }
       mnemonic = mnemonic.trim();
 
-      int height = widget.restoreBlockHeight;
-      String? otherDataJsonString;
-
-      // TODO: make more robust estimate of date maybe using https://explorer.epic.tech/api-index
-      if (widget.coin is Epiccash) {
-        otherDataJsonString = jsonEncode({
-          WalletInfoKeys.epiccashData: jsonEncode(
-            ExtraEpiccashWalletInfo(
-              receivingIndex: 0,
-              changeIndex: 0,
-              slatesToAddresses: {},
-              slatesToCommits: {},
-              lastScannedBlock: height,
-              restoreHeight: height,
-              creationHeight: height,
-            ).toMap(),
-          ),
-        });
-      } else if (widget.coin is Mimblewimblecoin) {
-        // final int secondsSinceEpoch =
-        //     widget.restoreFromDate!.millisecondsSinceEpoch ~/ 1000;
-        final int secondsSinceEpoch =
-            DateTime.now().millisecondsSinceEpoch ~/ 1000;
-        const int mimblewimblecoinFirstBlock = 1573462801;
-        const double overestimateSecondsPerBlock = 61;
-        final int chosenSeconds =
-            secondsSinceEpoch - mimblewimblecoinFirstBlock;
-        final int approximateHeight =
-            chosenSeconds ~/ overestimateSecondsPerBlock;
-        height = approximateHeight;
-        if (height < 0) {
-          height = 0;
-        }
-        otherDataJsonString = jsonEncode({
-          WalletInfoKeys.mimblewimblecoinData: jsonEncode(
-            ExtraMimblewimblecoinWalletInfo(
-              receivingIndex: 0,
-              changeIndex: 0,
-              slatesToAddresses: {},
-              slatesToCommits: {},
-              lastScannedBlock: height,
-              restoreHeight: height,
-              creationHeight: height,
-            ).toMap(),
-          ),
-        });
-      }
-
-      // TODO: do actual check to make sure it is a valid mnemonic for monero + xelis
-      if (bip39.validateMnemonic(mnemonic) == false &&
-          !(widget.coin is Monero ||
-              widget.coin is Wownero ||
-              widget.coin is Salvium ||
-              widget.coin is Xelis)) {
+      if (bip39.validateMnemonic(mnemonic) == false) {
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.warning,
@@ -286,8 +193,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
         final info = WalletInfo.createNew(
           coin: widget.coin,
           name: widget.walletName,
-          restoreHeight: height,
-          otherDataJsonString: otherDataJsonString,
+          restoreHeight: widget.restoreBlockHeight,
         );
 
         bool isRestoring = true;
@@ -342,27 +248,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
             mnemonic: mnemonic,
           );
 
-          // TODO: extract interface with isRestore param
-          switch (wallet) {
-            case EpiccashWallet():
-              await wallet.init(isRestore: true);
-              break;
-
-            case MimblewimblecoinWallet():
-              await wallet.init(isRestore: true);
-              break;
-
-            case CryptonoteWallet():
-              await wallet.init(isRestore: true);
-              break;
-
-            case XelisWallet():
-              await wallet.init(isRestore: true);
-              break;
-
-            default:
-              await wallet.init();
-          }
+          await wallet.init();
           await wallet.recover(isRescan: false);
 
           if (wallet is ExternalWallet) {
@@ -384,45 +270,17 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
 
             ref.read(pWallets).addWallet(wallet);
 
-            final isCreateSpecialEthWallet = ref.read(
-              createSpecialEthWalletRoutingFlag,
-            );
-            if (isCreateSpecialEthWallet) {
-              ref.read(createSpecialEthWalletRoutingFlag.notifier).state =
-                  false;
-              ref
-                  .read(newEthWalletTriggerTempUntilHiveCompletelyDeleted.state)
-                  .state = !ref
-                  .read(newEthWalletTriggerTempUntilHiveCompletelyDeleted.state)
-                  .state;
-            }
-
             if (mounted) {
               if (isDesktop) {
-                Navigator.of(
-                  context,
-                ).popUntil(ModalRoute.withName(DesktopHomeView.routeName));
+                Navigator.of(context)
+                    .popUntil(ModalRoute.withName(DesktopHomeView.routeName));
               } else {
-                if (isCreateSpecialEthWallet) {
-                  Navigator.of(context).popUntil(
-                    ModalRoute.withName(SelectWalletForTokenView.routeName),
-                  );
-                } else {
-                  unawaited(
-                    Navigator.of(context).pushNamedAndRemoveUntil(
-                      HomeView.routeName,
-                      (route) => false,
-                    ),
-                  );
-                  if (info.coin is Ethereum || info.coin is Solana) {
-                    unawaited(
-                      Navigator.of(context).pushNamed(
-                        EditWalletTokensView.routeName,
-                        arguments: wallet.walletId,
-                      ),
-                    );
-                  }
-                }
+                unawaited(
+                  Navigator.of(context).pushNamedAndRemoveUntil(
+                    HomeView.routeName,
+                    (route) => false,
+                  ),
+                );
               }
 
               await showDialog<dynamic>(
@@ -493,42 +351,42 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
       case FormInputStatus.empty:
         color = Theme.of(context).extension<StackColors>()!.textFieldDefaultBG;
         prefixColor = Theme.of(context).extension<StackColors>()!.textSubtitle2;
-        borderColor = Theme.of(
-          context,
-        ).extension<StackColors>()!.textFieldDefaultBG;
+        borderColor = Theme.of(context)
+            .extension<StackColors>()!
+            .textFieldDefaultBG;
         break;
       case FormInputStatus.invalid:
         color = Theme.of(context).extension<StackColors>()!.textFieldErrorBG;
-        prefixColor = Theme.of(
-          context,
-        ).extension<StackColors>()!.textFieldErrorSearchIconLeft;
-        borderColor = Theme.of(
-          context,
-        ).extension<StackColors>()!.textFieldErrorBorder;
+        prefixColor = Theme.of(context)
+            .extension<StackColors>()!
+            .textFieldErrorSearchIconLeft;
+        borderColor = Theme.of(context)
+            .extension<StackColors>()!
+            .textFieldErrorBorder;
         suffixIcon = SvgPicture.asset(
           Assets.svg.alertCircle,
           width: 16,
           height: 16,
-          color: Theme.of(
-            context,
-          ).extension<StackColors>()!.textFieldErrorSearchIconRight,
+          color: Theme.of(context)
+              .extension<StackColors>()!
+              .textFieldErrorSearchIconRight,
         );
         break;
       case FormInputStatus.valid:
         color = Theme.of(context).extension<StackColors>()!.textFieldSuccessBG;
-        prefixColor = Theme.of(
-          context,
-        ).extension<StackColors>()!.textFieldSuccessSearchIconLeft;
-        borderColor = Theme.of(
-          context,
-        ).extension<StackColors>()!.textFieldSuccessBorder;
+        prefixColor = Theme.of(context)
+            .extension<StackColors>()!
+            .textFieldSuccessSearchIconLeft;
+        borderColor = Theme.of(context)
+            .extension<StackColors>()!
+            .textFieldSuccessBorder;
         suffixIcon = SvgPicture.asset(
           Assets.svg.checkCircle,
           width: 16,
           height: 16,
-          color: Theme.of(
-            context,
-          ).extension<StackColors>()!.textFieldSuccessSearchIconRight,
+          color: Theme.of(context)
+              .extension<StackColors>()!
+              .textFieldSuccessSearchIconRight,
         );
         break;
     }
@@ -717,20 +575,19 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                   child: AspectRatio(
                     aspectRatio: 1,
                     child: AppBarIconButton(
-                      semanticsLabel:
-                          "View QR Code Button. Opens Camera To Scan QR Code For Restoring Wallet.",
+                      semanticsLabel: "View QR Code Button. Opens Camera To Scan QR Code For Restoring Wallet.",
                       key: const Key("restoreWalletViewQrCodeButton"),
                       size: 36,
                       shadows: const [],
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.background,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .background,
                       icon: QrCodeIcon(
                         width: 20,
                         height: 20,
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.accentColorDark,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark,
                       ),
                       onPressed: scanMnemonicQr,
                     ),
@@ -745,20 +602,19 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                   child: AspectRatio(
                     aspectRatio: 1,
                     child: AppBarIconButton(
-                      semanticsLabel:
-                          "Paste Button. Pastes From Clipboard For Restoring Wallet.",
+                      semanticsLabel: "Paste Button. Pastes From Clipboard For Restoring Wallet.",
                       key: const Key("restoreWalletPasteButton"),
                       size: 36,
                       shadows: const [],
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.background,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .background,
                       icon: ClipboardIcon(
                         width: 20,
                         height: 20,
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.accentColorDark,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark,
                       ),
                       onPressed: pasteMnemonic,
                     ),
@@ -815,9 +671,9 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                 Assets.svg.clipboard,
                                 width: 22,
                                 height: 22,
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.buttonTextSecondary,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .buttonTextSecondary,
                               ),
                               const SizedBox(width: 8),
                               Text(
@@ -1198,9 +1054,9 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                     },
                                     controller: _controllers[i - 1],
                                     style: STextStyles.field(context).copyWith(
-                                      color: Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.textRestore,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textRestore,
                                       fontSize: isDesktop ? 16 : 14,
                                     ),
                                   ),

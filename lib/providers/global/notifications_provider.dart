@@ -9,7 +9,16 @@
  */
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../services/notifications_service.dart';
 
-final notificationsProvider =
-    ChangeNotifierProvider((_) => NotificationsService.instance);
+final notificationsProvider = ChangeNotifierProvider(
+  (_) => NotificationsService.instance,
+);
+
+/// True when the global notifications bell should light.
+final pAnyGlobalUnreadNotifications = Provider.autoDispose<bool>((ref) {
+  return ref.watch(
+    notificationsProvider.select((value) => value.hasUnreadNotifications),
+  );
+});

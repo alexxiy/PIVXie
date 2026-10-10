@@ -6,8 +6,6 @@ import 'package:mutex/mutex.dart';
 
 import '../../db/isar/main_db.dart';
 import '../../models/isar/models/blockchain_data/address.dart';
-import '../../models/isar/models/ethereum/eth_contract.dart';
-import '../../models/isar/models/solana/sol_contract.dart';
 import '../../models/keys/view_only_wallet_data.dart';
 import '../../models/node_model.dart';
 import '../../models/paymint/fee_object_model.dart';
@@ -21,46 +19,14 @@ import '../../utilities/constants.dart';
 import '../../utilities/enums/sync_type_enum.dart';
 import '../../utilities/flutter_secure_storage_interface.dart';
 import '../../utilities/logger.dart';
-import '../../utilities/paynym_is_api.dart';
 import '../../utilities/prefs.dart';
 import '../crypto_currency/crypto_currency.dart';
 import '../isar/models/wallet_info.dart';
 import '../models/tx_data.dart';
-import 'impl/banano_wallet.dart';
-import 'impl/bitcoin_frost_wallet.dart';
-import 'impl/bitcoin_wallet.dart';
-import 'impl/bitcoincash_wallet.dart';
-import 'impl/cardano_wallet.dart';
-import 'impl/dash_wallet.dart';
-import 'impl/dogecoin_wallet.dart';
-import 'impl/ecash_wallet.dart';
-import 'impl/epiccash_wallet.dart';
-import 'impl/ethereum_wallet.dart';
-import 'impl/fact0rn_wallet.dart';
-import 'impl/firo_wallet.dart';
-import 'impl/litecoin_wallet.dart';
-import 'impl/mimblewimblecoin_wallet.dart';
-import 'impl/monero_wallet.dart';
-import 'impl/namecoin_wallet.dart';
-import 'impl/nano_wallet.dart';
-import 'impl/particl_wallet.dart';
-import 'impl/peercoin_wallet.dart';
 import 'impl/pivx_wallet.dart';
-import 'impl/salvium_wallet.dart';
-import 'impl/solana_wallet.dart';
-import 'impl/stellar_wallet.dart';
-import 'impl/sub_wallets/eth_token_wallet.dart';
-import 'impl/sub_wallets/solana_token_wallet.dart';
-import 'impl/tezos_wallet.dart';
-import 'impl/wownero_wallet.dart';
-import 'impl/xelis_wallet.dart';
-import 'intermediate/cryptonote_wallet.dart';
-import 'wallet_mixin_interfaces/electrumx_interface.dart';
 import 'wallet_mixin_interfaces/mnemonic_interface.dart';
 import 'wallet_mixin_interfaces/multi_address_interface.dart';
-import 'wallet_mixin_interfaces/paynym_interface.dart';
 import 'wallet_mixin_interfaces/private_key_interface.dart';
-import 'wallet_mixin_interfaces/spark_interface.dart';
 import 'wallet_mixin_interfaces/view_only_option_interface.dart';
 
 abstract class Wallet<T extends CryptoCurrency> {
@@ -174,50 +140,17 @@ abstract class Wallet<T extends CryptoCurrency> {
         value: viewOnlyData!.toJsonEncodedString(),
       );
     } else if (wallet is MnemonicInterface) {
-      if (wallet is CryptonoteWallet || wallet is XelisWallet) {
-        //
-        // currently a special case due to the xmr/wow/xelis libraries handling their
-        // own mnemonic generation on new wallet creation
-        // if its a restore we must set them
-        if (mnemonic != null) {
-          if ((await secureStorageInterface.read(
-                key: mnemonicKey(walletId: walletInfo.walletId),
-              )) ==
-              null) {
-            await secureStorageInterface.write(
-              key: mnemonicKey(walletId: walletInfo.walletId),
-              value: mnemonic,
-            );
-          }
-
-          if (mnemonicPassphrase != null) {
-            if ((await secureStorageInterface.read(
-                  key: mnemonicPassphraseKey(walletId: walletInfo.walletId),
-                )) ==
-                null) {
-              await secureStorageInterface.write(
-                key: mnemonicPassphraseKey(walletId: walletInfo.walletId),
-                value: mnemonicPassphrase,
-              );
-            }
-          }
-        }
-      } else {
-        await secureStorageInterface.write(
-          key: mnemonicKey(walletId: walletInfo.walletId),
-          value: mnemonic!,
-        );
-        await secureStorageInterface.write(
-          key: mnemonicPassphraseKey(walletId: walletInfo.walletId),
-          value: mnemonicPassphrase!,
-        );
-      }
+      await secureStorageInterface.write(
+        key: mnemonicKey(walletId: walletInfo.walletId),
+        value: mnemonic!,
+      );
+      await secureStorageInterface.write(
+        key: mnemonicPassphraseKey(walletId: walletInfo.walletId),
+        value: mnemonicPassphrase!,
+      );
     }
 
-    // TODO [prio=low] handle eth differently?
-    // This would need to be changed if we actually end up allowing eth wallets
-    // to be created with a private key instead of mnemonic only
-    if (wallet is PrivateKeyInterface && wallet is! EthereumWallet) {
+    if (wallet is PrivateKeyInterface) {
       await secureStorageInterface.write(
         key: privateKeyKey(walletId: walletInfo.walletId),
         value: privateKey!,
@@ -228,13 +161,6 @@ abstract class Wallet<T extends CryptoCurrency> {
     await wallet.mainDB.isar.writeTxn(() async {
       await wallet.mainDB.isar.walletInfo.put(walletInfo);
     });
-
-    if (wallet is SparkInterface) {
-      await walletInfo.updateOtherData(
-        newEntries: {WalletInfoKeys.firoSparkUsedTagsCacheResetVersion: 1},
-        isar: mainDB.isar,
-      );
-    }
 
     return wallet;
   }
@@ -274,35 +200,6 @@ abstract class Wallet<T extends CryptoCurrency> {
     );
   }
 
-  // TODO: [prio=low] refactor to more generalized token rather than eth specific
-  static Wallet loadTokenWallet({
-    required EthereumWallet ethWallet,
-    required EthContract contract,
-  }) {
-    final Wallet wallet = EthTokenWallet(ethWallet, contract);
-
-    wallet.prefs = ethWallet.prefs;
-    wallet.nodeService = ethWallet.nodeService;
-    wallet.secureStorageInterface = ethWallet.secureStorageInterface;
-    wallet.mainDB = ethWallet.mainDB;
-
-    return wallet.._walletId = ethWallet.info.walletId;
-  }
-
-  static Wallet loadSolTokenWallet({
-    required SolanaWallet solWallet,
-    required SolContract contract,
-  }) {
-    final Wallet wallet = SolanaTokenWallet(solWallet, contract);
-
-    wallet.prefs = solWallet.prefs;
-    wallet.nodeService = solWallet.nodeService;
-    wallet.secureStorageInterface = solWallet.secureStorageInterface;
-    wallet.mainDB = solWallet.mainDB;
-
-    return wallet.._walletId = solWallet.info.walletId;
-  }
-
   //============================================================================
   // ========== Static Util ====================================================
 
@@ -338,11 +235,6 @@ abstract class Wallet<T extends CryptoCurrency> {
     wallet.prefs = prefs;
     wallet.nodeService = nodeService;
 
-    if (wallet is ElectrumXInterface || wallet is BitcoinFrostWallet) {
-      // initialize electrumx instance
-      await wallet.updateNode();
-    }
-
     return wallet
       ..secureStorageInterface = secureStorageInterface
       ..mainDB = mainDB
@@ -352,83 +244,8 @@ abstract class Wallet<T extends CryptoCurrency> {
   static Wallet _loadWallet({required WalletInfo walletInfo}) {
     final net = walletInfo.coin.network;
     switch (walletInfo.coin.runtimeType) {
-      case const (Banano):
-        return BananoWallet(net);
-
-      case const (Bitcoin):
-        return BitcoinWallet(net);
-
-      case const (BitcoinFrost):
-        return BitcoinFrostWallet(net);
-
-      case const (Bitcoincash):
-        return BitcoincashWallet(net);
-
-      case const (Cardano):
-        return CardanoWallet(net);
-
-      case const (Dash):
-        return DashWallet(net);
-
-      case const (Dogecoin):
-        return DogecoinWallet(net);
-
-      case const (Ecash):
-        return EcashWallet(net);
-
-      case const (Epiccash):
-        return EpiccashWallet(net);
-
-      case const (Mimblewimblecoin):
-        return MimblewimblecoinWallet(net);
-
-      case const (Ethereum):
-        return EthereumWallet(net);
-
-      case const (Fact0rn):
-        return Fact0rnWallet(net);
-
-      case const (Firo):
-        return FiroWallet(net);
-
-      case const (Litecoin):
-        return LitecoinWallet(net);
-
-      case const (Monero):
-        return MoneroWallet(net);
-
-      case const (Namecoin):
-        return NamecoinWallet(net);
-
-      case const (Nano):
-        return NanoWallet(net);
-
-      case const (Particl):
-        return ParticlWallet(net);
-
-      case const (Peercoin):
-        return PeercoinWallet(net);
-
       case const (Pivx):
         return PivxWallet(net);
-
-      case const (Salvium):
-        return SalviumWallet(net);
-
-      case const (Solana):
-        return SolanaWallet(net);
-
-      case const (Stellar):
-        return StellarWallet(net);
-
-      case const (Tezos):
-        return TezosWallet(net);
-
-      case const (Wownero):
-        return WowneroWallet(net);
-
-      case const (Xelis):
-        return XelisWallet(net);
 
       default:
         // should never hit in reality
@@ -561,19 +378,20 @@ abstract class Wallet<T extends CryptoCurrency> {
           );
         }
         if (shouldAutoSync) {
-          _periodicRefreshTimer ??= Timer.periodic(const Duration(seconds: 150), (
-            timer,
-          ) async {
-            // chain height check currently broken
-            // if ((await chainHeight) != (await storedChainHeight)) {
+          _periodicRefreshTimer ??= Timer.periodic(
+            const Duration(seconds: 150),
+            (timer) async {
+              // chain height check currently broken
+              // if ((await chainHeight) != (await storedChainHeight)) {
 
-            // TODO: [prio=med] some kind of quick check if wallet needs to refresh to replace the old refreshIfThereIsNewData call
-            // if (await refreshIfThereIsNewData()) {
-            unawaited(refresh());
+              // TODO: [prio=med] some kind of quick check if wallet needs to refresh to replace the old refreshIfThereIsNewData call
+              // if (await refreshIfThereIsNewData()) {
+              unawaited(refresh());
 
-            // }
-            // }
-          });
+              // }
+              // }
+            },
+          );
         }
       },
       onError: (Object e, StackTrace s) {
@@ -607,9 +425,6 @@ abstract class Wallet<T extends CryptoCurrency> {
   }
 
   void _fireRefreshPercentChange(double percent) {
-    if (this is ElectrumXInterface) {
-      (this as ElectrumXInterface?)?.refreshingPercent = percent;
-    }
     if (!doNotFireRefreshEvents) {
       GlobalEventBus.instance.fire(
         RefreshPercentChangedEvent(percent, walletId),
@@ -625,10 +440,6 @@ abstract class Wallet<T extends CryptoCurrency> {
       return;
     }
     final start = DateTime.now();
-
-    final viewOnly =
-        this is ViewOnlyOptionInterface &&
-        (this as ViewOnlyOptionInterface).isViewOnly;
 
     try {
       // this acquire should be almost instant due to above check.
@@ -650,31 +461,8 @@ abstract class Wallet<T extends CryptoCurrency> {
       // debugging feature
       await Future<void>.delayed(const Duration(milliseconds: 300));
 
-      // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
-      final Set<String> codesToCheck = {};
-      if (this is PaynymInterface && !viewOnly) {
-        // isSegwit does not matter here at all
-        final myCode = await (this as PaynymInterface).getPaymentCode(
-          isSegwit: false,
-        );
-
-        final nym = await PaynymIsApi().nym(myCode.toString());
-        if (nym.value != null) {
-          for (final follower in nym.value!.followers) {
-            codesToCheck.add(follower.code);
-          }
-          for (final following in nym.value!.following) {
-            codesToCheck.add(following.code);
-          }
-        }
-      }
-
       _fireRefreshPercentChange(0);
       await updateChainHeight();
-
-      if (this is BitcoinFrostWallet) {
-        await (this as BitcoinFrostWallet).lookAhead();
-      }
 
       _fireRefreshPercentChange(0.1);
 
@@ -696,35 +484,14 @@ abstract class Wallet<T extends CryptoCurrency> {
         }
       }
       _fireRefreshPercentChange(0.3);
-      if (this is SparkInterface && !viewOnly) {
-        // this should be called before updateTransactions()
-        await (this as SparkInterface).refreshSparkData((0.3, 0.6));
-      }
+      final fetchFuture = updateTransactions();
+      _fireRefreshPercentChange(0.6);
+      final utxosRefreshFuture = updateUTXOs();
+      _fireRefreshPercentChange(0.65);
+      await utxosRefreshFuture;
+      _fireRefreshPercentChange(0.70);
+      await fetchFuture;
 
-      if (this is NamecoinWallet) {
-        await updateUTXOs();
-        _fireRefreshPercentChange(0.6);
-        await (this as NamecoinWallet).checkAutoRegisterNameNewOutputs();
-        _fireRefreshPercentChange(0.70);
-        await updateTransactions();
-      } else {
-        final fetchFuture = updateTransactions();
-        _fireRefreshPercentChange(0.6);
-        final utxosRefreshFuture = updateUTXOs();
-        _fireRefreshPercentChange(0.65);
-        await utxosRefreshFuture;
-        _fireRefreshPercentChange(0.70);
-        await fetchFuture;
-      }
-
-      // TODO: [prio=low] handle this differently. Extra modification of this file for coin specific functionality should be avoided.
-      if (!viewOnly && this is PaynymInterface && codesToCheck.isNotEmpty) {
-        await (this as PaynymInterface).checkForNotificationTransactionsTo(
-          codesToCheck,
-        );
-        // check utxos again for notification outputs
-        await updateUTXOs();
-      }
       _fireRefreshPercentChange(0.80);
 
       // await getAllTxsToWatch();

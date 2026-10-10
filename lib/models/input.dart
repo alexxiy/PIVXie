@@ -10,7 +10,6 @@
 
 import 'package:coinlib_flutter/coinlib_flutter.dart';
 
-import '../db/drift/database.dart';
 import '../utilities/enums/derive_path_type_enum.dart';
 import 'isar/models/isar_models.dart';
 
@@ -76,38 +75,4 @@ class StandardInput extends BaseInput {
 
   @override
   int get hashCode => Object.hashAll([utxo.walletId, utxo.txid, utxo.vout]);
-}
-
-class MwebInput extends BaseInput {
-  MwebInput(MwebUtxo super.utxo);
-
-  MwebUtxo get utxo => _utxo as MwebUtxo;
-
-  @override
-  String get id => utxo.outputId;
-
-  @override
-  String get address => utxo.address;
-
-  @override
-  BigInt get value => BigInt.from(utxo.value);
-
-  @override
-  int? get blockTime => utxo.blockTime < 1 ? null : utxo.blockTime;
-
-  @override
-  String toString() {
-    return "MwebInput{\n"
-        "  utxo: $utxo,\n"
-        "  key: $key,\n"
-        "}";
-  }
-
-  @override
-  bool operator ==(Object other) {
-    return other is MwebInput && other.utxo == utxo;
-  }
-
-  @override
-  int get hashCode => Object.hashAll([utxo.hashCode]);
 }

@@ -11,70 +11,45 @@
 import 'dart:async';
 
 import 'package:decimal/decimal.dart';
-import 'package:dropdown_button2/dropdown_button2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
-import '../../../../models/epic_slatepack_models.dart';
-import '../../../../models/isar/models/blockchain_data/address.dart';
 import '../../../../models/isar/models/blockchain_data/utxo.dart';
 import '../../../../models/isar/models/contact_entry.dart';
-import '../../../../models/mwc_slatepack_models.dart';
-import '../../../../models/paynym/paynym_account_lite.dart';
 import '../../../../models/send_view_auto_fill_data.dart';
 import '../../../../pages/send_view/confirm_transaction_view.dart';
 import '../../../../pages/send_view/sub_widgets/building_transaction_dialog.dart';
-import '../../../../pages/send_view/sub_widgets/epic_slatepack_dialog.dart';
-import '../../../../pages/send_view/sub_widgets/mwc_slatepack_dialog.dart';
 import '../../../../pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
 import '../../../../providers/providers.dart';
 import '../../../../providers/ui/fee_rate_type_state_provider.dart';
 import '../../../../providers/ui/preview_tx_button_state_provider.dart';
 import '../../../../providers/wallet/desktop_fee_providers.dart';
-import '../../../../providers/wallet/public_private_balance_state_provider.dart';
-import '../../../../services/spark_names_service.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/address_utils.dart';
 import '../../../../utilities/amount/amount.dart';
 import '../../../../utilities/amount/amount_formatter.dart';
 import '../../../../utilities/amount/amount_input_formatter.dart';
 import '../../../../utilities/amount/amount_unit.dart';
-import '../../../../utilities/assets.dart';
 import '../../../../utilities/clipboard_interface.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/logger.dart';
 import '../../../../utilities/prefs.dart';
-import '../../../../utilities/show_loading.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
-import '../../../../wallets/crypto_currency/intermediate/nano_currency.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/models/tx_data.dart';
-import '../../../../wallets/wallet/impl/epiccash_wallet.dart';
-import '../../../../wallets/wallet/impl/firo_wallet.dart';
-import '../../../../wallets/wallet/impl/mimblewimblecoin_wallet.dart';
-import '../../../../wallets/wallet/impl/salvium_wallet.dart';
-import '../../../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
-import '../../../../wallets/wallet/wallet_mixin_interfaces/mweb_interface.dart';
-import '../../../../wallets/wallet/wallet_mixin_interfaces/paynym_interface.dart';
-import '../../../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../../../widgets/custom_buttons/blue_text_button.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/desktop/qr_code_scanner_dialog.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
-import '../../../../widgets/dialogs/firo_exchange_address_dialog.dart';
-import '../../../../widgets/epic_txs_method_toggle.dart';
-import '../../../../widgets/eth_fee_form.dart';
 import '../../../../widgets/icon_widgets/addressbook_icon.dart';
 import '../../../../widgets/icon_widgets/clipboard_icon.dart';
 import '../../../../widgets/icon_widgets/qrcode_icon.dart';
 import '../../../../widgets/icon_widgets/x_icon.dart';
-import '../../../../widgets/mwc_txs_method_toggle.dart';
 import '../../../../widgets/rounded_container.dart';
 import '../../../../widgets/stack_text_field.dart';
 import '../../../../widgets/textfield_icon_button.dart';
@@ -89,14 +64,11 @@ class DesktopSend extends ConsumerStatefulWidget {
     required this.walletId,
     this.autoFillData,
     this.clipboard = const ClipboardWrapper(),
-
-    this.accountLite,
   });
 
   final String walletId;
   final SendViewAutoFillData? autoFillData;
   final ClipboardInterface clipboard;
-  final PaynymAccountLite? accountLite;
 
   @override
   ConsumerState<DesktopSend> createState() => _DesktopSendState();
@@ -121,28 +93,15 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   final _memoFocus = FocusNode();
   final _nonceFocusNode = FocusNode();
 
-  late final bool hasOptionalMemo;
-  late final bool isMimblewimblecoin;
-  late final bool isEpiccash;
-
   String? _note;
-  String? _onChainNote;
 
   Amount? _cachedAmountToSend;
   String? _address;
 
   bool _addressToggleFlag = false;
 
-  bool _isFiroExWarningDisplayed = false;
-
   bool _cryptoAmountChangeLock = false;
   late VoidCallback onCryptoAmountChanged;
-
-  bool get isPaynymSend => widget.accountLite != null;
-
-  bool isCustomFee = false;
-  int customFeeRate = 1;
-  EthEIP1559Fee? ethFee;
 
   Future<void> scanWebcam() async {
     try {
@@ -172,297 +131,17 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     }
   }
 
-  /// Handle MWC slatepack creation for desktop.
-  Future<void> _handleDesktopSlatepackCreation(
-    MimblewimblecoinWallet wallet,
-  ) async {
-    try {
-      final amount = ref.read(pSendAmount)!;
-
-      Future<SlatepackResult> wrappedFutureWithDelay() async {
-        await Future<void>.delayed(const Duration(seconds: 1));
-        return wallet.createSlatepack(
-          amount: amount,
-          recipientAddress: null, // No specific recipient for manual slatepack.
-          message: _onChainNote?.isNotEmpty == true ? _onChainNote : null,
-          encrypt: false, // No encryption without recipient address.
-        );
-      }
-
-      // Create slatepack.
-      Exception? ex;
-      final slatepackResult = await showLoading(
-        whileFuture: wrappedFutureWithDelay(),
-        context: context,
-        rootNavigator: true,
-        message: "Building slatepack...",
-        delay: const Duration(seconds: 2),
-        onException: (e) => ex = e,
-      );
-
-      if (slatepackResult == null ||
-          !slatepackResult.success ||
-          slatepackResult.slatepack == null ||
-          ex != null) {
-        String error =
-            ex?.toString() ??
-            slatepackResult?.error ??
-            'Failed to create slatepack';
-        if (error.startsWith("Exception:")) {
-          error = error.replaceFirst("Exception:", "").trim();
-        }
-        throw Exception(error);
-      }
-
-      // refresh asap to show the pending slate tx in history
-      unawaited(() async {
-        await Future<void>.delayed(Duration.zero);
-        await wallet.refresh();
-      }());
-
-      // Show slatepack dialog.
-      if (mounted) {
-        await showDialog<void>(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => DesktopDialog(
-            maxHeight: double.infinity,
-            maxWidth: 700,
-            child: MwcSlatepackDialog(slatepackResult: slatepackResult),
-          ),
-        );
-
-        // Clear form after slatepack dialog is closed.
-        clearSendForm();
-      }
-    } catch (e, s) {
-      Logging.instance.e(
-        'Failed to create MWC slatepack on desktop',
-        error: e,
-        stackTrace: s,
-      );
-
-      if (mounted) {
-        await showDialog<void>(
-          context: context,
-          builder: (context) => DesktopDialog(
-            maxWidth: 450,
-            maxHeight: double.infinity,
-            child: Padding(
-              padding: const EdgeInsets.only(left: 32, bottom: 32),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Slatepack Creation Failed',
-                        style: STextStyles.desktopH3(context),
-                      ),
-                      const DesktopDialogCloseButton(),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Padding(
-                    padding: const EdgeInsets.only(right: 32),
-                    child: Text(
-                      'Failed to create slatepack: $e',
-                      textAlign: TextAlign.left,
-                      style: STextStyles.desktopTextExtraExtraSmall(
-                        context,
-                      ).copyWith(fontSize: 18),
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-                  Padding(
-                    padding: const EdgeInsets.only(right: 32),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: PrimaryButton(
-                            buttonHeight: ButtonHeight.l,
-                            label: 'OK',
-                            onPressed: () => Navigator.of(context).pop(),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      }
-    }
-  }
-
-  /// Handle Epic Cash slate creation for desktop.
-  Future<void> _handleDesktopEpicSlatepackCreation(
-    EpiccashWallet wallet,
-  ) async {
-    try {
-      final amount = ref.read(pSendAmount)!;
-
-      Future<EpicSlatepackResult> wrappedFutureWithDelay() async {
-        await Future<void>.delayed(const Duration(seconds: 1));
-        return wallet.createSlatepack(
-          amount: amount,
-          recipientAddress: null, // No specific recipient for manual slatepack.
-          message: _onChainNote?.isNotEmpty == true ? _onChainNote : null,
-        );
-      }
-
-      // Create slatepack.
-      Exception? ex;
-      final slatepackResult = await showLoading(
-        whileFuture: wrappedFutureWithDelay(),
-        context: context,
-        rootNavigator: true,
-        message: "Building slate...",
-        delay: const Duration(seconds: 2),
-        onException: (e) => ex = e,
-      );
-
-      if (slatepackResult == null ||
-          !slatepackResult.success ||
-          slatepackResult.slatepack == null ||
-          ex != null) {
-        String error =
-            ex?.toString() ??
-            slatepackResult?.error ??
-            'Failed to create slate';
-        if (error.startsWith("Exception:")) {
-          error = error.replaceFirst("Exception:", "").trim();
-        }
-        throw Exception(error);
-      }
-
-      // refresh asap to show the pending slate tx in history
-      unawaited(() async {
-        await Future<void>.delayed(Duration.zero);
-        await wallet.refresh();
-      }());
-
-      // Show slatepack dialog.
-      if (mounted) {
-        await showDialog<void>(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => DesktopDialog(
-            maxHeight: double.infinity,
-            maxWidth: 700,
-            child: EpicSlatepackDialog(slatepackResult: slatepackResult),
-          ),
-        );
-
-        // Clear form after slatepack dialog is closed.
-        clearSendForm();
-      }
-    } catch (e, s) {
-      Logging.instance.e(
-        'Failed to create Epic Cash slate on desktop',
-        error: e,
-        stackTrace: s,
-      );
-
-      if (mounted) {
-        await showDialog<void>(
-          context: context,
-          builder: (context) => DesktopDialog(
-            maxWidth: 450,
-            maxHeight: double.infinity,
-            child: Padding(
-              padding: const EdgeInsets.only(left: 32, bottom: 32),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Slate Creation Failed',
-                        style: STextStyles.desktopH3(context),
-                      ),
-                      const DesktopDialogCloseButton(),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Padding(
-                    padding: const EdgeInsets.only(right: 32),
-                    child: Text(
-                      'Failed to create slate: $e',
-                      textAlign: TextAlign.left,
-                      style: STextStyles.desktopTextExtraExtraSmall(
-                        context,
-                      ).copyWith(fontSize: 18),
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-                  Padding(
-                    padding: const EdgeInsets.only(right: 32),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: PrimaryButton(
-                            buttonHeight: ButtonHeight.l,
-                            label: 'OK',
-                            onPressed: () => Navigator.of(context).pop(),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      }
-    }
-  }
-
   Future<void> previewSend() async {
     final wallet = ref.read(pWallets).getWallet(walletId);
 
-    // Handle MWC slatepack transactions directly.
-    if (isMimblewimblecoin && ref.read(pIsSlatepack(widget.walletId))) {
-      await _handleDesktopSlatepackCreation(wallet as MimblewimblecoinWallet);
-      return;
-    }
-
-    // Handle Epic Cash slatepack transactions directly.
-    if (isEpiccash && ref.read(pIsSlatepack(widget.walletId))) {
-      await _handleDesktopEpicSlatepackCreation(wallet as EpiccashWallet);
-      return;
-    }
-
     final Amount amount = ref.read(pSendAmount)!;
-    final Amount availableBalance;
-    if (coin is Firo || ref.read(pWalletInfo(walletId)).isMwebEnabled) {
-      switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
-        case BalanceType.public:
-          availableBalance = wallet.info.cachedBalance.spendable;
-          break;
-        case BalanceType.private:
-          availableBalance = coin is Firo
-              ? wallet.info.cachedBalanceTertiary.spendable
-              : wallet.info.cachedBalanceSecondary.spendable;
-          break;
-      }
-    } else {
-      availableBalance = wallet.info.cachedBalance.spendable;
-    }
+    final Amount availableBalance = wallet.info.cachedBalance.spendable;
 
     final coinControlEnabled = ref
         .read(prefsChangeNotifierProvider)
         .enableCoinControl;
 
-    if (!(wallet is CoinControlInterface &&
-            wallet is! SalviumWallet &&
-            coinControlEnabled) ||
-        (coinControlEnabled && ref.read(desktopUseUTXOs).isEmpty)) {
+    if (!coinControlEnabled || ref.read(desktopUseUTXOs).isEmpty) {
       // confirm send all
       if (amount == availableBalance) {
         final bool? shouldSendAll = await showDialog<bool>(
@@ -494,9 +173,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                       child: Text(
                         "You are about to send your entire balance. Would you like to continue?",
                         textAlign: TextAlign.left,
-                        style: STextStyles.desktopTextExtraExtraSmall(
-                          context,
-                        ).copyWith(fontSize: 18),
+                        style: STextStyles.desktopTextExtraExtraSmall(context)
+                            .copyWith(fontSize: 18),
                       ),
                     ),
                     const SizedBox(height: 40),
@@ -557,12 +235,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                   padding: const EdgeInsets.all(32),
                   child: BuildingTransactionDialog(
                     coin: wallet.info.coin,
-                    isSpark:
-                        wallet is FiroWallet &&
-                        ref
-                                .read(publicPrivateBalanceStateProvider.state)
-                                .state ==
-                            BalanceType.private,
                     onCancel: () {
                       wasCancelled = true;
 
@@ -579,185 +251,30 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       final time = Future<dynamic>.delayed(const Duration(milliseconds: 2500));
 
       TxData txData;
-      Future<TxData> txDataFuture;
 
-      if (isPaynymSend) {
-        final paynymWallet = wallet as PaynymInterface;
-
-        final feeRate = ref.read(feeRateTypeDesktopStateProvider);
-        txDataFuture = paynymWallet.preparePaymentCodeSend(
-          txData: TxData(
-            paynymAccountLite: widget.accountLite!,
-            recipients: [
-              TxRecipient(
-                address: widget.accountLite!.code,
-                amount: amount,
-                isChange: false,
-                addressType: AddressType.unknown,
-              ),
-            ],
-            satsPerVByte: isCustomFee ? customFeeRate : null,
-            feeRateType: feeRate,
-            utxos:
-                (wallet is CoinControlInterface &&
-                    wallet is! SalviumWallet &&
-                    coinControlEnabled &&
-                    ref.read(pDesktopUseUTXOs).isNotEmpty)
-                ? ref.read(pDesktopUseUTXOs)
-                : null,
-          ),
-        );
-      } else if (wallet is FiroWallet) {
-        switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
-          case BalanceType.public:
-            if (ref.read(pValidSparkSendToAddress)) {
-              txDataFuture = wallet.prepareSparkMintTransaction(
-                txData: TxData(
-                  sparkRecipients: [
-                    (
-                      address: _address!,
-                      amount: amount,
-                      memo: memoController.text,
-                      isChange: false,
-                    ),
-                  ],
-                  feeRateType: ref.read(feeRateTypeDesktopStateProvider),
-                  satsPerVByte: isCustomFee ? customFeeRate : null,
-                  utxos:
-                      (coinControlEnabled &&
-                          ref.read(pDesktopUseUTXOs).isNotEmpty)
-                      ? ref.read(pDesktopUseUTXOs)
-                      : null,
-                ),
-              );
-            } else {
-              txDataFuture = wallet.prepareSend(
-                txData: TxData(
-                  recipients: [
-                    TxRecipient(
-                      address: _address!,
-                      amount: amount,
-                      isChange: false,
-                      addressType: wallet.cryptoCurrency.getAddressType(
-                        _address!,
-                      )!,
-                    ),
-                  ],
-                  feeRateType: ref.read(feeRateTypeDesktopStateProvider),
-                  satsPerVByte: isCustomFee ? customFeeRate : null,
-                  utxos:
-                      (coinControlEnabled &&
-                          ref.read(pDesktopUseUTXOs).isNotEmpty)
-                      ? ref.read(pDesktopUseUTXOs)
-                      : null,
-                  opReturnData: ref.read(pOpReturnData),
-                ),
-              );
-            }
-            break;
-
-          case BalanceType.private:
-            txDataFuture = wallet.prepareSendSpark(
-              txData: TxData(
-                recipients: ref.read(pValidSparkSendToAddress)
-                    ? null
-                    : [
-                        TxRecipient(
-                          address: _address!,
-                          amount: amount,
-                          isChange: false,
-                          addressType: wallet.cryptoCurrency.getAddressType(
-                            _address!,
-                          )!,
-                        ),
-                      ],
-                sparkRecipients: ref.read(pValidSparkSendToAddress)
-                    ? [
-                        (
-                          address: _address!,
-                          amount: amount,
-                          memo: memoController.text,
-                          isChange: false,
-                        ),
-                      ]
-                    : null,
-              ),
-            );
-            break;
-        }
-      } else if (wallet is MwebInterface &&
-          ref.read(pWalletInfo(walletId)).isMwebEnabled &&
-          ref.read(publicPrivateBalanceStateProvider) == BalanceType.private) {
-        txDataFuture = wallet.prepareSendMweb(
-          txData: TxData(
-            recipients: [
-              TxRecipient(
-                address: _address!,
-                amount: amount,
-                isChange: false,
-                addressType: wallet.cryptoCurrency.getAddressType(_address!)!,
-              ),
-            ],
-            feeRateType: ref.read(feeRateTypeDesktopStateProvider),
-            satsPerVByte: isCustomFee ? customFeeRate : null,
-            // these will need to be mweb utxos
-            // utxos:
-            //     (wallet is CoinControlInterface &&
-            //             coinControlEnabled &&
-            //             ref.read(pDesktopUseUTXOs).isNotEmpty)
-            //         ? ref.read(pDesktopUseUTXOs)
-            //         : null,
-          ),
-        );
-      } else {
-        final memo = hasOptionalMemo ? memoController.text : null;
-        txDataFuture = wallet.prepareSend(
-          txData: TxData(
-            recipients: [
-              TxRecipient(
-                address: _address!,
-                amount: amount,
-                isChange: false,
-                addressType: wallet.cryptoCurrency.getAddressType(_address!)!,
-              ),
-            ],
-            memo: memo,
-            feeRateType: ref.read(feeRateTypeDesktopStateProvider),
-            satsPerVByte: isCustomFee ? customFeeRate : null,
-            nonce: wallet.cryptoCurrency is Ethereum
-                ? int.tryParse(nonceController.text)
-                : null,
-            utxos:
-                (wallet is CoinControlInterface &&
-                    wallet is! SalviumWallet &&
-                    coinControlEnabled &&
-                    ref.read(pDesktopUseUTXOs).isNotEmpty)
-                ? ref.read(pDesktopUseUTXOs)
-                : null,
-            ethEIP1559Fee: ethFee,
-          ),
-        );
-      }
+      final Future<TxData> txDataFuture = wallet.prepareSend(
+        txData: TxData(
+          recipients: [
+            TxRecipient(
+              address: _address!,
+              amount: amount,
+              isChange: false,
+              addressType: wallet.cryptoCurrency.getAddressType(_address!)!,
+            ),
+          ],
+          feeRateType: ref.read(feeRateTypeDesktopStateProvider),
+          utxos: (coinControlEnabled && ref.read(pDesktopUseUTXOs).isNotEmpty)
+              ? ref.read(pDesktopUseUTXOs)
+              : null,
+        ),
+      );
 
       final results = await Future.wait([txDataFuture, time]);
 
       txData = results.first as TxData;
 
       if (!wasCancelled && mounted) {
-        if (isPaynymSend) {
-          txData = txData.copyWith(
-            paynymAccountLite: widget.accountLite!,
-            note: _note ?? "PayNym send",
-          );
-        } else {
-          txData = txData.copyWith(note: _note ?? "");
-          if (coin is Epiccash) {
-            txData = txData.copyWith(noteOnChain: _onChainNote ?? "");
-          }
-          if (coin is Mimblewimblecoin) {
-            txData = txData.copyWith(noteOnChain: _onChainNote ?? "");
-          }
-        }
+        txData = txData.copyWith(note: _note ?? "");
         // pop building dialog
         Navigator.of(context, rootNavigator: true).pop();
 
@@ -771,7 +288,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 txData: txData,
                 walletId: walletId,
                 onSuccess: clearSendForm,
-                isPaynymTransaction: isPaynymSend,
                 routeOnSuccessName: DesktopHomeView.routeName,
               ),
             ),
@@ -812,9 +328,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                         child: Text(
                           e.toString(),
                           textAlign: TextAlign.left,
-                          style: STextStyles.desktopTextExtraExtraSmall(
-                            context,
-                          ).copyWith(fontSize: 18),
+                          style: STextStyles.desktopTextExtraExtraSmall(context)
+                              .copyWith(fontSize: 18),
                         ),
                       ),
                       const SizedBox(height: 40),
@@ -857,15 +372,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     nonceController.text = "";
     _address = "";
     _addressToggleFlag = false;
-    _setOpReturnData(null);
     setState(() {});
-  }
-
-  void _setOpReturnData(String? data) {
-    if (!mounted) {
-      return;
-    }
-    ref.read(pOpReturnData.notifier).state = data;
   }
 
   void _cryptoAmountChanged() async {
@@ -930,10 +437,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
       if (paymentData != null &&
           paymentData.coin?.uriScheme == coin.uriScheme) {
-        _setOpReturnData(paymentData.additionalParams['op_return']);
         _applyUri(paymentData);
       } else {
-        _setOpReturnData(null);
         _address = qrCodeData.split("\n").first.trim();
         sendToController.text = _address ?? "";
 
@@ -952,36 +457,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   }
 
   void _setValidAddressProviders(String? address) {
-    if (isPaynymSend) {
-      ref.read(pValidSendToAddress.notifier).state = true;
-    } else {
-      final wallet = ref.read(pWallets).getWallet(walletId);
-      if (wallet is SparkInterface) {
-        ref
-            .read(pValidSparkSendToAddress.notifier)
-            .state = SparkInterface.validateSparkAddress(
-          address: address ?? "",
-          isTestNet: wallet.cryptoCurrency.network.isTestNet,
-        );
-
-        ref.read(pIsExchangeAddress.state).state = (coin as Firo)
-            .isExchangeAddress(address ?? "");
-
-        if (ref.read(publicPrivateBalanceStateProvider) ==
-                BalanceType.private &&
-            ref.read(pIsExchangeAddress) &&
-            !_isFiroExWarningDisplayed) {
-          _isFiroExWarningDisplayed = true;
-          showFiroExchangeAddressWarning(
-            context,
-            () => _isFiroExWarningDisplayed = false,
-          );
-        }
-      }
-
-      ref.read(pValidSendToAddress.notifier).state = wallet.cryptoCurrency
-          .validateAddress(address ?? "");
-    }
+    final wallet = ref.read(pWallets).getWallet(walletId);
+    ref.read(pValidSendToAddress.notifier).state = wallet.cryptoCurrency
+        .validateAddress(address ?? "");
   }
 
   void _applyUri(PaymentUriData paymentData) {
@@ -999,9 +477,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
       // autofill amount field
       if (paymentData.amount != null) {
-        final amount = Decimal.parse(
-          paymentData.amount!,
-        ).toAmount(fractionDigits: coin.fractionDigits);
+        final amount = Decimal.parse(paymentData.amount!)
+            .toAmount(fractionDigits: coin.fractionDigits);
         cryptoAmountController.text = ref
             .read(pAmountFormatter(coin))
             .format(amount, withUnitName: false);
@@ -1018,33 +495,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     }
   }
 
-  Future<void> _checkSparkNameAndOrSetAddress(
-    String content, {
-    bool setController = true,
-  }) async {
-    void setContent() {
-      if (setController) {
-        sendToController.text = content;
-      }
-      _address = content;
+  void _setAddress(String content, {bool setController = true}) {
+    if (setController) {
+      sendToController.text = content;
     }
-
-    // check for spark name
-    if (coin is Firo) {
-      final address = await SparkNamesService.getAddressFor(
-        content,
-        network: coin.network,
-      );
-      if (address != null) {
-        // found a spark name
-        sendToController.text = content;
-        _address = address;
-      } else {
-        setContent();
-      }
-    } else {
-      setContent();
-    }
+    _address = content;
   }
 
   Future<void> pasteAddress() async {
@@ -1062,17 +517,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         );
         if (paymentData != null &&
             paymentData.coin?.uriScheme == coin.uriScheme) {
-          _setOpReturnData(paymentData.additionalParams['op_return']);
           _applyUri(paymentData);
         } else {
-          _setOpReturnData(null);
-          if (coin is Epiccash) {
-            content = AddressUtils().formatEpicCashAddress(content);
-          }
-          if (coin is Mimblewimblecoin) {
-            content = AddressUtils().formatAddressMwc(content);
-          }
-
           sendToController.text = content;
           _address = content;
 
@@ -1082,18 +528,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           });
         }
       } catch (e) {
-        _setOpReturnData(null);
         // If parsing fails, treat it as a plain address.
-        if (coin is Epiccash) {
-          // strip http:// and https:// if content contains @
-          content = AddressUtils().formatEpicCashAddress(content);
-        }
-        if (coin is Mimblewimblecoin) {
-          // strip http:// and https:// if content contains @
-          content = AddressUtils().formatAddressMwc(content);
-        }
-
-        await _checkSparkNameAndOrSetAddress(content);
+        _setAddress(content);
 
         // Trigger validation after pasting.
         _setValidAddressProviders(_address);
@@ -1186,17 +622,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
     if (showCoinControl && ref.read(desktopUseUTXOs).isNotEmpty) {
       amount = _selectedUtxosAmount(ref.read(desktopUseUTXOs));
-    } else if (coin is Firo || ref.read(pWalletInfo(walletId)).isMwebEnabled) {
-      switch (ref.read(publicPrivateBalanceStateProvider.state).state) {
-        case BalanceType.public:
-          amount = ref.read(pWalletBalance(walletId)).spendable;
-          break;
-        case BalanceType.private:
-          amount = coin is Firo
-              ? ref.read(pWalletBalanceTertiary(walletId)).spendable
-              : ref.read(pWalletBalanceSecondary(walletId)).spendable;
-          break;
-      }
     } else {
       amount = ref.read(pWalletBalance(walletId)).spendable;
     }
@@ -1221,9 +646,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   void initState() {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.refresh(feeSheetSessionCacheProvider);
-      ref.refresh(pIsExchangeAddress);
       ref.read(pValidSendToAddress.state).state = false;
-      ref.read(pValidSparkSendToAddress.state).state = false;
     });
 
     // _calculateFeesFuture = calculateFees(0);
@@ -1231,10 +654,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     walletId = widget.walletId;
     coin = ref.read(pWalletInfo(walletId)).coin;
     clipboard = widget.clipboard;
-
-    hasOptionalMemo = coin is Stellar || coin is Solana;
-    isMimblewimblecoin = coin is Mimblewimblecoin;
-    isEpiccash = coin is Epiccash;
 
     sendToController = TextEditingController();
     cryptoAmountController = TextEditingController();
@@ -1267,13 +686,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         }
         _setValidAddressProviders(_address);
       });
-    }
-
-    if (isPaynymSend) {
-      sendToController.text = widget.accountLite!.nymName;
-      WidgetsBinding.instance.addPostFrameCallback(
-        (_) => _setValidAddressProviders(sendToController.text),
-      );
     }
 
     _cryptoFocus.addListener(() {
@@ -1326,275 +738,33 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       localeServiceChangeNotifierProvider.select((value) => value.locale),
     );
 
-    // add listener for epic cash to strip http:// and https:// prefixes if the address also ocntains an @ symbol (indicating an epicbox address)
-    if (coin is Epiccash) {
-      sendToController.addListener(() {
-        _address = sendToController.text;
-
-        if (_address != null && _address!.isNotEmpty) {
-          _address = _address!.trim();
-          if (_address!.contains("\n")) {
-            _address = _address!.substring(0, _address!.indexOf("\n"));
-          }
-
-          sendToController.text = formatAddress(_address!);
-        }
-      });
-    }
-
-    final balType = ref.watch(publicPrivateBalanceStateProvider);
-
-    if (coin is Mimblewimblecoin) {
-      sendToController.addListener(() {
-        _address = sendToController.text;
-
-        if (_address != null && _address!.isNotEmpty) {
-          _address = _address!.trim();
-          if (_address!.contains("\n")) {
-            _address = _address!.substring(0, _address!.indexOf("\n"));
-          }
-
-          sendToController.text = formatAddressMwc(_address!);
-        }
-      });
-    }
-
-    final isMwebEnabled = ref.watch(
-      pWalletInfo(walletId).select((s) => s.isMwebEnabled),
+    final showCoinControl = ref.watch(
+      prefsChangeNotifierProvider.select((value) => value.enableCoinControl),
     );
-    final showPrivateBalance = coin is Firo || isMwebEnabled;
-    final isExchangeAddress = ref.watch(pIsExchangeAddress);
-    ref.listen(publicPrivateBalanceStateProvider, (previous, next) {
-      if (previous != next &&
-          next == BalanceType.private &&
-          isExchangeAddress &&
-          !_isFiroExWarningDisplayed) {
-        _isFiroExWarningDisplayed = true;
-        WidgetsBinding.instance.addPostFrameCallback(
-          (_) => showFiroExchangeAddressWarning(
-            context,
-            () => _isFiroExWarningDisplayed = false,
-          ),
-        );
-      }
-    });
-
-    final showCoinControl =
-        ref.watch(
-          prefsChangeNotifierProvider.select(
-            (value) => value.enableCoinControl,
-          ),
-        ) &&
-        ref.watch(pWallets).getWallet(walletId) is CoinControlInterface &&
-        ref.watch(pWallets).getWallet(walletId) is! SalviumWallet &&
-        (showPrivateBalance ? balType == BalanceType.public : true);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const SizedBox(height: 4),
-        if (showPrivateBalance) const SizedBox(height: 4),
-        if (isMimblewimblecoin)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 16),
-            child: Container(
-              decoration: BoxDecoration(
-                color:
-                    Theme.of(
-                      context,
-                    ).extension<StackColors>()?.textFieldDefaultBG ??
-                    Colors.white, // Fallback color
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color:
-                      Theme.of(
-                        context,
-                      ).extension<StackColors>()?.backgroundAppBar ??
-                      Colors.grey, // Fallback color
-                  width: 1,
-                ),
-              ),
-              child: const SizedBox(
-                height:
-                    60, // Provide an explicit height to avoid infinite constraints
-                child: MwcTxsMethodToggle(),
-              ),
-            ),
-          ),
-
-        if (isEpiccash)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 16),
-            child: Container(
-              decoration: BoxDecoration(
-                color:
-                    Theme.of(
-                      context,
-                    ).extension<StackColors>()?.textFieldDefaultBG ??
-                    Colors.white, // Fallback color
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                  color:
-                      Theme.of(
-                        context,
-                      ).extension<StackColors>()?.backgroundAppBar ??
-                      Colors.grey, // Fallback color
-                  width: 1,
-                ),
-              ),
-              child: const SizedBox(
-                height:
-                    60, // Provide an explicit height to avoid infinite constraints
-                child: EpicTxsMethodToggle(),
-              ),
-            ),
-          ),
-
-        if (coin is Firo)
-          Text(
-            "Send from",
-            style: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.textFieldActiveSearchIconRight,
-            ),
-            textAlign: TextAlign.left,
-          ),
-        if (showPrivateBalance) const SizedBox(height: 10),
-        if (showPrivateBalance)
-          DropdownButtonHideUnderline(
-            child: DropdownButton2(
-              isExpanded: true,
-              value: balType,
-              items: [
-                DropdownMenuItem(
-                  value: BalanceType.private,
-                  child: Row(
-                    children: [
-                      Text(
-                        "Private balance",
-                        style: STextStyles.itemSubtitle12(context),
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        ref
-                            .watch(pAmountFormatter(coin))
-                            .format(
-                              ref
-                                  .watch(
-                                    isMwebEnabled
-                                        ? pWalletBalanceSecondary(walletId)
-                                        : pWalletBalanceTertiary(walletId),
-                                  )
-                                  .spendable,
-                            ),
-                        style: STextStyles.itemSubtitle(context),
-                      ),
-                    ],
-                  ),
-                ),
-                DropdownMenuItem(
-                  value: BalanceType.public,
-                  child: Row(
-                    children: [
-                      Text(
-                        "Public balance",
-                        style: STextStyles.itemSubtitle12(context),
-                      ),
-                      const SizedBox(width: 10),
-                      Text(
-                        ref
-                            .watch(pAmountFormatter(coin))
-                            .format(
-                              ref.watch(pWalletBalance(walletId)).spendable,
-                            ),
-                        style: STextStyles.itemSubtitle(context),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-              onChanged: (value) {
-                if (value is BalanceType) {
-                  if (value != BalanceType.public) {
-                    ref.read(desktopUseUTXOs.state).state = {};
-                  }
-                  setState(() {
-                    ref.read(publicPrivateBalanceStateProvider.state).state =
-                        value;
-                  });
-                }
-              },
-              iconStyleData: IconStyleData(
-                icon: SvgPicture.asset(
-                  Assets.svg.chevronDown,
-                  width: 12,
-                  height: 6,
-                  color: Theme.of(context).extension<StackColors>()!.textDark3,
-                ),
-              ),
-              dropdownStyleData: DropdownStyleData(
-                offset: const Offset(0, -10),
-                elevation: 0,
-                decoration: BoxDecoration(
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.textFieldDefaultBG,
-                  borderRadius: BorderRadius.circular(
-                    Constants.size.circularBorderRadius,
-                  ),
-                ),
-              ),
-              menuItemStyleData: const MenuItemStyleData(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              ),
-            ),
-          ),
-        if (showPrivateBalance) const SizedBox(height: 20),
-        if (isPaynymSend)
-          Text(
-            "Send to PayNym address",
-            style: STextStyles.smallMed12(context),
-            textAlign: TextAlign.left,
-          ),
-        if (isPaynymSend) const SizedBox(height: 10),
-        if (isPaynymSend)
-          TextField(
-            key: const Key("sendViewPaynymAddressFieldKey"),
-            controller: sendToController,
-            enabled: false,
-            readOnly: true,
-            style: STextStyles.desktopTextFieldLabel(
-              context,
-            ).copyWith(fontSize: 16),
-            decoration: const InputDecoration(
-              contentPadding: EdgeInsets.symmetric(
-                vertical: 18,
-                horizontal: 16,
-              ),
-            ),
-          ),
-        if (isPaynymSend) const SizedBox(height: 20),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
               "Amount",
               style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.textFieldActiveSearchIconRight,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldActiveSearchIconRight,
               ),
               textAlign: TextAlign.left,
             ),
-            if (coin is! Ethereum && coin is! Tezos)
-              CustomTextButton(
-                text: _getSendAllTitle(
-                  showCoinControl,
-                  ref.watch(desktopUseUTXOs),
-                ),
-                onTap: () => _sendAllTapped(showCoinControl),
+            CustomTextButton(
+              text: _getSendAllTitle(
+                showCoinControl,
+                ref.watch(desktopUseUTXOs),
               ),
+              onTap: () => _sendAllTapped(showCoinControl),
+            ),
           ],
         ),
         const SizedBox(height: 10),
@@ -1636,9 +806,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             ),
             hintText: "0",
             hintStyle: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.textFieldDefaultText,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .textFieldDefaultText,
             ),
             prefixIcon: FittedBox(
               fit: BoxFit.scaleDown,
@@ -1647,9 +817,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 child: Text(
                   ref.watch(pAmountUnit(coin)).unitForCoin(coin),
                   style: STextStyles.smallMed14(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.accentColorDark,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .accentColorDark,
                   ),
                 ),
               ),
@@ -1692,9 +862,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               ),
               hintText: "0",
               hintStyle: STextStyles.desktopTextExtraSmall(context).copyWith(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.textFieldDefaultText,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .textFieldDefaultText,
               ),
               prefixIcon: FittedBox(
                 fit: BoxFit.scaleDown,
@@ -1707,9 +877,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                       ),
                     ),
                     style: STextStyles.smallMed14(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.accentColorDark,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
                     ),
                   ),
                 ),
@@ -1720,9 +890,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         if (showCoinControl)
           RoundedContainer(
             color: Colors.transparent,
-            borderColor: Theme.of(
-              context,
-            ).extension<StackColors>()!.textFieldDefaultBG,
+            borderColor: Theme.of(context)
+                .extension<StackColors>()!
+                .textFieldDefaultBG,
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -1740,455 +910,227 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             ),
           ),
         const SizedBox(height: 20),
-        if (!isPaynymSend &&
-            !((isMimblewimblecoin || isEpiccash) &&
-                ref.watch(pIsSlatepack(widget.walletId))))
-          Text(
-            "Send to",
-            style: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.textFieldActiveSearchIconRight,
-            ),
-            textAlign: TextAlign.left,
+        Text(
+          "Send to",
+          style: STextStyles.desktopTextExtraSmall(context).copyWith(
+            color: Theme.of(context)
+                .extension<StackColors>()!
+                .textFieldActiveSearchIconRight,
           ),
-        if (!isPaynymSend &&
-            !((isMimblewimblecoin || isEpiccash) &&
-                ref.watch(pIsSlatepack(widget.walletId))))
-          const SizedBox(height: 10),
-        if (!isPaynymSend &&
-            !((isMimblewimblecoin || isEpiccash) &&
-                ref.watch(pIsSlatepack(widget.walletId))))
-          ClipRRect(
-            borderRadius: BorderRadius.circular(
-              Constants.size.circularBorderRadius,
-            ),
-            child: TextField(
-              minLines: 1,
-              maxLines: 5,
-              key: const Key("sendViewAddressFieldKey"),
-              controller: sendToController,
-              readOnly: false,
-              autocorrect: false,
-              enableSuggestions: false,
-              // inputFormatters: <TextInputFormatter>[
-              //   FilteringTextInputFormatter.allow(
-              //       RegExp("[a-zA-Z0-9]{34}")),
-              // ],
-              toolbarOptions: const ToolbarOptions(
-                copy: false,
-                cut: false,
-                paste: true,
-                selectAll: false,
-              ),
-              onChanged: (newValue) async {
-                final trimmed = newValue;
-
-                if ((trimmed.length - (_address?.length ?? 0)).abs() > 1 ||
-                    trimmed.contains(':')) {
-                  final parsed = AddressUtils.parsePaymentUri(
-                    trimmed,
-                    logging: Logging.instance,
-                  );
-                  if (parsed != null) {
-                    _setOpReturnData(parsed.additionalParams['op_return']);
-                    _applyUri(parsed);
-                  } else {
-                    _setOpReturnData(null);
-                    await _checkSparkNameAndOrSetAddress(newValue);
-                  }
-                } else {
-                  _setOpReturnData(null);
-                  await _checkSparkNameAndOrSetAddress(
-                    newValue,
-                    setController: false,
-                  );
-                }
-
-                _setValidAddressProviders(_address);
-
-                setState(() {
-                  _addressToggleFlag = newValue.isNotEmpty;
-                });
-              },
-              focusNode: _addressFocusNode,
-              style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.textFieldActiveText,
-                height: 1.8,
-              ),
-              decoration:
-                  standardInputDecoration(
-                    ref.watch(pIsSlatepack(widget.walletId))
-                        ? "Enter ${coin.ticker} address (optional)"
-                        : "Enter ${coin.ticker} address",
-                    _addressFocusNode,
-                    context,
-                    desktopMed: true,
-                  ).copyWith(
-                    contentPadding: const EdgeInsets.only(
-                      left: 16,
-                      top: 11,
-                      bottom: 12,
-                      right: 5,
-                    ),
-                    suffixIcon: Padding(
-                      padding: sendToController.text.isEmpty
-                          ? const EdgeInsets.only(right: 8)
-                          : const EdgeInsets.only(right: 0),
-                      child: UnconstrainedBox(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            _addressToggleFlag
-                                ? TextFieldIconButton(
-                                    key: const Key(
-                                      "sendViewClearAddressFieldButtonKey",
-                                    ),
-                                    onTap: () {
-                                      sendToController.text = "";
-                                      _address = "";
-                                      _setOpReturnData(null);
-                                      _setValidAddressProviders(_address);
-                                      setState(() {
-                                        _addressToggleFlag = false;
-                                      });
-                                    },
-                                    child: const XIcon(),
-                                  )
-                                : TextFieldIconButton(
-                                    key: const Key(
-                                      "sendViewPasteAddressFieldButtonKey",
-                                    ),
-                                    onTap: pasteAddress,
-                                    child: sendToController.text.isEmpty
-                                        ? const ClipboardIcon()
-                                        : const XIcon(),
-                                  ),
-                            if (sendToController.text.isEmpty)
-                              TextFieldIconButton(
-                                key: const Key("sendViewAddressBookButtonKey"),
-                                onTap: () async {
-                                  final entry =
-                                      await showDialog<ContactAddressEntry?>(
-                                        context: context,
-                                        builder: (context) => DesktopDialog(
-                                          maxWidth: 696,
-                                          maxHeight: 600,
-                                          child: Column(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceBetween,
-                                                children: [
-                                                  Padding(
-                                                    padding:
-                                                        const EdgeInsets.only(
-                                                          left: 32,
-                                                        ),
-                                                    child: Text(
-                                                      "Address book",
-                                                      style:
-                                                          STextStyles.desktopH3(
-                                                            context,
-                                                          ),
-                                                    ),
-                                                  ),
-                                                  const DesktopDialogCloseButton(),
-                                                ],
-                                              ),
-                                              Expanded(
-                                                child:
-                                                    AddressBookAddressChooser(
-                                                      coin: coin,
-                                                    ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      );
-
-                                  if (entry != null) {
-                                    _setOpReturnData(null);
-                                    sendToController.text =
-                                        entry.other ?? entry.label;
-
-                                    _address = entry.address;
-
-                                    _setValidAddressProviders(_address);
-
-                                    setState(() {
-                                      _addressToggleFlag = true;
-                                    });
-                                  }
-                                },
-                                child: const AddressBookIcon(),
-                              ),
-                            if (sendToController.text.isEmpty)
-                              TextFieldIconButton(
-                                semanticsLabel:
-                                    "Scan QR Button. Opens Camera For Scanning QR Code.",
-                                key: const Key("sendViewScanQrButtonKey"),
-                                onTap: scanWebcam,
-                                child: const QrCodeIcon(),
-                              ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-            ),
+          textAlign: TextAlign.left,
+        ),
+        const SizedBox(height: 10),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(
+            Constants.size.circularBorderRadius,
           ),
-        if (!isPaynymSend &&
-            !((isMimblewimblecoin || isEpiccash) &&
-                ref.watch(pIsSlatepack(widget.walletId))))
-          Builder(
-            builder: (_) {
-              final String? error;
+          child: TextField(
+            minLines: 1,
+            maxLines: 5,
+            key: const Key("sendViewAddressFieldKey"),
+            controller: sendToController,
+            readOnly: false,
+            autocorrect: false,
+            enableSuggestions: false,
+            // inputFormatters: <TextInputFormatter>[
+            //   FilteringTextInputFormatter.allow(
+            //       RegExp("[a-zA-Z0-9]{34}")),
+            // ],
+            toolbarOptions: const ToolbarOptions(
+              copy: false,
+              cut: false,
+              paste: true,
+              selectAll: false,
+            ),
+            onChanged: (newValue) async {
+              final trimmed = newValue;
 
-              if (_address == null || _address!.isEmpty) {
-                error = null;
-              } else if (coin is Firo) {
-                if (_data != null && _data.contactLabel == _address) {
-                  error = null;
-                } else if (!ref.watch(pValidSendToAddress) &&
-                    !ref.watch(pValidSparkSendToAddress)) {
-                  error = "Invalid address";
-                } else {
-                  error = null;
-                }
-              } else {
-                if (_data != null && _data.contactLabel == _address) {
-                  error = null;
-                } else if ((coin is Mimblewimblecoin || coin is Epiccash) &&
-                    ref.watch(pIsSlatepack(widget.walletId))) {
-                  // For MWC/Epic slatepack transactions, address validation is not required.
-                  // TODO: When implementing encrypted slatepacks, address validation will be required.
-                  error = null;
-                } else if (!ref.watch(pValidSendToAddress)) {
-                  error = "Invalid address";
-                } else {
-                  error = null;
-                }
-              }
-
-              if (error == null || error.isEmpty) {
-                return Container();
-              } else {
-                return Align(
-                  alignment: Alignment.topLeft,
-                  child: Padding(
-                    padding: const EdgeInsets.only(left: 12.0, top: 4.0),
-                    child: Text(
-                      error,
-                      textAlign: TextAlign.left,
-                      style: STextStyles.label(context).copyWith(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textError,
-                      ),
-                    ),
-                  ),
+              if ((trimmed.length - (_address?.length ?? 0)).abs() > 1 ||
+                  trimmed.contains(':')) {
+                final parsed = AddressUtils.parsePaymentUri(
+                  trimmed,
+                  logging: Logging.instance,
                 );
+                if (parsed != null) {
+                  _applyUri(parsed);
+                } else {
+                  _setAddress(newValue);
+                }
+              } else {
+                _setAddress(newValue, setController: false);
               }
+
+              _setValidAddressProviders(_address);
+
+              setState(() {
+                _addressToggleFlag = newValue.isNotEmpty;
+              });
             },
+            focusNode: _addressFocusNode,
+            style: STextStyles.desktopTextExtraSmall(context).copyWith(
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .textFieldActiveText,
+              height: 1.8,
+            ),
+            decoration:
+                standardInputDecoration(
+                  "Enter ${coin.ticker} address",
+                  _addressFocusNode,
+                  context,
+                  desktopMed: true,
+                ).copyWith(
+                  contentPadding: const EdgeInsets.only(
+                    left: 16,
+                    top: 11,
+                    bottom: 12,
+                    right: 5,
+                  ),
+                  suffixIcon: Padding(
+                    padding: sendToController.text.isEmpty
+                        ? const EdgeInsets.only(right: 8)
+                        : const EdgeInsets.only(right: 0),
+                    child: UnconstrainedBox(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          _addressToggleFlag
+                              ? TextFieldIconButton(
+                                  key: const Key(
+                                    "sendViewClearAddressFieldButtonKey",
+                                  ),
+                                  onTap: () {
+                                    sendToController.text = "";
+                                    _address = "";
+                                    _setValidAddressProviders(_address);
+                                    setState(() {
+                                      _addressToggleFlag = false;
+                                    });
+                                  },
+                                  child: const XIcon(),
+                                )
+                              : TextFieldIconButton(
+                                  key: const Key(
+                                    "sendViewPasteAddressFieldButtonKey",
+                                  ),
+                                  onTap: pasteAddress,
+                                  child: sendToController.text.isEmpty
+                                      ? const ClipboardIcon()
+                                      : const XIcon(),
+                                ),
+                          if (sendToController.text.isEmpty)
+                            TextFieldIconButton(
+                              key: const Key("sendViewAddressBookButtonKey"),
+                              onTap: () async {
+                                final entry =
+                                    await showDialog<ContactAddressEntry?>(
+                                      context: context,
+                                      builder: (context) => DesktopDialog(
+                                        maxWidth: 696,
+                                        maxHeight: 600,
+                                        child: Column(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                Padding(
+                                                  padding:
+                                                      const EdgeInsets.only(
+                                                        left: 32,
+                                                      ),
+                                                  child: Text(
+                                                    "Address book",
+                                                    style:
+                                                        STextStyles.desktopH3(
+                                                          context,
+                                                        ),
+                                                  ),
+                                                ),
+                                                const DesktopDialogCloseButton(),
+                                              ],
+                                            ),
+                                            Expanded(
+                                              child: AddressBookAddressChooser(
+                                                coin: coin,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+
+                                if (entry != null) {
+                                  sendToController.text =
+                                      entry.other ?? entry.label;
+
+                                  _address = entry.address;
+
+                                  _setValidAddressProviders(_address);
+
+                                  setState(() {
+                                    _addressToggleFlag = true;
+                                  });
+                                }
+                              },
+                              child: const AddressBookIcon(),
+                            ),
+                          if (sendToController.text.isEmpty)
+                            TextFieldIconButton(
+                              semanticsLabel: "Scan QR Button. Opens Camera For Scanning QR Code.",
+                              key: const Key("sendViewScanQrButtonKey"),
+                              onTap: scanWebcam,
+                              child: const QrCodeIcon(),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
           ),
-        // OP_RETURN metadata info (green, public mode only, with tooltip)
+        ),
         Builder(
-          builder: (context) {
-            final opData = ref.watch(pOpReturnData);
-            final balType = ref.watch(publicPrivateBalanceStateProvider);
-            if (opData == null ||
-                opData.isEmpty ||
-                balType != BalanceType.public) {
-              return Container();
+          builder: (_) {
+            final String? error;
+
+            if (_address == null ||
+                _address!.isEmpty ||
+                (_data != null && _data.contactLabel == _address) ||
+                ref.watch(pValidSendToAddress)) {
+              error = null;
+            } else {
+              error = "Invalid address";
             }
-            return Align(
-              alignment: Alignment.topLeft,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 12.0, top: 4.0),
-                child: Tooltip(
-                  message: AddressUtils.formatOpReturnTooltip(opData),
+
+            if (error == null || error.isEmpty) {
+              return Container();
+            } else {
+              return Align(
+                alignment: Alignment.topLeft,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 12.0, top: 4.0),
                   child: Text(
-                    "Transaction includes metadata "
-                    "(${opData.length ~/ 2} bytes)",
+                    error,
                     textAlign: TextAlign.left,
                     style: STextStyles.label(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.accentColorGreen,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textError,
                     ),
                   ),
                 ),
-              ),
-            );
-          },
-        ),
-        // OP_RETURN bridge warning (red, private mode only)
-        Builder(
-          builder: (context) {
-            final opData = ref.watch(pOpReturnData);
-            final balType = ref.watch(publicPrivateBalanceStateProvider);
-            if (opData == null ||
-                opData.isEmpty ||
-                balType != BalanceType.private) {
-              return Container();
+              );
             }
-            return Align(
-              alignment: Alignment.topLeft,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 12.0, top: 4.0),
-                child: Text(
-                  "Bridge data detected but Spark (private) transactions "
-                  "cannot carry OP_RETURN data. Switch to public balance "
-                  "to complete the bridge transaction.",
-                  textAlign: TextAlign.left,
-                  style: STextStyles.label(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textError,
-                  ),
-                ),
-              ),
-            );
           },
         ),
-        if (hasOptionalMemo || ref.watch(pValidSparkSendToAddress))
-          const SizedBox(height: 10),
-        if (hasOptionalMemo || ref.watch(pValidSparkSendToAddress))
-          ClipRRect(
-            borderRadius: BorderRadius.circular(
-              Constants.size.circularBorderRadius,
-            ),
-            child: TextField(
-              maxLength: (coin is Firo) ? 31 : null,
-              minLines: 1,
-              maxLines: 5,
-              key: const Key("sendViewMemoFieldKey"),
-              controller: memoController,
-              readOnly: false,
-              autocorrect: false,
-              enableSuggestions: false,
-              focusNode: _memoFocus,
-              onChanged: (_) {
-                setState(() {});
-              },
-              style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.textFieldActiveText,
-                height: 1.8,
-              ),
-              decoration:
-                  standardInputDecoration(
-                    "Enter memo (optional)",
-                    _memoFocus,
-                    context,
-                    desktopMed: true,
-                  ).copyWith(
-                    counterText: '',
-                    contentPadding: const EdgeInsets.only(
-                      left: 16,
-                      top: 11,
-                      bottom: 12,
-                      right: 5,
-                    ),
-                    suffixIcon: Padding(
-                      padding: memoController.text.isEmpty
-                          ? const EdgeInsets.only(right: 8)
-                          : const EdgeInsets.only(right: 0),
-                      child: UnconstrainedBox(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            TextFieldIconButton(
-                              key: const Key("sendViewPasteMemoButtonKey"),
-                              onTap: pasteMemo,
-                              child: memoController.text.isEmpty
-                                  ? const ClipboardIcon()
-                                  : const XIcon(),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-            ),
-          ),
-        if (!isPaynymSend) const SizedBox(height: 20),
-        if (coin is! NanoCurrency &&
-            coin is! Epiccash &&
-            coin is! Tezos &&
-            coin is! Mimblewimblecoin)
-          DesktopSendFeeForm(
-            walletId: walletId,
-            isToken: false,
-            onCustomFeeSliderChanged: (value) => customFeeRate = value,
-            onCustomFeeOptionChanged: (value) {
-              isCustomFee = value;
-              customFeeRate = 1;
-              ethFee = null;
-            },
-            onCustomEip1559FeeOptionChanged: (value) => ethFee = value,
-          ),
-        if (coin is Ethereum) const SizedBox(height: 20),
-        if (coin is Ethereum)
-          Text(
-            "Nonce",
-            style: STextStyles.desktopTextExtraSmall(context).copyWith(
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.textFieldActiveSearchIconRight,
-            ),
-            textAlign: TextAlign.left,
-          ),
-        if (coin is Ethereum) const SizedBox(height: 10),
-        if (coin is Ethereum)
-          ClipRRect(
-            borderRadius: BorderRadius.circular(
-              Constants.size.circularBorderRadius,
-            ),
-            child: TextField(
-              minLines: 1,
-              maxLines: 1,
-              key: const Key("sendViewNonceFieldKey"),
-              controller: nonceController,
-              readOnly: false,
-              autocorrect: false,
-              enableSuggestions: false,
-              keyboardType: const TextInputType.numberWithOptions(),
-              focusNode: _nonceFocusNode,
-              style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.textFieldActiveText,
-                height: 1.8,
-              ),
-              decoration:
-                  standardInputDecoration(
-                    "Leave empty to auto select nonce",
-                    _nonceFocusNode,
-                    context,
-                    desktopMed: true,
-                  ).copyWith(
-                    contentPadding: const EdgeInsets.only(
-                      left: 16,
-                      top: 11,
-                      bottom: 12,
-                      right: 5,
-                    ),
-                  ),
-            ),
-          ),
+        const SizedBox(height: 20),
+        DesktopSendFeeForm(walletId: walletId),
         const SizedBox(height: 36),
         PrimaryButton(
           buttonHeight: ButtonHeight.l,
-          label: ref.watch(pIsSlatepack(widget.walletId))
-              ? "Create slatepack"
-              : "Preview send",
+          label: "Preview send",
           enabled: ref.watch(pPreviewTxButtonEnabled(coin)),
           onPressed: ref.watch(pPreviewTxButtonEnabled(coin))
               ? previewSend

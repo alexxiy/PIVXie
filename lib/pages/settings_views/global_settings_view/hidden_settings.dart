@@ -18,7 +18,6 @@ import '../../../notifications/show_flush_bar.dart';
 import '../../../providers/providers.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
-import '../../../utilities/constants.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../widgets/background.dart';
@@ -41,17 +40,17 @@ class HiddenSettings extends StatelessWidget {
             padding: const EdgeInsets.all(8.0),
             child: AppBarIconButton(
               size: 32,
-              color: Theme.of(
-                context,
-              ).extension<StackColors>()!.textFieldDefaultBG,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .textFieldDefaultBG,
               shadows: const [],
               icon: SvgPicture.asset(
                 Assets.svg.arrowLeft,
                 width: 18,
                 height: 18,
-                color: Theme.of(
-                  context,
-                ).extension<StackColors>()!.topNavIconPrimary,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .topNavIconPrimary,
               ),
               onPressed: Navigator.of(context).pop,
             ),
@@ -72,36 +71,6 @@ class HiddenSettings extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Consumer(
-                            builder: (_, ref, __) {
-                              return GestureDetector(
-                                onTap: () async {
-                                  ref
-                                      .read(prefsChangeNotifierProvider)
-                                      .advancedFiroFeatures = !ref
-                                      .read(prefsChangeNotifierProvider)
-                                      .advancedFiroFeatures;
-                                },
-                                child: RoundedWhiteContainer(
-                                  child: Text(
-                                    ref.watch(
-                                          prefsChangeNotifierProvider.select(
-                                            (s) => s.advancedFiroFeatures,
-                                          ),
-                                        )
-                                        ? "Hide advanced Firo features"
-                                        : "Show advanced Firo features",
-                                    style: STextStyles.button(context).copyWith(
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .accentColorDark,
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                          const SizedBox(height: 12),
                           Consumer(
                             builder: (_, ref, __) {
                               return GestureDetector(
@@ -270,45 +239,6 @@ class HiddenSettings extends StatelessWidget {
                           // const SizedBox(
                           //   height: 12,
                           // ),
-                          Consumer(
-                            builder: (_, ref, __) {
-                              if (ref.watch(
-                                    prefsChangeNotifierProvider.select(
-                                      (value) => value.familiarity,
-                                    ),
-                                  ) <
-                                  6) {
-                                return GestureDetector(
-                                  onTap: () async {
-                                    final familiarity = ref
-                                        .read(prefsChangeNotifierProvider)
-                                        .familiarity;
-                                    if (familiarity < 6) {
-                                      ref
-                                              .read(prefsChangeNotifierProvider)
-                                              .familiarity =
-                                          6;
-
-                                      Constants.exchangeForExperiencedUsers(6);
-                                    }
-                                  },
-                                  child: RoundedWhiteContainer(
-                                    child: Text(
-                                      "Enable exchange",
-                                      style: STextStyles.button(context)
-                                          .copyWith(
-                                            color: Theme.of(context)
-                                                .extension<StackColors>()!
-                                                .accentColorDark,
-                                          ),
-                                    ),
-                                  ),
-                                );
-                              } else {
-                                return Container();
-                              }
-                            },
-                          ),
                           const SizedBox(height: 12),
                           Consumer(
                             builder: (_, ref, __) {
@@ -317,7 +247,7 @@ class HiddenSettings extends StatelessWidget {
                                   await showDialog<bool>(
                                     context: context,
                                     builder: (_) => TorWarningDialog(
-                                      coin: Stellar(CryptoCurrencyNetwork.main),
+                                      coin: Pivx(CryptoCurrencyNetwork.main),
                                     ),
                                   );
                                 },

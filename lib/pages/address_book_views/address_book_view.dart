@@ -13,7 +13,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../app_config.dart';
-import '../../models/isar/models/blockchain_data/address.dart';
 import '../../models/isar/models/contact_entry.dart';
 import '../../providers/global/address_book_service_provider.dart';
 import '../../providers/providers.dart';
@@ -24,7 +23,6 @@ import '../../utilities/constants.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
-import '../../wallets/wallet/wallet_mixin_interfaces/spark_interface.dart';
 import '../../widgets/address_book_card.dart';
 import '../../widgets/background.dart';
 import '../../widgets/conditional_parent.dart';
@@ -62,7 +60,6 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
 
     if (widget.coin == null) {
       final coins = [...AppConfig.coins];
-      coins.removeWhere((e) => e is Firo && e.network.isTestNet);
 
       final bool showTestNet = ref
           .read(prefsChangeNotifierProvider)
@@ -83,16 +80,9 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
       final List<ContactAddressEntry> addresses = [];
       final wallets = ref.read(pWallets).wallets;
       for (final wallet in wallets) {
-        final String addressString;
-        if (wallet is SparkInterface &&
-            !(wallet.isViewOnly && wallet.viewOnlyType != .spark)) {
-          Address? address = await wallet.getCurrentReceivingSparkAddress();
-          address ??= await wallet.generateNextSparkAddress(saveToDB: true);
-          addressString = address.value;
-        } else {
-          final address = await wallet.getCurrentReceivingAddress();
-          addressString = address?.value ?? wallet.info.cachedReceivingAddress;
-        }
+        final address = await wallet.getCurrentReceivingAddress();
+        final addressString =
+            address?.value ?? wallet.info.cachedReceivingAddress;
 
         addresses.add(
           ContactAddressEntry()
@@ -133,9 +123,9 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
       builder: (child) {
         return Background(
           child: Scaffold(
-            backgroundColor: Theme.of(
-              context,
-            ).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(context)
+                .extension<StackColors>()!
+                .background,
             appBar: AppBar(
               leading: AppBarBackButton(
                 onPressed: () {
@@ -159,21 +149,20 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
                       key: const Key("addressBookFilterViewButton"),
                       size: 36,
                       shadows: const [],
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.background,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .background,
                       icon: SvgPicture.asset(
                         Assets.svg.filter,
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.accentColorDark,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark,
                         width: 20,
                         height: 20,
                       ),
                       onPressed: () {
-                        Navigator.of(
-                          context,
-                        ).pushNamed(AddressBookFilterView.routeName);
+                        Navigator.of(context)
+                            .pushNamed(AddressBookFilterView.routeName);
                       },
                     ),
                   ),
@@ -190,21 +179,20 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
                       key: const Key("addressBookAddNewContactViewButton"),
                       size: 36,
                       shadows: const [],
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.background,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .background,
                       icon: SvgPicture.asset(
                         Assets.svg.plus,
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.accentColorDark,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark,
                         width: 20,
                         height: 20,
                       ),
                       onPressed: () {
-                        Navigator.of(
-                          context,
-                        ).pushNamed(AddAddressBookEntryView.routeName);
+                        Navigator.of(context)
+                            .pushNamed(AddAddressBookEntryView.routeName);
                       },
                     ),
                   ),

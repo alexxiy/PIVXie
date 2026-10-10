@@ -30,7 +30,6 @@ import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../wallets/isar/models/wallet_info.dart';
-import '../../../wallets/wallet/intermediate/cryptonote_wallet.dart';
 import '../../../wallets/wallet/wallet.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -104,43 +103,6 @@ class _NewWalletRecoveryPhraseWarningViewState
   Future<(Wallet, List<String>)> _initNewFuture() async {
     try {
       Map<String, dynamic>? otherDataJson;
-      if (widget.coin is Tezos) {
-        otherDataJson = {
-          WalletInfoKeys.tezosDerivationPath:
-              Tezos.standardDerivationPath.value,
-        };
-        //  }//todo: probably not needed (broken anyways)
-        // else if (widget.coin is Epiccash) {
-        //    final int secondsSinceEpoch =
-        //        DateTime.now().millisecondsSinceEpoch ~/ 1000;
-        //    const int epicCashFirstBlock = 1565370278;
-        //    const double overestimateSecondsPerBlock = 61;
-        //    int chosenSeconds = secondsSinceEpoch - epicCashFirstBlock;
-        //    int approximateHeight = chosenSeconds ~/ overestimateSecondsPerBlock;
-        //    /
-        //    // debugPrint(
-        //    //     "approximate height: $approximateHeight chosen_seconds: $chosenSeconds");
-        //    height = approximateHeight;
-        //    if (height < 0) {
-        //      height = 0;
-        //    }
-        //
-        //    otherDataJsonString = jsonEncode(
-        //      {
-        //        WalletInfoKeys.epiccashData: jsonEncode(
-        //          ExtraEpiccashWalletInfo(
-        //            receivingIndex: 0,
-        //            changeIndex: 0,
-        //            slatesToAddresses: {},
-        //            slatesToCommits: {},
-        //            lastScannedBlock: epicCashFirstBlock,
-        //            restoreHeight: height,
-        //            creationHeight: height,
-        //          ).toMap(),
-        //        ),
-        //      },
-        //    );
-      }
 
       if (ref.read(pDuress)) {
         otherDataJson ??= {};
@@ -173,37 +135,17 @@ class _NewWalletRecoveryPhraseWarningViewState
 
       String? mnemonicPassphrase;
       String? mnemonic;
-      String? privateKey;
 
       // set some sane default
       int wordCount = info.coin.defaultSeedPhraseLength;
 
-      // TODO: Refactor these to generate each coin in their respective classes
-      // This code should not be in a random view page file
-      if (coin is Monero ||
-          coin is Wownero ||
-          coin is Xelis ||
-          coin is Salvium) {
-        // currently a special case due to the
-        // xmr/wow libraries handling their
-        // own mnemonic generation
-        wordCount =
-            ref.read(pNewWalletOptions)?.mnemonicWordsCount ??
-            info.coin.defaultSeedPhraseLength;
-      } else if (wordCount > 0) {
+      if (wordCount > 0) {
         if (ref.read(pNewWalletOptions.state).state != null) {
           if (coin.hasMnemonicPassphraseSupport) {
             mnemonicPassphrase = ref
                 .read(pNewWalletOptions.state)
                 .state!
                 .mnemonicPassphrase;
-          } else {
-            // this may not be epiccash and sol specific?
-            if (coin is Epiccash ||
-                coin is Mimblewimblecoin ||
-                coin is Solana) {
-              mnemonicPassphrase = "";
-            }
           }
 
           wordCount = ref
@@ -231,14 +173,9 @@ class _NewWalletRecoveryPhraseWarningViewState
         prefs: ref.read(prefsChangeNotifierProvider),
         mnemonicPassphrase: mnemonicPassphrase,
         mnemonic: mnemonic,
-        privateKey: privateKey,
       );
 
-      if (wallet is CryptonoteWallet) {
-        await wallet.init(wordCount: wordCount);
-      } else {
-        await wallet.init();
-      }
+      await wallet.init();
 
       // set checkbox back to unchecked to annoy users to agree again :P
       ref.read(checkBoxStateProvider.state).state = false;
@@ -287,15 +224,14 @@ class _NewWalletRecoveryPhraseWarningViewState
                     right: 10,
                   ),
                   child: AppBarIconButton(
-                    semanticsLabel:
-                        "Question Button. Opens A Dialog For Recovery Phrase Explanation.",
+                    semanticsLabel: "Question Button. Opens A Dialog For Recovery Phrase Explanation.",
                     icon: SvgPicture.asset(
                       Assets.svg.circleQuestion,
                       width: 20,
                       height: 20,
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.accentColorDark,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
                     ),
                     onPressed: () async {
                       await showDialog<void>(
@@ -331,9 +267,8 @@ class _NewWalletRecoveryPhraseWarningViewState
                       Text(
                         walletName,
                         textAlign: TextAlign.center,
-                        style: STextStyles.label(
-                          context,
-                        ).copyWith(fontSize: 12),
+                        style: STextStyles.label(context)
+                            .copyWith(fontSize: 12),
                       ),
                     if (!isDesktop) const SizedBox(height: 4),
                     Text(
@@ -362,9 +297,8 @@ class _NewWalletRecoveryPhraseWarningViewState
                                   ? STextStyles.desktopTextMediumRegular(
                                       context,
                                     )
-                                  : STextStyles.subtitle(
-                                      context,
-                                    ).copyWith(fontSize: 12),
+                                  : STextStyles.subtitle(context)
+                                        .copyWith(fontSize: 12),
                             )
                           : Column(
                               children: [
@@ -381,13 +315,11 @@ class _NewWalletRecoveryPhraseWarningViewState
                                 RichText(
                                   textAlign: TextAlign.center,
                                   text: TextSpan(
-                                    style: STextStyles.desktopH3(
-                                      context,
-                                    ).copyWith(fontSize: 18),
+                                    style: STextStyles.desktopH3(context)
+                                        .copyWith(fontSize: 18),
                                     children: [
                                       TextSpan(
-                                        text:
-                                            "On the next screen you will be given ",
+                                        text: "On the next screen you will be given ",
                                         style: STextStyles.desktopH3(context)
                                             .copyWith(
                                               color: Theme.of(context)
@@ -597,9 +529,8 @@ class _NewWalletRecoveryPhraseWarningViewState
                                               ? STextStyles.desktopTextMedium(
                                                   context,
                                                 )
-                                              : STextStyles.baseXS(
-                                                  context,
-                                                ).copyWith(height: 1.3),
+                                              : STextStyles.baseXS(context)
+                                                    .copyWith(height: 1.3),
                                         ),
                                       ),
                                     ],

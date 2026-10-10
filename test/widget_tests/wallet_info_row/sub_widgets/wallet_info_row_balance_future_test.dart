@@ -1,11 +1,9 @@
 import 'package:mockito/annotations.dart';
-import 'package:stackwallet/services/node_service.dart';
-import 'package:stackwallet/services/wallets.dart';
+import 'package:paymint/services/node_service.dart';
+import 'package:paymint/services/wallets.dart';
 
 @GenerateMocks(
-  [
-    Wallets,
-  ],
+  [Wallets],
   customMocks: [
     MockSpec<NodeService>(),
     // MockSpec<WalletsService>(),

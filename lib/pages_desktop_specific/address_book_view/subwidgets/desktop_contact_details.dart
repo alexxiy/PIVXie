@@ -12,10 +12,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:isar_community/isar.dart';
-import 'package:tuple/tuple.dart';
 
 import '../../../models/isar/models/contact_entry.dart';
-import '../../../models/isar/models/isar_models.dart';
 import '../../../pages/address_book_views/subviews/add_new_contact_address_view.dart';
 import '../../../providers/db/main_db_provider.dart';
 import '../../../providers/global/address_book_service_provider.dart';
@@ -30,9 +28,12 @@ import '../../../widgets/desktop/desktop_dialog.dart';
 import '../../../widgets/desktop/secondary_button.dart';
 import '../../../widgets/loading_indicator.dart';
 import '../../../widgets/rounded_white_container.dart';
-import '../../../widgets/transaction_card.dart';
 import 'desktop_address_card.dart';
 import 'desktop_contact_options_menu_popup.dart';
+import '../../../pages/wallet_view/transaction_views/tx_v2/transaction_v2_card.dart';
+import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
+import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
+import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
 
 class DesktopContactDetails extends ConsumerStatefulWidget {
   const DesktopContactDetails({super.key, required this.contactId});
@@ -45,40 +46,29 @@ class DesktopContactDetails extends ConsumerStatefulWidget {
 }
 
 class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
-  List<Tuple2<String, Transaction>> _cachedTransactions = [];
+  List<TransactionV2> _cachedTransactions = [];
 
-  Future<List<Tuple2<String, Transaction>>>
-  _filteredTransactionsByContact() async {
+  Future<List<TransactionV2>> _filteredTransactionsByContact() async {
     final contact = ref
         .read(addressBookServiceProvider)
         .getContactById(widget.contactId);
 
     // TODO: optimise
 
-    final transactions =
-        await ref
-            .read(mainDBProvider)
-            .isar
-            .transactions
-            .where()
-            .filter()
-            .anyOf(
-              contact.addresses.map((e) => e.address),
-              (q, String e) => q.address((q) => q.valueEqualTo(e)),
-            )
-            .sortByTimestampDesc()
-            .findAll();
-
-    final List<Tuple2<String, Transaction>> result = [];
-
-    for (final tx in transactions) {
-      result.add(Tuple2(tx.walletId, tx));
-    }
-
-    // sort by date
-    result.sort((a, b) => b.item2.timestamp - a.item2.timestamp);
-
-    return result;
+    return await ref
+        .read(mainDBProvider)
+        .isar
+        .transactionV2s
+        .filter()
+        .anyOf(
+          contact.addresses.map((e) => e.address),
+          (q, String e) => q
+              .outputsElement((o) => o.addressesElementEqualTo(e))
+              .or()
+              .inputsElement((i) => i.addressesElementEqualTo(e)),
+        )
+        .sortByTimestampDesc()
+        .findAll();
   }
 
   @override
@@ -115,25 +105,23 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
                           width: 32,
                           height: 32,
                           decoration: BoxDecoration(
-                            color:
-                                contact.customId == "default"
-                                    ? Colors.transparent
-                                    : Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .textFieldDefaultBG,
+                            color: contact.customId == "default"
+                                ? Colors.transparent
+                                : Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textFieldDefaultBG,
                             borderRadius: BorderRadius.circular(32),
                           ),
-                          child:
-                              contact.customId == "default"
-                                  ? const Center(child: AppIcon(width: 32))
-                                  : contact.emojiChar != null
-                                  ? Center(child: Text(contact.emojiChar!))
-                                  : Center(
-                                    child: SvgPicture.asset(
-                                      Assets.svg.user,
-                                      width: 18,
-                                    ),
+                          child: contact.customId == "default"
+                              ? const Center(child: AppIcon(width: 32))
+                              : contact.emojiChar != null
+                              ? Center(child: Text(contact.emojiChar!))
+                              : Center(
+                                  child: SvgPicture.asset(
+                                    Assets.svg.user,
+                                    width: 18,
                                   ),
+                                ),
                         ),
                         const SizedBox(width: 16),
                         Text(
@@ -188,42 +176,41 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
 
                               await showDialog<void>(
                                 context: context,
-                                builder:
-                                    (context) => DesktopDialog(
-                                      maxWidth: 580,
-                                      maxHeight: 566,
-                                      child: Column(
+                                builder: (context) => DesktopDialog(
+                                  maxWidth: 580,
+                                  maxHeight: 566,
+                                  child: Column(
+                                    children: [
+                                      Row(
                                         children: [
-                                          Row(
-                                            children: [
-                                              const SizedBox(width: 8),
-                                              const AppBarBackButton(
-                                                isCompact: true,
-                                              ),
-                                              Text(
-                                                "Add new address",
-                                                style: STextStyles.desktopH3(
-                                                  context,
-                                                ),
-                                              ),
-                                            ],
+                                          const SizedBox(width: 8),
+                                          const AppBarBackButton(
+                                            isCompact: true,
                                           ),
-                                          Expanded(
-                                            child: Padding(
-                                              padding: const EdgeInsets.only(
-                                                top: 20,
-                                                left: 32,
-                                                right: 32,
-                                                bottom: 32,
-                                              ),
-                                              child: AddNewContactAddressView(
-                                                contactId: widget.contactId,
-                                              ),
+                                          Text(
+                                            "Add new address",
+                                            style: STextStyles.desktopH3(
+                                              context,
                                             ),
                                           ),
                                         ],
                                       ),
-                                    ),
+                                      Expanded(
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(
+                                            top: 20,
+                                            left: 32,
+                                            right: 32,
+                                            bottom: 32,
+                                          ),
+                                          child: AddNewContactAddressView(
+                                            contactId: widget.contactId,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               );
                             },
                           ),
@@ -232,10 +219,9 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
                       const SizedBox(height: 12),
                       RoundedWhiteContainer(
                         padding: const EdgeInsets.all(0),
-                        borderColor:
-                            Theme.of(
-                              context,
-                            ).extension<StackColors>()!.background,
+                        borderColor: Theme.of(context)
+                            .extension<StackColors>()!
+                            .background,
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -249,10 +235,9 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
                                 children: [
                                   if (i > 0)
                                     Container(
-                                      color:
-                                          Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .background,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .background,
                                       height: 1,
                                     ),
                                   Padding(
@@ -278,11 +263,7 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
                       ),
                       FutureBuilder(
                         future: _filteredTransactionsByContact(),
-                        builder: (
-                          _,
-                          AsyncSnapshot<List<Tuple2<String, Transaction>>>
-                          snapshot,
-                        ) {
+                        builder: (_, AsyncSnapshot<List<TransactionV2>> snapshot) {
                           if (snapshot.connectionState ==
                                   ConnectionState.done &&
                               snapshot.hasData) {
@@ -291,20 +272,18 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
                             if (_cachedTransactions.isNotEmpty) {
                               return RoundedWhiteContainer(
                                 padding: const EdgeInsets.all(0),
-                                borderColor:
-                                    Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.background,
+                                borderColor: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .background,
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     ..._cachedTransactions.map(
-                                      (e) => TransactionCard(
+                                      (e) => TransactionCardV2(
                                         key: Key(
-                                          "contactDetailsTransaction_${e.item1}_${e.item2.txid}_cardKey",
+                                          "contactDetailsTransaction_${e.walletId}_${e.txid}_cardKey",
                                         ),
-                                        transaction: e.item2,
-                                        walletId: e.item1,
+                                        transaction: e,
                                       ),
                                     ),
                                   ],
@@ -327,20 +306,18 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
                             } else {
                               return RoundedWhiteContainer(
                                 padding: const EdgeInsets.all(0),
-                                borderColor:
-                                    Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.background,
+                                borderColor: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .background,
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     ..._cachedTransactions.map(
-                                      (e) => TransactionCard(
+                                      (e) => TransactionCardV2(
                                         key: Key(
-                                          "contactDetailsTransaction_${e.item1}_${e.item2.txid}_cardKey",
+                                          "contactDetailsTransaction_${e.walletId}_${e.txid}_cardKey",
                                         ),
-                                        transaction: e.item2,
-                                        walletId: e.item1,
+                                        transaction: e,
                                       ),
                                     ),
                                   ],

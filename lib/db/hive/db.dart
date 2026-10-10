@@ -10,17 +10,13 @@
 
 import 'dart:isolate';
 
-import 'package:compat/compat.dart' as lib_monero_compat;
 import 'package:hive_ce/hive.dart' show Box;
 import 'package:hive_ce/src/hive_impl.dart';
 import 'package:mutex/mutex.dart';
 
 import '../../app_config.dart';
-import '../../models/epicbox_server_model.dart';
-import '../../models/exchange/response_objects/trade.dart';
 import '../../models/node_model.dart';
 import '../../models/notification_model.dart';
-import '../../models/trade_wallet_lookup.dart';
 import '../../services/wallets_service.dart';
 import '../../utilities/logger.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
@@ -31,7 +27,6 @@ class DB {
   // legacy (required for migrations)
   @Deprecated("Left over for migration from old versions of Stack Wallet")
   static const String boxNameAddressBook = "addressBook";
-  static const String boxNameTrades = "exchangeTransactionsBox";
   static const String boxNameAllWalletsData = "wallets";
   static const String boxNameFavoriteWallets = "favoriteWallets";
   static const String boxNamePrimaryNodesDeprecated = "primaryNodes";
@@ -42,10 +37,6 @@ class DB {
   static const String boxNameNotifications = "notificationModels";
   static const String boxNameWatchedTransactions =
       "watchedTxNotificationModels";
-  static const String boxNameWatchedTrades = "watchedTradesNotificationModels";
-  static const String boxNameTradesV2 = "exchangeTradesBox";
-  static const String boxNameTradeNotes = "tradeNotesBox";
-  static const String boxNameTradeLookup = "tradeToTxidLookUpBox";
   static const String boxNameWalletsToDeleteOnStart = "walletsToDeleteOnStart";
   static const String boxNamePriceCache = "priceAPIPrice24hCache";
 
@@ -53,45 +44,23 @@ class DB {
   static const String boxNameDBInfo = "dbInfo";
   static const String boxNamePrefs = "prefs";
   static const String boxNameOneTimeDialogsShown = "oneTimeDialogsShown";
-  static const String boxNameEpicBoxModels = "epicBoxModels";
-  static const String boxNamePrimaryEpicBox = "primaryEpicBox";
 
   String _boxNameTxCache({required CryptoCurrency currency}) =>
       "${currency.identifier}_txCache";
-
-  // firo only
-  String _boxNameSetCache({required CryptoCurrency currency}) =>
-      "${currency.identifier}_anonymitySetCache";
-  String _boxNameUsedSerialsCache({required CryptoCurrency currency}) =>
-      "${currency.identifier}_usedSerialsCache";
 
   Box<NodeModel>? _boxNodeModels;
   Box<NodeModel>? _boxPrimaryNodes;
   Box<dynamic>? _boxAllWalletsData;
   Box<NotificationModel>? _boxNotifications;
   Box<NotificationModel>? _boxWatchedTransactions;
-  Box<NotificationModel>? _boxWatchedTrades;
-  Box<Trade>? _boxTradesV2;
-  Box<String>? _boxTradeNotes;
   Box<String>? _boxFavoriteWallets;
-  Box<lib_monero_compat.WalletInfo>? _walletInfoSource;
   Box<dynamic>? _boxPrefs;
-  Box<TradeWalletLookup>? _boxTradeLookup;
   Box<dynamic>? _boxDBInfo;
-  late final Box<EpicBoxServerModel> _boxEpicBoxModels;
-  late final Box<EpicBoxServerModel> _boxPrimaryEpicBoxes;
   // Box<String>? _boxDesktopData;
 
   final Map<String, Box<dynamic>> _walletBoxes = {};
 
   final Map<String, Box<dynamic>> _txCacheBoxes = {};
-  final Map<String, Box<dynamic>> _setCacheBoxes = {};
-  final Map<String, Box<dynamic>> _usedSerialsCacheBoxes = {};
-  final Map<String, Box<dynamic>> _getSparkUsedCoinsTagsCacheBoxes = {};
-
-  // exposed for monero
-  Box<lib_monero_compat.WalletInfo> get moneroWalletInfoBox =>
-      _walletInfoSource!;
 
   // mutex for stack backup
   final mutex = Mutex();
@@ -120,24 +89,6 @@ class DB {
     }
     await hive.openBox<String>(boxNameWalletsToDeleteOnStart);
 
-    if (hive.isBoxOpen(boxNameEpicBoxModels)) {
-      _boxEpicBoxModels = hive.box<EpicBoxServerModel>(boxNameEpicBoxModels);
-    } else {
-      _boxEpicBoxModels = await hive.openBox<EpicBoxServerModel>(
-        boxNameEpicBoxModels,
-      );
-    }
-
-    if (hive.isBoxOpen(boxNamePrimaryEpicBox)) {
-      _boxPrimaryEpicBoxes = hive.box<EpicBoxServerModel>(
-        boxNamePrimaryEpicBox,
-      );
-    } else {
-      _boxPrimaryEpicBoxes = await hive.openBox<EpicBoxServerModel>(
-        boxNamePrimaryEpicBox,
-      );
-    }
-
     if (hive.isBoxOpen(boxNamePrefs)) {
       _boxPrefs = hive.box<dynamic>(boxNamePrefs);
     } else {
@@ -161,15 +112,6 @@ class DB {
     );
     _boxWatchedTransactions = await hive.openBox<NotificationModel>(
       boxNameWatchedTransactions,
-    );
-    _boxWatchedTrades = await hive.openBox<NotificationModel>(
-      boxNameWatchedTrades,
-    );
-    _boxTradesV2 = await hive.openBox<Trade>(boxNameTradesV2);
-    _boxTradeNotes = await hive.openBox<String>(boxNameTradeNotes);
-    _boxTradeLookup = await hive.openBox<TradeWalletLookup>(boxNameTradeLookup);
-    _walletInfoSource = await hive.openBox<lib_monero_compat.WalletInfo>(
-      lib_monero_compat.WalletInfo.boxName,
     );
     _boxFavoriteWallets = await hive.openBox<String>(boxNameFavoriteWallets);
 
@@ -228,50 +170,11 @@ class DB {
     await _txCacheBoxes[currency.identifier]?.close();
   }
 
-  Future<Box<dynamic>> getAnonymitySetCacheBox({
-    required CryptoCurrency currency,
-  }) async {
-    if (_setCacheBoxes[currency.identifier]?.isOpen != true) {
-      _setCacheBoxes.remove(currency.identifier);
-    }
-    return _setCacheBoxes[currency.identifier] ??= await hive.openBox<dynamic>(
-      _boxNameSetCache(currency: currency),
-    );
-  }
-
-  Future<void> closeAnonymitySetCacheBox({
-    required CryptoCurrency currency,
-  }) async {
-    await _setCacheBoxes[currency.identifier]?.close();
-  }
-
-  Future<Box<dynamic>> getUsedSerialsCacheBox({
-    required CryptoCurrency currency,
-  }) async {
-    if (_usedSerialsCacheBoxes[currency.identifier]?.isOpen != true) {
-      _usedSerialsCacheBoxes.remove(currency.identifier);
-    }
-    return _usedSerialsCacheBoxes[currency.identifier] ??= await hive
-        .openBox<dynamic>(_boxNameUsedSerialsCache(currency: currency));
-  }
-
-  Future<void> closeUsedSerialsCacheBox({
-    required CryptoCurrency currency,
-  }) async {
-    await _usedSerialsCacheBoxes[currency.identifier]?.close();
-  }
-
   /// Clear all cached transactions for the specified coin
   Future<void> clearSharedTransactionCache({
     required CryptoCurrency currency,
   }) async {
     await deleteAll<dynamic>(boxName: _boxNameTxCache(currency: currency));
-    if (currency is Firo) {
-      await deleteAll<dynamic>(boxName: _boxNameSetCache(currency: currency));
-      await deleteAll<dynamic>(
-        boxName: _boxNameUsedSerialsCache(currency: currency),
-      );
-    }
   }
 
   /////////////////////////////////////////
@@ -350,11 +253,6 @@ class DB {
       await DB.instance.deleteBoxFromDisk(
         boxName: DB.boxNameWatchedTransactions,
       );
-      await DB.instance.deleteBoxFromDisk(boxName: DB.boxNameWatchedTrades);
-      await DB.instance.deleteBoxFromDisk(boxName: DB.boxNameTrades);
-      await DB.instance.deleteBoxFromDisk(boxName: DB.boxNameTradesV2);
-      await DB.instance.deleteBoxFromDisk(boxName: DB.boxNameTradeNotes);
-      await DB.instance.deleteBoxFromDisk(boxName: DB.boxNameTradeLookup);
       await DB.instance.deleteBoxFromDisk(boxName: DB.boxNameFavoriteWallets);
       await DB.instance.deleteBoxFromDisk(boxName: DB.boxNamePrefs);
       await DB.instance.deleteBoxFromDisk(

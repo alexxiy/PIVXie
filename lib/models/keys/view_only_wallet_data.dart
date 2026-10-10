@@ -1,14 +1,18 @@
 import 'dart:convert';
 
-import '../../wallets/wallet/wallet_mixin_interfaces/extended_keys_interface.dart';
 import 'key_data_interface.dart';
 
 // do not remove or change the order of these enum values
-enum ViewOnlyWalletType {
-  cryptonote,
-  addressOnly,
-  xPub,
-  spark;
+enum ViewOnlyWalletType { cryptonote, addressOnly, xPub, spark }
+
+class XPub {
+  XPub({required this.path, required this.encoded});
+
+  final String path;
+  final String encoded;
+
+  @override
+  String toString() => "XPub { path: $path, encoded: $encoded }";
 }
 
 sealed class ViewOnlyWalletData with KeyDataInterface {
@@ -17,9 +21,7 @@ sealed class ViewOnlyWalletData with KeyDataInterface {
 
   ViewOnlyWalletType get type;
 
-  ViewOnlyWalletData({
-    required this.walletId,
-  });
+  ViewOnlyWalletData({required this.walletId});
 
   static ViewOnlyWalletData fromJsonEncodedString(
     String jsonEncodedString, {
@@ -30,12 +32,6 @@ sealed class ViewOnlyWalletData with KeyDataInterface {
     final type = ViewOnlyWalletType.values[json["type"] as int];
 
     switch (type) {
-      case ViewOnlyWalletType.cryptonote:
-        return CryptonoteViewOnlyWalletData.fromJsonEncodedString(
-          jsonEncodedString,
-          walletId: walletId,
-        );
-
       case ViewOnlyWalletType.addressOnly:
         return AddressViewOnlyWalletData.fromJsonEncodedString(
           jsonEncodedString,
@@ -48,50 +44,13 @@ sealed class ViewOnlyWalletData with KeyDataInterface {
           walletId: walletId,
         );
 
+      case ViewOnlyWalletType.cryptonote:
       case ViewOnlyWalletType.spark:
-        return SparkViewOnlyWalletData.fromJsonEncodedString(
-          jsonEncodedString,
-          walletId: walletId,
-        );
+        throw UnsupportedError("$type view only wallets are not supported");
     }
   }
 
   String toJsonEncodedString();
-}
-
-class CryptonoteViewOnlyWalletData extends ViewOnlyWalletData {
-  @override
-  final type = ViewOnlyWalletType.cryptonote;
-
-  final String address;
-  final String privateViewKey;
-
-  CryptonoteViewOnlyWalletData({
-    required super.walletId,
-    required this.address,
-    required this.privateViewKey,
-  });
-
-  static CryptonoteViewOnlyWalletData fromJsonEncodedString(
-    String jsonEncodedString, {
-    required String walletId,
-  }) {
-    final map = jsonDecode(jsonEncodedString) as Map;
-    final json = Map<String, dynamic>.from(map);
-
-    return CryptonoteViewOnlyWalletData(
-      walletId: walletId,
-      address: json["address"] as String,
-      privateViewKey: json["privateViewKey"] as String,
-    );
-  }
-
-  @override
-  String toJsonEncodedString() => jsonEncode({
-        "type": type.index,
-        "address": address,
-        "privateViewKey": privateViewKey,
-      });
 }
 
 class AddressViewOnlyWalletData extends ViewOnlyWalletData {
@@ -100,10 +59,7 @@ class AddressViewOnlyWalletData extends ViewOnlyWalletData {
 
   final String address;
 
-  AddressViewOnlyWalletData({
-    required super.walletId,
-    required this.address,
-  });
+  AddressViewOnlyWalletData({required super.walletId, required this.address});
 
   static AddressViewOnlyWalletData fromJsonEncodedString(
     String jsonEncodedString, {
@@ -119,10 +75,8 @@ class AddressViewOnlyWalletData extends ViewOnlyWalletData {
   }
 
   @override
-  String toJsonEncodedString() => jsonEncode({
-        "type": type.index,
-        "address": address,
-      });
+  String toJsonEncodedString() =>
+      jsonEncode({"type": type.index, "address": address});
 }
 
 class ExtendedKeysViewOnlyWalletData extends ViewOnlyWalletData {
@@ -158,45 +112,9 @@ class ExtendedKeysViewOnlyWalletData extends ViewOnlyWalletData {
 
   @override
   String toJsonEncodedString() => jsonEncode({
-        "type": type.index,
-        "xPubs": [
-          ...xPubs.map(
-            (e) => {
-              "path": e.path,
-              "encoded": e.encoded,
-            },
-          ),
-        ],
-      });
-}
-
-class SparkViewOnlyWalletData extends ViewOnlyWalletData {
-  @override
-  final type = ViewOnlyWalletType.spark;
-
-  final String viewKey;
-
-  SparkViewOnlyWalletData({
-    required super.walletId,
-    required this.viewKey,
+    "type": type.index,
+    "xPubs": [
+      ...xPubs.map((e) => {"path": e.path, "encoded": e.encoded}),
+    ],
   });
-
-  static SparkViewOnlyWalletData fromJsonEncodedString(
-    String jsonEncodedString, {
-    required String walletId,
-  }) {
-    final map = jsonDecode(jsonEncodedString) as Map;
-    final json = Map<String, dynamic>.from(map);
-
-    return SparkViewOnlyWalletData(
-      walletId: walletId,
-      viewKey: json["viewKey"] as String,
-    );
-  }
-
-  @override
-  String toJsonEncodedString() => jsonEncode({
-        "type": type.index,
-        "viewKey": viewKey,
-      });
 }
