@@ -17,6 +17,11 @@ enum AppFeature {
   darkTheme,
 }
 
+/// Where users get help (Settings > Support).
+enum SupportChannel { telegram, discord, reddit, x, email }
+
+typedef SupportLink = ({SupportChannel channel, String text, String url});
+
 abstract class AppConfig {
   static const appName = _prefix + _separator + suffix;
 
@@ -28,6 +33,12 @@ abstract class AppConfig {
   static String get appDefaultDataDirName => _appDataDirName;
   static String get shortDescriptionText => _shortDescriptionText;
   static String get commitHash => _commitHash;
+
+  /// Project links; empty ones are not shown.
+  static String get websiteUrl => _websiteUrl;
+  static String get termsUrl => _termsUrl;
+  static String get privacyUrl => _privacyUrl;
+  static List<SupportLink> get supportLinks => _supportLinks;
 
   static bool hasFeature(AppFeature feature) => _features.contains(feature);
 

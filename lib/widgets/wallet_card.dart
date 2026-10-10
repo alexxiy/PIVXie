@@ -51,7 +51,7 @@ class SimpleWalletCard extends ConsumerWidget {
       rootNavigator: Util.isDesktop,
     );
 
-    if (!canContinue) {
+    if (!canContinue || !context.mounted) {
       return;
     }
 

@@ -8,7 +8,6 @@
  *
  */
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
 import '../../services/address_book_service.dart';

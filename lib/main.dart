@@ -385,7 +385,6 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       }
       loadingCompleter.complete();
       // TODO: this should probably run unawaited. Keep commented out for now as proper community nodes ui hasn't been implemented yet
-      //  unawaited(_nodeService.updateCommunityNodes());
 
       if (ref.read(prefsChangeNotifierProvider).isAutoBackupEnabled) {
         switch (ref.read(prefsChangeNotifierProvider).backupFrequencyType) {

@@ -3,6 +3,7 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
+
 import 'dart:async' as _i6;
 import 'dart:typed_data' as _i7;
 
@@ -46,28 +47,22 @@ class MockThemeService extends _i1.Mock implements _i4.ThemeService {
   }
 
   @override
-  _i2.MainDB get db =>
-      (super.noSuchMethod(
-            Invocation.getter(#db),
-            returnValue: _FakeMainDB_0(this, Invocation.getter(#db)),
-          )
-          as _i2.MainDB);
+  _i2.MainDB get db => (super.noSuchMethod(
+    Invocation.getter(#db),
+    returnValue: _FakeMainDB_0(this, Invocation.getter(#db)),
+  ) as _i2.MainDB);
 
   @override
-  _i3.HTTP get client =>
-      (super.noSuchMethod(
-            Invocation.getter(#client),
-            returnValue: _FakeHTTP_1(this, Invocation.getter(#client)),
-          )
-          as _i3.HTTP);
+  _i3.HTTP get client => (super.noSuchMethod(
+    Invocation.getter(#client),
+    returnValue: _FakeHTTP_1(this, Invocation.getter(#client)),
+  ) as _i3.HTTP);
 
   @override
-  List<_i5.StackTheme> get installedThemes =>
-      (super.noSuchMethod(
-            Invocation.getter(#installedThemes),
-            returnValue: <_i5.StackTheme>[],
-          )
-          as List<_i5.StackTheme>);
+  List<_i5.StackTheme> get installedThemes => (super.noSuchMethod(
+    Invocation.getter(#installedThemes),
+    returnValue: <_i5.StackTheme>[],
+  ) as List<_i5.StackTheme>);
 
   @override
   set client(_i3.HTTP? value) => super.noSuchMethod(
@@ -84,59 +79,47 @@ class MockThemeService extends _i1.Mock implements _i4.ThemeService {
   @override
   _i6.Future<void> install({required _i7.Uint8List? themeArchiveData}) =>
       (super.noSuchMethod(
-            Invocation.method(#install, [], {
-              #themeArchiveData: themeArchiveData,
-            }),
-            returnValue: _i6.Future<void>.value(),
-            returnValueForMissingStub: _i6.Future<void>.value(),
-          )
-          as _i6.Future<void>);
+        Invocation.method(#install, [], {#themeArchiveData: themeArchiveData}),
+        returnValue: _i6.Future<void>.value(),
+        returnValueForMissingStub: _i6.Future<void>.value(),
+      ) as _i6.Future<void>);
 
   @override
-  _i6.Future<void> remove({required String? themeId}) =>
-      (super.noSuchMethod(
-            Invocation.method(#remove, [], {#themeId: themeId}),
-            returnValue: _i6.Future<void>.value(),
-            returnValueForMissingStub: _i6.Future<void>.value(),
-          )
-          as _i6.Future<void>);
+  _i6.Future<void> remove({required String? themeId}) => (super.noSuchMethod(
+    Invocation.method(#remove, [], {#themeId: themeId}),
+    returnValue: _i6.Future<void>.value(),
+    returnValueForMissingStub: _i6.Future<void>.value(),
+  ) as _i6.Future<void>);
 
   @override
-  _i6.Future<void> checkDefaultThemesOnStartup() =>
-      (super.noSuchMethod(
-            Invocation.method(#checkDefaultThemesOnStartup, []),
-            returnValue: _i6.Future<void>.value(),
-            returnValueForMissingStub: _i6.Future<void>.value(),
-          )
-          as _i6.Future<void>);
+  _i6.Future<void> checkDefaultThemesOnStartup() => (super.noSuchMethod(
+    Invocation.method(#checkDefaultThemesOnStartup, []),
+    returnValue: _i6.Future<void>.value(),
+    returnValueForMissingStub: _i6.Future<void>.value(),
+  ) as _i6.Future<void>);
 
   @override
   _i6.Future<bool> verifyInstalled({required String? themeId}) =>
       (super.noSuchMethod(
-            Invocation.method(#verifyInstalled, [], {#themeId: themeId}),
-            returnValue: _i6.Future<bool>.value(false),
-          )
-          as _i6.Future<bool>);
+        Invocation.method(#verifyInstalled, [], {#themeId: themeId}),
+        returnValue: _i6.Future<bool>.value(false),
+      ) as _i6.Future<bool>);
 
   @override
-  _i6.Future<List<_i4.StackThemeMetaData>> fetchThemes() =>
-      (super.noSuchMethod(
-            Invocation.method(#fetchThemes, []),
-            returnValue: _i6.Future<List<_i4.StackThemeMetaData>>.value(
-              <_i4.StackThemeMetaData>[],
-            ),
-          )
-          as _i6.Future<List<_i4.StackThemeMetaData>>);
+  _i6.Future<List<_i4.StackThemeMetaData>> fetchThemes() => (super.noSuchMethod(
+    Invocation.method(#fetchThemes, []),
+    returnValue: _i6.Future<List<_i4.StackThemeMetaData>>.value(
+      <_i4.StackThemeMetaData>[],
+    ),
+  ) as _i6.Future<List<_i4.StackThemeMetaData>>);
 
   @override
   _i6.Future<_i7.Uint8List> fetchTheme({
     required _i4.StackThemeMetaData? themeMetaData,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#fetchTheme, [], {#themeMetaData: themeMetaData}),
-            returnValue: _i6.Future<_i7.Uint8List>.value(_i7.Uint8List(0)),
-          )
-          as _i6.Future<_i7.Uint8List>);
+  }) => (super.noSuchMethod(
+    Invocation.method(#fetchTheme, [], {#themeMetaData: themeMetaData}),
+    returnValue: _i6.Future<_i7.Uint8List>.value(_i7.Uint8List(0)),
+  ) as _i6.Future<_i7.Uint8List>);
 
   @override
   _i5.StackTheme? getTheme({required String? themeId}) =>

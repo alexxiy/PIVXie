@@ -3,6 +3,7 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
+
 import 'dart:async' as _i5;
 
 import 'package:flutter/foundation.dart' as _i4;
@@ -74,75 +75,47 @@ class MockFlutterSecureStorage extends _i1.Mock
   }
 
   @override
-  _i2.IOSOptions get iOptions =>
-      (super.noSuchMethod(
-            Invocation.getter(#iOptions),
-            returnValue: _FakeIOSOptions_0(this, Invocation.getter(#iOptions)),
-          )
-          as _i2.IOSOptions);
+  _i2.IOSOptions get iOptions => (super.noSuchMethod(
+    Invocation.getter(#iOptions),
+    returnValue: _FakeIOSOptions_0(this, Invocation.getter(#iOptions)),
+  ) as _i2.IOSOptions);
 
   @override
-  _i2.AndroidOptions get aOptions =>
-      (super.noSuchMethod(
-            Invocation.getter(#aOptions),
-            returnValue: _FakeAndroidOptions_1(
-              this,
-              Invocation.getter(#aOptions),
-            ),
-          )
-          as _i2.AndroidOptions);
+  _i2.AndroidOptions get aOptions => (super.noSuchMethod(
+    Invocation.getter(#aOptions),
+    returnValue: _FakeAndroidOptions_1(this, Invocation.getter(#aOptions)),
+  ) as _i2.AndroidOptions);
 
   @override
-  _i2.LinuxOptions get lOptions =>
-      (super.noSuchMethod(
-            Invocation.getter(#lOptions),
-            returnValue: _FakeLinuxOptions_2(
-              this,
-              Invocation.getter(#lOptions),
-            ),
-          )
-          as _i2.LinuxOptions);
+  _i2.LinuxOptions get lOptions => (super.noSuchMethod(
+    Invocation.getter(#lOptions),
+    returnValue: _FakeLinuxOptions_2(this, Invocation.getter(#lOptions)),
+  ) as _i2.LinuxOptions);
 
   @override
-  _i2.WindowsOptions get wOptions =>
-      (super.noSuchMethod(
-            Invocation.getter(#wOptions),
-            returnValue: _FakeWindowsOptions_3(
-              this,
-              Invocation.getter(#wOptions),
-            ),
-          )
-          as _i2.WindowsOptions);
+  _i2.WindowsOptions get wOptions => (super.noSuchMethod(
+    Invocation.getter(#wOptions),
+    returnValue: _FakeWindowsOptions_3(this, Invocation.getter(#wOptions)),
+  ) as _i2.WindowsOptions);
 
   @override
-  _i2.WebOptions get webOptions =>
-      (super.noSuchMethod(
-            Invocation.getter(#webOptions),
-            returnValue: _FakeWebOptions_4(
-              this,
-              Invocation.getter(#webOptions),
-            ),
-          )
-          as _i2.WebOptions);
+  _i2.WebOptions get webOptions => (super.noSuchMethod(
+    Invocation.getter(#webOptions),
+    returnValue: _FakeWebOptions_4(this, Invocation.getter(#webOptions)),
+  ) as _i2.WebOptions);
 
   @override
-  _i2.AppleOptions get mOptions =>
-      (super.noSuchMethod(
-            Invocation.getter(#mOptions),
-            returnValue: _FakeAppleOptions_5(
-              this,
-              Invocation.getter(#mOptions),
-            ),
-          )
-          as _i2.AppleOptions);
+  _i2.AppleOptions get mOptions => (super.noSuchMethod(
+    Invocation.getter(#mOptions),
+    returnValue: _FakeAppleOptions_5(this, Invocation.getter(#mOptions)),
+  ) as _i2.AppleOptions);
 
   @override
   Map<String, List<_i4.ValueChanged<String?>>> get getListeners =>
       (super.noSuchMethod(
-            Invocation.getter(#getListeners),
-            returnValue: <String, List<_i4.ValueChanged<String?>>>{},
-          )
-          as Map<String, List<_i4.ValueChanged<String?>>>);
+        Invocation.getter(#getListeners),
+        returnValue: <String, List<_i4.ValueChanged<String?>>>{},
+      ) as Map<String, List<_i4.ValueChanged<String?>>>);
 
   @override
   void registerListener({
@@ -188,22 +161,20 @@ class MockFlutterSecureStorage extends _i1.Mock
     _i2.WebOptions? webOptions,
     _i2.AppleOptions? mOptions,
     _i2.WindowsOptions? wOptions,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#write, [], {
-              #key: key,
-              #value: value,
-              #iOptions: iOptions,
-              #aOptions: aOptions,
-              #lOptions: lOptions,
-              #webOptions: webOptions,
-              #mOptions: mOptions,
-              #wOptions: wOptions,
-            }),
-            returnValue: _i5.Future<void>.value(),
-            returnValueForMissingStub: _i5.Future<void>.value(),
-          )
-          as _i5.Future<void>);
+  }) => (super.noSuchMethod(
+    Invocation.method(#write, [], {
+      #key: key,
+      #value: value,
+      #iOptions: iOptions,
+      #aOptions: aOptions,
+      #lOptions: lOptions,
+      #webOptions: webOptions,
+      #mOptions: mOptions,
+      #wOptions: wOptions,
+    }),
+    returnValue: _i5.Future<void>.value(),
+    returnValueForMissingStub: _i5.Future<void>.value(),
+  ) as _i5.Future<void>);
 
   @override
   _i5.Future<String?> read({
@@ -214,20 +185,18 @@ class MockFlutterSecureStorage extends _i1.Mock
     _i2.WebOptions? webOptions,
     _i2.AppleOptions? mOptions,
     _i2.WindowsOptions? wOptions,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#read, [], {
-              #key: key,
-              #iOptions: iOptions,
-              #aOptions: aOptions,
-              #lOptions: lOptions,
-              #webOptions: webOptions,
-              #mOptions: mOptions,
-              #wOptions: wOptions,
-            }),
-            returnValue: _i5.Future<String?>.value(),
-          )
-          as _i5.Future<String?>);
+  }) => (super.noSuchMethod(
+    Invocation.method(#read, [], {
+      #key: key,
+      #iOptions: iOptions,
+      #aOptions: aOptions,
+      #lOptions: lOptions,
+      #webOptions: webOptions,
+      #mOptions: mOptions,
+      #wOptions: wOptions,
+    }),
+    returnValue: _i5.Future<String?>.value(),
+  ) as _i5.Future<String?>);
 
   @override
   _i5.Future<bool> containsKey({
@@ -238,20 +207,18 @@ class MockFlutterSecureStorage extends _i1.Mock
     _i2.WebOptions? webOptions,
     _i2.AppleOptions? mOptions,
     _i2.WindowsOptions? wOptions,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#containsKey, [], {
-              #key: key,
-              #iOptions: iOptions,
-              #aOptions: aOptions,
-              #lOptions: lOptions,
-              #webOptions: webOptions,
-              #mOptions: mOptions,
-              #wOptions: wOptions,
-            }),
-            returnValue: _i5.Future<bool>.value(false),
-          )
-          as _i5.Future<bool>);
+  }) => (super.noSuchMethod(
+    Invocation.method(#containsKey, [], {
+      #key: key,
+      #iOptions: iOptions,
+      #aOptions: aOptions,
+      #lOptions: lOptions,
+      #webOptions: webOptions,
+      #mOptions: mOptions,
+      #wOptions: wOptions,
+    }),
+    returnValue: _i5.Future<bool>.value(false),
+  ) as _i5.Future<bool>);
 
   @override
   _i5.Future<void> delete({
@@ -262,21 +229,19 @@ class MockFlutterSecureStorage extends _i1.Mock
     _i2.WebOptions? webOptions,
     _i2.AppleOptions? mOptions,
     _i2.WindowsOptions? wOptions,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#delete, [], {
-              #key: key,
-              #iOptions: iOptions,
-              #aOptions: aOptions,
-              #lOptions: lOptions,
-              #webOptions: webOptions,
-              #mOptions: mOptions,
-              #wOptions: wOptions,
-            }),
-            returnValue: _i5.Future<void>.value(),
-            returnValueForMissingStub: _i5.Future<void>.value(),
-          )
-          as _i5.Future<void>);
+  }) => (super.noSuchMethod(
+    Invocation.method(#delete, [], {
+      #key: key,
+      #iOptions: iOptions,
+      #aOptions: aOptions,
+      #lOptions: lOptions,
+      #webOptions: webOptions,
+      #mOptions: mOptions,
+      #wOptions: wOptions,
+    }),
+    returnValue: _i5.Future<void>.value(),
+    returnValueForMissingStub: _i5.Future<void>.value(),
+  ) as _i5.Future<void>);
 
   @override
   _i5.Future<Map<String, String>> readAll({
@@ -286,21 +251,17 @@ class MockFlutterSecureStorage extends _i1.Mock
     _i2.WebOptions? webOptions,
     _i2.AppleOptions? mOptions,
     _i2.WindowsOptions? wOptions,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#readAll, [], {
-              #iOptions: iOptions,
-              #aOptions: aOptions,
-              #lOptions: lOptions,
-              #webOptions: webOptions,
-              #mOptions: mOptions,
-              #wOptions: wOptions,
-            }),
-            returnValue: _i5.Future<Map<String, String>>.value(
-              <String, String>{},
-            ),
-          )
-          as _i5.Future<Map<String, String>>);
+  }) => (super.noSuchMethod(
+    Invocation.method(#readAll, [], {
+      #iOptions: iOptions,
+      #aOptions: aOptions,
+      #lOptions: lOptions,
+      #webOptions: webOptions,
+      #mOptions: mOptions,
+      #wOptions: wOptions,
+    }),
+    returnValue: _i5.Future<Map<String, String>>.value(<String, String>{}),
+  ) as _i5.Future<Map<String, String>>);
 
   @override
   _i5.Future<void> deleteAll({
@@ -310,28 +271,24 @@ class MockFlutterSecureStorage extends _i1.Mock
     _i2.WebOptions? webOptions,
     _i2.AppleOptions? mOptions,
     _i2.WindowsOptions? wOptions,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#deleteAll, [], {
-              #iOptions: iOptions,
-              #aOptions: aOptions,
-              #lOptions: lOptions,
-              #webOptions: webOptions,
-              #mOptions: mOptions,
-              #wOptions: wOptions,
-            }),
-            returnValue: _i5.Future<void>.value(),
-            returnValueForMissingStub: _i5.Future<void>.value(),
-          )
-          as _i5.Future<void>);
+  }) => (super.noSuchMethod(
+    Invocation.method(#deleteAll, [], {
+      #iOptions: iOptions,
+      #aOptions: aOptions,
+      #lOptions: lOptions,
+      #webOptions: webOptions,
+      #mOptions: mOptions,
+      #wOptions: wOptions,
+    }),
+    returnValue: _i5.Future<void>.value(),
+    returnValueForMissingStub: _i5.Future<void>.value(),
+  ) as _i5.Future<void>);
 
   @override
-  _i5.Future<bool?> isCupertinoProtectedDataAvailable() =>
-      (super.noSuchMethod(
-            Invocation.method(#isCupertinoProtectedDataAvailable, []),
-            returnValue: _i5.Future<bool?>.value(),
-          )
-          as _i5.Future<bool?>);
+  _i5.Future<bool?> isCupertinoProtectedDataAvailable() => (super.noSuchMethod(
+    Invocation.method(#isCupertinoProtectedDataAvailable, []),
+    returnValue: _i5.Future<bool?>.value(),
+  ) as _i5.Future<bool?>);
 
   @override
   _i5.Future<_i3.SecureStorageUpgradeStatus> checkUpgradeStatus({
@@ -341,29 +298,27 @@ class MockFlutterSecureStorage extends _i1.Mock
     _i2.WebOptions? webOptions,
     _i2.AppleOptions? mOptions,
     _i2.WindowsOptions? wOptions,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#checkUpgradeStatus, [], {
-              #iOptions: iOptions,
-              #aOptions: aOptions,
-              #lOptions: lOptions,
-              #webOptions: webOptions,
-              #mOptions: mOptions,
-              #wOptions: wOptions,
-            }),
-            returnValue: _i5.Future<_i3.SecureStorageUpgradeStatus>.value(
-              _FakeSecureStorageUpgradeStatus_6(
-                this,
-                Invocation.method(#checkUpgradeStatus, [], {
-                  #iOptions: iOptions,
-                  #aOptions: aOptions,
-                  #lOptions: lOptions,
-                  #webOptions: webOptions,
-                  #mOptions: mOptions,
-                  #wOptions: wOptions,
-                }),
-              ),
-            ),
-          )
-          as _i5.Future<_i3.SecureStorageUpgradeStatus>);
+  }) => (super.noSuchMethod(
+    Invocation.method(#checkUpgradeStatus, [], {
+      #iOptions: iOptions,
+      #aOptions: aOptions,
+      #lOptions: lOptions,
+      #webOptions: webOptions,
+      #mOptions: mOptions,
+      #wOptions: wOptions,
+    }),
+    returnValue: _i5.Future<_i3.SecureStorageUpgradeStatus>.value(
+      _FakeSecureStorageUpgradeStatus_6(
+        this,
+        Invocation.method(#checkUpgradeStatus, [], {
+          #iOptions: iOptions,
+          #aOptions: aOptions,
+          #lOptions: lOptions,
+          #webOptions: webOptions,
+          #mOptions: mOptions,
+          #wOptions: wOptions,
+        }),
+      ),
+    ),
+  ) as _i5.Future<_i3.SecureStorageUpgradeStatus>);
 }

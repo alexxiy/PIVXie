@@ -8,13 +8,13 @@
  *
  */
 
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../app_config.dart';
+import '../../../pages/intro_view.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/git_status.dart';
 import '../../../utilities/text_styles.dart';
@@ -70,66 +70,12 @@ class DesktopAboutView extends ConsumerWidget {
                           const SizedBox(height: 16),
                           Row(
                             children: [
-                              RichText(
-                                textAlign: TextAlign.start,
-                                text: TextSpan(
-                                  style: STextStyles.label(context),
-                                  children: [
-                                    TextSpan(
-                                      text:
-                                          "By using ${AppConfig.appName}, you agree to the ",
-                                      style:
-                                          STextStyles.desktopTextExtraExtraSmall(
-                                            context,
-                                          ).copyWith(
-                                            color: Theme.of(context)
-                                                .extension<StackColors>()!
-                                                .textDark3,
-                                          ),
-                                    ),
-                                    TextSpan(
-                                      text: "Terms of service",
-                                      style: STextStyles.richLink(context)
-                                          .copyWith(fontSize: 14),
-                                      recognizer: TapGestureRecognizer()
-                                        ..onTap = () {
-                                          launchUrl(
-                                            Uri.parse(
-                                              "https://stackwallet.com/terms-of-service.html",
-                                            ),
-                                            mode:
-                                                LaunchMode.externalApplication,
-                                          );
-                                        },
-                                    ),
-                                    TextSpan(
-                                      text: " and ",
-                                      style:
-                                          STextStyles.desktopTextExtraExtraSmall(
-                                            context,
-                                          ).copyWith(
-                                            color: Theme.of(context)
-                                                .extension<StackColors>()!
-                                                .textDark3,
-                                          ),
-                                    ),
-                                    TextSpan(
-                                      text: "Privacy policy",
-                                      style: STextStyles.richLink(context)
-                                          .copyWith(fontSize: 14),
-                                      recognizer: TapGestureRecognizer()
-                                        ..onTap = () {
-                                          launchUrl(
-                                            Uri.parse(
-                                              "https://stackwallet.com/privacy-policy.html",
-                                            ),
-                                            mode:
-                                                LaunchMode.externalApplication,
-                                          );
-                                        },
-                                    ),
-                                  ],
-                                ),
+                              PrivacyAndTOSText(
+                                isDesktop: true,
+                                fontSize: 14,
+                                textColor: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textDark3,
                               ),
                             ],
                           ),
@@ -288,36 +234,38 @@ class DesktopAboutView extends ConsumerWidget {
                                             ),
                                           ],
                                         ),
-                                        const SizedBox(height: 35),
-                                        Row(
-                                          children: [
-                                            Text(
-                                              "Website:",
-                                              style:
-                                                  STextStyles.desktopTextExtraExtraSmall(
-                                                    context,
-                                                  ).copyWith(
-                                                    color: Theme.of(context)
-                                                        .extension<
-                                                          StackColors
-                                                        >()!
-                                                        .textDark,
-                                                  ),
-                                            ),
-                                            CustomTextButton(
-                                              text: "https://stackwallet.com",
-                                              onTap: () {
-                                                launchUrl(
-                                                  Uri.parse(
-                                                    "https://stackwallet.com",
-                                                  ),
-                                                  mode: LaunchMode
-                                                      .externalApplication,
-                                                );
-                                              },
-                                            ),
-                                          ],
-                                        ),
+                                        if (AppConfig.websiteUrl.isNotEmpty)
+                                          const SizedBox(height: 35),
+                                        if (AppConfig.websiteUrl.isNotEmpty)
+                                          Row(
+                                            children: [
+                                              Text(
+                                                "Website:",
+                                                style:
+                                                    STextStyles.desktopTextExtraExtraSmall(
+                                                      context,
+                                                    ).copyWith(
+                                                      color: Theme.of(context)
+                                                          .extension<
+                                                            StackColors
+                                                          >()!
+                                                          .textDark,
+                                                    ),
+                                              ),
+                                              CustomTextButton(
+                                                text: AppConfig.websiteUrl,
+                                                onTap: () {
+                                                  launchUrl(
+                                                    Uri.parse(
+                                                      AppConfig.websiteUrl,
+                                                    ),
+                                                    mode: LaunchMode
+                                                        .externalApplication,
+                                                  );
+                                                },
+                                              ),
+                                            ],
+                                          ),
                                       ],
                                     );
                                   },

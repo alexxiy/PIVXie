@@ -67,6 +67,16 @@ typedef PivxMasternodeNetworkInfo = ({
 });
 
 const _kMasternodesKey = "pivxMasternodes";
+
+/// Secure storage key of the private key of masternode [id] (`txid:vout`).
+String pivxMasternodeKeyName(String walletId, String id) =>
+    "${walletId}_pivxMasternodeKey_$id";
+
+/// Ids (`txid:vout`) of the masternodes in a wallet's otherData.
+List<String> pivxMasternodeIds(Map<String, dynamic> otherData) => [
+  for (final e in (otherData[_kMasternodesKey] as List?) ?? const [])
+    PivxMasternode.fromJson(Map<String, dynamic>.from(e as Map)).id,
+];
 const _kMasternodeFrozenReason = "Masternode collateral";
 
 /// Default masternode P2P ports.
@@ -101,7 +111,8 @@ extension PivxMasternodes on PivxWallet {
 
   /// Collateral of a masternode.
   Amount get masternodeCollateral => Amount(
-    rawValue: BigInt.from(_isRegtest ? 100 : 10000) * cryptoCurrency.satsPerCoin,
+    rawValue:
+        BigInt.from(_isRegtest ? 100 : 10000) * cryptoCurrency.satsPerCoin,
     fractionDigits: cryptoCurrency.fractionDigits,
   );
 
@@ -136,14 +147,16 @@ extension PivxMasternodes on PivxWallet {
   bool _isMasternodeCollateral(String txid, int vout) =>
       masternodes.any((m) => m.txid == txid && m.vout == vout);
 
-  String _masternodeKeyName(String id) => "${walletId}_pivxMasternodeKey_$id";
+  String _masternodeKeyName(String id) => pivxMasternodeKeyName(walletId, id);
 
   /// A new masternode private key: uncompressed WIF, as PIVX Core's
   /// `createmasternodekey` makes.
-  String generateMasternodeKey() => coinlib.WIF(
-    privkey: coinlib.ECPrivateKey.generate(compressed: false),
-    version: cryptoCurrency.networkParams.wifPrefix,
-  ).toString();
+  String generateMasternodeKey() => coinlib
+      .WIF(
+        privkey: coinlib.ECPrivateKey.generate(compressed: false),
+        version: cryptoCurrency.networkParams.wifPrefix,
+      )
+      .toString();
 
   /// Whether [key] is a WIF private key of this network.
   bool isValidMasternodeKey(String key) {
@@ -343,7 +356,10 @@ extension PivxMasternodes on PivxWallet {
         if (o.walletOwns && o.addresses.contains(mn.address)) total += o.value;
       }
     }
-    return Amount(rawValue: total, fractionDigits: cryptoCurrency.fractionDigits);
+    return Amount(
+      rawValue: total,
+      fractionDigits: cryptoCurrency.fractionDigits,
+    );
   }
 
   /// Lines for the masternode's own `pivx.conf` on a VPS.
@@ -469,10 +485,9 @@ extension PivxMasternodes on PivxWallet {
 
     final mnWif = await masternodeKey(mn);
     if (mnWif == null) throw Exception("Masternode private key not found");
-    final mnKey = coinlib.WIF.fromString(
-      mnWif,
-      version: cryptoCurrency.networkParams.wifPrefix,
-    ).privkey;
+    final mnKey = coinlib.WIF
+        .fromString(mnWif, version: cryptoCurrency.networkParams.wifPrefix)
+        .privkey;
 
     final address = await mainDB.getAddress(walletId, mn.address);
     if (address?.derivationPath == null) {

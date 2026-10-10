@@ -75,7 +75,7 @@ class WalletListItem extends ConsumerWidget {
                     builder: (_) => TorWarningDialog(coin: coin),
                   ) ??
                   false;
-              if (!shouldContinue) {
+              if (!shouldContinue || !context.mounted) {
                 return;
               }
             }
@@ -98,7 +98,7 @@ class WalletListItem extends ConsumerWidget {
               rootNavigator: Util.isDesktop,
             );
 
-            if (!canContinue) {
+            if (!canContinue || !context.mounted) {
               return;
             }
 
@@ -123,7 +123,7 @@ class WalletListItem extends ConsumerWidget {
                 ).pushNamed(WalletView.routeName, arguments: wallet.walletId),
               );
             }
-          } else {
+          } else if (context.mounted) {
             unawaited(
               Navigator.of(context)
                   .pushNamed(WalletsOverview.routeName, arguments: coin),

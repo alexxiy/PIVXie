@@ -8,7 +8,6 @@
  *
  */
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
 import '../../pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';

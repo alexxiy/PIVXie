@@ -11,7 +11,6 @@ import 'package:paymint/providers/global/prefs_provider.dart';
 import 'package:paymint/themes/stack_colors.dart';
 import 'package:paymint/themes/theme_service.dart';
 import 'package:paymint/utilities/biometrics.dart';
-import 'package:paymint/utilities/prefs.dart';
 import 'package:paymint/widgets/custom_pin_put/pin_keyboard.dart';
 
 import '../../sample_data/theme_json.dart';

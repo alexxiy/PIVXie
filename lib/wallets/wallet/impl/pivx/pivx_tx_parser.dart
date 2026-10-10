@@ -1,10 +1,14 @@
 import 'dart:convert';
+import 'dart:typed_data';
+
+import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 
 import '../../../../models/isar/models/blockchain_data/transaction.dart';
 import '../../../../models/isar/models/blockchain_data/v2/input_v2.dart';
 import '../../../../models/isar/models/blockchain_data/v2/output_v2.dart';
 import '../../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../../utilities/amount/amount.dart';
+import '../../../../utilities/extensions/extensions.dart';
 
 /// How a PIVX transaction shows in the history: its direction, its PIVX
 /// kind (see [PivxTxKind]) and the amount worth showing.
@@ -233,7 +237,8 @@ TransactionV2? parsePivxTx(
     outputs.add(
       OutputV2.isarCantDoRequiredInDefaultConstructor(
         scriptPubKeyHex: vout["hex"] as String? ?? "",
-        valueStringSats: BigInt.parse(vout["value"] as String? ?? "0").toString(),
+        valueStringSats: BigInt.parse(vout["value"] as String? ?? "0")
+            .toString(),
         addresses: addrs,
         walletOwns: owns,
       ),
@@ -268,7 +273,9 @@ TransactionV2? parsePivxTx(
     );
   }
 
-  final fee = json["fees"] == null ? null : BigInt.parse(json["fees"] as String);
+  final fee = json["fees"] == null
+      ? null
+      : BigInt.parse(json["fees"] as String);
   final c = classifyPivxTx(
     inputs: inputs,
     outputs: outputs,
@@ -320,4 +327,57 @@ TransactionV2? parsePivxTx(
       ),
     ),
   );
+}
+
+/// Output values of a raw PIVX transaction (any version: outputs come
+/// before the Sapling data).
+List<BigInt> pivxTxOutputValues(Uint8List raw) {
+  final view = ByteData.sublistView(raw);
+  int pos = 4; // nVersion (+ nType)
+  int varint() {
+    final first = raw[pos++];
+    if (first < 0xfd) return first;
+    final int v;
+    if (first == 0xfd) {
+      v = view.getUint16(pos, Endian.little);
+      pos += 2;
+    } else if (first == 0xfe) {
+      v = view.getUint32(pos, Endian.little);
+      pos += 4;
+    } else {
+      v = view.getUint64(pos, Endian.little);
+      pos += 8;
+    }
+    return v;
+  }
+
+  final inputs = varint();
+  for (int i = 0; i < inputs; i++) {
+    pos += 36; // prevout
+    final scriptSig = varint();
+    pos += scriptSig;
+    pos += 4; // nSequence
+  }
+  final outputs = varint();
+  final values = <BigInt>[];
+  for (int i = 0; i < outputs; i++) {
+    values.add(BigInt.from(view.getInt64(pos, Endian.little)));
+    pos += 8;
+    final script = varint();
+    pos += script;
+  }
+  if (pos > raw.length) throw const FormatException("Truncated transaction");
+  return values;
+}
+
+/// Output values of the raw transaction [rawHex], after checking that it
+/// hashes to [txid]. Throws when it does not.
+List<BigInt> pivxVerifiedOutputValues(String txid, String rawHex) {
+  final raw = rawHex.toUint8ListFromHex;
+  final id = Uint8List.fromList(coinlib.sha256DoubleHash(raw).reversed.toList())
+      .toHex;
+  if (id != txid) {
+    throw Exception("The server sent a wrong transaction for $txid");
+  }
+  return pivxTxOutputValues(raw);
 }

@@ -8,7 +8,6 @@
  *
  */
 
-import 'dart:convert';
 import 'dart:math';
 
 import 'package:isar_community/isar.dart';
@@ -74,9 +73,7 @@ class UTXO {
   int getConfirmations(int currentChainHeight) {
     if (blockTime == null || blockHash == null) return 0;
     if (blockHeight == null || blockHeight! <= 0) return 0;
-    return _isMonero()
-        ? max(0, currentChainHeight - (blockHeight!))
-        : max(0, currentChainHeight - (blockHeight! - 1));
+    return max(0, currentChainHeight - (blockHeight! - 1));
   }
 
   bool isConfirmed(
@@ -101,25 +98,6 @@ class UTXO {
   /// [blockedReason].
   @ignore
   bool get userUnfroze => !isBlocked && blockedReason != null;
-
-  // fuzzy
-  bool _isMonero() {
-    return keyImage != null;
-  }
-
-  @ignore
-  String? get keyImage {
-    if (otherData == null) {
-      return null;
-    }
-
-    try {
-      final map = jsonDecode(otherData!) as Map;
-      return map[UTXOOtherDataKeys.keyImage] as String;
-    } catch (_) {
-      return null;
-    }
-  }
 
   UTXO copyWith({
     Id? id,
@@ -185,10 +163,4 @@ class UTXO {
   @override
   @ignore
   int get hashCode => Object.hashAll([walletId, txid, vout]);
-}
-
-abstract final class UTXOOtherDataKeys {
-  static const keyImage = "keyImage";
-  static const spent = "spent";
-  static const nameOpData = "nameOpData";
 }

@@ -141,7 +141,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
         timeout,
         onTimeout: () {
           _exitEnabled = false;
-          Navigator.of(context).pop();
+          if (mounted) Navigator.of(context).pop();
         },
       );
     }

@@ -15,6 +15,8 @@ class TransactionV2 {
   Id id = Isar.autoIncrement;
 
   @Index()
+  // History lists page through a wallet's txs newest first.
+  @Index(name: "walletId_timestamp", composite: [CompositeIndex("timestamp")])
   final String walletId;
 
   @Index(unique: true, composite: [CompositeIndex("walletId")])
@@ -94,30 +96,13 @@ class TransactionV2 {
   @ignore
   int? get vSize => _getFromOtherData(key: TxV2OdKeys.vSize) as int?;
 
-  bool get isEpiccashTransaction =>
-      _getFromOtherData(key: TxV2OdKeys.isEpiccashTransaction) == true;
-
   @ignore
-  bool get isMimblewimblecoinTransaction =>
-      _getFromOtherData(key: TxV2OdKeys.isMimblewimblecoinTransaction) == true;
-
-  int? get numberOfMessages =>
-      _getFromOtherData(key: TxV2OdKeys.numberOfMessages) as int?;
-  String? get slateId => _getFromOtherData(key: TxV2OdKeys.slateId) as String?;
   String? get onChainNote =>
       _getFromOtherData(key: TxV2OdKeys.onChainNote) as String?;
-  bool get isCancelled =>
-      _getFromOtherData(key: TxV2OdKeys.isCancelled) == true;
-
-  String? get contractAddress =>
-      _getFromOtherData(key: TxV2OdKeys.contractAddress) as String?;
-  int? get nonce => _getFromOtherData(key: TxV2OdKeys.nonce) as int?;
 
   int getConfirmations(int currentChainHeight) {
     if (height == null || height! <= 0) return 0;
-    return _isMonero()
-        ? max(0, currentChainHeight - (height!))
-        : max(0, currentChainHeight - (height! - 1));
+    return max(0, currentChainHeight - (height! - 1));
   }
 
   bool isConfirmed(
@@ -155,14 +140,6 @@ class TransactionV2 {
     final pivxAmount = _getPivxAmount();
     if (pivxAmount != null) return pivxAmount;
 
-    if (_isMonero()) {
-      if (type == TransactionType.incoming) {
-        return _getMoneroAmount()!;
-      } else {
-        return Amount.zeroWith(fractionDigits: fractionDigits);
-      }
-    }
-
     final outSum = outputs
         .where((e) => e.walletOwns)
         .fold(BigInt.zero, (p, e) => p + e.value);
@@ -176,14 +153,6 @@ class TransactionV2 {
   }) {
     final pivxAmount = _getPivxAmount();
     if (pivxAmount != null) return pivxAmount;
-
-    if (_isMonero()) {
-      if (type == TransactionType.outgoing) {
-        return _getMoneroAmount()!;
-      } else {
-        return Amount.zeroWith(fractionDigits: fractionDigits);
-      }
-    }
 
     final inSum = inputs
         .where((e) => e.walletOwns)
@@ -246,21 +215,6 @@ class TransactionV2 {
     }
   }
 
-  Amount? _getMoneroAmount() {
-    try {
-      return Amount.fromSerializedJsonString(
-        _getFromOtherData(key: TxV2OdKeys.moneroAmount) as String,
-      );
-    } catch (_) {
-      return null;
-    }
-  }
-
-  bool _isMonero() {
-    final value = _getFromOtherData(key: TxV2OdKeys.isMoneroTransaction);
-    return value is bool ? value : false;
-  }
-
   String statusLabel({
     required int currentChainHeight,
     required int minConfirms,
@@ -283,93 +237,7 @@ class TransactionV2 {
     );
     if (pivxLabel != null) return pivxLabel;
 
-    if (subType == TransactionSubType.cashFusion ||
-        subType == TransactionSubType.mint ||
-        (subType == TransactionSubType.sparkMint &&
-            type == TransactionType.sentToSelf)) {
-      if (isConfirmed(currentChainHeight, minConfirms, minCoinbaseConfirms)) {
-        return "Anonymized";
-      } else {
-        return "Anonymizing ${prettyConfirms()}";
-      }
-    }
-
-    if (isEpiccashTransaction) {
-      if (slateId == null) {
-        return "Restored Funds";
-      }
-
-      if (isCancelled) {
-        return "Cancelled";
-      } else if (type == TransactionType.incoming) {
-        if (isConfirmed(currentChainHeight, minConfirms, minCoinbaseConfirms)) {
-          return "Received";
-        } else {
-          if ((onChainNote == null && numberOfMessages == 1) |
-              (onChainNote != null && numberOfMessages == 2)) {
-            return "Receiving (waiting for sender)";
-          } else if ((numberOfMessages ?? 0) > 1) {
-            return "Receiving (waiting for confirmations)"; // TODO test if the sender still has to open again after the receiver has 2 messages present, ie. sender->receiver->sender->node (yes) vs. sender->receiver->node (no)
-          } else {
-            return "Receiving ${prettyConfirms()}";
-          }
-        }
-      } else if (type == TransactionType.outgoing) {
-        if (isConfirmed(currentChainHeight, minConfirms, minCoinbaseConfirms)) {
-          return "Sent (confirmed)";
-        } else {
-          if ((onChainNote == null && numberOfMessages == 1) |
-              (onChainNote != null && numberOfMessages == 2)) {
-            return "Sending (waiting for receiver)";
-          } else if ((numberOfMessages ?? 0) > 1) {
-            return "Sending (waiting for confirmations)";
-          } else {
-            return "Sending ${prettyConfirms()}";
-          }
-        }
-      }
-    }
-
-    if (isMimblewimblecoinTransaction) {
-      if (slateId == null) {
-        return "Restored Funds";
-      }
-
-      if (isCancelled) {
-        return "Cancelled";
-      } else if (type == TransactionType.incoming) {
-        if (isConfirmed(currentChainHeight, minConfirms, minCoinbaseConfirms)) {
-          return "Received";
-        } else {
-          if ((onChainNote == null && numberOfMessages == 1) |
-              (onChainNote != null && numberOfMessages == 2)) {
-            return "Receiving (waiting for sender)";
-          } else if ((numberOfMessages ?? 0) > 1) {
-            return "Receiving (waiting for confirmations)"; // TODO test if the sender still has to open again after the receiver has 2 messages present, ie. sender->receiver->sender->node (yes) vs. sender->receiver->node (no)
-          } else {
-            return "Receiving ${prettyConfirms()}";
-          }
-        }
-      } else if (type == TransactionType.outgoing) {
-        if (isConfirmed(currentChainHeight, minConfirms, minCoinbaseConfirms)) {
-          return "Sent (confirmed)";
-        } else {
-          if ((onChainNote == null && numberOfMessages == 1) |
-              (onChainNote != null && numberOfMessages == 2)) {
-            return "Sending (waiting for receiver)";
-          } else if ((numberOfMessages ?? 0) > 1) {
-            return "Sending (waiting for confirmations)";
-          } else {
-            return "Sending ${prettyConfirms()}";
-          }
-        }
-      }
-    }
-
     if (type == TransactionType.incoming) {
-      // if (_transaction.isMinting) {
-      //   return "Minting";
-      // } else
       if (isConfirmed(currentChainHeight, minConfirms, minCoinbaseConfirms)) {
         return "Received";
       } else {
@@ -420,26 +288,18 @@ class TransactionV2 {
     }
   }
 
-  dynamic _getFromOtherData({required dynamic key}) {
-    if (otherData == null) {
-      return null;
-    }
-    final map = jsonDecode(otherData!);
-    return map[key];
-  }
+  /// [otherData] decoded once: list cards read several keys per build.
+  @ignore
+  late final Map<dynamic, dynamic>? _otherDataMap = otherData == null
+      ? null
+      : jsonDecode(otherData!) as Map<dynamic, dynamic>?;
+
+  dynamic _getFromOtherData({required dynamic key}) => _otherDataMap?[key];
 
   bool isCoinbase() =>
       (type == TransactionType.incoming &&
           inputs.any((e) => e.coinbase != null)) ||
       PivxTxKind.rewards.contains(pivxKind);
-
-  @ignore
-  bool get isInstantLock =>
-      _getFromOtherData(key: TxV2OdKeys.isInstantLock) == true;
-
-  @ignore
-  String? get salviumTypeString =>
-      _getFromOtherData(key: TxV2OdKeys.salviumTypeString) as String?;
 
   @override
   String toString() {
@@ -463,21 +323,8 @@ class TransactionV2 {
 abstract final class TxV2OdKeys {
   static const size = "size";
   static const vSize = "vSize";
-  static const isEpiccashTransaction = "isEpiccashTransaction";
-  static const isMimblewimblecoinTransaction = "isMimblewimblecoinTransaction";
-  static const numberOfMessages = "numberOfMessages";
-  static const slateId = "slateId";
   static const onChainNote = "onChainNote";
-  static const isCancelled = "isCancelled";
-  static const contractAddress = "contractAddress";
-  static const nonce = "nonce";
   static const overrideFee = "overrideFee";
-  static const moneroAmount = "moneroAmount";
-  static const moneroAccountIndex = "moneroAccountIndex";
-  static const isMoneroTransaction = "isMoneroTransaction";
-  static const isInstantLock = "isInstantLock";
-  static const salviumTypeInt = "salviumTypeInt";
-  static const salviumTypeString = "salviumTypeString";
   static const memo = "onChainMemo";
 
   /// PIVX transaction kind, see [PivxTxKind].

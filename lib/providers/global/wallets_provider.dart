@@ -9,6 +9,7 @@
  */
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../db/main_db_provider.dart';
 import 'node_service_provider.dart';
 import '../../services/wallets.dart';

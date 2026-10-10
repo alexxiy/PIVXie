@@ -199,9 +199,7 @@ class _TransactionV2DetailsViewState
 
     final String outputLabel;
 
-    if (_transaction.subType == TransactionSubType.cashFusion) {
-      outputLabel = "Outputs";
-    } else if (_transaction.type == TransactionType.incoming) {
+    if (_transaction.type == TransactionType.incoming) {
       if (data.length == 1 && data.first.addresses.length == 1) {
         outputLabel = "Receiving address";
       } else {
@@ -344,11 +342,7 @@ class _TransactionV2DetailsViewState
                                             ).copyWith(
                                               color:
                                                   _transaction.type ==
-                                                          TransactionType
-                                                              .outgoing &&
-                                                      _transaction.subType !=
-                                                          TransactionSubType
-                                                              .cashFusion
+                                                      TransactionType.outgoing
                                                   ? Theme.of(context)
                                                         .extension<
                                                           StackColors
@@ -644,8 +638,6 @@ class _TransactionV2DetailsViewState
                                                         maxHeight: 360,
                                                         child: EditNoteView(
                                                           txid:
-                                                              _transaction
-                                                                  .slateId ??
                                                               _transaction.txid,
                                                           walletId: walletId,
                                                         ),
@@ -661,8 +653,7 @@ class _TransactionV2DetailsViewState
                                                   ).pushNamed(
                                                     EditNoteView.routeName,
                                                     arguments: Tuple2(
-                                                      _transaction.slateId ??
-                                                          _transaction.txid,
+                                                      _transaction.txid,
                                                       walletId,
                                                     ),
                                                   );
@@ -697,7 +688,6 @@ class _TransactionV2DetailsViewState
                                               .watch(
                                                 pTransactionNote((
                                                   txid:
-                                                      _transaction.slateId ??
                                                       _transaction.txid,
                                                   walletId: walletId,
                                                 )),
@@ -1027,47 +1017,6 @@ class _TransactionV2DetailsViewState
                               //       ],
                               //     ),
                               //   ),
-                              if (_hasPivxMemo)
-                                isDesktop
-                                    ? const _Divider()
-                                    : const SizedBox(height: 12),
-                              if (_hasPivxMemo)
-                                RoundedWhiteContainer(
-                                  padding: isDesktop
-                                      ? const EdgeInsets.all(16)
-                                      : const EdgeInsets.all(12),
-                                  child: Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Column(
-                                        crossAxisAlignment:
-                                            CrossAxisAlignment.start,
-                                        children: [
-                                          Text("Slate ID", style: labelStyle),
-                                          // Flexible(
-                                          //   child: FittedBox(
-                                          //     fit: BoxFit.scaleDown,
-                                          //     child:
-                                          SelectableText(
-                                            _transaction.slateId ?? "Unknown",
-                                            style: detailStyle,
-                                          ),
-                                          //   ),
-                                          // ),
-                                        ],
-                                      ),
-                                      if (isDesktop) const SizedBox(width: 12),
-                                      if (isDesktop)
-                                        IconCopyButton(
-                                          data:
-                                              _transaction.slateId ?? "Unknown",
-                                        ),
-                                    ],
-                                  ),
-                                ),
                               if (!isDesktop) const SizedBox(height: 12),
                               // if (whatIsIt(
                               //       _transaction,
@@ -1650,7 +1599,7 @@ class _TxidDetailItemState extends ConsumerState<_TxidDetailItem> {
                               "${uri.scheme}://${uri.host}",
                             );
 
-                            if (!shouldContinue) {
+                            if (!shouldContinue || !context.mounted) {
                               return;
                             }
                           }

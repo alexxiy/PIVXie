@@ -144,13 +144,14 @@ extension _PivxShield on PivxWallet {
   /// the current one) has a row; they are re-derived, as wallets made
   /// before rows existed only remember the current one.
   Future<void> _storeShieldAddresses(PivxShieldState state) async {
-    final stored = (await mainDB
-            .getAddresses(walletId)
-            .filter()
-            .typeEqualTo(AddressType.pivxShield)
-            .valueProperty()
-            .findAll())
-        .toSet();
+    final stored =
+        (await mainDB
+                .getAddresses(walletId)
+                .filter()
+                .typeEqualTo(AddressType.pivxShield)
+                .valueProperty()
+                .findAll())
+            .toSet();
     if (stored.contains(state.currentAddress)) return;
     var a = libPivxShield.defaultAddress(
       extfvk: state.extfvk,
@@ -184,24 +185,31 @@ extension _PivxShield on PivxWallet {
     if (!_shieldSupported) return;
     final state = await _loadShield();
     final walletTxids = <String>{};
+    final scannedFrom = state.lastProcessedBlock;
 
-    var batch = <PivxShieldBlock>[];
-    await for (final block in parsePivxShieldStream(
-      bridge.shieldData(state.lastProcessedBlock + 1),
-    )) {
-      batch.add(block);
-      if (batch.length >= _kShieldBatchBlocks) {
-        await _processShieldBlocks(state, batch, walletTxids);
-        batch = [];
+    // Nothing to fetch until a new block is known (the chain height is
+    // updated first on every refresh).
+    if (await chainHeight > state.lastProcessedBlock) {
+      var batch = <PivxShieldBlock>[];
+      await for (final block in parsePivxShieldStream(
+        bridge.shieldData(state.lastProcessedBlock + 1),
+      )) {
+        batch.add(block);
+        if (batch.length >= _kShieldBatchBlocks) {
+          await _processShieldBlocks(state, batch, walletTxids);
+          batch = [];
+        }
       }
-    }
-    if (batch.isNotEmpty) {
-      await _processShieldBlocks(state, batch, walletTxids);
+      if (batch.isNotEmpty) {
+        await _processShieldBlocks(state, batch, walletTxids);
+      }
     }
 
     // Verify against the chain like MyPIVXWallet: a wrong root means a
     // bad stream or a reorg we missed — start over from the checkpoint.
-    if (state.lastProcessedBlock > state.startHeight) {
+    // Checked whenever blocks were added.
+    if (state.lastProcessedBlock > scannedFrom &&
+        state.lastProcessedBlock > state.startHeight) {
       final remote = await bridge.finalSaplingRoot(state.lastProcessedBlock);
       final local = libPivxShield.saplingRoot(state.commitmentTree);
       if (remote != null && remote != local) {
@@ -246,19 +254,21 @@ extension _PivxShield on PivxWallet {
       "PIVX ${info.name}: shield blocks "
       "${relevant.first.height}-${relevant.last.height}",
       () => libPivxShield.handleBlocks(
-      tree: state.commitmentTree,
-      blocks: [for (final b in relevant) b.txs],
-      extfvk: state.extfvk,
-      isTestnet: state.isTestnet,
-      notes: state.unspentNotes,
+        tree: state.commitmentTree,
+        blocks: [for (final b in relevant) b.txs],
+        extfvk: state.extfvk,
+        isTestnet: state.isTestnet,
+        notes: state.unspentNotes,
       ),
     );
 
     final kept = [
-      for (final n in r["decrypted_notes"] as List) Map<String, dynamic>.from(n as Map),
+      for (final n in r["decrypted_notes"] as List)
+        Map<String, dynamic>.from(n as Map),
     ];
     final added = [
-      for (final n in r["decrypted_new_notes"] as List) Map<String, dynamic>.from(n as Map),
+      for (final n in r["decrypted_new_notes"] as List)
+        Map<String, dynamic>.from(n as Map),
     ];
     for (final n in added) {
       state.nullifierNotes[n["nullifier"] as String] = {
@@ -332,15 +342,17 @@ extension _PivxShield on PivxWallet {
   /// no row ([MainDB.updateUTXOs] would keep a stale `used` flag).
   Future<List<UTXO>> _shieldNoteRows(PivxShieldState state) async {
     final rows = <UTXO>[];
+    final txs = await _storedTxs([
+      for (final n in state.spendableNotes)
+        if (state.nullifierNotes[n["nullifier"]]?["txid"] case final String t)
+          t,
+    ]);
     for (final n in state.spendableNotes) {
       final nf = n["nullifier"] as String;
       final meta = state.nullifierNotes[nf];
       final txid = meta?["txid"] as String?;
       if (txid == null) continue;
-      final tx = await mainDB.isar.transactionV2s
-          .where()
-          .txidWalletIdEqualTo(txid, walletId)
-          .findFirst();
+      final tx = txs[txid];
       final memo = n["memo"] as String?;
       rows.add(
         UTXO(
@@ -372,11 +384,12 @@ extension _PivxShield on PivxWallet {
 
   /// Nullifiers of notes the user froze in coin control.
   Future<Set<String>> _frozenNullifiers() async => {
-    for (final u in await mainDB
-        .getUTXOs(walletId)
-        .filter()
-        .isBlockedEqualTo(true)
-        .findAll())
+    for (final u
+        in await mainDB
+            .getUTXOs(walletId)
+            .filter()
+            .isBlockedEqualTo(true)
+            .findAll())
       ?_noteNullifier(u),
   };
 
@@ -432,7 +445,9 @@ extension _PivxShield on PivxWallet {
   // ===========================================================================
   // Sapling params
 
-  Future<void> _ensureProver({void Function(double progress)? onProgress}) async {
+  Future<void> _ensureProver({
+    void Function(double progress)? onProgress,
+  }) async {
     if (libPivxShield.proverIsLoaded()) return;
     final root = await StackFileSystem.applicationRootDirectory();
     final dir = Directory("${root.path}/sapling-params");
@@ -440,7 +455,9 @@ extension _PivxShield on PivxWallet {
     final output = File("${dir.path}/sapling-output.params");
     final spend = File("${dir.path}/sapling-spend.params");
 
-    final proxy = bridge.useTor ? TorService.sharedInstance.getProxyInfo() : null;
+    final proxy = bridge.useTor
+        ? TorService.sharedInstance.getProxyInfo()
+        : null;
     final sources = [bridge.baseUri.toString(), "https://pivxla.bz"];
     for (final (file, name, weight, base) in [
       (output, "sapling-output.params", 0.07, 0.0),
@@ -464,7 +481,8 @@ extension _PivxShield on PivxWallet {
           lastError = e;
         }
       }
-      if (lastError != null) throw Exception("Could not download $name: $lastError");
+      if (lastError != null)
+        throw Exception("Could not download $name: $lastError");
     }
     try {
       await libPivxShield.loadProver(
@@ -522,7 +540,8 @@ extension _PivxShield on PivxWallet {
     if (fromShield) {
       final custom = txData.otherData == null
           ? null
-          : (jsonDecode(txData.otherData!) as Map)[kPivxChangeAddress] as String?;
+          : (jsonDecode(txData.otherData!) as Map)[kPivxChangeAddress]
+                as String?;
       if (custom != null && custom.isNotEmpty) {
         if (!isShieldAddress(custom)) {
           throw Exception("Change must go to a shield address");
@@ -531,11 +550,13 @@ extension _PivxShield on PivxWallet {
       } else {
         // A fresh address never handed out, so the history knows it's
         // change (PIVX Core's IsNoteSaplingChange).
-        changeAddress = libPivxShield.nextAddress(
-          extfvk: state.extfvk,
-          diversifierIndex: state.diversifierIndex,
-          isTestnet: state.isTestnet,
-        ).address;
+        changeAddress = libPivxShield
+            .nextAddress(
+              extfvk: state.extfvk,
+              diversifierIndex: state.diversifierIndex,
+              isTestnet: state.isTestnet,
+            )
+            .address;
       }
       final notes = await _notesToSpend(state, txData);
       final available = notes.fold<int>(
@@ -564,7 +585,9 @@ extension _PivxShield on PivxWallet {
           .map((e) => e.utxo)
           .toList();
       final utxos = _spendable(
-        selected.isNotEmpty ? selected : await mainDB.getUTXOs(walletId).findAll(),
+        selected.isNotEmpty
+            ? selected
+            : await mainDB.getUTXOs(walletId).findAll(),
         await chainHeight,
       );
       if (selected.isNotEmpty && utxos.length != selected.length) {
@@ -608,9 +631,16 @@ extension _PivxShield on PivxWallet {
     final digits = cryptoCurrency.fractionDigits;
 
     // Temporary history entry until the tx is seen on chain.
-    final own = (await mainDB.getAddresses(walletId).findAll()).map((e) => e.value).toSet();
+    final own = (await mainDB.getAddresses(walletId).findAll())
+        .map((e) => e.value)
+        .toSet();
     final inputsTotal = fromShield
-        ? nullifiers.fold(BigInt.zero, (p, nf) => p + BigInt.from((state.nullifierNotes[nf]?["value"] as num?) ?? 0))
+        ? nullifiers.fold(
+            BigInt.zero,
+            (p, nf) =>
+                p +
+                BigInt.from((state.nullifierNotes[nf]?["value"] as num?) ?? 0),
+          )
         : usedInputs.fold(BigInt.zero, (p, i) => p + BigInt.from(i.utxo.value));
     final changeValue = inputsTotal - amount - fee;
     final tempInputs = [
@@ -646,13 +676,16 @@ extension _PivxShield on PivxWallet {
             walletOwns: true,
           ),
     ];
-    final recipientIsOurs = own.contains(recipient.address) || recipient.address == state.currentAddress;
+    final recipientIsOurs =
+        own.contains(recipient.address) ||
+        recipient.address == state.currentAddress;
     // Shield notes have no script; transparent outputs keep theirs.
     String script(String address) => isShieldAddress(address)
         ? ""
-        : coinlib.Output.fromAddress(BigInt.zero, _parseAddress(address))
-              .scriptPubKey
-              .toHex;
+        : coinlib.Output.fromAddress(
+            BigInt.zero,
+            _parseAddress(address),
+          ).scriptPubKey.toHex;
     final tempOutputs = [
       OutputV2.isarCantDoRequiredInDefaultConstructor(
         scriptPubKeyHex: script(recipient.address),
@@ -676,7 +709,8 @@ extension _PivxShield on PivxWallet {
     )!;
 
     final otherData = <String, dynamic>{
-      if (txData.otherData != null) ...jsonDecode(txData.otherData!) as Map<String, dynamic>,
+      if (txData.otherData != null)
+        ...jsonDecode(txData.otherData!) as Map<String, dynamic>,
       _kOdShieldTx: true,
       _kOdShieldNullifiers: fromShield ? nullifiers : <String>[],
     };
@@ -687,7 +721,9 @@ extension _PivxShield on PivxWallet {
       fee: Amount(rawValue: fee, fractionDigits: digits),
       vSize: (result["txhex"] as String).length ~/ 2,
       recipients: [
-        recipient.copyWith(amount: Amount(rawValue: amount, fractionDigits: digits)),
+        recipient.copyWith(
+          amount: Amount(rawValue: amount, fractionDigits: digits),
+        ),
       ],
       usedUTXOs: usedInputs,
       otherData: jsonEncode(otherData),
@@ -709,7 +745,9 @@ extension _PivxShield on PivxWallet {
             fractionDigits: digits,
             changeAddresses: {changeAddress},
             fee: fee,
-            memo: isShieldAddress(recipient.address) ? txData.memo?.trim() : null,
+            memo: isShieldAddress(recipient.address)
+                ? txData.memo?.trim()
+                : null,
             ownSend: true,
           ),
         ),
@@ -720,7 +758,9 @@ extension _PivxShield on PivxWallet {
   Future<TxData> _confirmShieldSend(TxData txData) async {
     final od = jsonDecode(txData.otherData!) as Map<String, dynamic>;
     final txid = await bridge.sendTx(txData.raw!);
-    final nullifiers = List<String>.from(od[_kOdShieldNullifiers] as List? ?? const []);
+    final nullifiers = List<String>.from(
+      od[_kOdShieldNullifiers] as List? ?? const [],
+    );
     if (nullifiers.isNotEmpty) {
       final state = await _loadShield();
       state.pendingSpent[txid] = nullifiers;

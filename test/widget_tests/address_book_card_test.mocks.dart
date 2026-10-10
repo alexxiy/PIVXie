@@ -3,6 +3,7 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
+
 import 'dart:async' as _i4;
 import 'dart:ui' as _i5;
 
@@ -40,12 +41,10 @@ class MockAddressBookService extends _i1.Mock
   }
 
   @override
-  List<_i2.ContactEntry> get contacts =>
-      (super.noSuchMethod(
-            Invocation.getter(#contacts),
-            returnValue: <_i2.ContactEntry>[],
-          )
-          as List<_i2.ContactEntry>);
+  List<_i2.ContactEntry> get contacts => (super.noSuchMethod(
+    Invocation.getter(#contacts),
+    returnValue: <_i2.ContactEntry>[],
+  ) as List<_i2.ContactEntry>);
 
   @override
   bool get hasListeners =>
@@ -53,58 +52,48 @@ class MockAddressBookService extends _i1.Mock
           as bool);
 
   @override
-  _i2.ContactEntry getContactById(String? id) =>
-      (super.noSuchMethod(
-            Invocation.method(#getContactById, [id]),
-            returnValue: _FakeContactEntry_0(
-              this,
-              Invocation.method(#getContactById, [id]),
-            ),
-          )
-          as _i2.ContactEntry);
+  _i2.ContactEntry getContactById(String? id) => (super.noSuchMethod(
+    Invocation.method(#getContactById, [id]),
+    returnValue: _FakeContactEntry_0(
+      this,
+      Invocation.method(#getContactById, [id]),
+    ),
+  ) as _i2.ContactEntry);
 
   @override
   _i4.Future<List<_i2.ContactEntry>> search(String? text) =>
       (super.noSuchMethod(
-            Invocation.method(#search, [text]),
-            returnValue: _i4.Future<List<_i2.ContactEntry>>.value(
-              <_i2.ContactEntry>[],
-            ),
-          )
-          as _i4.Future<List<_i2.ContactEntry>>);
+        Invocation.method(#search, [text]),
+        returnValue: _i4.Future<List<_i2.ContactEntry>>.value(
+          <_i2.ContactEntry>[],
+        ),
+      ) as _i4.Future<List<_i2.ContactEntry>>);
 
   @override
-  bool matches(String? term, _i2.ContactEntry? contact) =>
-      (super.noSuchMethod(
-            Invocation.method(#matches, [term, contact]),
-            returnValue: false,
-          )
-          as bool);
+  bool matches(String? term, _i2.ContactEntry? contact) => (super.noSuchMethod(
+    Invocation.method(#matches, [term, contact]),
+    returnValue: false,
+  ) as bool);
 
   @override
-  _i4.Future<bool> addContact(_i2.ContactEntry? contact) =>
-      (super.noSuchMethod(
-            Invocation.method(#addContact, [contact]),
-            returnValue: _i4.Future<bool>.value(false),
-          )
-          as _i4.Future<bool>);
+  _i4.Future<bool> addContact(_i2.ContactEntry? contact) => (super.noSuchMethod(
+    Invocation.method(#addContact, [contact]),
+    returnValue: _i4.Future<bool>.value(false),
+  ) as _i4.Future<bool>);
 
   @override
   _i4.Future<bool> editContact(_i2.ContactEntry? editedContact) =>
       (super.noSuchMethod(
-            Invocation.method(#editContact, [editedContact]),
-            returnValue: _i4.Future<bool>.value(false),
-          )
-          as _i4.Future<bool>);
+        Invocation.method(#editContact, [editedContact]),
+        returnValue: _i4.Future<bool>.value(false),
+      ) as _i4.Future<bool>);
 
   @override
-  _i4.Future<void> removeContact(String? id) =>
-      (super.noSuchMethod(
-            Invocation.method(#removeContact, [id]),
-            returnValue: _i4.Future<void>.value(),
-            returnValueForMissingStub: _i4.Future<void>.value(),
-          )
-          as _i4.Future<void>);
+  _i4.Future<void> removeContact(String? id) => (super.noSuchMethod(
+    Invocation.method(#removeContact, [id]),
+    returnValue: _i4.Future<void>.value(),
+    returnValueForMissingStub: _i4.Future<void>.value(),
+  ) as _i4.Future<void>);
 
   @override
   void addListener(_i5.VoidCallback? listener) => super.noSuchMethod(

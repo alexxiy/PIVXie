@@ -8,7 +8,6 @@
  *
  */
 
-import 'package:flutter/material.dart';
 
 abstract class Assets {
   static const svg = _SVG();

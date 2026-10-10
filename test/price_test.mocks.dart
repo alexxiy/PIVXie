@@ -3,6 +3,7 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
+
 import 'dart:async' as _i3;
 import 'dart:convert' as _i5;
 import 'dart:io' as _i4;
@@ -44,27 +45,25 @@ class MockHTTP extends _i1.Mock implements _i2.HTTP {
     Map<String, String>? headers,
     required ({_i4.InternetAddress host, int port})? proxyInfo,
     Duration? connectionTimeout,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#get, [], {
-              #url: url,
-              #headers: headers,
-              #proxyInfo: proxyInfo,
-              #connectionTimeout: connectionTimeout,
-            }),
-            returnValue: _i3.Future<_i2.Response>.value(
-              _FakeResponse_0(
-                this,
-                Invocation.method(#get, [], {
-                  #url: url,
-                  #headers: headers,
-                  #proxyInfo: proxyInfo,
-                  #connectionTimeout: connectionTimeout,
-                }),
-              ),
-            ),
-          )
-          as _i3.Future<_i2.Response>);
+  }) => (super.noSuchMethod(
+    Invocation.method(#get, [], {
+      #url: url,
+      #headers: headers,
+      #proxyInfo: proxyInfo,
+      #connectionTimeout: connectionTimeout,
+    }),
+    returnValue: _i3.Future<_i2.Response>.value(
+      _FakeResponse_0(
+        this,
+        Invocation.method(#get, [], {
+          #url: url,
+          #headers: headers,
+          #proxyInfo: proxyInfo,
+          #connectionTimeout: connectionTimeout,
+        }),
+      ),
+    ),
+  ) as _i3.Future<_i2.Response>);
 
   @override
   _i3.Future<_i2.Response> post({
@@ -73,29 +72,27 @@ class MockHTTP extends _i1.Mock implements _i2.HTTP {
     Object? body,
     _i5.Encoding? encoding,
     required ({_i4.InternetAddress host, int port})? proxyInfo,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#post, [], {
-              #url: url,
-              #headers: headers,
-              #body: body,
-              #encoding: encoding,
-              #proxyInfo: proxyInfo,
-            }),
-            returnValue: _i3.Future<_i2.Response>.value(
-              _FakeResponse_0(
-                this,
-                Invocation.method(#post, [], {
-                  #url: url,
-                  #headers: headers,
-                  #body: body,
-                  #encoding: encoding,
-                  #proxyInfo: proxyInfo,
-                }),
-              ),
-            ),
-          )
-          as _i3.Future<_i2.Response>);
+  }) => (super.noSuchMethod(
+    Invocation.method(#post, [], {
+      #url: url,
+      #headers: headers,
+      #body: body,
+      #encoding: encoding,
+      #proxyInfo: proxyInfo,
+    }),
+    returnValue: _i3.Future<_i2.Response>.value(
+      _FakeResponse_0(
+        this,
+        Invocation.method(#post, [], {
+          #url: url,
+          #headers: headers,
+          #body: body,
+          #encoding: encoding,
+          #proxyInfo: proxyInfo,
+        }),
+      ),
+    ),
+  ) as _i3.Future<_i2.Response>);
 
   @override
   _i3.Future<_i2.Response> postBytes({
@@ -103,27 +100,25 @@ class MockHTTP extends _i1.Mock implements _i2.HTTP {
     Map<String, String>? headers,
     required List<int>? bodyBytes,
     required ({_i4.InternetAddress host, int port})? proxyInfo,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#postBytes, [], {
-              #url: url,
-              #headers: headers,
-              #bodyBytes: bodyBytes,
-              #proxyInfo: proxyInfo,
-            }),
-            returnValue: _i3.Future<_i2.Response>.value(
-              _FakeResponse_0(
-                this,
-                Invocation.method(#postBytes, [], {
-                  #url: url,
-                  #headers: headers,
-                  #bodyBytes: bodyBytes,
-                  #proxyInfo: proxyInfo,
-                }),
-              ),
-            ),
-          )
-          as _i3.Future<_i2.Response>);
+  }) => (super.noSuchMethod(
+    Invocation.method(#postBytes, [], {
+      #url: url,
+      #headers: headers,
+      #bodyBytes: bodyBytes,
+      #proxyInfo: proxyInfo,
+    }),
+    returnValue: _i3.Future<_i2.Response>.value(
+      _FakeResponse_0(
+        this,
+        Invocation.method(#postBytes, [], {
+          #url: url,
+          #headers: headers,
+          #bodyBytes: bodyBytes,
+          #proxyInfo: proxyInfo,
+        }),
+      ),
+    ),
+  ) as _i3.Future<_i2.Response>);
 
   @override
   _i3.Future<_i2.Response> put({
@@ -131,27 +126,25 @@ class MockHTTP extends _i1.Mock implements _i2.HTTP {
     Map<String, String>? headers,
     Object? body,
     required ({_i4.InternetAddress host, int port})? proxyInfo,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#put, [], {
-              #url: url,
-              #headers: headers,
-              #body: body,
-              #proxyInfo: proxyInfo,
-            }),
-            returnValue: _i3.Future<_i2.Response>.value(
-              _FakeResponse_0(
-                this,
-                Invocation.method(#put, [], {
-                  #url: url,
-                  #headers: headers,
-                  #body: body,
-                  #proxyInfo: proxyInfo,
-                }),
-              ),
-            ),
-          )
-          as _i3.Future<_i2.Response>);
+  }) => (super.noSuchMethod(
+    Invocation.method(#put, [], {
+      #url: url,
+      #headers: headers,
+      #body: body,
+      #proxyInfo: proxyInfo,
+    }),
+    returnValue: _i3.Future<_i2.Response>.value(
+      _FakeResponse_0(
+        this,
+        Invocation.method(#put, [], {
+          #url: url,
+          #headers: headers,
+          #body: body,
+          #proxyInfo: proxyInfo,
+        }),
+      ),
+    ),
+  ) as _i3.Future<_i2.Response>);
 
   @override
   _i3.Future<_i2.Response> patch({
@@ -159,50 +152,46 @@ class MockHTTP extends _i1.Mock implements _i2.HTTP {
     Map<String, String>? headers,
     Object? body,
     required ({_i4.InternetAddress host, int port})? proxyInfo,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#patch, [], {
-              #url: url,
-              #headers: headers,
-              #body: body,
-              #proxyInfo: proxyInfo,
-            }),
-            returnValue: _i3.Future<_i2.Response>.value(
-              _FakeResponse_0(
-                this,
-                Invocation.method(#patch, [], {
-                  #url: url,
-                  #headers: headers,
-                  #body: body,
-                  #proxyInfo: proxyInfo,
-                }),
-              ),
-            ),
-          )
-          as _i3.Future<_i2.Response>);
+  }) => (super.noSuchMethod(
+    Invocation.method(#patch, [], {
+      #url: url,
+      #headers: headers,
+      #body: body,
+      #proxyInfo: proxyInfo,
+    }),
+    returnValue: _i3.Future<_i2.Response>.value(
+      _FakeResponse_0(
+        this,
+        Invocation.method(#patch, [], {
+          #url: url,
+          #headers: headers,
+          #body: body,
+          #proxyInfo: proxyInfo,
+        }),
+      ),
+    ),
+  ) as _i3.Future<_i2.Response>);
 
   @override
   _i3.Future<_i2.Response> delete({
     required Uri? url,
     Map<String, String>? headers,
     required ({_i4.InternetAddress host, int port})? proxyInfo,
-  }) =>
-      (super.noSuchMethod(
-            Invocation.method(#delete, [], {
-              #url: url,
-              #headers: headers,
-              #proxyInfo: proxyInfo,
-            }),
-            returnValue: _i3.Future<_i2.Response>.value(
-              _FakeResponse_0(
-                this,
-                Invocation.method(#delete, [], {
-                  #url: url,
-                  #headers: headers,
-                  #proxyInfo: proxyInfo,
-                }),
-              ),
-            ),
-          )
-          as _i3.Future<_i2.Response>);
+  }) => (super.noSuchMethod(
+    Invocation.method(#delete, [], {
+      #url: url,
+      #headers: headers,
+      #proxyInfo: proxyInfo,
+    }),
+    returnValue: _i3.Future<_i2.Response>.value(
+      _FakeResponse_0(
+        this,
+        Invocation.method(#delete, [], {
+          #url: url,
+          #headers: headers,
+          #proxyInfo: proxyInfo,
+        }),
+      ),
+    ),
+  ) as _i3.Future<_i2.Response>);
 }

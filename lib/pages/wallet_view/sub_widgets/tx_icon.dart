@@ -19,7 +19,6 @@ import '../../../models/isar/models/isar_models.dart';
 import '../../../models/isar/stack_theme.dart';
 import '../../../providers/global/wallets_provider.dart';
 import '../../../themes/theme_providers.dart';
-import '../../../utilities/assets.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 
 class TxIcon extends ConsumerWidget {
@@ -30,7 +29,7 @@ class TxIcon extends ConsumerWidget {
     required this.coin,
   });
 
-  final Object transaction;
+  final TransactionV2 transaction;
   final int currentHeight;
   final CryptoCurrency coin;
 
@@ -40,26 +39,8 @@ class TxIcon extends ConsumerWidget {
     bool isCancelled,
     bool isReceived,
     bool isPending,
-    TransactionSubType subType,
-    TransactionType type,
     IThemeAssets assets,
   ) {
-    if (subType == TransactionSubType.cashFusion) {
-      return Assets.svg.txCashFusion;
-    }
-
-    if ((!isReceived && subType == TransactionSubType.mint) ||
-        (subType == TransactionSubType.sparkMint &&
-            type == TransactionType.sentToSelf)) {
-      if (isCancelled) {
-        return Assets.svg.anonymizeFailed;
-      }
-      if (isPending) {
-        return Assets.svg.anonymizePending;
-      }
-      return Assets.svg.anonymize;
-    }
-
     if (isReceived) {
       if (isCancelled) {
         return assets.receiveCancelled;
@@ -81,50 +62,22 @@ class TxIcon extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final bool txIsReceived;
-    final String assetName;
-
-    if (transaction is Transaction) {
-      final tx = transaction as Transaction;
-      txIsReceived = tx.type == TransactionType.incoming;
-      assetName = _getAssetName(
-        tx.isCancelled,
-        txIsReceived,
-        !tx.isConfirmed(
-          currentHeight,
-          ref.watch(pWallets).getWallet(tx.walletId).cryptoCurrency.minConfirms,
-        ),
-        tx.subType,
-        tx.type,
-        ref.watch(themeAssetsProvider),
-      );
-    } else if (transaction is TransactionV2) {
-      final tx = transaction as TransactionV2;
-      txIsReceived = tx.type == TransactionType.incoming;
-      final isPending = !tx.isConfirmed(
-        currentHeight,
-        ref.watch(pWallets).getWallet(tx.walletId).cryptoCurrency.minConfirms,
-        ref
-            .watch(pWallets)
-            .getWallet(tx.walletId)
-            .cryptoCurrency
-            .minCoinbaseConfirms,
-      );
-      assetName =
-          PivxTxKind.iconAsset(tx.pivxKind, pending: isPending) ??
-          _getAssetName(
-            false,
-            txIsReceived,
-            isPending,
-            tx.subType,
-            tx.type,
-            ref.watch(themeAssetsProvider),
-          );
-    } else {
-      throw ArgumentError(
-        "Unknown transaction type ${transaction.runtimeType}",
-      );
-    }
+    final tx = transaction;
+    final txIsReceived = tx.type == TransactionType.incoming;
+    final currency = ref.watch(pWallets).getWallet(tx.walletId).cryptoCurrency;
+    final isPending = !tx.isConfirmed(
+      currentHeight,
+      currency.minConfirms,
+      currency.minCoinbaseConfirms,
+    );
+    final assetName =
+        PivxTxKind.iconAsset(tx.pivxKind, pending: isPending) ??
+        _getAssetName(
+          false,
+          txIsReceived,
+          isPending,
+          ref.watch(themeAssetsProvider),
+        );
 
     return SizedBox(
       width: size.width,

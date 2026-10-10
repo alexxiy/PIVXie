@@ -8,13 +8,13 @@
  *
  */
 
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../app_config.dart';
+import '../../intro_view.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/git_status.dart';
 import '../../../utilities/text_styles.dart';
@@ -177,69 +177,33 @@ class AboutView extends ConsumerWidget {
                                   );
                                 },
                           ),
-                          const SizedBox(height: 12),
-                          RoundedWhiteContainer(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "Website",
-                                  style: STextStyles.titleBold12(context),
-                                ),
-                                const SizedBox(height: 4),
-                                CustomTextButton(
-                                  text: "https://stackwallet.com",
-                                  onTap: () {
-                                    launchUrl(
-                                      Uri.parse("https://stackwallet.com"),
-                                      mode: LaunchMode.externalApplication,
-                                    );
-                                  },
-                                ),
-                              ],
+                          if (AppConfig.websiteUrl.isNotEmpty)
+                            const SizedBox(height: 12),
+                          if (AppConfig.websiteUrl.isNotEmpty)
+                            RoundedWhiteContainer(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "Website",
+                                    style: STextStyles.titleBold12(context),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  CustomTextButton(
+                                    text: AppConfig.websiteUrl,
+                                    onTap: () {
+                                      launchUrl(
+                                        Uri.parse(AppConfig.websiteUrl),
+                                        mode: LaunchMode.externalApplication,
+                                      );
+                                    },
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
                           const SizedBox(height: 12),
                           const Spacer(),
-                          RichText(
-                            textAlign: TextAlign.center,
-                            text: TextSpan(
-                              style: STextStyles.label(context),
-                              children: [
-                                const TextSpan(
-                                  text:
-                                      "By using ${AppConfig.appName}, you agree to the ",
-                                ),
-                                TextSpan(
-                                  text: "Terms of service",
-                                  style: STextStyles.richLink(context),
-                                  recognizer: TapGestureRecognizer()
-                                    ..onTap = () {
-                                      launchUrl(
-                                        Uri.parse(
-                                          "https://stackwallet.com/terms-of-service.html",
-                                        ),
-                                        mode: LaunchMode.externalApplication,
-                                      );
-                                    },
-                                ),
-                                const TextSpan(text: " and "),
-                                TextSpan(
-                                  text: "Privacy policy",
-                                  style: STextStyles.richLink(context),
-                                  recognizer: TapGestureRecognizer()
-                                    ..onTap = () {
-                                      launchUrl(
-                                        Uri.parse(
-                                          "https://stackwallet.com/privacy-policy.html",
-                                        ),
-                                        mode: LaunchMode.externalApplication,
-                                      );
-                                    },
-                                ),
-                              ],
-                            ),
-                          ),
+                          const PrivacyAndTOSText(isDesktop: false),
                         ],
                       ),
                     ),

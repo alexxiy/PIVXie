@@ -2,6 +2,10 @@ import 'dart:typed_data';
 
 import '../../../../utilities/extensions/extensions.dart';
 
+/// Upper bound of a stream packet; larger lengths mean a broken or
+/// hostile stream (PIVX transactions are far smaller).
+const _kMaxPacket = 4 * 1024 * 1024;
+
 /// One block from the bridge's shield stream.
 typedef PivxShieldBlock = ({int height, int time, List<String> txs});
 
@@ -22,13 +26,21 @@ Stream<PivxShieldBlock> parsePivxShieldStream(Stream<List<int>> bytes) async* {
     off = 0;
 
     while (buf.length - off >= 4) {
-      final len = ByteData.sublistView(buf, off, off + 4).getUint32(0, Endian.little);
+      final len = ByteData.sublistView(
+        buf,
+        off,
+        off + 4,
+      ).getUint32(0, Endian.little);
+      if (len > _kMaxPacket) {
+        throw FormatException("Shield packet too large ($len bytes)");
+      }
       if (buf.length - off - 4 < len) break;
       final packet = Uint8List.sublistView(buf, off + 4, off + 4 + len);
       off += 4 + len;
       if (packet.isEmpty) throw const FormatException("Empty shield packet");
       if (packet[0] == 0x5d) {
-        if (packet.length < 9) throw const FormatException("Short block footer");
+        if (packet.length < 9)
+          throw const FormatException("Short block footer");
         final view = ByteData.sublistView(packet);
         yield (
           height: view.getUint32(1, Endian.little),

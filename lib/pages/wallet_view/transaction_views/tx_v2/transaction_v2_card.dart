@@ -33,12 +33,21 @@ class TransactionCardV2 extends ConsumerStatefulWidget {
 }
 
 class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
-  late final TransactionV2 _transaction;
+  /// Always the widget's current transaction: callers may rebuild the
+  /// card with an updated copy (confirmed, reclassified) under the same
+  /// key.
+  TransactionV2 get _transaction => widget.transaction;
   late final String walletId;
-  late final String prefix;
-  late final String unit;
   late final CryptoCurrency coin;
-  late final TransactionType txType;
+
+  String get prefix {
+    if (!Util.isDesktop) return "";
+    return switch (_transaction.type) {
+      TransactionType.outgoing => "-",
+      TransactionType.incoming => "+",
+      _ => "",
+    };
+  }
 
   String whatIsIt(CryptoCurrency coin, int currentHeight) =>
       _transaction.statusLabel(
@@ -57,24 +66,8 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
 
   @override
   void initState() {
-    _transaction = widget.transaction;
-    walletId = _transaction.walletId;
+    walletId = widget.transaction.walletId;
     coin = ref.read(pWalletCoin(walletId));
-
-    unit = coin.ticker;
-
-    if (Util.isDesktop) {
-      if (_transaction.type == TransactionType.outgoing) {
-        prefix = "-";
-      } else if (_transaction.type == TransactionType.incoming) {
-        prefix = "+";
-      } else {
-        prefix = "";
-      }
-    } else {
-      prefix = "";
-    }
-
     super.initState();
   }
 

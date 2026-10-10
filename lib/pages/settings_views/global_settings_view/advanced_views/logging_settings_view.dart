@@ -124,7 +124,7 @@ class _LoggingSettingsViewState extends ConsumerState<LoggingSettingsView> {
     final tempDir = await getTemporaryDirectory();
     final zipPath = path.join(tempDir.path, 'logs.zip');
     final zipFile = File(zipPath);
-    await zipFile.writeAsBytes(ZipEncoder().encode(archive)!);
+    await zipFile.writeAsBytes(ZipEncoder().encode(archive));
 
     await SharePlus.instance.share(
       ShareParams(

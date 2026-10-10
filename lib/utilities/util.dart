@@ -25,11 +25,10 @@ abstract class Util {
   static double? screenWidth;
 
   static NumberSymbols? getSymbolsFor({required String locale}) {
-    return numberFormatSymbols[locale] as NumberSymbols? ??
-        numberFormatSymbols[locale.replaceAll("-", "_")] as NumberSymbols? ??
-        numberFormatSymbols[locale.substring(3).toLowerCase()]
-            as NumberSymbols? ??
-        numberFormatSymbols[locale.substring(0, 2)] as NumberSymbols?;
+    return numberFormatSymbols[locale] ??
+        numberFormatSymbols[locale.replaceAll("-", "_")] ??
+        numberFormatSymbols[locale.substring(3).toLowerCase()] ??
+        numberFormatSymbols[locale.substring(0, 2)];
   }
 
   static bool get isDesktop {
@@ -51,7 +50,7 @@ abstract class Util {
   static Future<bool> get isIPad async {
     final deviceInfo = (await DeviceInfoPlugin().deviceInfo);
     if (deviceInfo is IosDeviceInfo) {
-      return (deviceInfo).name?.toLowerCase().contains("ipad") == true;
+      return (deviceInfo).name.toLowerCase().contains("ipad") == true;
     }
     return false;
   }

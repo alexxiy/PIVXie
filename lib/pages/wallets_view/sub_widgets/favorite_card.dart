@@ -135,7 +135,7 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
             rootNavigator: Util.isDesktop,
           );
 
-          if (!canContinue) {
+          if (!canContinue || !context.mounted) {
             return;
           }
 
@@ -154,7 +154,7 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
             rootNavigator: Util.isDesktop,
           );
 
-          if (mounted) {
+          if (context.mounted) {
             if (Util.isDesktop) {
               await Navigator.of(context)
                   .pushNamed(DesktopWalletView.routeName, arguments: walletId);

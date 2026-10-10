@@ -3,6 +3,7 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
+
 import 'dart:convert' as _i6;
 import 'dart:typed_data' as _i5;
 
@@ -64,20 +65,16 @@ class MockBinaryReader extends _i2.Mock implements _i4.BinaryReader {
           as int);
 
   @override
-  _i5.Uint8List viewBytes(int? bytes) =>
-      (super.noSuchMethod(
-            Invocation.method(#viewBytes, [bytes]),
-            returnValue: _i5.Uint8List(0),
-          )
-          as _i5.Uint8List);
+  _i5.Uint8List viewBytes(int? bytes) => (super.noSuchMethod(
+    Invocation.method(#viewBytes, [bytes]),
+    returnValue: _i5.Uint8List(0),
+  ) as _i5.Uint8List);
 
   @override
-  _i5.Uint8List peekBytes(int? bytes) =>
-      (super.noSuchMethod(
-            Invocation.method(#peekBytes, [bytes]),
-            returnValue: _i5.Uint8List(0),
-          )
-          as _i5.Uint8List);
+  _i5.Uint8List peekBytes(int? bytes) => (super.noSuchMethod(
+    Invocation.method(#peekBytes, [bytes]),
+    returnValue: _i5.Uint8List(0),
+  ) as _i5.Uint8List);
 
   @override
   int readWord() =>
@@ -113,85 +110,68 @@ class MockBinaryReader extends _i2.Mock implements _i4.BinaryReader {
   String readString([
     int? byteCount,
     _i6.Converter<List<int>, String>? decoder = const _i6.Utf8Decoder(),
-  ]) =>
-      (super.noSuchMethod(
-            Invocation.method(#readString, [byteCount, decoder]),
-            returnValue: _i7.dummyValue<String>(
-              this,
-              Invocation.method(#readString, [byteCount, decoder]),
-            ),
-          )
-          as String);
+  ]) => (super.noSuchMethod(
+    Invocation.method(#readString, [byteCount, decoder]),
+    returnValue: _i7.dummyValue<String>(
+      this,
+      Invocation.method(#readString, [byteCount, decoder]),
+    ),
+  ) as String);
 
   @override
-  _i5.Uint8List readByteList([int? length]) =>
-      (super.noSuchMethod(
-            Invocation.method(#readByteList, [length]),
-            returnValue: _i5.Uint8List(0),
-          )
-          as _i5.Uint8List);
+  _i5.Uint8List readByteList([int? length]) => (super.noSuchMethod(
+    Invocation.method(#readByteList, [length]),
+    returnValue: _i5.Uint8List(0),
+  ) as _i5.Uint8List);
 
   @override
-  List<int> readIntList([int? length]) =>
-      (super.noSuchMethod(
-            Invocation.method(#readIntList, [length]),
-            returnValue: <int>[],
-          )
-          as List<int>);
+  List<int> readIntList([int? length]) => (super.noSuchMethod(
+    Invocation.method(#readIntList, [length]),
+    returnValue: <int>[],
+  ) as List<int>);
 
   @override
-  List<double> readDoubleList([int? length]) =>
-      (super.noSuchMethod(
-            Invocation.method(#readDoubleList, [length]),
-            returnValue: <double>[],
-          )
-          as List<double>);
+  List<double> readDoubleList([int? length]) => (super.noSuchMethod(
+    Invocation.method(#readDoubleList, [length]),
+    returnValue: <double>[],
+  ) as List<double>);
 
   @override
-  List<bool> readBoolList([int? length]) =>
-      (super.noSuchMethod(
-            Invocation.method(#readBoolList, [length]),
-            returnValue: <bool>[],
-          )
-          as List<bool>);
+  List<bool> readBoolList([int? length]) => (super.noSuchMethod(
+    Invocation.method(#readBoolList, [length]),
+    returnValue: <bool>[],
+  ) as List<bool>);
 
   @override
   List<String> readStringList([
     int? length,
     _i6.Converter<List<int>, String>? decoder = const _i6.Utf8Decoder(),
-  ]) =>
-      (super.noSuchMethod(
-            Invocation.method(#readStringList, [length, decoder]),
-            returnValue: <String>[],
-          )
-          as List<String>);
+  ]) => (super.noSuchMethod(
+    Invocation.method(#readStringList, [length, decoder]),
+    returnValue: <String>[],
+  ) as List<String>);
 
   @override
-  List<dynamic> readList([int? length]) =>
-      (super.noSuchMethod(
-            Invocation.method(#readList, [length]),
-            returnValue: <dynamic>[],
-          )
-          as List<dynamic>);
+  List<dynamic> readList([int? length]) => (super.noSuchMethod(
+    Invocation.method(#readList, [length]),
+    returnValue: <dynamic>[],
+  ) as List<dynamic>);
 
   @override
-  Map<dynamic, dynamic> readMap([int? length]) =>
-      (super.noSuchMethod(
-            Invocation.method(#readMap, [length]),
-            returnValue: <dynamic, dynamic>{},
-          )
-          as Map<dynamic, dynamic>);
+  Map<dynamic, dynamic> readMap([int? length]) => (super.noSuchMethod(
+    Invocation.method(#readMap, [length]),
+    returnValue: <dynamic, dynamic>{},
+  ) as Map<dynamic, dynamic>);
 
   @override
   _i3.HiveList<_i1.HiveObjectMixin> readHiveList([int? length]) =>
       (super.noSuchMethod(
-            Invocation.method(#readHiveList, [length]),
-            returnValue: _FakeHiveList_0<_i1.HiveObjectMixin>(
-              this,
-              Invocation.method(#readHiveList, [length]),
-            ),
-          )
-          as _i3.HiveList<_i1.HiveObjectMixin>);
+        Invocation.method(#readHiveList, [length]),
+        returnValue: _FakeHiveList_0<_i1.HiveObjectMixin>(
+          this,
+          Invocation.method(#readHiveList, [length]),
+        ),
+      ) as _i3.HiveList<_i1.HiveObjectMixin>);
 }
 
 /// A class which mocks [BinaryWriter].

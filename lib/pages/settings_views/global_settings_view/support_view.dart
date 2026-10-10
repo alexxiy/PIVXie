@@ -41,8 +41,9 @@ class SupportView extends StatelessWidget {
       builder: (child) {
         return Background(
           child: Scaffold(
-            backgroundColor:
-                Theme.of(context).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(context)
+                .extension<StackColors>()!
+                .background,
             appBar: AppBar(
               leading: AppBarBackButton(
                 onPressed: () {
@@ -67,45 +68,28 @@ class SupportView extends StatelessWidget {
             ),
           ),
           isDesktop ? const SizedBox(height: 24) : const SizedBox(height: 12),
-          AboutItem(
-            linkUrl: "https://t.me/stackwallet",
-            label: "Telegram",
-            buttonText: "@stackwallet",
-            iconAsset: Assets.socials.telegram,
-            isDesktop: isDesktop,
-          ),
-          const SizedBox(height: 8),
-          AboutItem(
-            linkUrl: "https://discord.com/invite/mRPZuXx3At",
-            label: "Discord",
-            buttonText: AppConfig.appName,
-            iconAsset: Assets.socials.discord,
-            isDesktop: isDesktop,
-          ),
-          const SizedBox(height: 8),
-          AboutItem(
-            linkUrl: "https://www.reddit.com/r/stackwallet/",
-            label: "Reddit",
-            buttonText: "r/stackwallet",
-            iconAsset: Assets.socials.reddit,
-            isDesktop: isDesktop,
-          ),
-          const SizedBox(height: 8),
-          AboutItem(
-            linkUrl: "https://x.com/stack_wallet",
-            label: "X",
-            buttonText: "@stack_wallet",
-            iconAsset: Assets.socials.twitter,
-            isDesktop: isDesktop,
-          ),
-          const SizedBox(height: 8),
-          AboutItem(
-            linkUrl: "mailto:support@stackwallet.com",
-            label: "Email",
-            buttonText: "support@stackwallet.com",
-            iconAsset: Assets.svg.envelope,
-            isDesktop: isDesktop,
-          ),
+          for (final (i, link) in AppConfig.supportLinks.indexed) ...[
+            if (i > 0) const SizedBox(height: 8),
+            AboutItem(
+              linkUrl: link.url,
+              label: switch (link.channel) {
+                SupportChannel.telegram => "Telegram",
+                SupportChannel.discord => "Discord",
+                SupportChannel.reddit => "Reddit",
+                SupportChannel.x => "X",
+                SupportChannel.email => "Email",
+              },
+              buttonText: link.text,
+              iconAsset: switch (link.channel) {
+                SupportChannel.telegram => Assets.socials.telegram,
+                SupportChannel.discord => Assets.socials.discord,
+                SupportChannel.reddit => Assets.socials.reddit,
+                SupportChannel.x => Assets.socials.twitter,
+                SupportChannel.email => Assets.svg.envelope,
+              },
+              isDesktop: isDesktop,
+            ),
+          ],
         ],
       ),
     );
@@ -151,23 +135,20 @@ class AboutItem extends StatelessWidget {
           } else {
             await showDialog<void>(
               context: context,
-              builder:
-                  (_) => ScamWarningDialog(
-                    channel: label,
-                    onUnderstandPressed:
-                        () => launchUrl(
-                          Uri.parse(linkUrl),
-                          mode: LaunchMode.externalApplication,
-                        ),
-                  ),
+              builder: (_) => ScamWarningDialog(
+                channel: label,
+                onUnderstandPressed: () => launchUrl(
+                  Uri.parse(linkUrl),
+                  mode: LaunchMode.externalApplication,
+                ),
+              ),
             );
           }
         },
         child: Padding(
-          padding:
-              isDesktop
-                  ? const EdgeInsets.symmetric(horizontal: 20, vertical: 15)
-                  : const EdgeInsets.symmetric(horizontal: 12, vertical: 20),
+          padding: isDesktop
+              ? const EdgeInsets.symmetric(horizontal: 20, vertical: 15)
+              : const EdgeInsets.symmetric(horizontal: 12, vertical: 20),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -175,27 +156,24 @@ class AboutItem extends StatelessWidget {
                 children: [
                   ConditionalParent(
                     condition: isDesktop,
-                    builder:
-                        (child) => Container(
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(10000),
-                            color:
-                                Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.buttonBackSecondary,
-                          ),
-                          child: Center(child: child),
-                        ),
+                    builder: (child) => Container(
+                      width: 40,
+                      height: 40,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10000),
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .buttonBackSecondary,
+                      ),
+                      child: Center(child: child),
+                    ),
                     child: SvgPicture.asset(
                       iconAsset,
                       width: iconSize,
                       height: iconSize,
-                      color:
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.topNavIconPrimary,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .topNavIconPrimary,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -251,17 +229,15 @@ class ScamWarningDialog extends StatelessWidget {
           children: [
             RichText(
               text: TextSpan(
-                style:
-                    Util.isDesktop
-                        ? STextStyles.w500_16(context)
-                        : STextStyles.w500_14(context),
+                style: Util.isDesktop
+                    ? STextStyles.w500_16(context)
+                    : STextStyles.w500_14(context),
                 children: [
                   TextSpan(
                     text: "Important: Protect Yourself from Scammers!\n\n",
-                    style:
-                        Util.isDesktop
-                            ? STextStyles.desktopH2(context)
-                            : STextStyles.pageTitleH2(context),
+                    style: Util.isDesktop
+                        ? STextStyles.desktopH2(context)
+                        : STextStyles.pageTitleH2(context),
                   ),
                   const TextSpan(
                     text: "All official support for ",
@@ -311,10 +287,9 @@ class ScamWarningDialog extends StatelessWidget {
             ),
             RichText(
               text: TextSpan(
-                style:
-                    Util.isDesktop
-                        ? STextStyles.w500_16(context)
-                        : STextStyles.w500_14(context),
+                style: Util.isDesktop
+                    ? STextStyles.w500_16(context)
+                    : STextStyles.w500_14(context),
                 children: const [
                   TextSpan(
                     text: "Our support staff will ",
@@ -372,10 +347,9 @@ class _Bullet extends StatelessWidget {
       children: [
         RichText(
           text: TextSpan(
-            style:
-                Util.isDesktop
-                    ? STextStyles.w500_16(context)
-                    : STextStyles.w500_14(context),
+            style: Util.isDesktop
+                ? STextStyles.w500_16(context)
+                : STextStyles.w500_14(context),
             children: const [
               TextSpan(
                 text: "    •  ",
@@ -389,10 +363,9 @@ class _Bullet extends StatelessWidget {
           builder: (child) => Expanded(child: child),
           child: RichText(
             text: TextSpan(
-              style:
-                  Util.isDesktop
-                      ? STextStyles.w500_16(context)
-                      : STextStyles.w500_14(context),
+              style: Util.isDesktop
+                  ? STextStyles.w500_16(context)
+                  : STextStyles.w500_14(context),
               children: [
                 TextSpan(
                   text: text,

@@ -236,6 +236,7 @@ class _SendViewState extends ConsumerState<SendView> {
         FocusScope.of(context).unfocus();
         await Future<void>.delayed(const Duration(milliseconds: 75));
       }
+      if (!mounted) return;
 
       final qrResult = await ref.read(pBarcodeScanner).scan(context: context);
 

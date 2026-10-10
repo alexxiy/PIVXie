@@ -24,6 +24,7 @@ import '../../../utilities/amount/amount.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
 import '../../../utilities/enums/fee_rate_type_enum.dart';
 import '../../../utilities/extensions/extensions.dart';
+import '../../../utilities/flutter_secure_storage_interface.dart';
 import '../../../services/tor_service.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/stack_file_system.dart';
@@ -55,6 +56,20 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
   PivxWallet(CryptoCurrencyNetwork network) : super(Pivx(network));
 
   PivxShieldState? _shield;
+
+  /// Remove what a PIVX wallet keeps outside the wallet tables: masternode
+  /// private keys and the shield state file (it holds the full viewing
+  /// key). For wallet deletion.
+  static Future<void> deleteLocalData({
+    required String walletId,
+    required Map<String, dynamic> otherData,
+    required SecureStorageInterface secureStorage,
+  }) async {
+    for (final id in pivxMasternodeIds(otherData)) {
+      await secureStorage.delete(key: pivxMasternodeKeyName(walletId, id));
+    }
+    await PivxShieldState.delete(walletId);
+  }
 
   /// Serialises writes of the wallet's UTXO rows (transparent outputs
   /// and shield notes share the table; see [_putUtxoRows]).
@@ -96,6 +111,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     final node = getCurrentNode();
     final key = "${node.host}|${node.port}|${node.useSSL}|${prefs.useTor}";
     if (_client == null || _clientKey != key) {
+      _client?.close();
       _client = PivxBridgeClient.fromNode(node, prefs);
       _clientKey = key;
     }
@@ -128,6 +144,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
       .replaceFirst(RegExp(r"/0/0$"), "");
 
   String? _accountXpub;
+  coinlib.HDPublicKey? _accountKey;
 
   /// BIP44 account-level xpub (`m/44'/119'/0'`), serialised with the
   /// network's `pubHDPrefix`.
@@ -149,20 +166,19 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     return _accountXpub!;
   }
 
-  Future<Address> _deriveAddress({required int chain, required int index}) async {
+  Future<Address> _deriveAddress({
+    required int chain,
+    required int index,
+  }) async {
     final path = cryptoCurrency.constructDerivePath(
       derivePathType: DerivePathType.bip44,
       chain: chain,
       index: index,
     );
-    final coinlib.HDKey key;
-    if (isViewOnly) {
-      key = coinlib.HDPublicKey.decode(
-        await accountXpub,
-      ).derivePath("$chain/$index");
-    } else {
-      key = (await getRootHDNode()).derivePath(path);
-    }
+    // Public derivation from the account key gives the same keys as the
+    // full path, without re-deriving the seed (slow PBKDF2) per address.
+    _accountKey ??= coinlib.HDPublicKey.decode(await accountXpub);
+    final key = _accountKey!.derivePath("$chain/$index");
     final data = cryptoCurrency.getAddressForPublicKey(
       publicKey: key.publicKey,
       derivePathType: DerivePathType.bip44,
@@ -268,6 +284,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
 
   @override
   Future<void> updateNode() async {
+    _client?.close();
     _client = null;
     _clientKey = null;
     _stopWatching();
@@ -289,12 +306,6 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
   Future<void> refresh() async {
     try {
       await UiStallWatch.run("PIVX ${info.name}: refresh", super.refresh);
-      if (info.otherData[_kNotifyReady] != true) {
-        await info.updateOtherData(
-          newEntries: {_kNotifyReady: true},
-          isar: mainDB.isar,
-        );
-      }
     } finally {
       _startWatching();
     }
@@ -304,6 +315,8 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
   Future<void> exit() async {
     _stopWatching();
     await super.exit();
+    _client?.close();
+    _client = null;
   }
 
   void _startWatching() {
@@ -340,7 +353,9 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
           failures = 0;
         } on PivxBridgeException catch (e) {
           if (e.statusCode == 404 || e.statusCode == 405) {
-            Logging.instance.w("PIVX: bridge has no /api/v2/watch; polling only");
+            Logging.instance.w(
+              "PIVX: bridge has no /api/v2/watch; polling only",
+            );
             return;
           }
           failures++;
@@ -472,12 +487,14 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
       "PIVX ${info.name}: store ${txns.length} txs",
       () => _storeTxs(txns),
     );
-    if (info.otherData[_kTxParseVersion] != _txParseVersion) {
-      await info.updateOtherData(
-        newEntries: {_kTxParseVersion: _txParseVersion},
-        isar: mainDB.isar,
-      );
-    }
+    await info.updateOtherData(
+      newEntries: {
+        _kTxParseVersion: _txParseVersion,
+        // History is in: from now on new incoming txs notify.
+        _kNotifyReady: true,
+      },
+      isar: mainDB.isar,
+    );
   }
 
   /// Bumped when parsing changes: the next sync re-parses all history.
@@ -520,12 +537,10 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
   /// Store [txns] that are new or differ from the stored copy. Rewriting
   /// unchanged ones on every sync only makes the history list reload.
   Future<void> _storeTxs(List<TransactionV2> txns) async {
+    final storedByTxid = await _storedTxs(txns.map((e) => e.txid));
     final changed = <TransactionV2>[];
     for (var tx in txns) {
-      final stored = await mainDB.isar.transactionV2s
-          .where()
-          .txidWalletIdEqualTo(tx.txid, walletId)
-          .findFirst();
+      final stored = storedByTxid[tx.txid];
       if (stored != null && stored.isPivxOwnSend) {
         // Our own send: the bridge's unconfirmed view lacks its shield
         // side, so keep the entry we built until it confirms; then keep
@@ -562,6 +577,19 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     await mainDB.updateOrPutTransactionV2s(changed);
   }
 
+  /// Stored copies of [txids] (one query), by txid.
+  Future<Map<String, TransactionV2>> _storedTxs(Iterable<String> txids) async {
+    final ids = txids.toSet().toList();
+    final rows = await mainDB.isar.transactionV2s.getAllByTxidWalletId(
+      ids,
+      List.filled(ids.length, walletId),
+    );
+    return {
+      for (final t in rows)
+        if (t != null) t.txid: t,
+    };
+  }
+
   static String _txSignature(TransactionV2 t) => [
     t.height,
     t.blockHash,
@@ -579,21 +607,18 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
   // ===========================================================================
   // Notifications
 
-  /// Set once the first full sync is done; earlier history (restores,
-  /// first sync) raises no notifications.
+  /// Set once a full history sync is done; earlier history (first sync,
+  /// restores, rescans) raises no notifications. Cleared by [recover].
   static const _kNotifyReady = "pivxNotifyReady";
 
   /// Notify about [txns] that bring funds in and are not stored yet.
   /// Call before storing them.
   Future<void> _notifyIncoming(List<TransactionV2> txns) async {
     if (info.otherData[_kNotifyReady] != true) return;
-    for (final tx in txns) {
-      if (tx.type != TransactionType.incoming) continue;
-      final stored = await mainDB.isar.transactionV2s
-          .where()
-          .txidWalletIdEqualTo(tx.txid, walletId)
-          .findFirst();
-      if (stored != null) continue;
+    final incoming = txns.where((e) => e.type == TransactionType.incoming);
+    final stored = await _storedTxs(incoming.map((e) => e.txid));
+    for (final tx in incoming) {
+      if (stored.containsKey(tx.txid)) continue;
       final amount = tx.getAmountReceivedInThisWallet(
         fractionDigits: cryptoCurrency.fractionDigits,
       );
@@ -635,6 +660,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
   Future<bool> updateUTXOs() async {
     final xpub = await accountXpub;
     final list = await bridge.utxo(xpub, gap: await _bridgeGap());
+    final txs = await _storedTxs(list.map((u) => u["txid"] as String));
 
     final utxos = <UTXO>[];
     for (final u in list) {
@@ -645,10 +671,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
 
       bool blocked = false;
       String? blockedReason;
-      final tx = await mainDB.isar.transactionV2s
-          .where()
-          .txidWalletIdEqualTo(txid, walletId)
-          .findFirst();
+      final tx = txs[txid];
       final out = tx?.outputs.length != null && vout < tx!.outputs.length
           ? tx.outputs[vout]
           : null;
@@ -668,7 +691,8 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
       int? blockTime;
       if (height != null) {
         blockHash = tx?.blockHash ?? await _blockHashAt(height);
-        blockTime = tx?.timestamp ??
+        blockTime =
+            tx?.timestamp ??
             DateTime.timestamp().millisecondsSinceEpoch ~/ 1000;
       }
 
@@ -695,16 +719,14 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
   /// [MainDB.updateUTXOs] replaces all of a wallet's rows, so write
   /// transparent outputs and shield notes together, keeping the stored
   /// rows of whichever kind is not given.
-  Future<bool> _putUtxoRows({
-    List<UTXO>? transparent,
-    List<UTXO>? notes,
-  }) => _utxoLock.protect(() async {
-    final stored = await mainDB.getUTXOs(walletId).findAll();
-    return await mainDB.updateUTXOs(walletId, [
-      ...transparent ?? stored.where((u) => !isPivxShieldNote(u)),
-      ...notes ?? stored.where(isPivxShieldNote),
-    ]);
-  });
+  Future<bool> _putUtxoRows({List<UTXO>? transparent, List<UTXO>? notes}) =>
+      _utxoLock.protect(() async {
+        final stored = await mainDB.getUTXOs(walletId).findAll();
+        return await mainDB.updateUTXOs(walletId, [
+          ...transparent ?? stored.where((u) => !isPivxShieldNote(u)),
+          ...notes ?? stored.where(isPivxShieldNote),
+        ]);
+      });
 
   /// Shield notes count towards the private (secondary) balance only.
   @override
@@ -722,6 +744,12 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
   @override
   Future<void> recover({required bool isRescan}) async {
     await refreshMutex.protect(() async {
+      // The history below is old news (a restored backup may carry the
+      // flag over), so it raises no notifications.
+      await info.updateOtherData(
+        newEntries: {_kNotifyReady: false},
+        isar: mainDB.isar,
+      );
       if (isRescan) {
         await mainDB.deleteWalletBlockchainData(walletId);
       }
@@ -790,7 +818,8 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
   Future<TxData> shieldAllTransparent() async {
     final state = await _loadShield();
     final amount = info.cachedBalance.spendable;
-    if (amount <= Amount.zeroWith(fractionDigits: cryptoCurrency.fractionDigits)) {
+    if (amount <=
+        Amount.zeroWith(fractionDigits: cryptoCurrency.fractionDigits)) {
       throw Exception("No transparent funds to shield");
     }
     final prepared = await prepareSend(
@@ -828,9 +857,10 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     );
     final List<int> values;
     if (fromShield) {
-      values = (await _notesToSpend(await _loadShield(), picked))
-          .map((n) => (n["value"] as num).toInt())
-          .toList();
+      values = (await _notesToSpend(
+        await _loadShield(),
+        picked,
+      )).map((n) => (n["value"] as num).toInt()).toList();
     } else {
       values = _spendable(
         selected?.toList() ?? await mainDB.getUTXOs(walletId).findAll(),
@@ -882,7 +912,8 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
       // budgets two shield outputs, plus a transparent recipient and/or
       // transparent change.
       final tOut = (toShield ? 0 : 1) + (fromShield ? 0 : 1);
-      bytes = 948 * 2 +
+      bytes =
+          948 * 2 +
           384 * (fromShield ? count : 0) +
           150 * (fromShield ? 0 : count) +
           34 * tOut +
@@ -946,7 +977,8 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
         _ => feeObject.medium,
       };
       rate = (perKb.toInt() / 1000).ceil();
-    } else if (txData.feeRateAmount != null && txData.feeRateAmount! > BigInt.zero) {
+    } else if (txData.feeRateAmount != null &&
+        txData.feeRateAmount! > BigInt.zero) {
       rate = (txData.feeRateAmount!.toInt() / 1000).ceil();
     } else {
       rate = cryptoCurrency.minFeePerByte;
@@ -957,7 +989,9 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
   int _estimateSize(int inputs, Iterable<String> outputAddresses) {
     int size = _kTxOverhead + inputs * _kP2pkhInput;
     for (final a in outputAddresses) {
-      size += cryptoCurrency.isExchangeAddress(a) ? _kExchangeOutput : _kP2pkhOutput;
+      size += cryptoCurrency.isExchangeAddress(a)
+          ? _kExchangeOutput
+          : _kP2pkhOutput;
     }
     return size;
   }
@@ -979,7 +1013,10 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
 
   @override
   Future<Amount> estimateFeeFor(Amount amount, BigInt feeRate) async {
-    final perByte = max((feeRate.toInt() / 1000).ceil(), cryptoCurrency.minFeePerByte);
+    final perByte = max(
+      (feeRate.toInt() / 1000).ceil(),
+      cryptoCurrency.minFeePerByte,
+    );
     final utxos = _spendable(
       await mainDB.getUTXOs(walletId).findAll(),
       await chainHeight,
@@ -1022,7 +1059,10 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
 
   coinlib.Address _parseAddress(String address) {
     if (cryptoCurrency.isExchangeAddress(address)) {
-      return EXP2PKHAddress.fromString(address, cryptoCurrency.exAddressVersion);
+      return EXP2PKHAddress.fromString(
+        address,
+        cryptoCurrency.exAddressVersion,
+      );
     }
     final a = coinlib.Address.fromString(address, cryptoCurrency.networkParams);
     if (a is! coinlib.P2PKHAddress && a is! coinlib.P2SHAddress) {
@@ -1061,7 +1101,10 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
 
     final List<UTXO> candidates;
     if (coinControl) {
-      candidates = txData.utxos!.whereType<StandardInput>().map((e) => e.utxo).toList();
+      candidates = txData.utxos!
+          .whereType<StandardInput>()
+          .map((e) => e.utxo)
+          .toList();
       final usable = _spendable(candidates, currentHeight);
       if (usable.length != candidates.length) {
         throw Exception("Attempted to use an unavailable utxo");
@@ -1073,7 +1116,10 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
       )..sort((a, b) => b.value.compareTo(a.value));
     }
 
-    final available = candidates.fold(BigInt.zero, (p, u) => p + BigInt.from(u.value));
+    final available = candidates.fold(
+      BigInt.zero,
+      (p, u) => p + BigInt.from(u.value),
+    );
     final target = recipients.fold(BigInt.zero, (p, r) => p + r.amount.raw);
     // The fee is only ever taken out of the amount when the user asked
     // for it ("Subtract fee from amount"); spending the whole balance
@@ -1095,8 +1141,9 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
       for (final u in candidates) {
         selected.add(u);
         inSum += BigInt.from(u.value);
-        final feeWithChange =
-            BigInt.from(_estimateSize(selected.length, [...addrs, "change"]) * feePerByte);
+        final feeWithChange = BigInt.from(
+          _estimateSize(selected.length, [...addrs, "change"]) * feePerByte,
+        );
         if (inSum >= target + (feeFromAmount ? BigInt.zero : feeWithChange)) {
           break;
         }
@@ -1114,9 +1161,9 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
       final withChange = change >= cryptoCurrency.dustLimit.raw;
       final sizeFee = BigInt.from(
         _estimateSize(inputs.length, [
-          recipient.address,
-          if (withChange) "change",
-        ]) *
+              recipient.address,
+              if (withChange) "change",
+            ]) *
             feePerByte,
       );
       final amount = target - sizeFee;
@@ -1125,7 +1172,10 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
       }
       outputs = [
         recipient.copyWith(
-          amount: Amount(rawValue: amount, fractionDigits: cryptoCurrency.fractionDigits),
+          amount: Amount(
+            rawValue: amount,
+            fractionDigits: cryptoCurrency.fractionDigits,
+          ),
         ),
       ];
       if (withChange) {
@@ -1133,7 +1183,10 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
         outputs.add(
           TxRecipient(
             address: changeAddress,
-            amount: Amount(rawValue: change, fractionDigits: cryptoCurrency.fractionDigits),
+            amount: Amount(
+              rawValue: change,
+              fractionDigits: cryptoCurrency.fractionDigits,
+            ),
             isChange: true,
             addressType: AddressType.p2pkh,
           ),
@@ -1145,9 +1198,12 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
       }
     } else {
       final addrs = recipients.map((e) => e.address).toList();
-      final feeNoChange = BigInt.from(_estimateSize(inputs.length, addrs) * feePerByte);
-      final feeWithChange =
-          BigInt.from(_estimateSize(inputs.length, [...addrs, "change"]) * feePerByte);
+      final feeNoChange = BigInt.from(
+        _estimateSize(inputs.length, addrs) * feePerByte,
+      );
+      final feeWithChange = BigInt.from(
+        _estimateSize(inputs.length, [...addrs, "change"]) * feePerByte,
+      );
       if (inSum < target + feeNoChange) {
         throw Exception(
           "Insufficient funds to pay the transaction fee. Lower the amount "
@@ -1162,7 +1218,10 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
         outputs.add(
           TxRecipient(
             address: changeAddress,
-            amount: Amount(rawValue: change, fractionDigits: cryptoCurrency.fractionDigits),
+            amount: Amount(
+              rawValue: change,
+              fractionDigits: cryptoCurrency.fractionDigits,
+            ),
             isChange: true,
             addressType: AddressType.p2pkh,
           ),
@@ -1174,7 +1233,11 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
       }
     }
 
-    final built = await _buildSigned(inputs: inputs, outputs: outputs, txData: txData);
+    final built = await _buildSigned(
+      inputs: inputs,
+      outputs: outputs,
+      txData: txData,
+    );
 
     // Sizes above are upper bounds, so this only guards against bugs:
     // never broadcast below the relay minimum.
@@ -1191,9 +1254,33 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     );
   }
 
+  /// Output values of previous transactions checked by [_verifyInputValues].
+  final _prevOutValues = <String, List<BigInt>>{};
+
+  /// Transparent signatures don't commit to the values they spend, so a
+  /// bridge reporting a lower value than the real one would turn the
+  /// difference into fee. Check each input against its previous
+  /// transaction, which must hash to its txid.
+  Future<void> _verifyInputValues(List<UTXO> utxos) async {
+    for (final u in utxos) {
+      var values = _prevOutValues[u.txid];
+      values ??= _prevOutValues[u.txid] = pivxVerifiedOutputValues(
+        u.txid,
+        await bridge.rawTx(u.txid),
+      );
+      if (u.vout >= values.length || values[u.vout] != BigInt.from(u.value)) {
+        throw Exception(
+          "The server reported a wrong value for ${u.txid}:${u.vout}; "
+          "not signing",
+        );
+      }
+    }
+  }
+
   Future<List<StandardInput>> _withKeys(List<UTXO> utxos) async {
     final root = isViewOnly ? null : await getRootHDNode();
     if (root == null) throw Exception("View only wallets cannot sign");
+    await _verifyInputValues(utxos);
     final result = <StandardInput>[];
     for (final u in utxos) {
       final address = await mainDB.getAddress(walletId, u.address!);
@@ -1224,7 +1311,9 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     final tempInputs = <InputV2>[];
     for (final input in inputs) {
       final prevOut = coinlib.OutPoint(
-        Uint8List.fromList(input.utxo.txid.toUint8ListFromHex.reversed.toList()),
+        Uint8List.fromList(
+          input.utxo.txid.toUint8ListFromHex.reversed.toList(),
+        ),
         input.utxo.vout,
       );
       tx = tx.addInput(
@@ -1330,7 +1419,12 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
       final txid = await bridge.sendTx(txData.raw!);
       final used = txData.usedUTXOs!
           .whereType<StandardInput>()
-          .map((e) => StandardInput(e.utxo.copyWith(used: true), derivePathType: e.derivePathType))
+          .map(
+            (e) => StandardInput(
+              e.utxo.copyWith(used: true),
+              derivePathType: e.derivePathType,
+            ),
+          )
           .toList();
       await mainDB.putUTXOs(used.map((e) => e.utxo).toList());
       return await updateSentCachedTxData(

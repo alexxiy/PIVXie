@@ -97,7 +97,7 @@ class _DesktopWalletSummaryRowState
               builder: (_) => TorWarningDialog(coin: widget.coin),
             ) ??
             false;
-        if (!shouldContinue) {
+        if (!shouldContinue || !context.mounted) {
           return;
         }
       }
@@ -130,7 +130,7 @@ class _DesktopWalletSummaryRowState
           rootNavigator: Util.isDesktop,
         );
 
-        if (!canContinue) {
+        if (!canContinue || !context.mounted) {
           return;
         }
 

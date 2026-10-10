@@ -8,7 +8,6 @@
  *
  */
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
 import '../../utilities/enums/fee_rate_type_enum.dart';

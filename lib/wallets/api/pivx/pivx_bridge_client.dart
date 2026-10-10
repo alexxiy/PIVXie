@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -5,7 +6,6 @@ import 'package:socks5_proxy/socks_client.dart';
 
 import '../../../app_config.dart';
 import '../../../models/node_model.dart';
-import '../../../networking/http.dart';
 import '../../../services/tor_service.dart';
 import '../../../utilities/prefs.dart';
 import '../../crypto_currency/crypto_currency.dart';
@@ -97,15 +97,60 @@ class PivxBridgeClient {
   ({InternetAddress host, int port})? get _proxy =>
       useTor ? TorService.sharedInstance.getProxyInfo() : null;
 
+  /// One client for all requests, so connections (TLS sessions, Tor
+  /// streams) are kept alive and reused instead of set up per call.
+  HttpClient? _httpClient;
+
+  HttpClient get _http => _httpClient ??= _newHttpClient(_proxy);
+
+  static HttpClient _newHttpClient(({InternetAddress host, int port})? proxy) {
+    final client = HttpClient()
+      ..connectionTimeout = _timeout
+      ..idleTimeout = const Duration(seconds: 30);
+    if (proxy != null) {
+      SocksTCPClient.assignToHttpClient(client, [
+        ProxySettings(proxy.host, proxy.port),
+      ]);
+    }
+    return client;
+  }
+
+  /// Close the connections; pending requests still finish.
+  void close() {
+    _httpClient?.close();
+    _httpClient = null;
+  }
+
+  Future<({int code, String body})> _send(
+    String method,
+    Uri url, {
+    Map<String, String>? headers,
+    String? body,
+    Duration timeout = _timeout,
+  }) async {
+    HttpClientRequest? request;
+    try {
+      return await () async {
+        request = await _http.openUrl(method, url);
+        headers?.forEach(request!.headers.set);
+        if (body != null) request!.add(utf8.encode(body));
+        final response = await request!.close();
+        final text = await response.transform(utf8.decoder).join();
+        return (code: response.statusCode, body: text);
+      }().timeout(timeout);
+    } on TimeoutException {
+      request?.abort();
+      rethrow;
+    }
+  }
+
   Uri _uri(String path, [Map<String, String>? query]) => baseUri.replace(
     path: "${baseUri.path}$path",
     queryParameters: (query == null || query.isEmpty) ? null : query,
   );
 
   Future<String> _getText(String path, [Map<String, String>? query]) async {
-    final response = await HTTP()
-        .get(url: _uri(path, query), proxyInfo: _proxy)
-        .timeout(_timeout);
+    final response = await _send("GET", _uri(path, query));
     if (response.code != 200) {
       throw PivxBridgeException(
         _errorMessage(response.body),
@@ -201,7 +246,10 @@ class PivxBridgeClient {
     return (txs: txs, info: first);
   }
 
-  Future<List<Map<String, dynamic>>> utxo(String addressOrXpub, {int? gap}) async {
+  Future<List<Map<String, dynamic>>> utxo(
+    String addressOrXpub, {
+    int? gap,
+  }) async {
     final json = await _getJson("/api/v2/utxo/$addressOrXpub", {
       if (gap != null) "gap": "$gap",
     }) as List;
@@ -212,16 +260,23 @@ class PivxBridgeClient {
     return Map<String, dynamic>.from(await _getJson("/api/v2/tx/$txid") as Map);
   }
 
+  /// Raw hex of a transaction.
+  Future<String> rawTx(String txid) async {
+    final hex = (await tx(txid))["hex"] as String?;
+    if (hex != null && hex.isNotEmpty) return hex;
+    return (await _getText("/getrawtransaction", {
+      "params": txid,
+    })).trim().replaceAll('"', '');
+  }
+
   /// Broadcast a raw transaction; returns its txid.
   Future<String> sendTx(String rawTxHex) async {
-    final response = await HTTP()
-        .post(
-          url: _uri("/api/v2/sendtx/"),
-          headers: {"Content-Type": "text/plain"},
-          body: rawTxHex,
-          proxyInfo: _proxy,
-        )
-        .timeout(_timeout);
+    final response = await _send(
+      "POST",
+      _uri("/api/v2/sendtx/"),
+      headers: {"Content-Type": "text/plain"},
+      body: rawTxHex,
+    );
     if (response.code != 200) {
       throw PivxBridgeException(
         _errorMessage(response.body),
@@ -243,20 +298,19 @@ class PivxBridgeClient {
     List<String> addresses = const [],
     int timeoutSeconds = 25,
   }) async {
-    final response = await HTTP()
-        .post(
-          url: _uri("/api/v2/watch"),
-          headers: {"Content-Type": "application/json"},
-          body: jsonEncode({
-            "height": height,
-            if (hash != null) "hash": hash,
-            if (mempoolSeq != null) "mempoolSeq": mempoolSeq,
-            "addresses": addresses,
-            "timeout": timeoutSeconds,
-          }),
-          proxyInfo: _proxy,
-        )
-        .timeout(Duration(seconds: timeoutSeconds + 20));
+    final response = await _send(
+      "POST",
+      _uri("/api/v2/watch"),
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode({
+        "height": height,
+        if (hash != null) "hash": hash,
+        if (mempoolSeq != null) "mempoolSeq": mempoolSeq,
+        "addresses": addresses,
+        "timeout": timeoutSeconds,
+      }),
+      timeout: Duration(seconds: timeoutSeconds + 20),
+    );
     if (response.code != 200) {
       throw PivxBridgeException(
         _errorMessage(response.body),
@@ -279,45 +333,33 @@ class PivxBridgeClient {
   // Streaming (shield data, sapling params)
   // ---------------------------------------------------------------------------
 
-  HttpClient _streamingClient() {
-    final client = HttpClient()..connectionTimeout = _timeout;
-    final proxy = _proxy;
-    if (proxy != null) {
-      SocksTCPClient.assignToHttpClient(client, [
-        ProxySettings(proxy.host, proxy.port),
-      ]);
-    }
-    return client;
-  }
-
   /// Raw byte stream of `/getshielddata?startBlock=N` (bridge `pivx`
   /// format: length-prefixed raw v3 txs, each block closed by a 0x5d
   /// footer carrying height and time).
+  ///
+  /// Fails when no data arrives for [_timeout], so a stalled stream
+  /// can't hold up the sync forever.
   Stream<List<int>> shieldData(int startBlock) async* {
-    final client = _streamingClient();
-    try {
-      final request = await client.getUrl(
-        _uri("/getshielddata", {"startBlock": "$startBlock"}),
+    final request = await _http
+        .getUrl(_uri("/getshielddata", {"startBlock": "$startBlock"}))
+        .timeout(_timeout);
+    final response = await request.close().timeout(_timeout);
+    if (response.statusCode != 200) {
+      await response.drain<void>();
+      throw PivxBridgeException(
+        "getshielddata failed",
+        statusCode: response.statusCode,
       );
-      final response = await request.close();
-      if (response.statusCode != 200) {
-        throw PivxBridgeException(
-          "getshielddata failed",
-          statusCode: response.statusCode,
-        );
-      }
-      yield* response;
-    } finally {
-      client.close(force: true);
     }
+    yield* response.timeout(_timeout);
   }
 
   /// `finalsaplingroot` of the block at [height] (display hex), via the
   /// bridge's RPC proxy.
   Future<String?> finalSaplingRoot(int height) async {
-    final hash = (await _getText("/getblockhash", {"params": "$height"}))
-        .trim()
-        .replaceAll('"', '');
+    final hash = (await _getText("/getblockhash", {
+      "params": "$height",
+    })).trim().replaceAll('"', '');
     final block = await _getJson("/getblock", {"params": "$hash,1"}) as Map;
     return block["finalsaplingroot"] as String?;
   }
@@ -357,12 +399,7 @@ class PivxBridgeClient {
     ({InternetAddress host, int port})? proxy,
     void Function(int received, int? total)? onProgress,
   }) async {
-    final client = HttpClient()..connectionTimeout = _timeout;
-    if (proxy != null) {
-      SocksTCPClient.assignToHttpClient(client, [
-        ProxySettings(proxy.host, proxy.port),
-      ]);
-    }
+    final client = _newHttpClient(proxy);
     final tmp = File("${file.path}.part");
     try {
       final response = await (await client.getUrl(url)).close();
@@ -375,7 +412,7 @@ class PivxBridgeClient {
       final total = response.contentLength > 0 ? response.contentLength : null;
       final sink = tmp.openWrite();
       int received = 0;
-      await for (final chunk in response) {
+      await for (final chunk in response.timeout(_timeout)) {
         sink.add(chunk);
         received += chunk.length;
         onProgress?.call(received, total);

@@ -12,18 +12,17 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:isar_community/isar.dart';
 
-import '../../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../../providers/db/main_db_provider.dart';
 import '../../../../providers/global/wallets_provider.dart';
+import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/util.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../widgets/loading_indicator.dart';
-import '../../../../widgets/paginated_list_view.dart';
 import '../../sub_widgets/no_transactions_found.dart';
 import '../../wallet_view.dart';
+import 'paged_transactions.dart';
 import 'transaction_v2_list_item.dart';
 
 class TransactionsV2List extends ConsumerStatefulWidget {
@@ -36,11 +35,7 @@ class TransactionsV2List extends ConsumerStatefulWidget {
 }
 
 class _TransactionsV2ListState extends ConsumerState<TransactionsV2List> {
-  bool _hasLoaded = false;
-  List<TransactionV2> _transactions = [];
-
-  late final StreamSubscription<List<TransactionV2>> _subscription;
-  late final Query<TransactionV2> _query;
+  late final PagedTransactions _paged;
   late final CryptoCurrency coin;
 
   BorderRadius get _borderRadiusFirst {
@@ -59,129 +54,102 @@ class _TransactionsV2ListState extends ConsumerState<TransactionsV2List> {
 
   @override
   void initState() {
-    coin = ref.read(pWallets).getWallet(widget.walletId).info.coin;
-    _query = ref
-        .read(mainDBProvider)
-        .isar
-        .transactionV2s
-        .buildQuery<TransactionV2>(
-          whereClauses: [
-            IndexWhereClause.equalTo(
-              indexName: 'walletId',
-              value: [widget.walletId],
-            ),
-          ],
-          filter: ref
-              .read(pWallets)
-              .getWallet(widget.walletId)
-              .transactionFilterOperation,
-          sortBy: [const SortProperty(property: "timestamp", sort: Sort.desc)],
-        );
-
-    _subscription = _query.watch().listen((event) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          setState(() {
-            _transactions = event;
-          });
-        }
-      });
-    });
-
     super.initState();
+    coin = ref.read(pWallets).getWallet(widget.walletId).info.coin;
+    _paged = PagedTransactions(
+      isar: ref.read(mainDBProvider).isar,
+      walletId: widget.walletId,
+    )..addListener(_onChanged);
+  }
+
+  void _onChanged() {
+    if (mounted) setState(() {});
   }
 
   @override
   void dispose() {
-    _subscription.cancel();
+    _paged
+      ..removeListener(_onChanged)
+      ..dispose();
     super.dispose();
+  }
+
+  /// Rows near the end of what is loaded fetch the next page.
+  void _maybeLoadMore(int index) {
+    if (index >= _paged.items.length - 10 && _paged.hasMore) {
+      unawaited(_paged.loadMore());
+    }
+  }
+
+  BorderRadius? _radius(int index, int count) {
+    if (count == 1) {
+      return BorderRadius.circular(Constants.size.circularBorderRadius);
+    }
+    if (index == count - 1) return _borderRadiusLast;
+    if (index == 0) return _borderRadiusFirst;
+    return null;
   }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder(
-      future: _query.findAll(),
-      builder: (fbContext, AsyncSnapshot<List<TransactionV2>> snapshot) {
-        if (snapshot.connectionState == ConnectionState.done &&
-            snapshot.hasData) {
-          _transactions = snapshot.data!;
-          _hasLoaded = true;
-        }
-        if (!_hasLoaded) {
-          return const Column(
-            children: [
-              Spacer(),
-              Center(child: LoadingIndicator(height: 50, width: 50)),
-              Spacer(flex: 4),
-            ],
-          );
-        }
-        if (_transactions.isEmpty) {
-          return const NoTransActionsFound();
-        } else {
-          _transactions.sort((a, b) {
-            final compare = b.timestamp.compareTo(a.timestamp);
-            if (compare == 0) {
-              return b.id.compareTo(a.id);
-            }
-            return compare;
-          });
+    if (!_paged.loaded) {
+      return const Column(
+        children: [
+          Spacer(),
+          Center(child: LoadingIndicator(height: 50, width: 50)),
+          Spacer(flex: 4),
+        ],
+      );
+    }
+    final txns = _paged.items;
+    if (txns.isEmpty) {
+      return const NoTransActionsFound();
+    }
 
-          final _txns = _transactions;
-
-          return RefreshIndicator(
-            onRefresh: () async {
-              await ref.read(pWallets).getWallet(widget.walletId).refresh();
-            },
-            child: Util.isDesktop
-                ? PaginatedListView(
-                    items: _txns,
-                    itemBuilder: (context, tx, position) {
-                      final radius = switch (position) {
-                        PageItemPosition.first => _borderRadiusFirst,
-                        PageItemPosition.last => _borderRadiusLast,
-                        PageItemPosition.solo => BorderRadius.circular(
-                          Constants.size.circularBorderRadius,
-                        ),
-                        PageItemPosition.somewhere => null,
-                      };
-
-                      return TxListItem(tx: tx, coin: coin, radius: radius);
-                    },
-                  )
-                : ListView.builder(
-                    itemCount: _txns.length,
-                    itemBuilder: (context, index) {
-                      BorderRadius? radius;
-                      bool shouldWrap = false;
-                      if (_txns.length == 1) {
-                        radius = BorderRadius.circular(
-                          Constants.size.circularBorderRadius,
-                        );
-                      } else if (index == _txns.length - 1) {
-                        radius = _borderRadiusLast;
-                        shouldWrap = true;
-                      } else if (index == 0) {
-                        radius = _borderRadiusFirst;
-                      }
-                      final tx = _txns[index];
-                      if (shouldWrap) {
-                        return Column(
-                          children: [
-                            TxListItem(tx: tx, coin: coin, radius: radius),
-                            const SizedBox(
-                              height: WalletView.navBarHeight + 14,
-                            ),
-                          ],
-                        );
-                      } else {
-                        return TxListItem(tx: tx, coin: coin, radius: radius);
-                      }
-                    },
-                  ),
-          );
-        }
+    return RefreshIndicator(
+      onRefresh: () async {
+        await ref.read(pWallets).getWallet(widget.walletId).refresh();
       },
+      child: Util.isDesktop
+          ? ListView.separated(
+              itemCount: txns.length,
+              separatorBuilder: (context, _) => Container(
+                width: double.infinity,
+                height: 2,
+                color: Theme.of(context).extension<StackColors>()!.background,
+              ),
+              itemBuilder: (context, index) {
+                _maybeLoadMore(index);
+                return TxListItem(
+                  tx: txns[index],
+                  coin: coin,
+                  radius: _radius(index, txns.length),
+                );
+              },
+            )
+          : ListView.builder(
+              itemCount: txns.length,
+              itemBuilder: (context, index) {
+                _maybeLoadMore(index);
+                final item = TxListItem(
+                  tx: txns[index],
+                  coin: coin,
+                  radius: _radius(index, txns.length),
+                );
+                if (index != txns.length - 1) return item;
+                return Column(
+                  children: [
+                    item,
+                    if (_paged.hasMore)
+                      const Padding(
+                        padding: EdgeInsets.all(16),
+                        child: LoadingIndicator(height: 30, width: 30),
+                      ),
+                    const SizedBox(height: WalletView.navBarHeight + 14),
+                  ],
+                );
+              },
+            ),
     );
   }
 }

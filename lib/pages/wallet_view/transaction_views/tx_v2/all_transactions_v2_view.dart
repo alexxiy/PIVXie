@@ -20,6 +20,7 @@ import 'package:isar_community/isar.dart';
 import '../../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../../models/isar/models/contact_entry.dart';
 import '../../../../models/isar/models/isar_models.dart';
+import '../../../../models/isar/models/transaction_note.dart';
 import '../../../../models/transaction_filter.dart';
 import '../../../../providers/global/address_book_service_provider.dart';
 import '../../../../providers/providers.dart';
@@ -41,19 +42,17 @@ import '../../../../widgets/desktop/desktop_scaffold.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/icon_widgets/x_icon.dart';
 import '../../../../widgets/loading_indicator.dart';
-import '../../../../widgets/rounded_white_container.dart';
 import '../../../../widgets/stack_text_field.dart';
 import '../../../../widgets/textfield_icon_button.dart';
 import '../../sub_widgets/tx_icon.dart';
 import '../transaction_search_filter_view.dart';
+import 'paged_transactions.dart';
 import 'transaction_v2_card.dart';
 import 'transaction_v2_details_view.dart' as tvd;
 
-typedef _GroupedTransactions = ({
-  String label,
-  DateTime startDate,
-  List<TransactionV2> transactions,
-});
+/// A month header ([header]) or a transaction ([tx]); [first] / [last]
+/// mark a transaction's place in its month.
+typedef _Row = ({String? header, TransactionV2? tx, bool first, bool last});
 
 class AllTransactionsV2View extends ConsumerStatefulWidget {
   const AllTransactionsV2View({super.key, required this.walletId});
@@ -73,43 +72,78 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
   late final TextEditingController _searchController;
   final searchFieldFocusNode = FocusNode();
 
+  late final PagedTransactions _paged;
+  Timer? _searchDebounce;
+
   @override
   void initState() {
     walletId = widget.walletId;
     _searchController = TextEditingController();
-
     super.initState();
+    _paged = PagedTransactions(
+      isar: ref.read(mainDBProvider).isar,
+      walletId: walletId,
+      where: _predicate(),
+    )..addListener(_onPagedChanged);
+    ref.listenManual(
+      transactionFilterProvider,
+      (_, _) => _paged.setWhere(_predicate()),
+    );
+  }
+
+  void _onPagedChanged() {
+    if (mounted) setState(() {});
+  }
+
+  void _setSearch(String value) {
+    _searchString = value;
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(
+      const Duration(milliseconds: 250),
+      () => _paged.setWhere(_predicate()),
+    );
   }
 
   @override
   void dispose() {
+    _searchDebounce?.cancel();
+    _paged
+      ..removeListener(_onPagedChanged)
+      ..dispose();
     _searchController.dispose();
     searchFieldFocusNode.dispose();
     super.dispose();
   }
 
-  // TODO: optimise search+filter
-  List<TransactionV2> filter({
-    required List<TransactionV2> transactions,
-    TransactionFilter? filter,
-  }) {
-    if (filter == null) {
-      return transactions;
-    }
-
-    //todo: check if print needed
-    // debugPrint("FILTER: $filter");
-
+  /// Rows matching the filter and the search text; null for all rows.
+  bool Function(TransactionV2 tx)? _predicate() {
+    final criteria = ref.read(transactionFilterProvider);
+    final text = _searchString.toLowerCase();
+    if (criteria == null && text.isEmpty) return null;
     final contacts = ref.read(addressBookServiceProvider).contacts;
-    final notes = ref
-        .read(mainDBProvider)
-        .isar
-        .transactionNotes
-        .where()
-        .walletIdEqualTo(walletId)
-        .findAllSync();
+    final notes = {
+      for (final n
+          in ref
+              .read(mainDBProvider)
+              .isar
+              .transactionNotes
+              .where()
+              .walletIdEqualTo(walletId)
+              .findAllSync())
+        n.txid: n.value,
+    };
+    return (tx) =>
+        (criteria == null || _matchesFilter(tx, criteria, contacts, notes)) &&
+        _isKeywordMatch(tx, text, contacts, notes);
+  }
 
-    return transactions.where((tx) {
+  bool _matchesFilter(
+    TransactionV2 tx,
+    TransactionFilter filter,
+    List<ContactEntry> contacts,
+    Map<String, String> notes,
+  ) {
+    {
       final categories = filter.pivxCategories;
       if (categories != null) {
         if (!categories.contains(PivxTxCategory.of(tx))) return false;
@@ -146,14 +180,14 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
       }
 
       return _isKeywordMatch(tx, filter.keyword.toLowerCase(), contacts, notes);
-    }).toList();
+    }
   }
 
   bool _isKeywordMatch(
     TransactionV2 tx,
     String keyword,
     List<ContactEntry> contacts,
-    List<TransactionNote> notes,
+    Map<String, String> notes,
   ) {
     if (keyword.isEmpty) {
       return true;
@@ -180,14 +214,8 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
         .where((e) => e.toLowerCase().contains(keyword))
         .isNotEmpty;
 
-    TransactionNote? note;
-    final matchingNotes = notes.where((e) => e.txid == tx.txid);
-    if (matchingNotes.isNotEmpty) {
-      note = matchingNotes.first;
-    }
-
     // check if note contains
-    contains |= note != null && note.value.toLowerCase().contains(keyword);
+    contains |= notes[tx.txid]?.toLowerCase().contains(keyword) ?? false;
 
     // check if txid contains
     contains |= tx.txid.toLowerCase().contains(keyword);
@@ -231,47 +259,105 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
 
   String _searchString = "";
 
-  // TODO search more tx fields
-  List<TransactionV2> search(String text, List<TransactionV2> transactions) {
-    if (text.isEmpty) {
-      return transactions;
+  /// Month headers and transactions, flattened so the list builds only
+  /// the visible rows.
+  List<_Row> _rows(List<TransactionV2> transactions) {
+    final rows = <_Row>[];
+    String? month;
+    for (int i = 0; i < transactions.length; i++) {
+      final tx = transactions[i];
+      final date = DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000);
+      final label = "${Constants.monthMap[date.month]} ${date.year}";
+      final first = label != month;
+      if (first) {
+        rows.add((header: label, tx: null, first: rows.isEmpty, last: false));
+        month = label;
+      }
+      final next = i + 1 < transactions.length ? transactions[i + 1] : null;
+      final nextDate = next == null
+          ? null
+          : DateTime.fromMillisecondsSinceEpoch(next.timestamp * 1000);
+      final last =
+          nextDate == null ||
+          nextDate.month != date.month ||
+          nextDate.year != date.year;
+      rows.add((header: null, tx: tx, first: first, last: last));
     }
-    text = text.toLowerCase();
-    final contacts = ref.read(addressBookServiceProvider).contacts;
-    final notes = ref
-        .read(mainDBProvider)
-        .isar
-        .transactionNotes
-        .where()
-        .walletIdEqualTo(walletId)
-        .findAllSync();
-
-    return transactions
-        .where((tx) => _isKeywordMatch(tx, text, contacts, notes))
-        .toList();
+    return rows;
   }
 
-  List<_GroupedTransactions> groupTransactionsByMonth(
-    List<TransactionV2> transactions,
-  ) {
-    final Map<String, _GroupedTransactions> map = {};
+  Widget _txRow(BuildContext context, _Row row, bool isDesktop) {
+    final tx = row.tx!;
+    final radius = Radius.circular(Constants.size.circularBorderRadius);
+    final child = isDesktop
+        ? Padding(
+            padding: const EdgeInsets.all(4),
+            child: DesktopTransactionCardRow(
+              key: Key("transactionCard_key_${tx.txid}"),
+              transaction: tx,
+              walletId: walletId,
+            ),
+          )
+        : TransactionCardV2(
+            // Content key: the card keeps its transaction in its state.
+            key: Key(
+              "transactionCard_key_${tx.txid}${tx.height}"
+              "${tx.otherData.hashCode}",
+            ),
+            transaction: tx,
+          );
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).extension<StackColors>()!.popupBG,
+          borderRadius: BorderRadius.only(
+            topLeft: row.first ? radius : Radius.zero,
+            topRight: row.first ? radius : Radius.zero,
+            bottomLeft: row.last ? radius : Radius.zero,
+            bottomRight: row.last ? radius : Radius.zero,
+          ),
+        ),
+        child: Column(
+          children: [
+            if (isDesktop && !row.first)
+              Container(
+                height: 1,
+                color: Theme.of(context).extension<StackColors>()!.background,
+              ),
+            child,
+          ],
+        ),
+      ),
+    );
+  }
 
-    for (final tx in transactions) {
-      final date = DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000);
-      final monthYear = "${Constants.monthMap[date.month]} ${date.year}";
-      if (map[monthYear] == null) {
-        map[monthYear] = (
-          label: monthYear,
-          startDate: date,
-          transactions: [tx],
-        );
-      } else {
-        map[monthYear]!.transactions.add(tx);
-      }
-    }
-
-    return map.values.toList()
-      ..sort((a, b) => b.startDate.compareTo(a.startDate));
+  Widget _list(BuildContext context, bool isDesktop) {
+    if (!_paged.loaded) return const LoadingIndicator();
+    final rows = _rows(_paged.items);
+    return ListView.builder(
+      primary: isDesktop ? false : null,
+      itemCount: rows.length + (_paged.hasMore ? 1 : 0),
+      itemBuilder: (context, index) {
+        if (index >= rows.length - 10 && _paged.hasMore) {
+          unawaited(_paged.loadMore());
+        }
+        if (index == rows.length) {
+          return const Padding(
+            padding: EdgeInsets.all(16),
+            child: LoadingIndicator(height: 30, width: 30),
+          );
+        }
+        final row = rows[index];
+        if (row.header != null) {
+          return Padding(
+            padding: EdgeInsets.fromLTRB(4, row.first ? 4 : 16, 4, 12),
+            child: Text(row.header!, style: STextStyles.smallMed12(context)),
+          );
+        }
+        return _txRow(context, row, isDesktop);
+      },
+    );
   }
 
   @override
@@ -393,9 +479,7 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
                           controller: _searchController,
                           focusNode: searchFieldFocusNode,
                           onChanged: (value) {
-                            setState(() {
-                              _searchString = value;
-                            });
+                            setState(() => _setSearch(value));
                           },
                           style: isDesktop
                               ? STextStyles.desktopTextExtraSmall(context)
@@ -437,7 +521,7 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
                                                 onTap: () async {
                                                   setState(() {
                                                     _searchController.text = "";
-                                                    _searchString = "";
+                                                    _setSearch("");
                                                   });
                                                 },
                                               ),
@@ -493,127 +577,7 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
                 child: Row(children: [TransactionFilterOptionBar()]),
               ),
             const SizedBox(height: 8),
-            Expanded(
-              child: Consumer(
-                builder: (_, ref, __) {
-                  final criteria = ref.watch(transactionFilterProvider);
-
-                  return FutureBuilder(
-                    future: ref
-                        .watch(mainDBProvider)
-                        .isar
-                        .transactionV2s
-                        .buildQuery<TransactionV2>(
-                          whereClauses: [
-                            IndexWhereClause.equalTo(
-                              indexName: 'walletId',
-                              value: [widget.walletId],
-                            ),
-                          ],
-                          filter: ref
-                              .watch(pWallets)
-                              .getWallet(widget.walletId)
-                              .transactionFilterOperation,
-                          sortBy: [
-                            const SortProperty(
-                              property: "timestamp",
-                              sort: Sort.desc,
-                            ),
-                          ],
-                        )
-                        .findAll(),
-                    builder: (_, AsyncSnapshot<List<TransactionV2>> snapshot) {
-                      if (snapshot.connectionState == ConnectionState.done &&
-                          snapshot.hasData) {
-                        final filtered = filter(
-                          transactions: snapshot.data!,
-                          filter: criteria,
-                        );
-
-                        final searched = search(_searchString, filtered);
-                        searched.sort((a, b) {
-                          final compare = b.timestamp.compareTo(a.timestamp);
-                          if (compare == 0) {
-                            return b.id.compareTo(a.id);
-                          }
-                          return compare;
-                        });
-
-                        final monthlyList = groupTransactionsByMonth(searched);
-                        return ListView.builder(
-                          primary: isDesktop ? false : null,
-                          itemCount: monthlyList.length,
-                          itemBuilder: (_, index) {
-                            final month = monthlyList[index];
-                            return Padding(
-                              padding: const EdgeInsets.all(4),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  if (index != 0) const SizedBox(height: 12),
-                                  Text(
-                                    month.label,
-                                    style: STextStyles.smallMed12(context),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  if (isDesktop)
-                                    RoundedWhiteContainer(
-                                      padding: const EdgeInsets.all(0),
-                                      child: ListView.separated(
-                                        shrinkWrap: true,
-                                        primary: false,
-                                        separatorBuilder: (context, _) =>
-                                            Container(
-                                              height: 1,
-                                              color: Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .background,
-                                            ),
-                                        itemCount: month.transactions.length,
-                                        itemBuilder: (context, index) => Padding(
-                                          padding: const EdgeInsets.all(4),
-                                          child: DesktopTransactionCardRow(
-                                            key: Key(
-                                              "transactionCard_key_"
-                                              "${month.transactions[index].txid}",
-                                            ),
-                                            transaction:
-                                                month.transactions[index],
-                                            walletId: walletId,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  if (!isDesktop)
-                                    RoundedWhiteContainer(
-                                      padding: const EdgeInsets.all(0),
-                                      child: Column(
-                                        children: [
-                                          ...month.transactions.map(
-                                            (tx) => TransactionCardV2(
-                                              key: Key(
-                                                "transactionCard_key_${tx.txid}",
-                                              ),
-                                              transaction: tx,
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                ],
-                              ),
-                            );
-                          },
-                        );
-                      } else {
-                        // TODO: proper loading indicator
-                        return const LoadingIndicator();
-                      }
-                    },
-                  );
-                },
-              ),
-            ),
+            Expanded(child: _list(context, isDesktop)),
           ],
         ),
       ),

@@ -57,90 +57,88 @@ class _IntroViewState extends ConsumerState<IntroView> {
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         body: SafeArea(
           child: Center(
-            child:
-                !isDesktop
-                    ? Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
+            child: !isDesktop
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const Spacer(flex: 2),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 300),
+                          child: SizedBox(
+                            width: isDesktop ? 324 : 266,
+                            height: isDesktop ? 324 : 266,
+                            child: (stack.endsWith(".png"))
+                                ? Image.file(File(stack))
+                                : SvgPicture.file(
+                                    File(stack),
+                                    width: isDesktop ? 324 : 266,
+                                    height: isDesktop ? 324 : 266,
+                                  ),
+                          ),
+                        ),
+                      ),
+                      const Spacer(flex: 1),
+                      AppNameText(isDesktop: isDesktop),
+                      const SizedBox(height: 8),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 48),
+                        child: IntroAboutText(isDesktop: isDesktop),
+                      ),
+                      const Spacer(flex: 4),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 32),
+                        child: PrivacyAndTOSText(isDesktop: isDesktop),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 16,
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: GetStartedButton(isDesktop: isDesktop),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  )
+                : SizedBox(
+                    width: 350,
+                    height: 540,
+                    child: Column(
                       children: [
                         const Spacer(flex: 2),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 300),
-                            child: SizedBox(
-                              width: isDesktop ? 324 : 266,
-                              height: isDesktop ? 324 : 266,
-                              child:
-                                  (stack.endsWith(".png"))
-                                      ? Image.file(File(stack))
-                                      : SvgPicture.file(
-                                        File(stack),
-                                        width: isDesktop ? 324 : 266,
-                                        height: isDesktop ? 324 : 266,
-                                      ),
-                            ),
-                          ),
+                        const SizedBox(
+                          width: 130,
+                          height: 130,
+                          child: AppIcon(),
                         ),
-                        const Spacer(flex: 1),
+                        const Spacer(flex: 42),
                         AppNameText(isDesktop: isDesktop),
-                        const SizedBox(height: 8),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 48),
-                          child: IntroAboutText(isDesktop: isDesktop),
-                        ),
-                        const Spacer(flex: 4),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 32),
-                          child: PrivacyAndTOSText(isDesktop: isDesktop),
-                        ),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 16,
+                        const Spacer(flex: 24),
+                        IntroAboutText(isDesktop: isDesktop),
+                        const Spacer(flex: 42),
+                        GetStartedButton(isDesktop: isDesktop),
+                        if (isDesktop) const SizedBox(height: 20),
+                        if (isDesktop)
+                          SecondaryButton(
+                            label: "Restore from ${AppConfig.prefix} backup",
+                            onPressed: () {
+                              Navigator.of(context).pushNamed(
+                                CreatePasswordView.routeName,
+                                arguments: true,
+                              );
+                            },
                           ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: GetStartedButton(isDesktop: isDesktop),
-                              ),
-                            ],
-                          ),
-                        ),
+                        const Spacer(flex: 65),
+                        PrivacyAndTOSText(isDesktop: isDesktop),
                       ],
-                    )
-                    : SizedBox(
-                      width: 350,
-                      height: 540,
-                      child: Column(
-                        children: [
-                          const Spacer(flex: 2),
-                          const SizedBox(
-                            width: 130,
-                            height: 130,
-                            child: AppIcon(),
-                          ),
-                          const Spacer(flex: 42),
-                          AppNameText(isDesktop: isDesktop),
-                          const Spacer(flex: 24),
-                          IntroAboutText(isDesktop: isDesktop),
-                          const Spacer(flex: 42),
-                          GetStartedButton(isDesktop: isDesktop),
-                          if (isDesktop) const SizedBox(height: 20),
-                          if (isDesktop)
-                            SecondaryButton(
-                              label: "Restore from ${AppConfig.prefix} backup",
-                              onPressed: () {
-                                Navigator.of(context).pushNamed(
-                                  CreatePasswordView.routeName,
-                                  arguments: true,
-                                );
-                              },
-                            ),
-                          const Spacer(flex: 65),
-                          PrivacyAndTOSText(isDesktop: isDesktop),
-                        ],
-                      ),
                     ),
+                  ),
           ),
         ),
       ),
@@ -158,10 +156,9 @@ class AppNameText extends StatelessWidget {
     return Text(
       AppConfig.appName,
       textAlign: TextAlign.center,
-      style:
-          !isDesktop
-              ? STextStyles.pageTitleH1(context)
-              : STextStyles.pageTitleH1(context).copyWith(fontSize: 40),
+      style: !isDesktop
+          ? STextStyles.pageTitleH1(context)
+          : STextStyles.pageTitleH1(context).copyWith(fontSize: 40),
     );
   }
 }
@@ -176,57 +173,58 @@ class IntroAboutText extends StatelessWidget {
     return Text(
       AppConfig.shortDescriptionText,
       textAlign: TextAlign.center,
-      style:
-          !isDesktop
-              ? STextStyles.subtitle(context)
-              : STextStyles.subtitle(context).copyWith(fontSize: 24),
+      style: !isDesktop
+          ? STextStyles.subtitle(context)
+          : STextStyles.subtitle(context).copyWith(fontSize: 24),
     );
   }
 }
 
+/// "By using the app you agree to the Terms of service and Privacy
+/// policy", with whichever of the two links the app config sets (nothing
+/// when neither).
 class PrivacyAndTOSText extends StatelessWidget {
-  const PrivacyAndTOSText({super.key, required this.isDesktop});
+  const PrivacyAndTOSText({
+    super.key,
+    required this.isDesktop,
+    this.fontSize,
+    this.textColor,
+  });
 
   final bool isDesktop;
+  final double? fontSize;
+  final Color? textColor;
 
   @override
   Widget build(BuildContext context) {
-    final fontSize = isDesktop ? 18.0 : 12.0;
+    final size = fontSize ?? (isDesktop ? 18.0 : 12.0);
+    final links = [
+      if (AppConfig.termsUrl.isNotEmpty)
+        ("Terms of service", AppConfig.termsUrl),
+      if (AppConfig.privacyUrl.isNotEmpty)
+        ("Privacy policy", AppConfig.privacyUrl),
+    ];
+    if (links.isEmpty) return const SizedBox.shrink();
+    final textStyle = STextStyles.label(context)
+        .copyWith(fontSize: size, color: textColor);
     return RichText(
       textAlign: TextAlign.center,
       text: TextSpan(
-        style: STextStyles.label(context).copyWith(fontSize: fontSize),
+        style: textStyle,
         children: [
-          const TextSpan(
-            text: "By using ${AppConfig.appName}, you agree to the ",
-          ),
-          TextSpan(
-            text: "Terms of service",
-            style: STextStyles.richLink(context).copyWith(fontSize: fontSize),
-            recognizer:
-                TapGestureRecognizer()
-                  ..onTap = () {
-                    launchUrl(
-                      Uri.parse(
-                        "https://stackwallet.com/terms-of-service.html",
-                      ),
-                      mode: LaunchMode.externalApplication,
-                    );
-                  },
-          ),
-          const TextSpan(text: " and "),
-          TextSpan(
-            text: "Privacy policy",
-            style: STextStyles.richLink(context).copyWith(fontSize: fontSize),
-            recognizer:
-                TapGestureRecognizer()
-                  ..onTap = () {
-                    launchUrl(
-                      Uri.parse("https://stackwallet.com/privacy-policy.html"),
-                      mode: LaunchMode.externalApplication,
-                    );
-                  },
-          ),
+          TextSpan(text: "By using ${AppConfig.appName}, you agree to the "),
+          for (int i = 0; i < links.length; i++) ...[
+            if (i > 0) const TextSpan(text: " and "),
+            TextSpan(
+              text: links[i].$1,
+              style: STextStyles.richLink(context).copyWith(fontSize: size),
+              recognizer: TapGestureRecognizer()
+                ..onTap = () => launchUrl(
+                  Uri.parse(links[i].$2),
+                  mode: LaunchMode.externalApplication,
+                ),
+            ),
+          ],
         ],
       ),
     );
@@ -242,34 +240,32 @@ class GetStartedButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return !isDesktop
         ? TextButton(
-          style: Theme.of(
-            context,
-          ).extension<StackColors>()!.getPrimaryEnabledButtonStyle(context),
-          onPressed: () {
-            Prefs.instance.externalCalls = true;
-            Navigator.of(
-              context,
-            ).pushNamed(StackPrivacyCalls.routeName, arguments: false);
-          },
-          child: Text("Get started", style: STextStyles.button(context)),
-        )
-        : SizedBox(
-          width: double.infinity,
-          height: 70,
-          child: TextButton(
-            style: Theme.of(
-              context,
-            ).extension<StackColors>()!.getPrimaryEnabledButtonStyle(context),
+            style: Theme.of(context)
+                .extension<StackColors>()!
+                .getPrimaryEnabledButtonStyle(context),
             onPressed: () {
-              Navigator.of(
-                context,
-              ).pushNamed(StackPrivacyCalls.routeName, arguments: false);
+              Prefs.instance.externalCalls = true;
+              Navigator.of(context)
+                  .pushNamed(StackPrivacyCalls.routeName, arguments: false);
             },
-            child: Text(
-              "Create new ${AppConfig.prefix}",
-              style: STextStyles.button(context).copyWith(fontSize: 20),
+            child: Text("Get started", style: STextStyles.button(context)),
+          )
+        : SizedBox(
+            width: double.infinity,
+            height: 70,
+            child: TextButton(
+              style: Theme.of(context)
+                  .extension<StackColors>()!
+                  .getPrimaryEnabledButtonStyle(context),
+              onPressed: () {
+                Navigator.of(context)
+                    .pushNamed(StackPrivacyCalls.routeName, arguments: false);
+              },
+              child: Text(
+                "Create new ${AppConfig.prefix}",
+                style: STextStyles.button(context).copyWith(fontSize: 20),
+              ),
             ),
-          ),
-        );
+          );
   }
 }

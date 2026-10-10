@@ -456,11 +456,6 @@ abstract class Wallet<T extends CryptoCurrency> {
         );
       }
 
-      // add some small buffer before making calls.
-      // this can probably be removed in the future but was added as a
-      // debugging feature
-      await Future<void>.delayed(const Duration(milliseconds: 300));
-
       _fireRefreshPercentChange(0);
       await updateChainHeight();
 

@@ -53,7 +53,8 @@ class _Scanner {
   final walletTxs = <Map<String, dynamic>>[];
 
   Future<void> sync() async {
-    final blocks = await parsePivxShieldStream(bridge.shieldData(height + 1)).toList();
+    final blocks = await parsePivxShieldStream(bridge.shieldData(height + 1))
+        .toList();
     if (blocks.isEmpty) return;
     final r = await PivxShield.handleBlocks(
       tree: tree,
@@ -64,10 +65,18 @@ class _Scanner {
     );
     final spent = Set<String>.from(r["nullifiers"] as List);
     notes = [
-      for (final n in [...r["decrypted_notes"] as List, ...r["decrypted_new_notes"] as List])
-        if (!spent.contains((n as Map)["nullifier"])) Map<String, dynamic>.from(n),
+      for (final n in [
+        ...r["decrypted_notes"] as List,
+        ...r["decrypted_new_notes"] as List,
+      ])
+        if (!spent.contains((n as Map)["nullifier"]))
+          Map<String, dynamic>.from(n),
     ];
-    walletTxs.addAll((r["wallet_transactions"] as List).map((e) => Map<String, dynamic>.from(e as Map)));
+    walletTxs.addAll(
+      (r["wallet_transactions"] as List).map(
+        (e) => Map<String, dynamic>.from(e as Map),
+      ),
+    );
     tree = r["commitment_tree"] as String;
     height = blocks.last.height;
     // Same verification as the wallet.
@@ -79,7 +88,8 @@ class _Scanner {
 
 void main() {
   final bridgeUrl = Platform.environment["PIVX_BRIDGE"];
-  final skip = bridgeUrl == null || Platform.environment["PIVX_SHIELD_LIB"] == null
+  final skip =
+      bridgeUrl == null || Platform.environment["PIVX_SHIELD_LIB"] == null
       ? "PIVX_BRIDGE / PIVX_SHIELD_LIB not set"
       : null;
 
@@ -95,10 +105,16 @@ void main() {
     await coinlib.loadCoinlib();
     bridge = PivxBridgeClient(baseUri: Uri.parse(bridgeUrl!));
     seed = bip39.mnemonicToSeed(_mnemonic);
-    extsk = PivxShield.extendedSpendingKey(seed: seed.sublist(0, 32), coinType: 1);
+    extsk = PivxShield.extendedSpendingKey(
+      seed: seed.sublist(0, 32),
+      coinType: 1,
+    );
     extfvk = PivxShield.extendedFullViewingKey(extsk: extsk, isTestnet: true);
     // New wallet: start at the tip, like the wallet does.
-    final cp = PivxShield.closestCheckpoint(height: await bridge.getBlockCount(), isTestnet: true);
+    final cp = PivxShield.closestCheckpoint(
+      height: await bridge.getBlockCount(),
+      isTestnet: true,
+    );
     scanner = _Scanner(bridge, extfvk, await bridge.getBlockCount(), cp.tree);
     // Regtest checkpoints only contain the empty tree at 0, so a wallet
     // starting mid-chain must scan from 0 to rebuild the tree.
@@ -110,204 +126,277 @@ void main() {
     );
   });
 
-  test("receives a shield note from the node", () async {
-    final address = PivxShield.defaultAddress(extfvk: extfvk, isTestnet: true).address;
-    expect(coin.isShieldAddress(address), isTrue);
-    await _cli(["shieldsendmany", "from_transparent", '[{"address":"$address","amount":7}]']);
-    await _cli(["generate", "1"]);
-    await _waitFor(() async {
-      await scanner.sync();
-      return scanner.balance == 700000000;
-    });
-    expect(scanner.notes.single["address"], address);
-    expect(scanner.walletTxs.last["received"][0]["value"], 700000000);
-    // Coin control identifies notes by txid + output index.
-    expect(
-      scanner.walletTxs.last["received"][0]["nullifier"],
-      scanner.notes.single["nullifier"],
-    );
-    expect(scanner.walletTxs.last["received"][0]["index"], isA<int>());
-  }, skip: skip, timeout: const Timeout(Duration(minutes: 10)));
+  test(
+    "receives a shield note from the node",
+    () async {
+      final address = PivxShield.defaultAddress(
+        extfvk: extfvk,
+        isTestnet: true,
+      ).address;
+      expect(coin.isShieldAddress(address), isTrue);
+      await _cli([
+        "shieldsendmany",
+        "from_transparent",
+        '[{"address":"$address","amount":7}]',
+      ]);
+      await _cli(["generate", "1"]);
+      await _waitFor(() async {
+        await scanner.sync();
+        return scanner.balance == 700000000;
+      });
+      expect(scanner.notes.single["address"], address);
+      expect(scanner.walletTxs.last["received"][0]["value"], 700000000);
+      // Coin control identifies notes by txid + output index.
+      expect(
+        scanner.walletTxs.last["received"][0]["nullifier"],
+        scanner.notes.single["nullifier"],
+      );
+      expect(scanner.walletTxs.last["received"][0]["index"], isA<int>());
+    },
+    skip: skip,
+    timeout: const Timeout(Duration(minutes: 10)),
+  );
 
-  test("spends shield -> transparent with shield change", () async {
-    final change = PivxShield.nextAddress(
-      extfvk: extfvk,
-      diversifierIndex: PivxShield.defaultAddress(extfvk: extfvk, isTestnet: true).diversifierIndex,
-      isTestnet: true,
-    ).address;
-    final dest = await _cli(["getnewaddress"]);
-    final height = await bridge.getBlockCount();
-    final r = await PivxShield.createTransaction(
-      notes: scanner.notes,
-      extsk: extsk,
-      toAddress: dest,
-      changeAddress: change,
-      amount: 200000000,
-      blockHeight: height + 1,
-      isTestnet: true,
-    );
-    final txid = await bridge.sendTx(r["txhex"] as String);
-    expect(txid, r["txid"]);
-    expect(await _cli(["getrawmempool"]), contains(txid));
-    await _cli(["generate", "1"]);
-    final fee = r["fee"] as int;
-    await _waitFor(() async {
-      await scanner.sync();
-      return scanner.balance == 700000000 - 200000000 - fee;
-    });
-    expect(scanner.notes.single["address"], change);
-    // The bridge's fee for the tx matches the library's.
-    expect((await bridge.tx(txid))["fees"], "$fee");
-  }, skip: skip, timeout: const Timeout(Duration(minutes: 10)));
-
-  test("shields transparent coins (utxos -> own shield address)", () async {
-    final path = coin.constructDerivePath(derivePathType: DerivePathType.bip44, chain: 0, index: 0);
-    final key = coinlib.HDPrivateKey.fromSeed(seed).derivePath(path);
-    final tAddress = coin.getAddressForPublicKey(publicKey: key.publicKey, derivePathType: DerivePathType.bip44).address.toString();
-    final fundTxid = await _cli(["sendtoaddress", tAddress, "5"]);
-    await _cli(["generate", "1"]);
-    late Map<String, dynamic> utxo;
-    await _waitFor(() async {
-      final list = await bridge.utxo(tAddress);
-      final found = list.where((u) => u["txid"] == fundTxid && (u["confirmations"] as int) > 0);
-      if (found.isEmpty) return false;
-      utxo = found.first;
-      return true;
-    });
-
-    final shieldAddress = PivxShield.defaultAddress(extfvk: extfvk, isTestnet: true).address;
-    final before = scanner.balance;
-    final r = await PivxShield.createTransaction(
-      utxos: [
-        {
-          "txid": fundTxid,
-          "vout": utxo["vout"],
-          "amount": int.parse(utxo["value"] as String),
-          "private_key": key.privateKey.data.toHex,
-          "script": coinlib.Address.fromString(tAddress, coin.networkParams).program.script.compiled.toHex,
-        },
-      ],
-      extsk: extsk,
-      toAddress: shieldAddress,
-      changeAddress: tAddress,
-      amount: 300000000,
-      blockHeight: (await bridge.getBlockCount()) + 1,
-      isTestnet: true,
-    );
-    expect(r["nullifiers"], ["$fundTxid,${utxo["vout"]}"]);
-    final txid = await bridge.sendTx(r["txhex"] as String);
-    await _cli(["generate", "1"]);
-    await _waitFor(() async {
-      await scanner.sync();
-      return scanner.balance == before + 300000000;
-    });
-    // Transparent change came back to us.
-    final t = await bridge.tx(txid);
-    expect((t["vout"] as List).any((o) => (o["addresses"] as List).contains(tAddress)), isTrue);
-  }, skip: skip, timeout: const Timeout(Duration(minutes: 10)));
-
-  test("coin control: useAllInputs spends every selected note", () async {
-    expect(scanner.notes.length, greaterThanOrEqualTo(2));
-    final dest = await _cli(["getnewaddress"]);
-    final change = PivxShield.defaultAddress(extfvk: extfvk, isTestnet: true).address;
-    final height = (await bridge.getBlockCount()) + 1;
-    Future<Map<String, dynamic>> build(bool all) => PivxShield.createTransaction(
-      notes: scanner.notes,
-      extsk: extsk,
-      toAddress: dest,
-      changeAddress: change,
-      amount: 10000000,
-      blockHeight: height,
-      isTestnet: true,
-      useAllInputs: all,
-    );
-    // A small amount needs one note; with coin control every note goes in.
-    expect((await build(false))["nullifiers"], hasLength(1));
-    final r = await build(true);
-    expect(r["nullifiers"], hasLength(scanner.notes.length));
-    final before = scanner.balance;
-    await bridge.sendTx(r["txhex"] as String);
-    await _cli(["generate", "1"]);
-    await _waitFor(() async {
-      await scanner.sync();
-      return scanner.notes.length == 1;
-    });
-    expect(scanner.balance, before - 10000000 - (r["fee"] as int));
-  }, skip: skip, timeout: const Timeout(Duration(minutes: 10)));
-
-  test("subtractFee: the recipient pays the fee", () async {
-    final dest = await _cli(["getnewaddress"]);
-    final change = PivxShield.defaultAddress(extfvk: extfvk, isTestnet: true).address;
-    final before = scanner.balance;
-    // Sending everything without subtractFee must fail, not quietly
-    // take the fee out of the amount.
-    await expectLater(
-      PivxShield.createTransaction(
+  test(
+    "spends shield -> transparent with shield change",
+    () async {
+      final change = PivxShield.nextAddress(
+        extfvk: extfvk,
+        diversifierIndex: PivxShield.defaultAddress(
+          extfvk: extfvk,
+          isTestnet: true,
+        ).diversifierIndex,
+        isTestnet: true,
+      ).address;
+      final dest = await _cli(["getnewaddress"]);
+      final height = await bridge.getBlockCount();
+      final r = await PivxShield.createTransaction(
         notes: scanner.notes,
         extsk: extsk,
         toAddress: dest,
         changeAddress: change,
-        amount: before,
+        amount: 200000000,
+        blockHeight: height + 1,
+        isTestnet: true,
+      );
+      final txid = await bridge.sendTx(r["txhex"] as String);
+      expect(txid, r["txid"]);
+      expect(await _cli(["getrawmempool"]), contains(txid));
+      await _cli(["generate", "1"]);
+      final fee = r["fee"] as int;
+      await _waitFor(() async {
+        await scanner.sync();
+        return scanner.balance == 700000000 - 200000000 - fee;
+      });
+      expect(scanner.notes.single["address"], change);
+      // The bridge's fee for the tx matches the library's.
+      expect((await bridge.tx(txid))["fees"], "$fee");
+    },
+    skip: skip,
+    timeout: const Timeout(Duration(minutes: 10)),
+  );
+
+  test(
+    "shields transparent coins (utxos -> own shield address)",
+    () async {
+      final path = coin.constructDerivePath(
+        derivePathType: DerivePathType.bip44,
+        chain: 0,
+        index: 0,
+      );
+      final key = coinlib.HDPrivateKey.fromSeed(seed).derivePath(path);
+      final tAddress = coin
+          .getAddressForPublicKey(
+            publicKey: key.publicKey,
+            derivePathType: DerivePathType.bip44,
+          )
+          .address
+          .toString();
+      final fundTxid = await _cli(["sendtoaddress", tAddress, "5"]);
+      await _cli(["generate", "1"]);
+      late Map<String, dynamic> utxo;
+      await _waitFor(() async {
+        final list = await bridge.utxo(tAddress);
+        final found = list.where(
+          (u) => u["txid"] == fundTxid && (u["confirmations"] as int) > 0,
+        );
+        if (found.isEmpty) return false;
+        utxo = found.first;
+        return true;
+      });
+
+      final shieldAddress = PivxShield.defaultAddress(
+        extfvk: extfvk,
+        isTestnet: true,
+      ).address;
+      final before = scanner.balance;
+      final r = await PivxShield.createTransaction(
+        utxos: [
+          {
+            "txid": fundTxid,
+            "vout": utxo["vout"],
+            "amount": int.parse(utxo["value"] as String),
+            "private_key": key.privateKey.data.toHex,
+            "script": coinlib.Address.fromString(
+              tAddress,
+              coin.networkParams,
+            ).program.script.compiled.toHex,
+          },
+        ],
+        extsk: extsk,
+        toAddress: shieldAddress,
+        changeAddress: tAddress,
+        amount: 300000000,
         blockHeight: (await bridge.getBlockCount()) + 1,
         isTestnet: true,
-      ),
-      throwsA(predicate((e) => e.toString().contains("Not enough balance"))),
-    );
-    final r = await PivxShield.createTransaction(
-      notes: scanner.notes,
-      extsk: extsk,
-      toAddress: dest,
-      changeAddress: change,
-      amount: 50000000,
-      blockHeight: (await bridge.getBlockCount()) + 1,
-      isTestnet: true,
-      subtractFee: true,
-    );
-    final fee = r["fee"] as int;
-    final txid = await bridge.sendTx(r["txhex"] as String);
-    await _cli(["generate", "1"]);
-    await _waitFor(() async {
-      await scanner.sync();
-      return scanner.balance == before - 50000000;
-    });
-    final t = await bridge.tx(txid);
-    final paid = (t["vout"] as List).firstWhere(
-      (o) => (o["addresses"] as List).contains(dest),
-    );
-    expect(paid["value"], "${50000000 - fee}");
-  }, skip: skip, timeout: const Timeout(Duration(minutes: 10)));
+      );
+      expect(r["nullifiers"], ["$fundTxid,${utxo["vout"]}"]);
+      final txid = await bridge.sendTx(r["txhex"] as String);
+      await _cli(["generate", "1"]);
+      await _waitFor(() async {
+        await scanner.sync();
+        return scanner.balance == before + 300000000;
+      });
+      // Transparent change came back to us.
+      final t = await bridge.tx(txid);
+      expect(
+        (t["vout"] as List).any(
+          (o) => (o["addresses"] as List).contains(tAddress),
+        ),
+        isTrue,
+      );
+    },
+    skip: skip,
+    timeout: const Timeout(Duration(minutes: 10)),
+  );
 
-  test("shield -> someone else's shield address: no phantom note, sent output recovered", () async {
-    final dest = await _cli(["getnewshieldaddress"]);
-    final change = PivxShield.defaultAddress(extfvk: extfvk, isTestnet: true).address;
-    final before = scanner.balance;
-    const memo = "outgoing memo test";
-    final r = await PivxShield.createTransaction(
-      notes: scanner.notes,
-      extsk: extsk,
-      toAddress: dest,
-      changeAddress: change,
-      amount: 20000000,
-      blockHeight: (await bridge.getBlockCount()) + 1,
-      isTestnet: true,
-      memo: memo,
-    );
-    final txid = await bridge.sendTx(r["txhex"] as String);
-    await _cli(["generate", "1"]);
-    await _waitFor(() async {
-      await scanner.sync();
-      return scanner.walletTxs.any((w) => w["txid"] == txid);
-    });
-    // Only our change is ours; the recipient's note is not.
-    expect(scanner.balance, before - 20000000 - (r["fee"] as int));
-    for (final n in scanner.notes) {
-      expect(n["address"], isNot(dest));
-    }
-    // The sender sees where it went (outgoing viewing key).
-    final w = scanner.walletTxs.lastWhere((w) => w["txid"] == txid);
-    final sent = (w["sent"] as List).single as Map;
-    expect(sent["address"], dest);
-    expect(sent["value"], 20000000);
-    expect(sent["memo"], memo);
-  }, skip: skip, timeout: const Timeout(Duration(minutes: 10)));
+  test(
+    "coin control: useAllInputs spends every selected note",
+    () async {
+      expect(scanner.notes.length, greaterThanOrEqualTo(2));
+      final dest = await _cli(["getnewaddress"]);
+      final change = PivxShield.defaultAddress(
+        extfvk: extfvk,
+        isTestnet: true,
+      ).address;
+      final height = (await bridge.getBlockCount()) + 1;
+      Future<Map<String, dynamic>> build(bool all) =>
+          PivxShield.createTransaction(
+            notes: scanner.notes,
+            extsk: extsk,
+            toAddress: dest,
+            changeAddress: change,
+            amount: 10000000,
+            blockHeight: height,
+            isTestnet: true,
+            useAllInputs: all,
+          );
+      // A small amount needs one note; with coin control every note goes in.
+      expect((await build(false))["nullifiers"], hasLength(1));
+      final r = await build(true);
+      expect(r["nullifiers"], hasLength(scanner.notes.length));
+      final before = scanner.balance;
+      await bridge.sendTx(r["txhex"] as String);
+      await _cli(["generate", "1"]);
+      await _waitFor(() async {
+        await scanner.sync();
+        return scanner.notes.length == 1;
+      });
+      expect(scanner.balance, before - 10000000 - (r["fee"] as int));
+    },
+    skip: skip,
+    timeout: const Timeout(Duration(minutes: 10)),
+  );
+
+  test(
+    "subtractFee: the recipient pays the fee",
+    () async {
+      final dest = await _cli(["getnewaddress"]);
+      final change = PivxShield.defaultAddress(
+        extfvk: extfvk,
+        isTestnet: true,
+      ).address;
+      final before = scanner.balance;
+      // Sending everything without subtractFee must fail, not quietly
+      // take the fee out of the amount.
+      await expectLater(
+        PivxShield.createTransaction(
+          notes: scanner.notes,
+          extsk: extsk,
+          toAddress: dest,
+          changeAddress: change,
+          amount: before,
+          blockHeight: (await bridge.getBlockCount()) + 1,
+          isTestnet: true,
+        ),
+        throwsA(predicate((e) => e.toString().contains("Not enough balance"))),
+      );
+      final r = await PivxShield.createTransaction(
+        notes: scanner.notes,
+        extsk: extsk,
+        toAddress: dest,
+        changeAddress: change,
+        amount: 50000000,
+        blockHeight: (await bridge.getBlockCount()) + 1,
+        isTestnet: true,
+        subtractFee: true,
+      );
+      final fee = r["fee"] as int;
+      final txid = await bridge.sendTx(r["txhex"] as String);
+      await _cli(["generate", "1"]);
+      await _waitFor(() async {
+        await scanner.sync();
+        return scanner.balance == before - 50000000;
+      });
+      final t = await bridge.tx(txid);
+      final paid = (t["vout"] as List).firstWhere(
+        (o) => (o["addresses"] as List).contains(dest),
+      );
+      expect(paid["value"], "${50000000 - fee}");
+    },
+    skip: skip,
+    timeout: const Timeout(Duration(minutes: 10)),
+  );
+
+  test(
+    "shield -> someone else's shield address: no phantom note, sent output recovered",
+    () async {
+      final dest = await _cli(["getnewshieldaddress"]);
+      final change = PivxShield.defaultAddress(
+        extfvk: extfvk,
+        isTestnet: true,
+      ).address;
+      final before = scanner.balance;
+      const memo = "outgoing memo test";
+      final r = await PivxShield.createTransaction(
+        notes: scanner.notes,
+        extsk: extsk,
+        toAddress: dest,
+        changeAddress: change,
+        amount: 20000000,
+        blockHeight: (await bridge.getBlockCount()) + 1,
+        isTestnet: true,
+        memo: memo,
+      );
+      final txid = await bridge.sendTx(r["txhex"] as String);
+      await _cli(["generate", "1"]);
+      await _waitFor(() async {
+        await scanner.sync();
+        return scanner.walletTxs.any((w) => w["txid"] == txid);
+      });
+      // Only our change is ours; the recipient's note is not.
+      expect(scanner.balance, before - 20000000 - (r["fee"] as int));
+      for (final n in scanner.notes) {
+        expect(n["address"], isNot(dest));
+      }
+      // The sender sees where it went (outgoing viewing key).
+      final w = scanner.walletTxs.lastWhere((w) => w["txid"] == txid);
+      final sent = (w["sent"] as List).single as Map;
+      expect(sent["address"], dest);
+      expect(sent["value"], 20000000);
+      expect(sent["memo"], memo);
+    },
+    skip: skip,
+    timeout: const Timeout(Duration(minutes: 10)),
+  );
 }

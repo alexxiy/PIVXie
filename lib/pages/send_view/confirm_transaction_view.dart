@@ -405,7 +405,7 @@ class _ConfirmTransactionViewState
                           ),
                           const SizedBox(height: 4),
                           SelectableText(
-                            "~${fee!.raw.toInt() ~/ widget.txData.vSize!}",
+                            "~${fee.raw.toInt() ~/ widget.txData.vSize!}",
                             style: STextStyles.itemSubtitle12(context),
                           ),
                         ],

@@ -21,6 +21,8 @@ import '../utilities/logger.dart';
 import '../utilities/prefs.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 import '../wallets/isar/models/wallet_info.dart';
+import '../wallets/wallet/impl/pivx/pivx_shield_state.dart';
+import '../wallets/wallet/impl/pivx_wallet.dart';
 import '../wallets/wallet/wallet.dart';
 import 'event_bus/events/wallet_added_event.dart';
 import 'event_bus/global_event_bus.dart';
@@ -73,14 +75,7 @@ class Wallets {
     _wallets.remove(walletId);
     await wallet?.exit();
 
-    await secureStorage.delete(key: Wallet.mnemonicKey(walletId: walletId));
-    await secureStorage.delete(
-      key: Wallet.mnemonicPassphraseKey(walletId: walletId),
-    );
-    await secureStorage.delete(key: Wallet.privateKeyKey(walletId: walletId));
-    await secureStorage.delete(
-      key: Wallet.getViewOnlyWalletDataSecStoreKey(walletId: walletId),
-    );
+    await _deleteSecrets(info, secureStorage);
 
     // delete wallet data in main db
     await MainDB.instance.deleteWalletBlockchainData(walletId);
@@ -112,228 +107,7 @@ class Wallets {
   }
 
   Future<void> load(Prefs prefs, MainDB mainDB, bool isDuress) async {
-    // return await _loadV1(prefs, mainDB);
-    // return await _loadV2(prefs, mainDB);
     return await _loadV3(prefs, mainDB, isDuress);
-  }
-
-  Future<void> _loadV1(Prefs prefs, MainDB mainDB) async {
-    if (hasLoaded) {
-      return;
-    }
-    hasLoaded = true;
-
-    // clear out any wallet hive boxes where the wallet was deleted in previous app run
-    for (final walletId in DB.instance.values<String>(
-      boxName: DB.boxNameWalletsToDeleteOnStart,
-    )) {
-      await mainDB.isar.writeTxn(
-        () async => await mainDB.isar.walletInfo
-            .where()
-            .walletIdEqualTo(walletId)
-            .deleteAll(),
-      );
-    }
-    // clear list
-    await DB.instance.deleteAll<String>(
-      boxName: DB.boxNameWalletsToDeleteOnStart,
-    );
-
-    final walletInfoList = await mainDB.isar.walletInfo.where().findAll();
-    if (walletInfoList.isEmpty) {
-      return;
-    }
-
-    final List<Future<void>> walletInitFutures = [];
-    final List<({Wallet wallet, bool shouldAutoSync})> walletsToInitLinearly =
-        [];
-
-    final List<String> walletIdsToEnableAutoSync = [];
-    bool shouldAutoSyncAll = false;
-    switch (prefs.syncType) {
-      case SyncingType.currentWalletOnly:
-        // do nothing as this will be set when going into a wallet from the main screen
-        break;
-      case SyncingType.selectedWalletsAtStartup:
-        walletIdsToEnableAutoSync.addAll(prefs.walletIdsSyncOnStartup);
-        break;
-      case SyncingType.allWalletsOnStartup:
-        shouldAutoSyncAll = true;
-        break;
-    }
-
-    for (final walletInfo in walletInfoList) {
-      try {
-        final isVerified = await walletInfo.isMnemonicVerified(mainDB.isar);
-        Logging.instance.d(
-          "LOADING WALLET: ${walletInfo.name}:${walletInfo.walletId} "
-          "IS VERIFIED: $isVerified",
-        );
-
-        if (isVerified) {
-          // TODO: integrate this into the new wallets somehow?
-          // requires some thinking
-          // final txTracker =
-          //     TransactionNotificationTracker(walletId: walletInfo.walletId);
-
-          final wallet = await Wallet.load(
-            walletId: walletInfo.walletId,
-            mainDB: mainDB,
-            secureStorageInterface: nodeService.secureStorageInterface,
-            nodeService: nodeService,
-            prefs: prefs,
-          );
-
-          final shouldSetAutoSync =
-              shouldAutoSyncAll ||
-              walletIdsToEnableAutoSync.contains(walletInfo.walletId);
-
-          walletInitFutures.add(
-            wallet.init().then((_) {
-              if (shouldSetAutoSync) {
-                wallet.shouldAutoSync = true;
-              }
-            }),
-          );
-
-          _wallets[wallet.walletId] = wallet;
-        } else {
-          // wallet creation was not completed by user so we remove it completely
-          await _deleteWallet(walletInfo.walletId);
-          // await walletsService.deleteWallet(walletInfo.name, false);
-        }
-      } catch (e, s) {
-        Logging.instance.w("", error: e, stackTrace: s);
-        continue;
-      }
-    }
-
-    if (walletInitFutures.isNotEmpty && walletsToInitLinearly.isNotEmpty) {
-      await Future.wait([
-        _initLinearly(walletsToInitLinearly),
-        ...walletInitFutures,
-      ]);
-    } else if (walletInitFutures.isNotEmpty) {
-      await Future.wait(walletInitFutures);
-    } else if (walletsToInitLinearly.isNotEmpty) {
-      await _initLinearly(walletsToInitLinearly);
-    }
-  }
-
-  /// should be fastest but big ui performance hit
-  Future<void> _loadV2(Prefs prefs, MainDB mainDB) async {
-    if (hasLoaded) {
-      return;
-    }
-    hasLoaded = true;
-
-    // clear out any wallet hive boxes where the wallet was deleted in previous app run
-    for (final walletId in DB.instance.values<String>(
-      boxName: DB.boxNameWalletsToDeleteOnStart,
-    )) {
-      await mainDB.isar.writeTxn(
-        () async => await mainDB.isar.walletInfo
-            .where()
-            .walletIdEqualTo(walletId)
-            .deleteAll(),
-      );
-    }
-    // clear list
-    await DB.instance.deleteAll<String>(
-      boxName: DB.boxNameWalletsToDeleteOnStart,
-    );
-
-    final walletInfoList = await mainDB.isar.walletInfo.where().findAll();
-    if (walletInfoList.isEmpty) {
-      return;
-    }
-
-    final List<Future<String>> walletIDInitFutures = [];
-    final List<Future<void>> deleteFutures = [];
-    final List<({Wallet wallet, bool shouldAutoSync})> walletsToInitLinearly =
-        [];
-
-    final List<String> walletIdsToEnableAutoSync = [];
-    bool shouldAutoSyncAll = false;
-    switch (prefs.syncType) {
-      case SyncingType.currentWalletOnly:
-        // do nothing as this will be set when going into a wallet from the main screen
-        break;
-      case SyncingType.selectedWalletsAtStartup:
-        walletIdsToEnableAutoSync.addAll(prefs.walletIdsSyncOnStartup);
-        break;
-      case SyncingType.allWalletsOnStartup:
-        shouldAutoSyncAll = true;
-        break;
-    }
-
-    for (final walletInfo in walletInfoList) {
-      try {
-        final isVerified = await walletInfo.isMnemonicVerified(mainDB.isar);
-        Logging.instance.d(
-          "LOADING WALLET: ${walletInfo.name}:${walletInfo.walletId} "
-          "IS VERIFIED: $isVerified",
-        );
-
-        if (isVerified) {
-          // TODO: integrate this into the new wallets somehow?
-          // requires some thinking
-          // final txTracker =
-          //     TransactionNotificationTracker(walletId: walletInfo.walletId);
-
-          final walletIdCompleter = Completer<String>();
-
-          walletIDInitFutures.add(walletIdCompleter.future);
-
-          await Wallet.load(
-            walletId: walletInfo.walletId,
-            mainDB: mainDB,
-            secureStorageInterface: nodeService.secureStorageInterface,
-            nodeService: nodeService,
-            prefs: prefs,
-          ).then((wallet) {
-            walletIdCompleter.complete(wallet.walletId);
-
-            _wallets[wallet.walletId] = wallet;
-          });
-        } else {
-          // wallet creation was not completed by user so we remove it completely
-          deleteFutures.add(_deleteWallet(walletInfo.walletId));
-        }
-      } catch (e, s) {
-        Logging.instance.w("$e $s", error: e, stackTrace: s);
-        continue;
-      }
-    }
-
-    final asyncWalletIds = await Future.wait(walletIDInitFutures);
-    asyncWalletIds.removeWhere((e) => e == "dummy_ignore");
-
-    final List<Future<void>> walletInitFutures = asyncWalletIds
-        .map(
-          (id) => _wallets[id]!.init().then((_) {
-            if (shouldAutoSyncAll || walletIdsToEnableAutoSync.contains(id)) {
-              _wallets[id]!.shouldAutoSync = true;
-            }
-          }),
-        )
-        .toList();
-
-    if (walletInitFutures.isNotEmpty && walletsToInitLinearly.isNotEmpty) {
-      unawaited(
-        Future.wait([
-          _initLinearly(walletsToInitLinearly),
-          ...walletInitFutures,
-        ]),
-      );
-    } else if (walletInitFutures.isNotEmpty) {
-      unawaited(Future.wait(walletInitFutures));
-    } else if (walletsToInitLinearly.isNotEmpty) {
-      unawaited(_initLinearly(walletsToInitLinearly));
-    }
-
-    // finally await any deletions that haven't completed yet
-    await Future.wait(deleteFutures);
   }
 
   /// should be best performance
@@ -353,6 +127,8 @@ class Wallets {
             .walletIdEqualTo(walletId)
             .deleteAll(),
       );
+      // A sync still running at deletion may have saved it again.
+      await PivxShieldState.delete(walletId);
     }
     // clear list
     await DB.instance.deleteAll<String>(
@@ -426,7 +202,7 @@ class Wallets {
           });
         } else {
           // wallet creation was not completed by user so we remove it completely
-          deleteFutures.add(_deleteWallet(walletInfo.walletId));
+          deleteFutures.add(_deleteWallet(walletInfo));
         }
       } catch (e, s) {
         Logging.instance.w("$e $s", error: e, stackTrace: s);
@@ -535,7 +311,7 @@ class Wallets {
         _wallets[wallet.walletId] = wallet;
       } else {
         // wallet creation was not completed by user so we remove it completely
-        await _deleteWallet(wallet.walletId);
+        await _deleteWallet(wallet.info);
         // await walletsService.deleteWallet(walletInfo.name, false);
       }
     }
@@ -565,10 +341,35 @@ class Wallets {
     }
   }
 
-  Future<void> _deleteWallet(String walletId) async {
-    // TODO proper clean up of other wallet data in addition to the following
+  /// Remove a wallet whose creation the user never finished.
+  Future<void> _deleteWallet(WalletInfo info) async {
+    await _deleteSecrets(info, nodeService.secureStorageInterface);
+    await mainDB.deleteWalletBlockchainData(info.walletId);
     await mainDB.isar.writeTxn(
-      () async => await mainDB.isar.walletInfo.deleteByWalletId(walletId),
+      () async => await mainDB.isar.walletInfo.deleteByWalletId(info.walletId),
     );
+  }
+
+  /// Keys in secure storage and the PIVX data kept outside the database.
+  Future<void> _deleteSecrets(
+    WalletInfo info,
+    SecureStorageInterface secureStorage,
+  ) async {
+    final walletId = info.walletId;
+    await secureStorage.delete(key: Wallet.mnemonicKey(walletId: walletId));
+    await secureStorage.delete(
+      key: Wallet.mnemonicPassphraseKey(walletId: walletId),
+    );
+    await secureStorage.delete(key: Wallet.privateKeyKey(walletId: walletId));
+    await secureStorage.delete(
+      key: Wallet.getViewOnlyWalletDataSecStoreKey(walletId: walletId),
+    );
+    if (info.coin is Pivx) {
+      await PivxWallet.deleteLocalData(
+        walletId: walletId,
+        otherData: info.otherData,
+        secureStorage: secureStorage,
+      );
+    }
   }
 }
