@@ -318,11 +318,13 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      if (isDesktop) const SizedBox(height: 10),
                       Image.asset(
                         Assets.persona.public,
                         width: 140,
                         height: 140,
                       ),
+                      if (isDesktop) const SizedBox(height: 12),
                       Center(
                         child: Text(
                           "Easy Crypto",
@@ -414,11 +416,6 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                         width: 140,
                         height: 140,
                       ),
-                      // SvgPicture.asset(
-                      //   Assets.svg.personaIncognito(context),
-                      //   width: 140,
-                      //   height: 140,
-                      // ),
                       if (isDesktop) const SizedBox(height: 12),
                       Center(
                         child: Text(

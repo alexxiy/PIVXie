@@ -355,11 +355,6 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                         width: 120,
                         height: 120,
                       ),
-                      // SvgPicture.asset(
-                      //   Assets.svg.personaIncognito(context),
-                      //   width: 120,
-                      //   height: 120,
-                      // ),
                       if (isDesktop) const SizedBox(height: 12),
                       Center(
                         child: Text(

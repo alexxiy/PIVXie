@@ -187,7 +187,7 @@ flutter:
   #  - images/a_dot_ham.jpeg
   assets:
     - assets/in_app_logo_icons/
-    - assets/icon/
+    # assets/icon/ only feeds the launcher icon / splash generators.
     - google_fonts/
     - assets/svg/
 

@@ -5,9 +5,11 @@ flutter_launcher_icons:
   android: true
   image_path_android: "assets/icon/macos-icon.png"
   min_sdk_android: 21 # android min sdk min:16, default 21
-  # adaptive_icon_background: "assets/icon/background.png"
-  # adaptive_icon_foreground: "assets/icon/foreground.png"
-  adaptive_icon_monochrome: "assets/icon/app_icon_alpha.png"
+  # Android 8+: the pixie on the tile's violet; launchers mask it into
+  # their own shape. The foreground is inset 16% (the safe zone).
+  adaptive_icon_background: "assets/icon/adaptive_background.png"
+  adaptive_icon_foreground: "assets/icon/adaptive_foreground.png"
+  adaptive_icon_monochrome: "assets/icon/adaptive_monochrome.png"
 
   ios: false
 
