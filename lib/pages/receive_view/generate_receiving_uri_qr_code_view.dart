@@ -101,33 +101,21 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
               "Home dir not found while trying to open filepicker on QR image save",
             );
           }
-          final path = await FilePicker.platform.saveFile(
+          final uri = await FilePicker.saveFile(
             fileName: "qrcode.png",
+            bytes: pngBytes,
+            mimeType: "image/png",
             initialDirectory: dir.path,
           );
 
-          if (path != null && mounted) {
-            final file = File(path);
-            if (file.existsSync()) {
-              unawaited(
-                showFloatingFlushBar(
-                  type: FlushBarType.warning,
-                  message: "$path already exists!",
-                  context: context,
-                ),
-              );
-            } else {
-              await file.writeAsBytes(pngBytes);
-              if (mounted) {
-                unawaited(
-                  showFloatingFlushBar(
-                    type: FlushBarType.success,
-                    message: "$path saved!",
-                    context: context,
-                  ),
-                );
-              }
-            }
+          if (uri != null && mounted) {
+            unawaited(
+              showFloatingFlushBar(
+                type: FlushBarType.success,
+                message: "${uri.toFilePath()} saved!",
+                context: context,
+              ),
+            );
           }
         } else {
           //   await DocumentFileSavePlus.saveFile(
@@ -140,9 +128,12 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
         final file = await File("${tempDir.path}/qrcode.png").create();
         await file.writeAsBytes(pngBytes);
 
-        await Share.shareFiles([
-          "${tempDir.path}/qrcode.png",
-        ], text: "Receive URI QR Code");
+        await SharePlus.instance.share(
+          ShareParams(
+            files: [XFile("${tempDir.path}/qrcode.png")],
+            text: "Receive URI QR Code",
+          ),
+        );
       }
     } catch (e) {
       //todo: comeback to this

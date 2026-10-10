@@ -15,6 +15,12 @@ import 'package:stack_wallet_backup/secure_storage.dart';
 import '../models/isar/models/encrypted_string_value.dart';
 import 'stack_file_system.dart';
 
+/// The mobile secure store (seeds, PINs). A read error must not wipe it:
+/// flutter_secure_storage resets the whole store on errors by default.
+const kMobileSecureStorage = FlutterSecureStorage(
+  aOptions: AndroidOptions(resetOnError: false),
+);
+
 abstract class SecureStorageInterface {
   dynamic get store;
 

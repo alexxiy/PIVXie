@@ -85,10 +85,10 @@ class _LoggingSettingsViewState extends ConsumerState<LoggingSettingsView> {
     // } else {
     final String path =
         Platform.isWindows ? currentPath.replaceAll("/", "\\") : currentPath;
-    chosenPath = await FilePicker.platform.getDirectoryPath(
+    chosenPath = await FilePicker.getDirectoryPath(
       dialogTitle: "Choose Log Save location",
       initialDirectory: path,
-      lockParentWindow: true,
+      windowsOptions: const WindowsOptions(lockParentWindow: true),
     );
     // }
     return chosenPath;
@@ -126,9 +126,12 @@ class _LoggingSettingsViewState extends ConsumerState<LoggingSettingsView> {
     final zipFile = File(zipPath);
     await zipFile.writeAsBytes(ZipEncoder().encode(archive)!);
 
-    await Share.shareXFiles([
-      XFile(zipFile.path),
-    ], text: "${AppConfig.appName} logs");
+    await SharePlus.instance.share(
+      ShareParams(
+        files: [XFile(zipFile.path)],
+        text: "${AppConfig.appName} logs",
+      ),
+    );
   }
 
   bool _exportLock = false;

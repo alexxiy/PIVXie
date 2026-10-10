@@ -206,13 +206,12 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail>
     if (_sending) return;
 
     // TODO verify this works on android and ios
-    final result = await FilePicker.platform.pickFiles(
-      allowMultiple: true,
+    final result = await FilePicker.pickFiles(
       type: .custom,
       allowedExtensions: kAllowedAttachmentExtensions,
-      lockParentWindow: true,
+      windowsOptions: const WindowsOptions(lockParentWindow: true),
     );
-    if (result == null || !mounted) return;
+    if (result.isEmpty || !mounted) return;
 
     final accepted = [...?_currentSelectedAttachments];
     int combinedBytes = 0;
@@ -221,7 +220,7 @@ class _ShopInBitTicketDetailState extends ConsumerState<ShopInBitTicketDetail>
     }
 
     String? rejection;
-    for (final picked in result.files) {
+    for (final picked in result) {
       final path = picked.path;
       if (path == null || accepted.any((f) => f.path == path)) continue;
 

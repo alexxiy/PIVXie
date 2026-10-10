@@ -62,16 +62,16 @@ class _InstallThemeFromFileDialogState
 
   Future<void> _pickFile() async {
     try {
-      final result = await FilePicker.platform.pickFiles(
+      final result = await FilePicker.pickFile(
         dialogTitle: "Choose theme file",
         type: FileType.custom,
         allowedExtensions: ["zip"],
-        lockParentWindow: true, // windows only
+        windowsOptions: const WindowsOptions(lockParentWindow: true),
       );
 
       if (result != null && mounted) {
         setState(() {
-          controller.text = result.paths.first ?? "";
+          controller.text = result.path ?? "";
         });
       }
     } catch (e, s) {

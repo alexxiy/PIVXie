@@ -60,13 +60,11 @@ class Biometrics {
       try {
         final bool didAuthenticate = await localAuth.authenticate(
           localizedReason: localizedReason,
-          options: const AuthenticationOptions(
-            stickyAuth: true,
-            biometricOnly: true,
-          ),
+          persistAcrossBackgrounding: true,
+          biometricOnly: true,
           authMessages: <AuthMessages>[
             AndroidAuthMessages(
-              biometricHint: "",
+              signInHint: "",
               cancelButton: cancelButtonText,
               signInTitle: title,
             ),

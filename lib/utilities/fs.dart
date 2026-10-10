@@ -20,8 +20,8 @@ abstract final class FS {
 
       path = dir?.uri;
     } else {
-      path = await FilePicker.platform.getDirectoryPath(
-        lockParentWindow: true,
+      path = await FilePicker.getDirectoryPath(
+        windowsOptions: const WindowsOptions(lockParentWindow: true),
         initialDirectory: initialDirectory,
       );
     }

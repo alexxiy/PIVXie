@@ -75,10 +75,10 @@ class _DebugInfoDialog extends ConsumerState<DesktopLoggingDialog> {
     } else {
       final String path =
           Platform.isWindows ? currentPath.replaceAll("/", "\\") : currentPath;
-      chosenPath = await FilePicker.platform.getDirectoryPath(
+      chosenPath = await FilePicker.getDirectoryPath(
         dialogTitle: "Choose Log Save location",
         initialDirectory: path,
-        lockParentWindow: true,
+        windowsOptions: const WindowsOptions(lockParentWindow: true),
       );
     }
     return chosenPath;

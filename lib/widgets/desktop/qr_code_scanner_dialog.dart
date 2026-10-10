@@ -301,14 +301,13 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
                     label: "Select file",
                     width: 200,
                     onPressed: () async {
-                      final result = await FilePicker.platform.pickFiles(
+                      final result = await FilePicker.pickFile(
                         type: FileType.custom,
                         allowedExtensions: ["png", "jpg", "jpeg"],
                       );
 
                       if (context.mounted) {
-                        if (result == null ||
-                            result.files.single.path == null) {
+                        if (result == null || result.path == null) {
                           await showFloatingFlushBar(
                             type: FlushBarType.info,
                             message: "No file selected",
@@ -318,7 +317,7 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
                           return;
                         }
 
-                        final filePath = result.files.single.path;
+                        final filePath = result.path;
                         if (filePath == null) {
                           await showFloatingFlushBar(
                             type: FlushBarType.info,

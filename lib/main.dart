@@ -310,7 +310,7 @@ void main(List<String> args) async {
         await DbVersionMigrator().migrate(
           dbVersion,
           secureStore: const SecureStorageWrapper(
-            store: FlutterSecureStorage(),
+            store: kMobileSecureStorage,
             isDesktop: false,
           ),
         );

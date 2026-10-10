@@ -64,19 +64,17 @@ class _DesktopInstallThemeState extends ConsumerState<DesktopInstallTheme> {
 
   Future<void> _chooseFile() async {
     try {
-      final result = await FilePicker.platform.pickFiles(
+      final path = (await FilePicker.pickFile(
         dialogTitle: "Choose theme file",
         type: FileType.custom,
         allowedExtensions: ["zip"],
-        lockParentWindow: true, // windows only
-      );
+        windowsOptions: const WindowsOptions(lockParentWindow: true),
+      ))?.path;
 
-      if (result != null && mounted) {
-        if (result.paths.isNotEmpty && result.paths.first != null) {
-          setState(() {
-            _selectedFile = XFile(result.paths.first!);
-          });
-        }
+      if (path != null && mounted) {
+        setState(() {
+          _selectedFile = XFile(path);
+        });
       }
     } catch (e, s) {
       Logging.instance.e("$e\n$s", error: e, stackTrace: s);

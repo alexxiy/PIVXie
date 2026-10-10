@@ -61,7 +61,7 @@ abstract final class NotificationApi {
       macOS: macOS,
     );
     await _notifications.initialize(
-      settings,
+      settings: settings,
       onDidReceiveNotificationResponse: (response) {
         final tx = parseTxPayload(response.payload);
         if (tx != null) onOpenTransaction?.call(tx.walletId, tx.txid);
@@ -83,7 +83,7 @@ abstract final class NotificationApi {
 
   static Future<void> clearNotification(int id) async {
     await init();
-    await _notifications.cancel(id);
+    await _notifications.cancel(id: id);
   }
 
   /// Opens a transaction's details; set by the app once navigation is
@@ -121,10 +121,10 @@ abstract final class NotificationApi {
     await init();
     final id = await prefs.incrementCurrentNotificationIndex();
     await _notifications.show(
-      id,
-      title,
-      body,
-      await _notificationDetails(),
+      id: id,
+      title: title,
+      body: body,
+      notificationDetails: await _notificationDetails(),
       payload: payload,
     );
     return id;

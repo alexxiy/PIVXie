@@ -24,7 +24,7 @@ final secureStoreProvider = Provider<SecureStorageInterface>((ref) {
     );
   } else {
     return const SecureStorageWrapper(
-      store: FlutterSecureStorage(),
+      store: kMobileSecureStorage,
       isDesktop: false,
     );
   }

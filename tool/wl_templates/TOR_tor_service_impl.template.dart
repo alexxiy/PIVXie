@@ -93,18 +93,17 @@ class _TorServiceImpl extends TorService {
       final port = await _unusedPort();
 
       final proxyAddress = await Isolate.run(() {
-        final lib = bindings.TorFfiPluginBindings(_openTorLib());
-        final tor = lib.tor_start(
+        final tor = bindings.tor_start(
           port,
           stateDir.path.toNativeUtf8().cast(),
           cacheDir.path.toNativeUtf8().cast(),
         );
         if (tor.client == nullptr) {
-          throw Exception(_lastTorError(lib));
+          throw Exception(_lastTorError());
         }
-        if (!lib.tor_client_bootstrap(tor.client)) {
-          final error = _lastTorError(lib);
-          lib.tor_proxy_stop(tor.proxy);
+        if (!bindings.tor_client_bootstrap(tor.client)) {
+          final error = _lastTorError();
+          bindings.tor_proxy_stop(tor.proxy);
           throw Exception(error);
         }
         return tor.proxy.address;
@@ -149,8 +148,7 @@ class _TorServiceImpl extends TorService {
 
   static void _stopProxy(int address) {
     if (address == 0) return;
-    bindings.TorFfiPluginBindings(_openTorLib())
-        .tor_proxy_stop(Pointer.fromAddress(address));
+    bindings.tor_proxy_stop(Pointer.fromAddress(address));
   }
 
   static Future<int> _unusedPort() async {
@@ -180,19 +178,8 @@ class _TorServiceImpl extends TorService {
   }
 }
 
-DynamicLibrary _openTorLib() {
-  if (Platform.isAndroid || Platform.isLinux) {
-    return DynamicLibrary.open("libtor_ffi_plugin.so");
-  } else if (Platform.isIOS || Platform.isMacOS) {
-    return DynamicLibrary.open("tor_ffi_plugin.framework/tor_ffi_plugin");
-  } else if (Platform.isWindows) {
-    return DynamicLibrary.open("tor_ffi_plugin.dll");
-  }
-  throw UnsupportedError("Tor is not supported on this platform");
-}
-
-String _lastTorError(bindings.TorFfiPluginBindings lib) =>
-    lib.tor_last_error_message().cast<Utf8>().toDartString();
+String _lastTorError() =>
+    bindings.tor_last_error_message().cast<Utf8>().toDartString();
 
 class _FusionTorServiceImpl extends FusionTorService {
   static _FusionTorServiceImpl? _instance;

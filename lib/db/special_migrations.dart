@@ -6,6 +6,7 @@ import 'package:hive_ce/src/hive_impl.dart';
 import 'package:path_provider/path_provider.dart';
 
 import '../app_config.dart';
+import '../utilities/flutter_secure_storage_interface.dart';
 import '../utilities/util.dart';
 import 'hive/db.dart';
 
@@ -43,7 +44,7 @@ abstract class CampfireMigration {
       final myHive = HiveImpl();
       myHive.init(appDirectory.path);
       _wallets = await myHive.openBox<dynamic>('wallets');
-      _secureStore = const FlutterSecureStorage();
+      _secureStore = kMobileSecureStorage;
     } else {
       await setDidRun();
     }

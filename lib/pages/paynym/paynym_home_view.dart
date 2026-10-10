@@ -388,13 +388,15 @@ class _PaynymHomeViewState extends ConsumerState<PaynymHomeView> {
                               }
                             }
 
-                            await Share.share(
-                              ref
-                                  .read(myPaynymAccountStateProvider.state)
-                                  .state!
-                                  .nonSegwitPaymentCode
-                                  .code,
-                              sharePositionOrigin: sharePositionOrigin,
+                            await SharePlus.instance.share(
+                              ShareParams(
+                                text: ref
+                                    .read(myPaynymAccountStateProvider.state)
+                                    .state!
+                                    .nonSegwitPaymentCode
+                                    .code,
+                                sharePositionOrigin: sharePositionOrigin,
+                              ),
                             );
                           },
                         ),

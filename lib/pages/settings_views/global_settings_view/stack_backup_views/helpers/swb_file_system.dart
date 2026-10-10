@@ -63,34 +63,24 @@ class SWBFileSystem {
   }
 
   Future<String?> openFile() async {
-    FilePickerResult? result;
-    if (Platform.isAndroid) {
-      result = await FilePicker.platform.pickFiles(
+    final PlatformFile? result;
+    if (Platform.isAndroid || Platform.isIOS) {
+      result = await FilePicker.pickFile(
         dialogTitle: "Load backup file",
         initialDirectory: _startPath!.path,
         type: FileType.any,
-        allowCompression: false,
-        lockParentWindow: true,
-      );
-    } else if (Platform.isIOS) {
-      result = await FilePicker.platform.pickFiles(
-        dialogTitle: "Load backup file",
-        initialDirectory: _startPath!.path,
-        type: FileType.any,
-        allowCompression: false,
-        lockParentWindow: true,
       );
     } else {
-      result = await FilePicker.platform.pickFiles(
+      result = await FilePicker.pickFile(
         dialogTitle: "Load backup file",
         initialDirectory: _startPath!.path,
         type: FileType.custom,
         allowedExtensions: ['bin', 'swb'],
-        allowCompression: false,
-        lockParentWindow: true,
+        windowsOptions: const WindowsOptions(lockParentWindow: true),
+        linuxOptions: const LinuxOptions(lockParentWindow: true),
       );
     }
 
-    return result?.paths.first;
+    return result?.path;
   }
 }
