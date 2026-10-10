@@ -63,7 +63,7 @@ class SupportView extends StatelessWidget {
         children: [
           RoundedWhiteContainer(
             child: Text(
-              "If you need support or want to report a bug, reach out to us on any of our socials!",
+              "If you need support or want to report a bug, ask the PIVX community on any of these channels!",
               style: STextStyles.smallMed12(context),
             ),
           ),

@@ -8,11 +8,25 @@
  *
  */
 
-
 abstract class Assets {
   static const svg = _SVG();
   static const lottie = _ANIMATIONS();
   static const socials = _SOCIALS();
+  static const persona = _PERSONA();
+}
+
+/// The PIVXie mascot (the Void Pixie) for the privacy choice. PNGs with
+/// 1.5x-4.0x density variants, drawn at 140 logical px.
+class _PERSONA {
+  const _PERSONA();
+
+  static const _path = "assets/persona/";
+
+  /// "Easy Crypto": external calls on.
+  String get public => "${_path}pivxie_public.png";
+
+  /// "Incognito": external calls off.
+  String get private => "${_path}pivxie_private.png";
 }
 
 class _SOCIALS {

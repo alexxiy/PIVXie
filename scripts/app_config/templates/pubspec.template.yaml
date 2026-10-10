@@ -197,6 +197,9 @@ flutter:
     # socials
     - assets/svg/socials/
 
+    # PIVXie mascot (Void Pixie), 1.5x-4.0x density variants
+    - assets/persona/
+
     # lottie animations
     # basic
     - assets/lottie/loader.json

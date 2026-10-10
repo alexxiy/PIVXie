@@ -8,8 +8,6 @@
  *
  */
 
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -20,7 +18,6 @@ import '../pages_desktop_specific/password/create_password_view.dart';
 import '../providers/global/prefs_provider.dart';
 import '../providers/global/price_provider.dart';
 import '../themes/stack_colors.dart';
-import '../themes/theme_providers.dart';
 import '../utilities/assets.dart';
 import '../utilities/constants.dart';
 import '../utilities/text_styles.dart';
@@ -287,13 +284,6 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
 
   @override
   Widget build(BuildContext context) {
-    final easyFile = ref.watch(
-      themeProvider.select((value) => value.assets.personaEasy),
-    );
-    final incognitoFile = ref.watch(
-      themeProvider.select((value) => value.assets.personaIncognito),
-    );
-
     return Row(
       children: [
         Expanded(
@@ -328,13 +318,11 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      (easyFile.endsWith(".png"))
-                          ? Image.file(File(easyFile))
-                          : SvgPicture.file(
-                              File(easyFile),
-                              width: 140,
-                              height: 140,
-                            ),
+                      Image.asset(
+                        Assets.persona.public,
+                        width: 140,
+                        height: 140,
+                      ),
                       Center(
                         child: Text(
                           "Easy Crypto",
@@ -421,13 +409,11 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       if (isDesktop) const SizedBox(height: 10),
-                      (incognitoFile.endsWith(".png"))
-                          ? Image.file(File(incognitoFile))
-                          : SvgPicture.file(
-                              File(incognitoFile),
-                              width: 140,
-                              height: 140,
-                            ),
+                      Image.asset(
+                        Assets.persona.private,
+                        width: 140,
+                        height: 140,
+                      ),
                       // SvgPicture.asset(
                       //   Assets.svg.personaIncognito(context),
                       //   width: 140,

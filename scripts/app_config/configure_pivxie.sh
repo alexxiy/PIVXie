@@ -56,10 +56,34 @@ const _shortDescriptionText = "Your privacy. Your keys. Your PIVX.";
 const _commitHash = "$BUILT_COMMIT_HASH";
 
 // Project links. Empty ones are not shown in the app.
-const _websiteUrl = "";
-const _termsUrl = "";
-const _privacyUrl = "";
-const List<SupportLink> _supportLinks = [];
+const _websiteUrl = "https://pivxie.me";
+const _termsUrl = "https://pivxie.me/terms-of-service.html";
+const _privacyUrl = "https://pivxie.me/privacy-policy.html";
+
+// Support: the official PIVX community channels (see pivx.org).
+const List<SupportLink> _supportLinks = [
+  (
+    channel: SupportChannel.discord,
+    text: "discord.pivx.org",
+    url: "https://discord.pivx.org/",
+  ),
+  (
+    channel: SupportChannel.telegram,
+    text: "@PIVX_official",
+    url: "https://t.me/PIVX_official",
+  ),
+  (
+    channel: SupportChannel.reddit,
+    text: "r/pivx",
+    url: "https://www.reddit.com/r/pivx/",
+  ),
+  (channel: SupportChannel.x, text: "@_PIVX", url: "https://x.com/_PIVX"),
+  (
+    channel: SupportChannel.email,
+    text: "support@pivxie.me",
+    url: "mailto:support@pivxie.me",
+  ),
+];
 
 const Set<AppFeature> _features = {
   AppFeature.tor,

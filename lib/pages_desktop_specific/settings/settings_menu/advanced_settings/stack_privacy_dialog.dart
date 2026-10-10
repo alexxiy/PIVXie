@@ -8,8 +8,6 @@
  *
  */
 
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -19,7 +17,6 @@ import '../../../../db/hive/db.dart';
 import '../../../../providers/global/prefs_provider.dart';
 import '../../../../providers/global/price_provider.dart';
 import '../../../../themes/stack_colors.dart';
-import '../../../../themes/theme_providers.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/text_styles.dart';
@@ -223,13 +220,6 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
 
   @override
   Widget build(BuildContext context) {
-    final easyFile = ref.watch(
-      themeProvider.select((value) => value.assets.personaEasy),
-    );
-    final incognitoFile = ref.watch(
-      themeProvider.select((value) => value.assets.personaIncognito),
-    );
-
     return Row(
       children: [
         Expanded(
@@ -267,13 +257,11 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                     children: [
                       if (isDesktop) const SizedBox(height: 10),
                       //
-                      (easyFile.endsWith(".png"))
-                          ? Image.file(File(easyFile), width: 120, height: 120)
-                          : SvgPicture.file(
-                              File(easyFile),
-                              width: 120,
-                              height: 120,
-                            ),
+                      Image.asset(
+                        Assets.persona.public,
+                        width: 120,
+                        height: 120,
+                      ),
                       if (isDesktop) const SizedBox(height: 12),
                       Center(
                         child: Text(
@@ -362,17 +350,11 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       if (isDesktop) const SizedBox(height: 10),
-                      (incognitoFile.endsWith(".png"))
-                          ? Image.file(
-                              File(incognitoFile),
-                              width: 120,
-                              height: 120,
-                            )
-                          : SvgPicture.file(
-                              File(incognitoFile),
-                              width: 120,
-                              height: 120,
-                            ),
+                      Image.asset(
+                        Assets.persona.private,
+                        width: 120,
+                        height: 120,
+                      ),
                       // SvgPicture.asset(
                       //   Assets.svg.personaIncognito(context),
                       //   width: 120,
