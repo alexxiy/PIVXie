@@ -91,7 +91,13 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
 
   final List<TextEditingController> _controllers = [];
   final List<FormInputStatus> _inputStatuses = [];
-  // final List<FocusNode> _focusNodes = [];
+
+  /// Focus of the word fields (mobile), to suggest words for the one
+  /// being typed and move on to the next.
+  final List<FocusNode> _focusNodes = [];
+
+  /// The word field being typed in, or null.
+  int? _focusedField;
 
   late final TextSelectionControls textSelectionControls;
 
@@ -144,7 +150,16 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
     for (int i = 0; i < _seedWordCount; i++) {
       _controllers.add(TextEditingController());
       _inputStatuses.add(FormInputStatus.empty);
-      // _focusNodes.add(FocusNode());
+      final index = i;
+      _focusNodes.add(
+        FocusNode()..addListener(() {
+          if (!mounted) return;
+          final focused = _focusNodes[index].hasFocus;
+          if (focused != (_focusedField == index)) {
+            setState(() => _focusedField = focused ? index : null);
+          }
+        }),
+      );
     }
 
     super.initState();
@@ -155,11 +170,86 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
     for (final element in _controllers) {
       element.dispose();
     }
+    for (final node in _focusNodes) {
+      node.dispose();
+    }
 
     super.dispose();
   }
 
   bool _isValidMnemonicWord(String word) => _wordListHashSet.contains(word);
+
+  /// Up to 4 words of the list starting with what field [index] holds;
+  /// none when it holds a whole word nothing longer starts with.
+  List<String> _suggestionsFor(int index) {
+    final prefix = _controllers[index].text.trim().toLowerCase();
+    if (prefix.isEmpty) return const [];
+    final words = bip39wordlist.WORDLIST
+        .where((w) => w.startsWith(prefix))
+        .take(4)
+        .toList();
+    return words.length == 1 && words.first == prefix ? const [] : words;
+  }
+
+  /// Put a suggested [word] in field [index] and go on to the next one.
+  void _pickSuggestion(int index, String word) {
+    _controllers[index].value = TextEditingValue(
+      text: word,
+      selection: TextSelection.collapsed(offset: word.length),
+    );
+    setState(() => _inputStatuses[index] = FormInputStatus.valid);
+    if (index + 1 < _focusNodes.length) {
+      _focusNodes[index + 1].requestFocus();
+    } else {
+      _focusNodes[index].unfocus();
+    }
+  }
+
+  /// Next / Done on the keyboard: a partly typed word becomes its first
+  /// suggestion; then on to the next field.
+  void _submitWord(int index) {
+    final typed = _controllers[index].text.trim().toLowerCase();
+    final suggestions = _suggestionsFor(index);
+    if (!_isValidMnemonicWord(typed) && suggestions.isNotEmpty) {
+      _pickSuggestion(index, suggestions.first);
+    } else if (index + 1 < _focusNodes.length) {
+      _focusNodes[index + 1].requestFocus();
+    }
+  }
+
+  Widget _wordSuggestions(int index) {
+    final words = _hideSeedWords ? const <String>[] : _suggestionsFor(index);
+    if (words.isEmpty) return const SizedBox.shrink();
+    final colors = Theme.of(context).extension<StackColors>()!;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          // The first one stands out: Next takes it.
+          for (final (n, word) in words.indexed)
+            ActionChip(
+              label: Text(
+                word,
+                style: STextStyles.field(context).copyWith(
+                  color: colors.textRestore,
+                  fontSize: 14,
+                  fontWeight: n == 0 ? FontWeight.w600 : null,
+                ),
+              ),
+              backgroundColor: colors.textFieldDefaultBG,
+              side: BorderSide(
+                color: n == 0
+                    ? colors.accentColorBlue
+                    : colors.textFieldActiveBG,
+              ),
+              onPressed: () => _pickSuggestion(index, word),
+            ),
+        ],
+      ),
+    );
+  }
 
   OutlineInputBorder _buildOutlineInputBorder(Color color) {
     return OutlineInputBorder(
@@ -779,8 +869,9 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                                     if (_spreadPastedWords(
                                                       value,
                                                       i * 4 + j - 1,
-                                                    ))
+                                                    )) {
                                                       return;
+                                                    }
                                                     final FormInputStatus
                                                     formInputStatus;
 
@@ -927,8 +1018,9 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                                     if (_spreadPastedWords(
                                                       value,
                                                       i,
-                                                    ))
+                                                    )) {
                                                       return;
+                                                    }
                                                     final FormInputStatus
                                                     formInputStatus;
 
@@ -1052,9 +1144,18 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                   child: TextFormField(
                                     enableIMEPersonalizedLearning: false,
                                     obscureText: _hideSeedWords,
-                                    autocorrect: !isDesktop,
-                                    enableSuggestions: !isDesktop,
+                                    // The word list suggests words; the
+                                    // keyboard must not learn or "fix" them.
+                                    autocorrect: false,
+                                    enableSuggestions: false,
                                     textCapitalization: TextCapitalization.none,
+                                    textInputAction: i < _seedWordCount
+                                        ? TextInputAction.next
+                                        : TextInputAction.done,
+                                    focusNode: _focusNodes[i - 1],
+                                    // Like predictive text: Next takes
+                                    // the first suggestion.
+                                    onFieldSubmitted: (_) => _submitWord(i - 1),
                                     key: Key("restoreMnemonicFormField_$i"),
                                     decoration: _getInputDecorationFor(
                                       _inputStatuses[i - 1],
@@ -1065,10 +1166,10 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                     selectionControls: i == 1
                                         ? textSelectionControls
                                         : null,
-                                    // focusNode: _focusNodes[i - 1],
                                     onChanged: (value) {
-                                      if (_spreadPastedWords(value, i - 1))
+                                      if (_spreadPastedWords(value, i - 1)) {
                                         return;
+                                      }
                                       final FormInputStatus formInputStatus;
 
                                       if (value.isEmpty) {
@@ -1103,8 +1204,14 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                     ),
                                   ),
                                 ),
+                                if (_focusedField == i - 1)
+                                  _wordSuggestions(i - 1),
+                                // Not while typing a word that has
+                                // suggestions.
                                 if (_inputStatuses[i - 1] ==
-                                    FormInputStatus.invalid)
+                                        FormInputStatus.invalid &&
+                                    (_focusedField != i - 1 ||
+                                        _suggestionsFor(i - 1).isEmpty))
                                   Align(
                                     alignment: Alignment.topLeft,
                                     child: Padding(
