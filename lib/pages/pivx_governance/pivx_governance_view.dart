@@ -1,19 +1,35 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../providers/global/prefs_provider.dart';
 import '../../providers/global/wallets_provider.dart';
 import '../../themes/stack_colors.dart';
+import '../../utilities/amount/amount.dart';
 import '../../utilities/amount/amount_formatter.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
+import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../widgets/custom_buttons/blue_text_button.dart';
+import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../pivx_masternodes/pivx_masternodes_view.dart';
+import 'pivx_create_proposal_view.dart';
 import 'pivx_governance_widgets.dart';
 import 'pivx_proposal_view.dart';
+
+enum _Tab {
+  past("Past"),
+  current("Current"),
+  future("Future");
+
+  const _Tab(this.label);
+
+  final String label;
+}
 
 enum _Filter {
   all("All"),
@@ -35,8 +51,10 @@ enum _Filter {
   };
 }
 
-/// The network's budget proposals; vote on them with the wallet's
-/// masternodes. From the wallet's "More" menu, next to Masternodes.
+/// The network's budget proposals, as on pivx.org/proposals: Past,
+/// Current (the next payout) and Future (later payouts). Vote with the
+/// wallet's masternodes and create proposals. From the wallet's "More"
+/// menu, next to Masternodes.
 class PivxGovernanceView extends ConsumerStatefulWidget {
   const PivxGovernanceView({super.key, required this.walletId});
 
@@ -50,16 +68,21 @@ class PivxGovernanceView extends ConsumerStatefulWidget {
 
 class _PivxGovernanceViewState extends ConsumerState<PivxGovernanceView> {
   late Future<PivxGovernance> _governance;
+  Future<List<PivxPastProposal>>? _past;
 
   /// This wallet's masternode votes, by proposal hash (filled in as they
   /// arrive).
   final _votes = <String, Map<String, PivxMasternodeVote>>{};
   int _generation = 0;
 
+  _Tab _tab = _Tab.current;
   _Filter _filter = _Filter.all;
 
   PivxWallet get _wallet =>
       ref.read(pWallets).getWallet(widget.walletId) as PivxWallet;
+
+  bool get _archiveAllowed =>
+      ref.read(prefsChangeNotifierProvider).externalCalls;
 
   @override
   void initState() {
@@ -69,15 +92,39 @@ class _PivxGovernanceViewState extends ConsumerState<PivxGovernanceView> {
 
   void _load() {
     final generation = ++_generation;
-    _governance = _wallet.loadGovernance();
+    final wallet = _wallet;
+    _governance = () async {
+      // Submit proposals whose fee confirmed meanwhile, then show them.
+      if (wallet.pendingProposals.isNotEmpty) {
+        try {
+          await wallet.submitPendingProposals();
+        } catch (e) {
+          Logging.instance.w("PIVX: proposals: $e");
+        }
+      }
+      return wallet.loadGovernance();
+    }();
     _governance.then((g) => _loadVotes(g, generation), onError: (_) {});
+    if (_past != null) _loadPast();
+  }
+
+  void _loadPast() {
+    _past = _wallet
+        .loadPastProposals(includeArchive: _archiveAllowed)
+        .then(
+          (list) => list
+            ..sort((a, b) {
+              if (a.passed != b.passed) return a.passed ? -1 : 1;
+              return b.yeas.compareTo(a.yeas);
+            }),
+        );
   }
 
   /// One proposal at a time: a request each.
   Future<void> _loadVotes(PivxGovernance g, int generation) async {
     final wallet = _wallet;
     if (wallet.masternodes.isEmpty) return;
-    for (final p in g.proposals) {
+    for (final p in [...g.current, ...g.future]) {
       if (!mounted || generation != _generation) return;
       try {
         final votes = await wallet.masternodeVotes(p);
@@ -93,7 +140,7 @@ class _PivxGovernanceViewState extends ConsumerState<PivxGovernanceView> {
   Future<void> _refresh() async {
     setState(_load);
     try {
-      await _governance;
+      await (_tab == _Tab.past ? _past : _governance);
     } catch (_) {
       // Shown by the FutureBuilder.
     }
@@ -111,9 +158,23 @@ class _PivxGovernanceViewState extends ConsumerState<PivxGovernanceView> {
     if (changed == true && mounted) setState(_load);
   }
 
+  Future<void> _create() async {
+    await Navigator.of(
+      context,
+    ).pushNamed(PivxCreateProposalView.routeName, arguments: widget.walletId);
+    if (mounted) setState(_load);
+  }
+
+  Future<void> _removePending(PivxPendingProposal p) async {
+    await _wallet.removePendingProposal(p.hash);
+    if (mounted) setState(_load);
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<StackColors>()!;
+    final wallet = _wallet;
+    final canCreate = !wallet.isViewOnly;
     return Background(
       child: Scaffold(
         backgroundColor: colors.background,
@@ -124,118 +185,275 @@ class _PivxGovernanceViewState extends ConsumerState<PivxGovernanceView> {
           title: Text("Governance", style: STextStyles.navBarTitle(context)),
         ),
         body: SafeArea(
-          child: FutureBuilder<PivxGovernance>(
-            future: _governance,
-            builder: (context, snapshot) {
-              if (snapshot.hasError) {
-                return _LoadError(
-                  error: snapshot.error!,
-                  onRetry: () => setState(_load),
-                );
-              }
-              final g = snapshot.data;
-              if (g == null) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              final shown = [
-                for (final p in g.proposals)
-                  if (_filter.shows(p.status)) p,
-              ];
-              return RefreshIndicator(
-                onRefresh: _refresh,
-                child: ListView(
-                  physics: const AlwaysScrollableScrollPhysics(),
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                  children: [
-                    _BudgetCard(wallet: _wallet, governance: g),
-                    const SizedBox(height: 16),
-                    SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Row(
-                        children: [
-                          for (final f in _Filter.values)
-                            Padding(
-                              padding: const EdgeInsets.only(right: 8),
-                              child: ChoiceChip(
-                                label: Text(
-                                  "${f.label} "
-                                  "${g.proposals.where((p) => f.shows(p.status)).length}",
-                                ),
-                                selected: _filter == f,
-                                showCheckmark: false,
-                                selectedColor: colors.accentColorBlue
-                                    .withValues(alpha: 0.18),
-                                backgroundColor: colors.popupBG,
-                                side: BorderSide(
-                                  color: _filter == f
-                                      ? colors.accentColorBlue
-                                      : colors.textFieldDefaultBG,
-                                ),
-                                labelStyle: STextStyles.w600_12(context)
-                                    .copyWith(
-                                      color: _filter == f
-                                          ? colors.accentColorBlue
-                                          : colors.textDark,
-                                    ),
-                                onSelected: (_) => setState(() => _filter = f),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    if (shown.isEmpty)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 40),
-                        child: Text(
-                          g.proposals.isEmpty
-                              ? "No budget proposals right now."
-                              : "No ${_filter.label.toLowerCase()} proposals.",
-                          textAlign: TextAlign.center,
-                          style: STextStyles.itemSubtitle(context),
-                        ),
-                      ),
-                    for (final p in shown) ...[
-                      const SizedBox(height: 10),
-                      _ProposalCard(
-                        wallet: _wallet,
-                        proposal: p,
-                        governance: g,
-                        votes: _votes[p.hash],
-                        onTap: () => _open(p, g),
-                      ),
-                    ],
-                  ],
+          child: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+                child: _Tabs(
+                  selected: _tab,
+                  onSelected: (t) => setState(() {
+                    _tab = t;
+                    if (t == _Tab.past && _past == null) _loadPast();
+                  }),
                 ),
-              );
-            },
+              ),
+              Expanded(
+                child: RefreshIndicator(
+                  onRefresh: _refresh,
+                  child: _tab == _Tab.past ? _pastList() : _proposalList(),
+                ),
+              ),
+              if (canCreate)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+                  child: PrimaryButton(
+                    label: "Create proposal",
+                    onPressed: _create,
+                  ),
+                ),
+            ],
           ),
         ),
       ),
     );
   }
+
+  Widget _proposalList() => FutureBuilder<PivxGovernance>(
+    future: _governance,
+    builder: (context, snapshot) {
+      if (snapshot.hasError) {
+        return _LoadError(
+          error: snapshot.error!,
+          onRetry: () => setState(_load),
+        );
+      }
+      final g = snapshot.data;
+      if (g == null) {
+        return const Center(child: CircularProgressIndicator());
+      }
+      final future = _tab == _Tab.future;
+      final all = future ? g.future : g.current;
+      final shown = [
+        for (final p in all)
+          if (future || _filter.shows(p.status)) p,
+      ];
+      final pending = [
+        for (final p in g.pending)
+          if ((p.blockStart > g.nextSuperblock) == future) p,
+      ];
+      return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+        children: [
+          _BudgetCard(wallet: _wallet, governance: g, future: future),
+          if (!future) ...[const SizedBox(height: 14), _filterChips(g)],
+          for (final p in pending) ...[
+            const SizedBox(height: 10),
+            _PendingCard(
+              wallet: _wallet,
+              proposal: p,
+              onRemove: () => _removePending(p),
+            ),
+          ],
+          if (shown.isEmpty && pending.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 40),
+              child: Text(
+                future
+                    ? "No proposals for later payouts yet."
+                    : all.isEmpty
+                    ? "No proposals for the next payout."
+                    : "No ${_filter.label.toLowerCase()} proposals.",
+                textAlign: TextAlign.center,
+                style: STextStyles.itemSubtitle(context),
+              ),
+            ),
+          for (final p in shown) ...[
+            const SizedBox(height: 10),
+            _ProposalCard(
+              wallet: _wallet,
+              proposal: p,
+              governance: g,
+              votes: _votes[p.hash],
+              onTap: () => _open(p, g),
+            ),
+          ],
+        ],
+      );
+    },
+  );
+
+  Widget _filterChips(PivxGovernance g) {
+    final colors = Theme.of(context).extension<StackColors>()!;
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          for (final f in _Filter.values)
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: ChoiceChip(
+                label: Text(
+                  "${f.label} "
+                  "${g.current.where((p) => f.shows(p.status)).length}",
+                ),
+                selected: _filter == f,
+                showCheckmark: false,
+                selectedColor: colors.accentColorBlue.withValues(alpha: 0.18),
+                backgroundColor: colors.popupBG,
+                side: BorderSide(
+                  color: _filter == f
+                      ? colors.accentColorBlue
+                      : colors.textFieldDefaultBG,
+                ),
+                labelStyle: STextStyles.w600_12(context).copyWith(
+                  color: _filter == f
+                      ? colors.accentColorBlue
+                      : colors.textDark,
+                ),
+                onSelected: (_) => setState(() => _filter = f),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _pastList() => FutureBuilder<List<PivxPastProposal>>(
+    future: _past,
+    builder: (context, snapshot) {
+      if (snapshot.hasError) {
+        return _LoadError(
+          error: snapshot.error!,
+          onRetry: () => setState(_loadPast),
+        );
+      }
+      final past = snapshot.data;
+      if (past == null) {
+        return const Center(child: CircularProgressIndicator());
+      }
+      final wallet = _wallet;
+      final mainnet =
+          wallet.cryptoCurrency.network == CryptoCurrencyNetwork.main;
+      final note = !mainnet
+          ? "Finished proposals the network still knows."
+          : _archiveAllowed
+          ? "Finished proposals, from pivx.org and the network."
+          : "Only the finished proposals the network still knows: the full "
+                "history comes from pivx.org, which Incognito mode doesn't "
+                "contact.";
+      return ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+        children: [
+          Text(note, style: STextStyles.itemSubtitle(context)),
+          if (past.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 40),
+              child: Text(
+                "No finished proposals.",
+                textAlign: TextAlign.center,
+                style: STextStyles.itemSubtitle(context),
+              ),
+            ),
+          for (final p in past) ...[
+            const SizedBox(height: 10),
+            _PastCard(wallet: wallet, proposal: p),
+          ],
+        ],
+      );
+    },
+  );
 }
 
-/// The month's budget: what passing proposals take, and the next payout.
+/// Past · Current · Future, like pivx.org/proposals.
+class _Tabs extends StatelessWidget {
+  const _Tabs({required this.selected, required this.onSelected});
+
+  final _Tab selected;
+  final ValueChanged<_Tab> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<StackColors>()!;
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: colors.textFieldDefaultBG,
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        children: [
+          for (final t in _Tab.values)
+            Expanded(
+              child: GestureDetector(
+                onTap: () => onSelected(t),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 150),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  decoration: BoxDecoration(
+                    color: t == selected ? colors.popupBG : Colors.transparent,
+                    borderRadius: BorderRadius.circular(9),
+                  ),
+                  child: Text(
+                    t.label,
+                    textAlign: TextAlign.center,
+                    style: STextStyles.w600_14(context).copyWith(
+                      color: t == selected
+                          ? colors.textDark
+                          : colors.textSubtitle1,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The budget per payout: what passing proposals take, the next payout
+/// and what a proposal needs to pass.
 class _BudgetCard extends ConsumerWidget {
-  const _BudgetCard({required this.wallet, required this.governance});
+  const _BudgetCard({
+    required this.wallet,
+    required this.governance,
+    required this.future,
+  });
 
   final PivxWallet wallet;
   final PivxGovernance governance;
+
+  /// The Future tab: what later payouts would pay if votes hold.
+  final bool future;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colors = Theme.of(context).extension<StackColors>()!;
     final fmt = ref.watch(pAmountFormatter(wallet.cryptoCurrency));
     final g = governance;
+    final allocated = future ? g.futureAllocated : g.allocated;
     final total = g.totalBudget.decimal.toDouble();
     final share = total <= 0
         ? 0.0
-        : (g.allocated.decimal.toDouble() / total).clamp(0.0, 1.0);
+        : (allocated.decimal.toDouble() / total).clamp(0.0, 1.0);
     final secondary = STextStyles.w500_12(context)
         .copyWith(color: colors.textSubtitle1);
     final seconds =
         g.blocksToSuperblock * wallet.cryptoCurrency.targetBlockTimeSeconds;
+
+    Widget line(IconData icon, String text) => Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 16, color: colors.textSubtitle1),
+          const SizedBox(width: 6),
+          Expanded(child: Text(text, style: secondary)),
+        ],
+      ),
+    );
 
     return RoundedWhiteContainer(
       padding: const EdgeInsets.all(16),
@@ -244,24 +462,45 @@ class _BudgetCard extends ConsumerWidget {
         children: [
           Row(
             children: [
-              Icon(
-                Icons.account_balance_rounded,
-                size: 18,
-                color: colors.accentColorBlue,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      future ||
+                              wallet.cryptoCurrency.network !=
+                                  CryptoCurrencyNetwork.main
+                          ? "Budget per payout"
+                          : "Monthly budget",
+                      style: secondary,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      fmt.format(g.totalBudget),
+                      style: STextStyles.w600_14(context),
+                    ),
+                  ],
+                ),
               ),
-              const SizedBox(width: 8),
-              Text(
-                "Budget per superblock",
-                style: STextStyles.w600_14(context),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      future ? "Allocated if votes hold" : "Allocated",
+                      style: secondary,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      fmt.format(allocated),
+                      style: STextStyles.w600_14(context)
+                          .copyWith(color: colors.accentColorGreen),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          Text(
-            fmt.format(g.allocated),
-            style: STextStyles.pageTitleH2(context),
-          ),
-          Text("of ${fmt.format(g.totalBudget)} allocated", style: secondary),
           const SizedBox(height: 10),
           ClipRRect(
             borderRadius: BorderRadius.circular(4),
@@ -272,39 +511,21 @@ class _BudgetCard extends ConsumerWidget {
               color: colors.accentColorGreen,
             ),
           ),
-          const SizedBox(height: 6),
-          Text("${fmt.format(g.available)} still available", style: secondary),
-          const SizedBox(height: 14),
-          Row(
-            children: [
-              Icon(
-                Icons.schedule_rounded,
-                size: 16,
-                color: colors.textSubtitle1,
-              ),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  "Next superblock in ~${pivxDuration(seconds)} "
-                  "(block ${g.nextSuperblock}, ${g.blocksToSuperblock} to go)",
-                  style: secondary,
-                ),
-              ),
-            ],
-          ),
           const SizedBox(height: 4),
-          Row(
-            children: [
-              Icon(Icons.dns_rounded, size: 16, color: colors.textSubtitle1),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  "${g.enabledMasternodes} masternodes vote; a proposal "
-                  "needs ${g.requiredNetYes} more Yes than No",
-                  style: secondary,
-                ),
-              ),
-            ],
+          Text(
+            "${fmt.format(g.totalBudget - allocated)} available",
+            style: secondary,
+          ),
+          const SizedBox(height: 6),
+          line(
+            Icons.schedule_rounded,
+            "Next payout in ~${pivxDuration(seconds)} "
+            "(block ${g.nextSuperblock})",
+          ),
+          line(
+            Icons.how_to_vote_rounded,
+            "To pass: ${g.requiredNetYes} net Yes votes "
+            "(10% of ${g.enabledMasternodes} masternodes online)",
           ),
         ],
       ),
@@ -337,6 +558,7 @@ class _ProposalCard extends ConsumerWidget {
       for (final e in (votes ?? const {}).entries)
         if (labels[e.key] != null) (label: labels[e.key]!, vote: e.value.vote),
     ];
+    final startsLater = p.blockStart > governance.nextSuperblock;
 
     return RoundedWhiteContainer(
       padding: const EdgeInsets.all(14),
@@ -368,10 +590,10 @@ class _ProposalCard extends ConsumerWidget {
                   style: STextStyles.w600_12(context),
                 ),
                 TextSpan(
-                  text:
-                      " per superblock · "
-                      "${p.remainingPayments} of ${p.totalPayments} "
-                      "payment${p.totalPayments == 1 ? "" : "s"} left",
+                  text: startsLater
+                      ? " × ${p.totalPayments} · from block ${p.blockStart}"
+                      : " · ${p.remainingPayments} of ${p.totalPayments} "
+                            "payment${p.totalPayments == 1 ? "" : "s"} left",
                   style: STextStyles.w500_12(context)
                       .copyWith(color: colors.textSubtitle1),
                 ),
@@ -382,7 +604,7 @@ class _ProposalCard extends ConsumerWidget {
           PivxVotesBar(
             yeas: p.yeas,
             nays: p.nays,
-            requiredNetYes: governance.requiredNetYes,
+            netYesPercent: governance.netYesPercent(p),
           ),
           if (myVotes.isNotEmpty) ...[
             const SizedBox(height: 10),
@@ -401,6 +623,161 @@ class _ProposalCard extends ConsumerWidget {
   }
 }
 
+/// One of this wallet's proposals before the network knows it.
+class _PendingCard extends ConsumerWidget {
+  const _PendingCard({
+    required this.wallet,
+    required this.proposal,
+    required this.onRemove,
+  });
+
+  final PivxWallet wallet;
+  final PivxPendingProposal proposal;
+  final VoidCallback onRemove;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colors = Theme.of(context).extension<StackColors>()!;
+    final fmt = ref.watch(pAmountFormatter(wallet.cryptoCurrency));
+    final p = proposal;
+    final secondary = STextStyles.w500_12(context)
+        .copyWith(color: colors.textSubtitle1);
+    final failed = p.error != null;
+    final amount = Amount(
+      rawValue: p.amountSats,
+      fractionDigits: wallet.cryptoCurrency.fractionDigits,
+    );
+
+    return RoundedWhiteContainer(
+      padding: const EdgeInsets.all(14),
+      borderColor: failed ? colors.textError : colors.accentColorBlue,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(p.name, style: STextStyles.w600_14(context)),
+              ),
+              PivxPill(
+                text: failed ? "Failed" : "Your proposal",
+                color: failed ? colors.textError : colors.accentColorBlue,
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            "${fmt.format(amount)} × ${p.payments} · from block "
+            "${p.blockStart}",
+            style: secondary,
+          ),
+          const SizedBox(height: 8),
+          if (failed) ...[
+            Text(p.error!, style: secondary.copyWith(color: colors.textError)),
+            Align(
+              alignment: Alignment.centerRight,
+              child: CustomTextButton(text: "Remove", onTap: onRemove),
+            ),
+          ] else
+            FutureBuilder<int?>(
+              future: wallet.feeConfirmationsOf(p),
+              builder: (context, snapshot) {
+                final confs = snapshot.data;
+                final need = wallet.proposalFeeConfirmations;
+                final text = confs == null
+                    ? "Fee sent; waiting for it to be mined"
+                    : confs < need
+                    ? "Fee confirming: $confs of $need. Then PIVXie submits "
+                          "it (keep the wallet syncing)."
+                    : "Submitting to the network…";
+                return Row(
+                  children: [
+                    SizedBox(
+                      width: 14,
+                      height: 14,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        value: confs == null ? null : confs / need,
+                        color: colors.accentColorBlue,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(child: Text(text, style: secondary)),
+                  ],
+                );
+              },
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PastCard extends ConsumerWidget {
+  const _PastCard({required this.wallet, required this.proposal});
+
+  final PivxWallet wallet;
+  final PivxPastProposal proposal;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final colors = Theme.of(context).extension<StackColors>()!;
+    final fmt = ref.watch(pAmountFormatter(wallet.cryptoCurrency));
+    final p = proposal;
+    return RoundedWhiteContainer(
+      padding: const EdgeInsets.all(14),
+      onPressed: p.url.isEmpty
+          ? null
+          : () => openPivxProposalUrl(context, p.url),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Text(
+                  p.name,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: STextStyles.w600_14(context),
+                ),
+              ),
+              if (p.url.isNotEmpty) ...[
+                const SizedBox(width: 6),
+                Icon(
+                  Icons.open_in_new_rounded,
+                  size: 16,
+                  color: colors.accentColorBlue,
+                ),
+              ],
+              const SizedBox(width: 8),
+              PivxPill(
+                text: p.passed ? "Passed" : "Failed",
+                color: pivxProposalStatusColor(
+                  p.passed
+                      ? PivxProposalStatus.passing
+                      : PivxProposalStatus.notPassing,
+                  colors,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            "${fmt.format(p.totalPayment)} in total · "
+            "${pivxPercent(p.yesPercent)} Yes",
+            style: STextStyles.w500_12(context)
+                .copyWith(color: colors.textSubtitle1),
+          ),
+          const SizedBox(height: 10),
+          PivxVotesBar(yeas: p.yeas, nays: p.nays),
+        ],
+      ),
+    );
+  }
+}
+
 class _LoadError extends StatelessWidget {
   const _LoadError({required this.error, required this.onRetry});
 
@@ -412,32 +789,31 @@ class _LoadError extends StatelessWidget {
     final colors = Theme.of(context).extension<StackColors>()!;
     final text = error.toString().replaceFirst("Exception: ", "");
     final forbidden = text.contains("not allowed");
-    return Padding(
+    // Scrollable, so pull to refresh works here too.
+    return ListView(
+      physics: const AlwaysScrollableScrollPhysics(),
       padding: const EdgeInsets.all(24),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Icon(Icons.cloud_off_rounded, size: 48, color: colors.textSubtitle2),
-          const SizedBox(height: 16),
-          Text(
-            "Couldn't load the proposals",
-            textAlign: TextAlign.center,
-            style: STextStyles.pageTitleH2(context),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            forbidden
-                ? "The node you are connected to doesn't offer governance "
-                      "data. Try another PIVX node in the network settings."
-                : text,
-            textAlign: TextAlign.center,
-            style: STextStyles.itemSubtitle(context),
-          ),
-          const SizedBox(height: 24),
-          SecondaryButton(label: "Try again", onPressed: onRetry),
-        ],
-      ),
+      children: [
+        const SizedBox(height: 40),
+        Icon(Icons.cloud_off_rounded, size: 48, color: colors.textSubtitle2),
+        const SizedBox(height: 16),
+        Text(
+          "Couldn't load the proposals",
+          textAlign: TextAlign.center,
+          style: STextStyles.pageTitleH2(context),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          forbidden
+              ? "The node you are connected to doesn't offer governance "
+                    "data. Try another PIVX node in the network settings."
+              : text,
+          textAlign: TextAlign.center,
+          style: STextStyles.itemSubtitle(context),
+        ),
+        const SizedBox(height: 24),
+        SecondaryButton(label: "Try again", onPressed: onRetry),
+      ],
     );
   }
 }

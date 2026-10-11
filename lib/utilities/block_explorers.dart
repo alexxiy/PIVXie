@@ -18,10 +18,7 @@ Future<int> setBlockExplorerForCoin({
   required Uri url,
 }) async {
   return await MainDB.instance.putTransactionBlockExplorer(
-    TransactionBlockExplorer(
-      ticker: coin.ticker,
-      url: url.toString(),
-    ),
+    TransactionBlockExplorer(ticker: coin.ticker, url: url.toString()),
   );
 }
 
@@ -30,12 +27,34 @@ Uri getBlockExplorerTransactionUrlFor({
   required CryptoCurrency coin,
   required String txid,
 }) {
-  String? url =
-      MainDB.instance.getTransactionBlockExplorer(cryptoCurrency: coin)?.url;
+  String? url = MainDB.instance
+      .getTransactionBlockExplorer(cryptoCurrency: coin)
+      ?.url;
   if (url == null) {
     return coin.defaultBlockExplorer(txid);
   } else {
     url = url.replaceAll("%5BTXID%5D", txid);
     return Uri.parse(url);
   }
+}
+
+/// The block explorer page of [address]: the transaction explorer's URL
+/// with `/address/<address>` for its `/tx/<txid>` (Blockbook style, like
+/// PIVX's explorers).
+Uri getBlockExplorerAddressUrlFor({
+  required CryptoCurrency coin,
+  required String address,
+}) {
+  const marker =
+      "0000000000000000000000000000000000000000000000000000000000000000";
+  final txUrl = getBlockExplorerTransactionUrlFor(
+    coin: coin,
+    txid: marker,
+  ).toString();
+  final i = txUrl.indexOf("/tx/$marker");
+  if (i >= 0) {
+    return Uri.parse("${txUrl.substring(0, i)}/address/$address");
+  }
+  final base = Uri.parse(txUrl);
+  return base.replace(path: "/address/$address", query: "");
 }

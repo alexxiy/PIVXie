@@ -466,6 +466,32 @@ class PivxBridgeClient {
     ];
   }
 
+  /// `submitbudget`: announce a proposal whose fee transaction [feeTxid]
+  /// is confirmed. Returns the proposal hash. Always JSON params: exact
+  /// types (the amount as a decimal string), names may contain commas.
+  Future<String> submitBudget({
+    required String name,
+    required String url,
+    required int payments,
+    required int blockStart,
+    required String paymentAddress,
+    required String amount,
+    required String feeTxid,
+  }) async {
+    final text = await _getText("/submitbudget", {
+      "params": jsonEncode([
+        name,
+        url,
+        payments,
+        blockStart,
+        paymentAddress,
+        amount,
+        feeTxid,
+      ]),
+    });
+    return text.trim().replaceAll('"', '');
+  }
+
   /// `mnbudgetrawvote`: relay a budget vote signed with the masternode
   /// key. Returns the node's answer ("Voted successfully" or why not).
   Future<String> budgetRawVote({

@@ -66,20 +66,20 @@ class PivxProposalStatusPill extends StatelessWidget {
   );
 }
 
-/// Yes against No as one bar, with the counts under it.
+/// Yes against No as one bar; under it the counts and, when known, the
+/// net Yes share of the masternodes online, as pivx.org shows it (a
+/// proposal passes from [kPivxPassPercent]).
 class PivxVotesBar extends StatelessWidget {
   const PivxVotesBar({
     super.key,
     required this.yeas,
     required this.nays,
-    this.requiredNetYes,
+    this.netYesPercent,
   });
 
   final int yeas;
   final int nays;
-
-  /// Net yes votes needed to pass, when known.
-  final int? requiredNetYes;
+  final double? netYesPercent;
 
   @override
   Widget build(BuildContext context) {
@@ -87,7 +87,7 @@ class PivxVotesBar extends StatelessWidget {
     final yes = pivxVoteColor(PivxVote.yes, colors);
     final no = pivxVoteColor(PivxVote.no, colors);
     final total = yeas + nays;
-    final net = yeas - nays;
+    final percent = netYesPercent;
     final label = STextStyles.w500_12(context)
         .copyWith(color: colors.textSubtitle1);
     return Column(
@@ -129,17 +129,31 @@ class PivxVotesBar extends StatelessWidget {
               style: STextStyles.w600_12(context).copyWith(color: no),
             ),
             const Spacer(),
-            Text(
-              requiredNetYes == null
-                  ? "Net ${net >= 0 ? "+" : ""}$net"
-                  : "Net ${net >= 0 ? "+" : ""}$net of $requiredNetYes needed",
-              style: label,
-            ),
+            if (percent != null)
+              Text(
+                "${pivxPercent(percent)} net Yes",
+                style: STextStyles.w600_12(context).copyWith(
+                  color: percent >= kPivxPassPercent
+                      ? yes
+                      : colors.textSubtitle1,
+                ),
+              ),
           ],
         ),
       ],
     );
   }
+}
+
+/// Net Yes share needed to pass: 10 % of the masternodes online.
+const kPivxPassPercent = 10.0;
+
+/// "60.5%", "100%", "-3%".
+String pivxPercent(double value) {
+  final rounded = (value * 10).round() / 10;
+  return rounded == rounded.roundToDouble()
+      ? "${rounded.toInt()}%"
+      : "${rounded.toStringAsFixed(1)}%";
 }
 
 /// "MN1 · Yes": how one of the wallet's masternodes voted.
@@ -182,10 +196,20 @@ class PivxVoteChip extends StatelessWidget {
 
 /// A titled value that copies itself when tapped.
 class PivxCopyRow extends StatelessWidget {
-  const PivxCopyRow({super.key, required this.title, required this.value});
+  const PivxCopyRow({
+    super.key,
+    required this.title,
+    required this.value,
+    this.onOpen,
+    this.openTooltip,
+  });
 
   final String title;
   final String value;
+
+  /// Shows a link button (e.g. to the block explorer).
+  final VoidCallback? onOpen;
+  final String? openTooltip;
 
   @override
   Widget build(BuildContext context) {
@@ -222,7 +246,19 @@ class PivxCopyRow extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(width: 8),
+            if (onOpen != null)
+              IconButton(
+                tooltip: openTooltip,
+                visualDensity: VisualDensity.compact,
+                onPressed: onOpen,
+                icon: Icon(
+                  Icons.open_in_new_rounded,
+                  size: 18,
+                  color: colors.accentColorBlue,
+                ),
+              )
+            else
+              const SizedBox(width: 8),
             Icon(Icons.copy_rounded, size: 16, color: colors.textSubtitle1),
           ],
         ),

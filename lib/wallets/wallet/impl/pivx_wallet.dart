@@ -20,6 +20,7 @@ import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../models/isar/models/isar_models.dart';
 import '../../../models/keys/view_only_wallet_data.dart';
 import '../../../models/paymint/fee_object_model.dart';
+import '../../../networking/http.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
 import '../../../utilities/enums/fee_rate_type_enum.dart';
@@ -88,6 +89,9 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
   static const _kP2pkhInput = 149;
   static const _kP2pkhOutput = 34;
   static const _kExchangeOutput = 35;
+
+  /// value + script length + OP_RETURN + push 32 + hash (proposal fee).
+  static const _kOpReturnOutput = 43;
 
   @override
   int get isarTransactionVersion => 2;
@@ -312,6 +316,15 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
   Future<void> refresh() async {
     try {
       await UiStallWatch.run("PIVX ${info.name}: refresh", super.refresh);
+      // Announce proposals whose fee is now confirmed (like PIVX Core's
+      // wallet polls for them).
+      if (pendingProposals.isNotEmpty) {
+        unawaited(
+          submitPendingProposals().catchError(
+            (Object e) => Logging.instance.w("PIVX: proposals: $e"),
+          ),
+        );
+      }
     } finally {
       _startWatching();
     }
@@ -991,7 +1004,9 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
   int _estimateSize(int inputs, Iterable<String> outputAddresses) {
     int size = _kTxOverhead + inputs * _kP2pkhInput;
     for (final a in outputAddresses) {
-      size += cryptoCurrency.isExchangeAddress(a)
+      size += a.startsWith(kPivxOpReturnPrefix)
+          ? _kOpReturnOutput
+          : cryptoCurrency.isExchangeAddress(a)
           ? _kExchangeOutput
           : _kP2pkhOutput;
     }
@@ -1089,6 +1104,13 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
       return _prepareShieldSend(txData: txData, fromShield: fromShield);
     }
     for (final r in recipients) {
+      // A proposal fee: OP_RETURN with the proposal hash.
+      if (r.address.startsWith(kPivxOpReturnPrefix)) {
+        if (r.address.length != kPivxOpReturnPrefix.length + 64) {
+          throw Exception("Invalid OP_RETURN output");
+        }
+        continue;
+      }
       if (!cryptoCurrency.validateAddress(r.address)) {
         throw Exception("Invalid PIVX address: ${r.address}");
       }
@@ -1349,14 +1371,21 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
         .toSet();
     final tempOutputs = <OutputV2>[];
     for (final o in outputs) {
-      final address = _parseAddress(o.address);
-      final output = coinlib.Output.fromAddress(o.amount.raw, address);
+      final opReturn = o.address.startsWith(kPivxOpReturnPrefix);
+      final output = opReturn
+          ? coinlib.Output.fromScriptBytes(
+              o.amount.raw,
+              pivxProposalFeeScript(
+                o.address.substring(kPivxOpReturnPrefix.length),
+              ),
+            )
+          : coinlib.Output.fromAddress(o.amount.raw, _parseAddress(o.address));
       tx = tx.addOutput(output);
       tempOutputs.add(
         OutputV2.isarCantDoRequiredInDefaultConstructor(
           scriptPubKeyHex: output.scriptPubKey.toHex,
           valueStringSats: o.amount.raw.toString(),
-          addresses: [o.address],
+          addresses: [if (!opReturn) o.address],
           walletOwns: own.contains(o.address),
         ),
       );

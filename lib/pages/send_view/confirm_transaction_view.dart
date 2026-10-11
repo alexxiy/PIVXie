@@ -34,6 +34,7 @@ import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/models/tx_data.dart';
+import '../../wallets/wallet/impl/pivx_wallet.dart';
 import '../../widgets/background.dart';
 import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -75,6 +76,14 @@ class ConfirmTransactionView extends ConsumerStatefulWidget {
 
 class _ConfirmTransactionViewState
     extends ConsumerState<ConfirmTransactionView> {
+  /// The first recipient; a proposal fee (OP_RETURN) reads as what it is.
+  String get _recipientText {
+    final address = widget.txData.recipients?.firstOrNull?.address ?? "";
+    return address.startsWith(kPivxOpReturnPrefix)
+        ? "Proposal fee, burnt (proposal ${address.substring(kPivxOpReturnPrefix.length, kPivxOpReturnPrefix.length + 16)}…)"
+        : address;
+  }
+
   late final String walletId;
   late final String routeOnSuccessName;
   late final bool isDesktop;
@@ -353,7 +362,7 @@ class _ConfirmTransactionViewState
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          widget.txData.recipients?.firstOrNull?.address ?? "",
+                          _recipientText,
                           style: STextStyles.itemSubtitle12(context),
                         ),
                       ],
@@ -586,8 +595,7 @@ class _ConfirmTransactionViewState
                             ),
                             const SizedBox(height: 2),
                             SelectableText(
-                              widget.txData.recipients?.firstOrNull?.address ??
-                                  "",
+                              _recipientText,
                               style:
                                   STextStyles.desktopTextExtraExtraSmall(
                                     context,

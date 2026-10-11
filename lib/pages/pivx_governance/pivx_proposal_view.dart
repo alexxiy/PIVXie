@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../providers/global/wallets_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount_formatter.dart';
+import '../../utilities/block_explorers.dart';
 import '../../utilities/text_styles.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
 import '../../widgets/background.dart';
@@ -232,7 +234,13 @@ class _PivxProposalViewState extends ConsumerState<PivxProposalView> {
                             PivxVotesBar(
                               yeas: p.yeas,
                               nays: p.nays,
-                              requiredNetYes: g.requiredNetYes,
+                              netYesPercent: g.netYesPercent(p),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              "Passes at 10% net Yes: ${g.requiredNetYes} of "
+                              "${g.enabledMasternodes} masternodes online",
+                              style: secondary,
                             ),
                             if (p.abstains > 0) ...[
                               const SizedBox(height: 4),
@@ -294,6 +302,14 @@ class _PivxProposalViewState extends ConsumerState<PivxProposalView> {
                             PivxCopyRow(
                               title: "Payment address",
                               value: p.paymentAddress,
+                              openTooltip: "Open in the block explorer",
+                              onOpen: () => launchUrl(
+                                getBlockExplorerAddressUrlFor(
+                                  coin: wallet.cryptoCurrency,
+                                  address: p.paymentAddress,
+                                ),
+                                mode: LaunchMode.externalApplication,
+                              ),
                             ),
                             PivxCopyRow(title: "Proposal hash", value: p.hash),
                             if (p.feeHash.isNotEmpty)
@@ -369,7 +385,10 @@ class _MasternodeVoteRow extends StatelessWidget {
                       ? "Checking…"
                       : v == null
                       ? "Not voted"
-                      : "Voted ${_ago(v.time)}",
+                      : v.canChange
+                      ? "Voted ${_ago(v.time)}"
+                      : "Voted ${_ago(v.time)} · can change in "
+                            "~${pivxDuration(v.changeableAt.difference(DateTime.now()).inSeconds)}",
                   style: STextStyles.w500_12(context)
                       .copyWith(color: colors.textSubtitle1),
                 ),
@@ -439,7 +458,7 @@ class _VoteSheetState extends State<_VoteSheet> {
     }
     if (!v.canChange) {
       final wait = v.changeableAt.difference(DateTime.now()).inSeconds;
-      return "Can change its vote in ${pivxDuration(wait)}";
+      return "Can change its vote in ~${pivxDuration(wait)}";
     }
     return null;
   }
