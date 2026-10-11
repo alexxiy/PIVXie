@@ -550,7 +550,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
 
   /// Bumped when parsing changes: the next sync re-parses all history.
   static const _kTxParseVersion = "pivxTxParseVersion";
-  static const _txParseVersion = 2;
+  static const _txParseVersion = 3;
 
   /// The wallet's view of a bridge tx; see [parsePivxTx].
   TransactionV2? _parseTx(
@@ -597,7 +597,9 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
         // side, so keep the entry we built until it confirms; then keep
         // the exact amount and change we built it with.
         if (tx.height == null) continue;
-        if (tx.type == stored.type) {
+        // A burn (proposal fee) reads the same from the chain; older
+        // entries may not have been labelled as one yet.
+        if (tx.type == stored.type && tx.pivxKind != PivxTxKind.burn) {
           final od = {
             ...jsonDecode(tx.otherData ?? "{}") as Map<String, dynamic>,
           };
@@ -1194,6 +1196,41 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     return a;
   }
 
+  /// The output of a recipient that isn't a plain address: a proposal
+  /// fee (OP_RETURN, burnt) or a delegation to a staker (a cold staking
+  /// script owned by the owner address in [txData], one of [own]). Null
+  /// for addresses.
+  ({Uint8List script, List<String> addresses, bool ours})? _specialOutput(
+    TxData txData,
+    String address,
+    Set<String> own,
+  ) {
+    if (address.startsWith(kPivxOpReturnPrefix)) {
+      return (
+        script: pivxProposalFeeScript(
+          address.substring(kPivxOpReturnPrefix.length),
+        ),
+        addresses: const [],
+        ours: false,
+      );
+    }
+    final stakerHash = pivxStakingAddressHash(
+      address,
+      cryptoCurrency.stakingAddressPrefix,
+    );
+    if (stakerHash == null) return null;
+    final ownerAddress = _coldStakeOwner(txData);
+    final owner = ownerAddress == null ? null : _parseAddress(ownerAddress);
+    if (owner is! coinlib.P2PKHAddress || !own.contains(ownerAddress)) {
+      throw Exception("The owner must be an address of this wallet");
+    }
+    return (
+      script: pivxColdStakeScript(stakerHash: stakerHash, ownerHash: owner.hash),
+      addresses: [address, ownerAddress!],
+      ours: true,
+    );
+  }
+
   /// Owner address of the delegation [txData] makes, if any.
   static String? _coldStakeOwner(TxData txData) => txData.otherData == null
       ? null
@@ -1209,10 +1246,6 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     final subtractFee = _otherDataFlag(txData, kPivxSubtractFee);
     if (subtractFee && recipients.length != 1) {
       throw Exception("Subtracting the fee needs a single recipient");
-    }
-    if (fromShield || recipients.any((r) => isShieldAddress(r.address))) {
-      if (!_shieldSupported) throw Exception("Shield is not available");
-      return _prepareShieldSend(txData: txData, fromShield: fromShield);
     }
     final coldStakeOwner = _coldStakeOwner(txData);
     for (final r in recipients) {
@@ -1238,9 +1271,14 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
       if (!cryptoCurrency.validateAddress(r.address)) {
         throw Exception("Invalid PIVX address: ${r.address}");
       }
+      if (isShieldAddress(r.address)) continue;
       if (r.amount.raw < cryptoCurrency.dustLimit.raw) {
         throw Exception("Amount is below the dust limit");
       }
+    }
+    if (fromShield || recipients.any((r) => isShieldAddress(r.address))) {
+      if (!_shieldSupported) throw Exception("Shield is not available");
+      return _prepareShieldSend(txData: txData, fromShield: fromShield);
     }
 
     final feePerByte = _feePerByte(txData, await fees);
@@ -1540,49 +1578,19 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     final own = (await mainDB.getAddresses(walletId).findAll())
         .map((e) => e.value)
         .toSet();
-    final coldStakeOwner = _coldStakeOwner(txData);
     final tempOutputs = <OutputV2>[];
     for (final o in outputs) {
-      final opReturn = o.address.startsWith(kPivxOpReturnPrefix);
-      final stakerHash = pivxStakingAddressHash(
-        o.address,
-        cryptoCurrency.stakingAddressPrefix,
-      );
-      final coinlib.Output output;
-      if (opReturn) {
-        output = coinlib.Output.fromScriptBytes(
-          o.amount.raw,
-          pivxProposalFeeScript(
-            o.address.substring(kPivxOpReturnPrefix.length),
-          ),
-        );
-      } else if (stakerHash != null) {
-        final owner = _parseAddress(coldStakeOwner!);
-        if (owner is! coinlib.P2PKHAddress || !own.contains(coldStakeOwner)) {
-          throw Exception("The owner must be an address of this wallet");
-        }
-        output = coinlib.Output.fromScriptBytes(
-          o.amount.raw,
-          pivxColdStakeScript(stakerHash: stakerHash, ownerHash: owner.hash),
-        );
-      } else {
-        output = coinlib.Output.fromAddress(
-          o.amount.raw,
-          _parseAddress(o.address),
-        );
-      }
+      final special = _specialOutput(txData, o.address, own);
+      final output = special != null
+          ? coinlib.Output.fromScriptBytes(o.amount.raw, special.script)
+          : coinlib.Output.fromAddress(o.amount.raw, _parseAddress(o.address));
       tx = tx.addOutput(output);
       tempOutputs.add(
         OutputV2.isarCantDoRequiredInDefaultConstructor(
           scriptPubKeyHex: output.scriptPubKey.toHex,
           valueStringSats: o.amount.raw.toString(),
-          addresses: [
-            if (!opReturn) o.address,
-            if (stakerHash != null) coldStakeOwner!,
-          ],
-          walletOwns:
-              own.contains(o.address) ||
-              (stakerHash != null && own.contains(coldStakeOwner)),
+          addresses: special?.addresses ?? [o.address],
+          walletOwns: special?.ours ?? own.contains(o.address),
         ),
       );
     }

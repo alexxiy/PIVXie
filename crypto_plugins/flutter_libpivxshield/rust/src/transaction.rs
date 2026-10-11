@@ -31,6 +31,17 @@ use pivx_primitives::merkle_tree::write_commitment_tree;
 use pivx_primitives::merkle_tree::write_incremental_witness;
 use pivx_primitives::transaction::builder::BuildConfig;
 use pivx_primitives::transaction::builder::Builder;
+use pivx_primitives::transaction::builder::DEFAULT_TX_EXPIRY_DELTA;
+use pivx_primitives::transaction::components::sapling::zip212_enforcement;
+use pivx_primitives::transaction::sighash::{signature_hash, SignableInput};
+use pivx_primitives::transaction::txid::TxIdDigester;
+use pivx_primitives::transaction::{TransactionData, TxVersion};
+use pivx_protocol::consensus::BranchId;
+use pivx_protocol::value::ZatBalance;
+use sapling::builder::BundleType;
+use sapling::value::NoteValue;
+use zcash_transparent::address::TransparentAddress;
+use zcash_transparent::builder::TransparentBuilder;
 use pivx_primitives::transaction::components::transparent::builder::TransparentSigningSet;
 use pivx_primitives::transaction::fees::fixed::FeeRule;
 use pivx_primitives::transaction::Transaction;
@@ -527,6 +538,11 @@ pub struct JSTxOptions {
     /// The recipient pays the fee: it receives `amount - fee`.
     #[serde(default)]
     pub subtract_fee: bool,
+    /// Pay `amount` to this output script (hex) instead of `to_address`:
+    /// a proposal fee's OP_RETURN or a cold staking delegation. Shield
+    /// notes only.
+    #[serde(default)]
+    pub to_script: Option<String>,
 }
 
 pub fn create_transaction(options: JSTxOptions) -> BoxResult<JSTransaction> {
@@ -542,12 +558,28 @@ pub fn create_transaction(options: JSTxOptions) -> BoxResult<JSTransaction> {
         memo,
         use_all_inputs,
         subtract_fee,
+        to_script,
     } = options;
     if notes.is_some() && utxos.is_some() {
         Err("Notes and UTXOs were both provided")?;
     }
     let extsk = decode_extsk(&extsk, is_testnet)?;
     let network = if is_testnet { Network::TestNetwork } else { Network::MainNetwork };
+    if let Some(script) = to_script {
+        let mut notes: Vec<(Note, String)> =
+            notes.ok_or("Paying to a script needs shield notes")?.into_iter().map(|n| (n.note, n.witness)).collect();
+        notes.sort_by_key(|(note, _)| note.value().inner());
+        return create_script_transaction(
+            &notes,
+            &extsk,
+            hex::decode(script)?,
+            &change_address,
+            amount,
+            BlockHeight::from_u32(block_height),
+            network,
+            Selection { use_all: use_all_inputs, subtract_fee },
+        );
+    }
     let input = if let Some(notes) = notes {
         let mut notes: Vec<(Note, String)> = notes.into_iter().map(|n| (n.note, n.witness)).collect();
         notes.sort_by_key(|(note, _)| note.value().inner());
@@ -691,6 +723,124 @@ fn create_transaction_internal(
     let mut tx = prove_transaction(builder, extsk.clone(), &signing_set, nullifiers, fee, prover)?;
     tx.amount = amount;
     Ok(tx)
+}
+
+/// Spend shield notes to one transparent output with a given script. The
+/// generic builder only pays to addresses, so this assembles and signs the
+/// transaction the way it does (`Builder::build`), with that output.
+#[allow(clippy::too_many_arguments)]
+fn create_script_transaction(
+    notes: &[(Note, String)],
+    extsk: &ExtendedSpendingKey,
+    script: Vec<u8>,
+    change_address: &str,
+    mut amount: u64,
+    block_height: BlockHeight,
+    network: Network,
+    selection: Selection,
+) -> BoxResult<JSTransaction> {
+    let (_, first_witness) = notes.first().ok_or("No shield notes to spend")?;
+    let first_witness =
+        read_incremental_witness::<Node, _, DEPTH>(Cursor::new(hex::decode(first_witness)?))?;
+    let anchor = Anchor::from_bytes(first_witness.root().to_bytes())
+        .into_option()
+        .ok_or("Invalid anchor")?;
+    let mut sapling = sapling::builder::Builder::new(
+        zip212_enforcement(&network, block_height),
+        BundleType::DEFAULT,
+        anchor,
+    );
+
+    let shield_change = change_address.starts_with(network.hrp_sapling_payment_address());
+    let transparent_outputs = if shield_change { 1 } else { 2 };
+    // The fee estimate counts 34-byte transparent outputs; this one is
+    // value + script length + script.
+    let extra = 1000 * (9 + script.len() as u64).saturating_sub(34);
+
+    let dfvk = extsk.to_diversifiable_full_viewing_key();
+    let mut total = 0;
+    let mut count = 0;
+    let mut fee = 0;
+    let mut nullifiers = vec![];
+    for (note, witness) in notes {
+        let witness = read_incremental_witness::<Node, _, DEPTH>(Cursor::new(hex::decode(witness)?))?;
+        sapling
+            .add_spend(dfvk.fvk().clone(), note.clone(), witness.path().ok_or("Commitment Tree is empty")?)
+            .map_err(|_| "Failed to add sapling spend")?;
+        let nullifier = note.nf(&dfvk.to_nk(Scope::External), witness.witnessed_position().into());
+        nullifiers.push(hex::encode(nullifier.to_vec()));
+        count += 1;
+        fee = fee_calculator(0, transparent_outputs, count, 2) + extra;
+        total += note.value().inner();
+        if !selection.use_all && total >= selection.needed(amount, fee) {
+            break;
+        }
+    }
+    let change = selection.settle(total, &mut amount, fee)?;
+
+    let ovk = dfvk.fvk().ovk;
+    let mut transparent = TransparentBuilder::empty();
+    // A placeholder address: its script is replaced below.
+    transparent
+        .add_output(
+            &TransparentAddress::PublicKeyHash([0; 20]),
+            Zatoshis::from_u64(amount).map_err(|_| "Invalid Amount")?,
+        )
+        .map_err(|_| "Failed to add output")?;
+    if change > 0 {
+        match decode_generic_address(network, change_address)? {
+            GenericAddress::Transparent(x) => transparent
+                .add_output(&x, Zatoshis::from_u64(change).map_err(|_| "Invalid change")?)
+                .map_err(|_| "Failed to add transparent change")?,
+            GenericAddress::Shield(x) => sapling
+                .add_output(Some(ovk), x, NoteValue::from_raw(change), None)
+                .map_err(|_| "Failed to add shield change")?,
+        }
+    }
+    let mut transparent = transparent.build().ok_or("No transparent output")?;
+    transparent.vout[0].script_pubkey = Script(script);
+
+    let prover = prover::get()?;
+    let mut rng = OsRng;
+    let (sapling, _) = sapling
+        .build::<sapling::circuit::SpendParameters, sapling::circuit::OutputParameters, _, ZatBalance>(
+            &[extsk.clone()],
+            &mut rng,
+        )
+        .map_err(|e| format!("Failed to build the shield bundle: {e:?}"))?
+        .ok_or("No shield spends")?;
+    let sapling = sapling.create_proofs(&prover.1, &prover.0, &mut rng, ());
+
+    let branch = BranchId::for_height(&network, block_height);
+    let version = TxVersion::suggested_for_branch(branch);
+    let expiry = block_height + DEFAULT_TX_EXPIRY_DELTA;
+    let unauthed: TransactionData<pivx_primitives::transaction::Unauthorized> =
+        TransactionData::from_parts(version, branch, 0, expiry, Some(transparent), None, Some(sapling), None);
+
+    let txid_parts = unauthed.digest(TxIdDigester);
+    let transparent = unauthed
+        .transparent_bundle()
+        .cloned()
+        .map(|b| {
+            b.apply_signatures(
+                |input| *signature_hash(&unauthed, &SignableInput::Transparent(input), &txid_parts).as_ref(),
+                &TransparentSigningSet::new(),
+            )
+        })
+        .transpose()
+        .map_err(|e| format!("Failed to sign: {e:?}"))?;
+    let sighash = signature_hash(&unauthed, &SignableInput::Shielded, &txid_parts);
+    let sapling = unauthed
+        .sapling_bundle()
+        .cloned()
+        .map(|b| b.apply_signatures(&mut rng, *sighash.as_ref(), &[extsk.expsk.ask.clone()]))
+        .transpose()
+        .map_err(|e| format!("Failed to sign the shield spends: {e:?}"))?;
+    let tx = TransactionData::from_parts(version, branch, 0, expiry, transparent, None, sapling, None).freeze()?;
+
+    let mut tx_hex = vec![];
+    tx.write(&mut tx_hex)?;
+    Ok(JSTransaction { txid: tx.txid().to_string(), txhex: hex::encode(tx_hex), nullifiers, fee, amount })
 }
 
 fn choose_utxos(

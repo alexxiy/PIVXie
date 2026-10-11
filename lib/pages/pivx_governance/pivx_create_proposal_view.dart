@@ -22,6 +22,7 @@ import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_text_field.dart';
 import '../pivx_masternodes/pivx_masternodes_view.dart';
 import '../send_view/confirm_transaction_view.dart';
+import '../send_view/sub_widgets/pivx_funding_card.dart';
 import 'pivx_governance_view.dart';
 
 /// Ask the network for funds: name, link, payee, amount per payout,
@@ -45,8 +46,9 @@ class _PivxCreateProposalViewState
   final _nameFocus = FocusNode();
   final _url = TextEditingController(text: "https://");
   final _urlFocus = FocusNode();
-  final _address = TextEditingController();
-  final _addressFocus = FocusNode();
+  /// Where the payouts go: one of the wallet's addresses.
+  String? _payee;
+  PivxFunding _funding = kPivxAutoFunding;
   final _amount = TextEditingController();
   final _amountFocus = FocusNode();
 
@@ -64,7 +66,7 @@ class _PivxCreateProposalViewState
   @override
   void initState() {
     super.initState();
-    for (final c in [_name, _url, _address, _amount]) {
+    for (final c in [_name, _url, _amount]) {
       c.addListener(() {
         _touched.add(c);
         setState(() {});
@@ -82,19 +84,16 @@ class _PivxCreateProposalViewState
       _height = height;
       _starts = wallet.proposalStartSuperblocks(height);
       _start = _starts.firstOrNull;
-      if (_address.text.isEmpty && receive != null) {
-        _address.text = receive.value;
-        _touched.remove(_address);
-      }
+      _payee ??= receive?.value;
     });
   }
 
   @override
   void dispose() {
-    for (final c in [_name, _url, _address, _amount]) {
+    for (final c in [_name, _url, _amount]) {
       c.dispose();
     }
-    for (final f in [_nameFocus, _urlFocus, _addressFocus, _amountFocus]) {
+    for (final f in [_nameFocus, _urlFocus, _amountFocus]) {
       f.dispose();
     }
     super.dispose();
@@ -114,14 +113,15 @@ class _PivxCreateProposalViewState
     return {
       _name: wallet.proposalNameError(_name.text.trim()),
       _url: wallet.proposalUrlError(_url.text.trim()),
-      _address: wallet.proposalAddressError(_address.text.trim()),
       _amount: wallet.proposalAmountError(_amountValue),
     };
   }
 
   Future<void> _pay() async {
     final errors = _errors;
-    if (errors.values.any((e) => e != null) || _start == null) {
+    if (errors.values.any((e) => e != null) ||
+        _start == null ||
+        _payee == null) {
       setState(() => _touched.addAll(errors.keys));
       return;
     }
@@ -133,8 +133,9 @@ class _PivxCreateProposalViewState
         url: _url.text.trim(),
         payments: _payments,
         blockStart: _start!,
-        paymentAddress: _address.text.trim(),
+        paymentAddress: _payee!,
         amount: _amountValue!,
+        funding: _funding,
       ),
       context: context,
       message: "Preparing the fee transaction",
@@ -269,7 +270,17 @@ class _PivxCreateProposalViewState
             rawValue: amount.raw * BigInt.from(_payments),
             fractionDigits: coin.fractionDigits,
           );
-    final balance = wallet.info.cachedBalance.spendable;
+    final balance = _funding.coins.isNotEmpty
+        ? Amount(
+            rawValue: _funding.coins.fold(
+              BigInt.zero,
+              (p, u) => p + BigInt.from(u.value),
+            ),
+            fractionDigits: coin.fractionDigits,
+          )
+        : _funding.fromShield
+        ? wallet.info.cachedBalanceSecondary.spendable
+        : wallet.info.cachedBalance.spendable;
     final enoughFunds = balance.raw > fee.raw;
 
     return Background(
@@ -322,14 +333,12 @@ class _PivxCreateProposalViewState
                       keyboardType: TextInputType.url,
                     ),
                     const SizedBox(height: 12),
-                    Text("Pay to", style: label),
+                    Text("Payouts go to", style: label),
                     const SizedBox(height: 8),
-                    _field(
-                      controller: _address,
-                      focus: _addressFocus,
-                      hint: "Transparent ${coin.ticker} address",
-                      helper: "Your wallet's receiving address by default",
-                      plain: true,
+                    PivxOwnAddressField(
+                      walletId: widget.walletId,
+                      value: _payee,
+                      onChanged: (a) => setState(() => _payee = a),
                     ),
                     const SizedBox(height: 12),
                     Text("Amount per payout", style: label),
@@ -437,6 +446,12 @@ class _PivxCreateProposalViewState
                       ),
                     ],
                     const SizedBox(height: 16),
+                    PivxFundingCard(
+                      walletId: widget.walletId,
+                      funding: _funding,
+                      amount: fee,
+                      onChanged: (f) => setState(() => _funding = f),
+                    ),                    const SizedBox(height: 16),
                     RoundedWhiteContainer(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -446,7 +461,14 @@ class _PivxCreateProposalViewState
                             total == null ? "—" : fmt.format(total),
                           ),
                           _summary("Fee (burnt)", fmt.format(fee)),
-                          _summary("Your balance", fmt.format(balance)),
+                          _summary(
+                            _funding.coins.isNotEmpty
+                                ? "Selected coins"
+                                : _funding.fromShield
+                                ? "Private balance"
+                                : "Public balance",
+                            fmt.format(balance),
+                          ),
                           const SizedBox(height: 6),
                           Text(
                             "After the fee has "

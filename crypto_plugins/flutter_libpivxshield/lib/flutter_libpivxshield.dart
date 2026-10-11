@@ -196,7 +196,10 @@ abstract final class PivxShield {
   /// Build and prove a transaction on a background isolate. Exactly one
   /// of [notes] or [utxos] is given. Each utxo: `txid`, `vout`, `amount`,
   /// `private_key` (hex), `script` (hex). If the inputs only cover
-  /// [amount], the fee is subtracted from it (send-all).
+  /// [amount], the fee is subtracted from it (send-all). With [toScript]
+  /// (hex; [notes] only) the amount goes to that output script instead of
+  /// [toAddress], e.g. a proposal fee's OP_RETURN or a cold staking
+  /// delegation.
   /// Returns `txid`, `txhex`, `nullifiers`, `fee`, `amount`.
   static Future<Map<String, dynamic>> createTransaction({
     List<Map<String, dynamic>>? notes,
@@ -210,6 +213,7 @@ abstract final class PivxShield {
     String memo = "",
     bool useAllInputs = false,
     bool subtractFee = false,
+    String? toScript,
   }) async {
     final r = await pivxShieldCallAsync("create_transaction", {
       "notes": notes,
@@ -223,6 +227,7 @@ abstract final class PivxShield {
       "memo": memo,
       "use_all_inputs": useAllInputs,
       "subtract_fee": subtractFee,
+      if (toScript != null) "to_script": toScript,
     });
     return Map<String, dynamic>.from(r as Map);
   }

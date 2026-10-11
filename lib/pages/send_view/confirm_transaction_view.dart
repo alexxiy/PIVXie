@@ -423,9 +423,9 @@ class _ConfirmTransactionViewState
                         ],
                       ),
                     ),
-                  if (widget.txData.note!.isNotEmpty)
+                  if ((widget.txData.note ?? "").isNotEmpty)
                     const SizedBox(height: 12),
-                  if (widget.txData.note!.isNotEmpty)
+                  if ((widget.txData.note ?? "").isNotEmpty)
                     RoundedWhiteContainer(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -433,7 +433,7 @@ class _ConfirmTransactionViewState
                           Text("Note", style: STextStyles.smallMed12(context)),
                           const SizedBox(height: 4),
                           SelectableText(
-                            widget.txData.note!,
+                            widget.txData.note ?? "",
                             style: STextStyles.itemSubtitle12(context),
                           ),
                         ],

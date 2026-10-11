@@ -29,6 +29,7 @@ import '../../widgets/stack_text_field.dart';
 import '../pivx_governance/pivx_governance_widgets.dart';
 import '../pivx_masternodes/pivx_masternodes_view.dart';
 import '../send_view/confirm_transaction_view.dart';
+import '../send_view/sub_widgets/pivx_funding_card.dart';
 import 'pivx_cold_staking_view.dart';
 
 const _kMasternodeSpaceUrl = "https://masternode.space";
@@ -54,13 +55,16 @@ class _PivxDelegateViewState extends ConsumerState<PivxDelegateView> {
 
   String? _owner;
 
+  /// Owners of the current delegations (already whitelisted).
+  Set<String> _owners = const {};
+
+  PivxFunding _funding = kPivxAutoFunding;
+  bool _subtractFee = false;
+
   /// Whether this wallet already delegates (the guide starts folded).
   bool _delegating = false;
   bool _showGuide = true;
   bool _showVps = false;
-
-  /// "Max": delegate the whole balance, the fee coming out of it.
-  bool _max = false;
 
   /// Show errors only for fields the user touched (or after "Delegate").
   final _touched = <TextEditingController>{};
@@ -91,6 +95,7 @@ class _PivxDelegateViewState extends ConsumerState<PivxDelegateView> {
     if (!mounted) return;
     setState(() {
       _owner = owner;
+      _owners = {for (final d in delegations) d.owner};
       _delegating = delegations.isNotEmpty;
       _showGuide = delegations.isEmpty;
       if (staker != null && _staker.text.isEmpty) {
@@ -109,10 +114,24 @@ class _PivxDelegateViewState extends ConsumerState<PivxDelegateView> {
     super.dispose();
   }
 
-  Amount get _available => _wallet.info.cachedBalance.spendable;
+  /// What the chosen funding can pay.
+  Amount get _available {
+    final info = _wallet.info;
+    if (_funding.coins.isNotEmpty) {
+      return Amount(
+        rawValue: _funding.coins.fold(
+          BigInt.zero,
+          (p, u) => p + BigInt.from(u.value),
+        ),
+        fractionDigits: _wallet.cryptoCurrency.fractionDigits,
+      );
+    }
+    return _funding.fromShield
+        ? info.cachedBalanceSecondary.spendable
+        : info.cachedBalance.spendable;
+  }
 
   Amount? get _amountValue {
-    if (_max) return _available;
     final d = Decimal.tryParse(_amount.text.trim().replaceAll(",", "."));
     if (d == null || d <= Decimal.zero) return null;
     return d.toAmount(fractionDigits: _wallet.cryptoCurrency.fractionDigits);
@@ -156,7 +175,9 @@ class _PivxDelegateViewState extends ConsumerState<PivxDelegateView> {
       whileFutureAlt: () => wallet.prepareDelegation(
         staker: _staker.text.trim(),
         amount: _amountValue!,
-        subtractFee: _max,
+        owner: _owner!,
+        funding: _funding,
+        subtractFee: _subtractFee,
       ),
       context: context,
       message: "Preparing the delegation",
@@ -501,17 +522,41 @@ class _PivxDelegateViewState extends ConsumerState<PivxDelegateView> {
                       ),
                     ),
                     const SizedBox(height: 16),
+                    Text("Owner address", style: label),
+                    const SizedBox(height: 8),
+                    PivxOwnAddressField(
+                      walletId: widget.walletId,
+                      value: _owner,
+                      tags: {for (final o in _owners) o: "owns your delegations"},
+                      onChanged: (a) => setState(() => _owner = a),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 12, top: 4),
+                      child: Text(
+                        _owners.isNotEmpty && !_owners.contains(_owner)
+                            ? "A different owner than your current "
+                                  "delegations: whitelist it on your staker "
+                                  "too."
+                            : "The coins stay at this address of your "
+                                  "wallet. The staker can stake them but "
+                                  "never spend them.",
+                        style: STextStyles.label(context).copyWith(
+                          color:
+                              _owners.isNotEmpty && !_owners.contains(_owner)
+                              ? colors.accentColorOrange
+                              : colors.textSubtitle1,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
                     Row(
                       children: [
                         Expanded(child: Text("Amount", style: label)),
                         CustomTextButton(
-                          text: _max ? "Enter amount" : "Max",
+                          text: "Max",
                           onTap: () => setState(() {
-                            _max = !_max;
-                            _touched.add(_amount);
-                            _amount.text = _max
-                                ? available.decimal.toString()
-                                : "";
+                            _subtractFee = true;
+                            _amount.text = available.decimal.toString();
                           }),
                         ),
                       ],
@@ -520,11 +565,8 @@ class _PivxDelegateViewState extends ConsumerState<PivxDelegateView> {
                     _field(
                       controller: _amount,
                       focus: _amountFocus,
-                      enabled: !_max,
                       hint: "Amount (${coin.ticker})",
-                      helper: _max
-                          ? "Your whole balance; the fee comes out of it"
-                          : "Available: ${fmt.format(available)}",
+                      helper: "Available: ${fmt.format(available)}",
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
                       ),
@@ -532,25 +574,42 @@ class _PivxDelegateViewState extends ConsumerState<PivxDelegateView> {
                         FilteringTextInputFormatter.allow(RegExp(r"[0-9.,]")),
                       ],
                     ),
-                    const SizedBox(height: 16),
-                    RoundedWhiteContainer(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                    const SizedBox(height: 4),
+                    GestureDetector(
+                      onTap: () => setState(() => _subtractFee = !_subtractFee),
+                      child: Row(
                         children: [
-                          if (_owner != null)
-                            PivxCopyRow(
-                              title: "Owner address (stays yours)",
-                              value: _owner!,
+                          Checkbox(
+                            value: _subtractFee,
+                            activeColor: colors.checkboxBGChecked,
+                            checkColor: colors.checkboxIconChecked,
+                            onChanged: (v) =>
+                                setState(() => _subtractFee = v ?? false),
+                          ),
+                          Expanded(
+                            child: Text(
+                              "Subtract fee from amount",
+                              style: STextStyles.w500_14(context),
                             ),
-                          const SizedBox(height: 4),
-                          Text(
-                            "The coins stay at this address of your wallet; "
-                            "the staker can stake them but never spend them. "
-                            "They start staking after about $startsIn.",
-                            style: secondary,
                           ),
                         ],
                       ),
+                    ),
+                    const SizedBox(height: 8),
+                    PivxFundingCard(
+                      walletId: widget.walletId,
+                      funding: _funding,
+                      amount: _amountValue,
+                      subtractFee: _subtractFee,
+                      onChanged: (f) => setState(() {
+                        _funding = f;
+                        _touched.add(_amount);
+                      }),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      "Delegated coins start staking after about $startsIn.",
+                      style: secondary,
                     ),
                   ],
                 ),

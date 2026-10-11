@@ -729,6 +729,7 @@ extension PivxGovernanceWallet on PivxWallet {
     required int blockStart,
     required String paymentAddress,
     required Amount amount,
+    PivxFunding funding = kPivxAutoFunding,
   }) async {
     final error =
         proposalNameError(name) ??
@@ -759,6 +760,8 @@ extension PivxGovernanceWallet on PivxWallet {
       txData: TxData(
         note: "Proposal fee: $name",
         noteOnChain: "",
+        utxos: pivxFundingInputs(funding),
+        otherData: jsonEncode(pivxFundingOtherData(funding)),
         recipients: [
           TxRecipient(
             address: "$kPivxOpReturnPrefix$hash",

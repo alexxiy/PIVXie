@@ -23,7 +23,8 @@ enum PivxTxCategory {
   delegation("Delegated"),
   undelegation("Undelegated"),
   shield("Shielded"),
-  unshield("Unshielded");
+  unshield("Unshielded"),
+  burn("Burned");
 
   const PivxTxCategory(this.label);
 
@@ -46,6 +47,8 @@ enum PivxTxCategory {
         return shield;
       case PivxTxKind.unshield:
         return unshield;
+      case PivxTxKind.burn:
+        return burn;
     }
     switch (tx.type) {
       case TransactionType.incoming:

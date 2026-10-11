@@ -9,6 +9,9 @@
 //   PIVX_SHIELD_LIB=/root/work/pivxshield/rust/target/release/libpivx_shield_ffi.so \
 //   PIVX_PARAMS_DIR=/root/.pivx-params \
 //   flutter test --concurrency=1 test/pivx/pivx_tx_classify_regtest_test.dart
+//
+// Also pays from shield notes to an output script (toScript): a cold
+// staking delegation and a budget proposal fee.
 import 'dart:io';
 import 'dart:typed_data';
 
@@ -24,6 +27,7 @@ import 'package:paymint/wallets/api/pivx/pivx_bridge_client.dart';
 import 'package:paymint/wallets/crypto_currency/crypto_currency.dart';
 import 'package:paymint/wallets/wallet/impl/pivx/pivx_shield_stream.dart';
 import 'package:paymint/wallets/wallet/impl/pivx/pivx_tx_parser.dart';
+import 'package:paymint/wallets/wallet/impl/pivx_wallet.dart';
 
 final _mnemonic = bip39.generateMnemonic();
 const _coin = 100000000;
@@ -375,6 +379,124 @@ void main() {
             .toInt(),
         1 * _coin,
       );
+    },
+    skip: skip,
+    timeout: const Timeout(Duration(minutes: 10)),
+  );
+
+  test(
+    "shield -> cold staking delegation (toScript) is Delegated",
+    () async {
+      // More shield funds for this and the proposal fee.
+      final fund = await _cli(["sendtoaddress", tReceive0, "120"]);
+      await _cli(["generate", "1"]);
+      final u = await utxoOf(fund, tReceive0);
+      final shielding = await PivxShield.createTransaction(
+        utxos: [
+          {
+            "txid": fund,
+            "vout": u["vout"],
+            "amount": int.parse(u["value"] as String),
+            "private_key": receive0.privateKey.data.toHex,
+            "script": coinlib.Address.fromString(
+              tReceive0,
+              coin.networkParams,
+            ).program.script.compiled.toHex,
+          },
+        ],
+        extsk: extsk,
+        toAddress: shieldAddress,
+        changeAddress: tChange0,
+        amount: 110 * _coin,
+        blockHeight: (await bridge.getBlockCount()) + 1,
+        isTestnet: true,
+      );
+      await confirmAndParse(await bridge.sendTx(shielding["txhex"] as String));
+
+      final staker = await _cli(["getnewstakingaddress", "pivxie-shield"]);
+      final script = pivxColdStakeScript(
+        stakerHash: pivxStakingAddressHash(staker, coin.stakingAddressPrefix)!,
+        ownerHash: coinlib.hash160(receive0.publicKey.data),
+      );
+      final r = await PivxShield.createTransaction(
+        notes: scanner.notes,
+        extsk: extsk,
+        toAddress: "",
+        toScript: script.toHex,
+        changeAddress: shieldChange,
+        amount: 5 * _coin,
+        blockHeight: (await bridge.getBlockCount()) + 1,
+        isTestnet: true,
+      );
+      final txid = await bridge.sendTx(r["txhex"] as String);
+      expect(txid, r["txid"]);
+
+      final parsed = await confirmAndParse(txid);
+      expect(parsed.type, TransactionType.sentToSelf);
+      expect(parsed.pivxKind, PivxTxKind.delegation);
+      expect(shown(parsed), 5 * _coin);
+      final delegated = await utxoOf(txid, tReceive0);
+      expect(delegated["value"], "${5 * _coin}");
+      final outputs = pivxVerifiedOutputs(txid, await bridge.rawTx(txid));
+      expect(outputs[delegated["vout"] as int].script.toHex, script.toHex);
+    },
+    skip: skip,
+    timeout: const Timeout(Duration(minutes: 10)),
+  );
+
+  test(
+    "shield -> proposal fee (toScript) is Burned and the node accepts it",
+    () async {
+      final height = await bridge.getBlockCount();
+      var start = height - height % kPivxBudgetCycleTest + kPivxBudgetCycleTest;
+      if (start - 10 < height) start += kPivxBudgetCycleTest;
+      final name =
+          "PX shield ${DateTime.now().millisecondsSinceEpoch % 100000}";
+      const url = "https://pivxie.me/shield";
+      final payee = await _cli(["getnewaddress"]);
+      final hash = pivxProposalHash(
+        name: name,
+        url: url,
+        blockStart: start,
+        blockEnd: pivxProposalBlockEnd(
+          blockStart: start,
+          payments: 1,
+          cycleBlocks: kPivxBudgetCycleTest,
+        ),
+        amountSats: BigInt.from(12 * _coin),
+        payeeScript: coinlib.Address.fromString(
+          payee,
+          coin.networkParams,
+        ).program.script.compiled,
+      );
+      final r = await PivxShield.createTransaction(
+        notes: scanner.notes,
+        extsk: extsk,
+        toAddress: "",
+        toScript: pivxProposalFeeScript(hash).toHex,
+        changeAddress: shieldChange,
+        amount: kPivxProposalFeeSats,
+        blockHeight: height + 1,
+        isTestnet: true,
+      );
+      final feeTxid = await bridge.sendTx(r["txhex"] as String);
+
+      final parsed = await confirmAndParse(feeTxid);
+      expect(parsed.type, TransactionType.outgoing);
+      expect(parsed.pivxKind, PivxTxKind.burn);
+      expect(shown(parsed), kPivxProposalFeeSats);
+
+      await _cli(["generate", "3"]);
+      final submitted = await bridge.submitBudget(
+        name: name,
+        url: url,
+        payments: 1,
+        blockStart: start,
+        paymentAddress: payee,
+        amount: "12",
+        feeTxid: feeTxid,
+      );
+      expect(submitted, hash);
     },
     skip: skip,
     timeout: const Timeout(Duration(minutes: 10)),

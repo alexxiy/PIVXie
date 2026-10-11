@@ -412,8 +412,9 @@ class _Empty extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 "Delegate coins to a staker and earn staking rewards without "
-                "keeping this wallet online. Your coins never leave your "
-                "wallet, and you can take them back at any time.",
+                "keeping a PIVX Core wallet online on your PC or server. Your "
+                "coins never leave your wallet, and you can take them back "
+                "at any time.",
                 textAlign: TextAlign.center,
                 style: STextStyles.itemSubtitle(context),
               ),

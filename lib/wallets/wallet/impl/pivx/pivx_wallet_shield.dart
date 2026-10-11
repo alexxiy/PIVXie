@@ -24,6 +24,32 @@ const kPivxSubtractFee = "pivxSubtractFee";
 /// sends from the shield balance.
 const kPivxChangeAddress = "pivxChangeAddress";
 
+/// How the user pays a transaction: from the shield ([fromShield]) or
+/// the transparent balance, with the coins picked in coin control (none:
+/// chosen automatically) and where the change goes (null: automatic).
+typedef PivxFunding = ({
+  bool fromShield,
+  Set<UTXO> coins,
+  String? changeAddress,
+});
+
+/// Automatic funding from the transparent balance.
+const PivxFunding kPivxAutoFunding = (
+  fromShield: false,
+  coins: <UTXO>{},
+  changeAddress: null,
+);
+
+/// [TxData.otherData] entries for [funding].
+Map<String, dynamic> pivxFundingOtherData(PivxFunding funding) => {
+  if (funding.fromShield) kPivxFromShield: true,
+  if (funding.changeAddress != null) kPivxChangeAddress: funding.changeAddress,
+};
+
+/// [TxData.utxos] for [funding]: null lets the wallet choose.
+Set<StandardInput>? pivxFundingInputs(PivxFunding funding) =>
+    funding.coins.isEmpty ? null : {for (final u in funding.coins) StandardInput(u)};
+
 bool _otherDataFlag(TxData txData, String key) =>
     txData.otherData != null &&
     (jsonDecode(txData.otherData!) as Map)[key] == true;
@@ -539,6 +565,14 @@ extension _PivxShield on PivxWallet {
     final recipient = recipients.first;
     final state = await _loadShield();
     await _ensureProver();
+    final own = (await mainDB.getAddresses(walletId).findAll())
+        .map((e) => e.value)
+        .toSet();
+    // A proposal fee or a delegation: an output script, not an address.
+    final special = _specialOutput(txData, recipient.address, own);
+    if (special != null && !fromShield) {
+      throw Exception("Only the shield balance can pay to this output here");
+    }
 
     final height = (await chainHeight) + 1;
     final Map<String, dynamic> result;
@@ -578,6 +612,7 @@ extension _PivxShield on PivxWallet {
         notes: notes,
         extsk: await _extsk(),
         toAddress: recipient.address,
+        toScript: special?.script.toHex,
         changeAddress: changeAddress,
         amount: recipient.amount.raw.toInt(),
         blockHeight: height,
@@ -634,14 +669,18 @@ extension _PivxShield on PivxWallet {
 
     final fee = BigInt.from(result["fee"] as int);
     final amount = BigInt.from(result["amount"] as int);
+    if (special != null &&
+        special.ours &&
+        amount < BigInt.from(kPivxMinDelegationSats)) {
+      throw Exception(
+        "A delegation must be at least 1 ${cryptoCurrency.ticker} after the fee",
+      );
+    }
     final nullifiers = List<String>.from(result["nullifiers"] as List);
     final txid = result["txid"] as String;
     final digits = cryptoCurrency.fractionDigits;
 
     // Temporary history entry until the tx is seen on chain.
-    final own = (await mainDB.getAddresses(walletId).findAll())
-        .map((e) => e.value)
-        .toSet();
     final inputsTotal = fromShield
         ? nullifiers.fold(
             BigInt.zero,
@@ -696,10 +735,10 @@ extension _PivxShield on PivxWallet {
           ).scriptPubKey.toHex;
     final tempOutputs = [
       OutputV2.isarCantDoRequiredInDefaultConstructor(
-        scriptPubKeyHex: script(recipient.address),
+        scriptPubKeyHex: special?.script.toHex ?? script(recipient.address),
         valueStringSats: amount.toString(),
-        addresses: [recipient.address],
-        walletOwns: recipientIsOurs,
+        addresses: special?.addresses ?? [recipient.address],
+        walletOwns: special?.ours ?? recipientIsOurs,
       ),
       if (changeValue > BigInt.zero)
         OutputV2.isarCantDoRequiredInDefaultConstructor(

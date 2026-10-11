@@ -69,5 +69,7 @@ abstract class LibPivxShieldInterface {
     bool useAllInputs = false,
     // The recipient pays the fee (receives amount - fee).
     bool subtractFee = false,
+    // Pay to this output script (hex) instead of toAddress; notes only.
+    String? toScript,
   });
 }

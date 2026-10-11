@@ -84,6 +84,20 @@ PivxTxClass? classifyPivxTx({
     return (type: TransactionType.incoming, kind: null, amount: ownedOut);
   }
 
+  // Coins burnt in OP_RETURN outputs: a budget proposal fee.
+  final burnt = sum(
+    outputs
+        .where((e) => e.scriptPubKeyHex.startsWith("6a"))
+        .map((e) => e.value),
+  );
+  if (burnt > BigInt.zero) {
+    return (
+      type: TransactionType.outgoing,
+      kind: PivxTxKind.burn,
+      amount: burnt,
+    );
+  }
+
   // What left the wallet, fee excluded.
   final external = fee != null
       ? ownedIn - fee - ownedOut

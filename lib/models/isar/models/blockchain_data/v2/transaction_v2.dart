@@ -283,6 +283,8 @@ class TransactionV2 {
         return label("Shielded", "Shielding");
       case PivxTxKind.unshield:
         return label("Unshielded", "Unshielding");
+      case PivxTxKind.burn:
+        return label("Burned", "Burning");
       default:
         return null;
     }
@@ -353,6 +355,9 @@ abstract final class PivxTxKind {
   static const shield = "shield";
   static const unshield = "unshield";
 
+  /// Coins burnt in an OP_RETURN output (a budget proposal fee).
+  static const burn = "burn";
+
   /// Bundled history icon of [kind], or null for a plain send/receive.
   static String? iconAsset(String? kind, {required bool pending}) {
     final name = switch (kind) {
@@ -363,6 +368,7 @@ abstract final class PivxTxKind {
       undelegation => "undelegation",
       shield => "shield",
       unshield => "unshield",
+      burn => "burn",
       _ => null,
     };
     if (name == null) return null;

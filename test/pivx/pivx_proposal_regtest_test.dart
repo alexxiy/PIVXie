@@ -13,9 +13,11 @@ import 'dart:typed_data';
 
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:paymint/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:paymint/utilities/extensions/extensions.dart';
 import 'package:paymint/wallets/api/pivx/pivx_bridge_client.dart';
 import 'package:paymint/wallets/crypto_currency/crypto_currency.dart';
+import 'package:paymint/wallets/wallet/impl/pivx/pivx_tx_parser.dart';
 import 'package:paymint/wallets/wallet/impl/pivx_wallet.dart';
 
 Future<String> _cli(List<String> args) async {
@@ -122,6 +124,28 @@ void main() {
 
       await _cli(["generate", "2"]);
       expect(await submit(), hash);
+
+      // The history shows the fee as burned (once the bridge has the
+      // block: its mempool view has no input details).
+      var json = await bridge.tx(feeTxid);
+      for (var i = 0; (json["blockHeight"] as int? ?? -1) <= 0; i++) {
+        if (i == 40) throw Exception("$feeTxid not confirmed on the bridge");
+        await Future<void>.delayed(const Duration(milliseconds: 500));
+        json = await bridge.tx(feeTxid);
+      }
+      final parsed = parsePivxTx(
+        json,
+        walletId: "test",
+        fractionDigits: 8,
+        receiving: {address.toString()},
+        change: const {},
+        shieldAddresses: const {},
+      )!;
+      expect(parsed.pivxKind, PivxTxKind.burn);
+      expect(
+        parsed.getAmountReceivedInThisWallet(fractionDigits: 8).raw,
+        BigInt.from(kPivxProposalFeeSats),
+      );
 
       final info = await bridge.budgetInfo();
       final p = info.firstWhere((e) => e["Hash"] == hash);

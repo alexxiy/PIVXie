@@ -264,16 +264,20 @@ extension PivxColdStakingWallet on PivxWallet {
         .key;
   }
 
-  /// Delegate [amount] to [staker]. With [subtractFee] the fee comes out
-  /// of the amount (for delegating the whole balance).
+  /// Delegate [amount] to [staker], owned by [owner] (an address of this
+  /// wallet), paid as [funding] says. With [subtractFee] the fee comes
+  /// out of the amount.
   Future<TxData> prepareDelegation({
     required String staker,
     required Amount amount,
+    required String owner,
+    PivxFunding funding = kPivxAutoFunding,
     bool subtractFee = false,
   }) async {
-    final owner = await coldStakeOwnerAddress();
-    return prepareSend(
+    final txData = await prepareSend(
       txData: TxData(
+        note: "Cold staking delegation",
+        noteOnChain: "",
         recipients: [
           TxRecipient(
             address: staker,
@@ -282,12 +286,45 @@ extension PivxColdStakingWallet on PivxWallet {
             addressType: AddressType.p2pkh,
           ),
         ],
+        utxos: pivxFundingInputs(funding),
         otherData: jsonEncode({
+          ...pivxFundingOtherData(funding),
           kPivxColdStakeOwner: owner,
           if (subtractFee) kPivxSubtractFee: true,
         }),
       ),
     );
+    // The next delegation offers the same owner: one whitelist entry.
+    if (info.otherData[_kOdColdStakeOwner] != owner) {
+      await info.updateOtherData(
+        newEntries: {_kOdColdStakeOwner: owner},
+        isar: mainDB.isar,
+      );
+    }
+    return txData;
+  }
+
+  /// Transparent addresses of this wallet (receiving first), e.g. to own
+  /// a delegation or receive a proposal's payments.
+  Future<List<Address>> ownTransparentAddresses() => mainDB
+      .getAddresses(walletId)
+      .filter()
+      .group(
+        (q) => q
+            .subTypeEqualTo(AddressSubType.receiving)
+            .or()
+            .subTypeEqualTo(AddressSubType.change),
+      )
+      .and()
+      .typeEqualTo(AddressType.p2pkh)
+      .sortBySubType()
+      .thenByDerivationIndex()
+      .findAll();
+
+  /// A receiving address never handed out before.
+  Future<String> newReceivingAddress() async {
+    await generateNewReceivingAddress();
+    return (await getCurrentReceivingAddress())!.value;
   }
 
   /// Spend [delegations] back to this wallet's receiving address, which
@@ -315,6 +352,8 @@ extension PivxColdStakingWallet on PivxWallet {
           ),
         ],
         utxos: {for (final d in delegations) StandardInput(d.utxo)},
+        note: "Withdrawn from cold staking",
+        noteOnChain: "",
         otherData: jsonEncode({kPivxSubtractFee: true}),
       ),
     );
