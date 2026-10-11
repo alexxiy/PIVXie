@@ -26,6 +26,7 @@ import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/static_overflow_row/static_overflow_row.dart';
 import '../../../coin_control/desktop_coin_control_view.dart';
+import '../../../../pages/pivx_cold_staking/pivx_cold_staking_view.dart';
 import '../../../../pages/pivx_governance/pivx_governance_view.dart';
 import '../../../../pages/pivx_masternodes/pivx_masternodes_view.dart';
 import '../../../../wallets/wallet/impl/pivx_wallet.dart';
@@ -37,6 +38,10 @@ enum WalletFeature {
     "Control, freeze, and utilize outputs at your discretion",
   ),
   masternodes("Masternodes", "Create, start and follow your masternodes"),
+  coldStaking(
+    "Cold staking",
+    "Delegate coins to a staker and earn rewards while they stay yours",
+  ),
   governance(
     "Governance",
     "Budget proposals: follow them and vote with your masternodes",
@@ -112,6 +117,12 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
           WalletFeature.masternodes,
           Icons.dns_rounded,
           () => _push(PivxMasternodesView.routeName),
+        ),
+      if (wallet is PivxWallet)
+        (
+          WalletFeature.coldStaking,
+          Icons.ac_unit_rounded,
+          () => _push(PivxColdStakingView.routeName),
         ),
       if (wallet is PivxWallet)
         (

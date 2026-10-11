@@ -214,6 +214,7 @@ extension PivxMasternodes on PivxWallet {
         .where(
           (u) =>
               !isPivxShieldNote(u) &&
+              !isPivxColdStakeUtxo(u) &&
               u.value == raw &&
               u.used != true &&
               !_isMasternodeCollateral(u.txid, u.vout),

@@ -43,6 +43,7 @@ import 'pivx/pivx_shield_state.dart';
 import 'pivx/pivx_shield_stream.dart';
 import 'pivx/pivx_tx_parser.dart';
 
+part 'pivx/pivx_cold_staking.dart';
 part 'pivx/pivx_governance.dart';
 part 'pivx/pivx_masternodes.dart';
 part 'pivx/pivx_wallet_shield.dart';
@@ -89,6 +90,11 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
   static const _kP2pkhInput = 149;
   static const _kP2pkhOutput = 34;
   static const _kExchangeOutput = 35;
+
+  /// A cold staking input has one more byte (OP_FALSE); a cold staking
+  /// output is value + script length + the 51-byte P2CS script.
+  static const _kColdStakeInputExtra = 1;
+  static const _kColdStakeOutput = 60;
 
   /// value + script length + OP_RETURN + push 32 + hash (proposal fee).
   static const _kOpReturnOutput = 43;
@@ -471,8 +477,24 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     );
   }
 
+  /// Completes once [updateTransactions] has fetched the history, so
+  /// [updateUTXOs] (run alongside it) can tell delegated outputs apart.
+  Completer<void>? _historyFetched;
+
+  /// Output scripts of the transactions the last history fetch returned.
+  Map<String, List<String>> _historyOutScripts = const {};
+
   @override
   Future<void> updateTransactions() async {
+    final fetched = _historyFetched = Completer<void>();
+    try {
+      await _updateTransactions(fetched);
+    } finally {
+      if (!fetched.isCompleted) fetched.complete();
+    }
+  }
+
+  Future<void> _updateTransactions(Completer<void> fetched) async {
     _lastProgress = -1;
     _syncProgress(0);
     final xpub = await accountXpub;
@@ -484,6 +506,14 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
         gap: await _bridgeGap(),
       ),
     );
+    _historyOutScripts = {
+      for (final json in result.txs)
+        json["txid"] as String: [
+          for (final v in (json["vout"] as List? ?? const []))
+            (v as Map)["hex"] as String? ?? "",
+        ],
+    };
+    fetched.complete();
 
     await UiStallWatch.run(
       "PIVX ${info.name}: addresses",
@@ -630,17 +660,33 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
   Future<String> _blockHashAt(int height) async =>
       _blockHashes[height] ??= await bridge.blockHash(height);
 
-  /// Cold-stake (P2CS) script: `OP_DUP OP_HASH160 OP_ROT OP_IF
-  /// OP_CHECKCOLDSTAKEVERIFY[_LOF] ...`. Spending it needs the owner
-  /// flag in the scriptSig, so such outputs are frozen until staking
-  /// support lands.
-  static bool _isColdStakeScript(String hex) =>
-      hex.startsWith("76a97b63d1") || hex.startsWith("76a97b63d2");
+  /// Script of output [vout] of [txid]: from the stored transaction, the
+  /// history just fetched, or else the raw transaction.
+  Future<String?> _outputScript(
+    String txid,
+    int vout,
+    TransactionV2? stored,
+  ) async {
+    if (stored != null && vout < stored.outputs.length) {
+      return stored.outputs[vout].scriptPubKeyHex;
+    }
+    final fetched = _historyOutScripts[txid];
+    if (fetched != null && vout < fetched.length) return fetched[vout];
+    try {
+      final outputs = await _verifiedOutputs(txid);
+      return vout < outputs.length ? outputs[vout].script.toHex : null;
+    } catch (e) {
+      Logging.instance.w("PIVX: no script for $txid:$vout: $e");
+      return null;
+    }
+  }
 
   @override
   Future<bool> updateUTXOs() async {
     final xpub = await accountXpub;
     final list = await bridge.utxo(xpub, gap: await _bridgeGap());
+    // Let the history arrive first: it has the scripts of new outputs.
+    await _historyFetched?.future;
     final txs = await _storedTxs(list.map((u) => u["txid"] as String));
 
     final utxos = <UTXO>[];
@@ -652,13 +698,22 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
 
       bool blocked = false;
       String? blockedReason;
+      String? otherData;
       final tx = txs[txid];
-      final out = tx?.outputs.length != null && vout < tx!.outputs.length
-          ? tx.outputs[vout]
-          : null;
-      if (out != null && _isColdStakeScript(out.scriptPubKeyHex)) {
+      final script = await _outputScript(txid, vout, tx);
+      final p2cs = script == null
+          ? null
+          : pivxParseColdStakeScript(script.toUint8ListFromHex);
+      if (p2cs != null) {
+        // Delegated: never picked automatically for a send.
         blocked = true;
-        blockedReason = "Delegated to a cold staker";
+        blockedReason = _kColdStakeFrozenReason;
+        otherData = jsonEncode({
+          kPivxColdStakerKey: pivxStakingAddress(
+            p2cs.staker,
+            cryptoCurrency.stakingAddressPrefix,
+          ),
+        });
       }
       if (_isMasternodeCollateral(txid, vout)) {
         blocked = true;
@@ -691,6 +746,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
           blockHeight: height,
           blockTime: blockTime,
           address: u["address"] as String?,
+          otherData: otherData,
         ),
       );
     }
@@ -789,9 +845,44 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     }
   }
 
+  /// Like the default, but delegated outputs never count as spendable,
+  /// even when unfrozen in coin control: sends never pick them by
+  /// themselves.
   @override
   Future<void> updateBalance() async {
-    await super.updateBalance();
+    final utxos = await mainDB.getUTXOs(walletId).findAll();
+    final height = await chainHeight;
+    var total = BigInt.zero;
+    var spendable = BigInt.zero;
+    var pending = BigInt.zero;
+    var blocked = BigInt.zero;
+    for (final u in utxos) {
+      if (ignoreUtxoInBalance(u)) continue;
+      final value = BigInt.from(u.value);
+      total += value;
+      if (u.isBlocked || isPivxColdStakeUtxo(u)) {
+        blocked += value;
+      } else if (u.isConfirmed(
+        height,
+        cryptoCurrency.minConfirms,
+        cryptoCurrency.minCoinbaseConfirms,
+      )) {
+        spendable += value;
+      } else {
+        pending += value;
+      }
+    }
+    Amount amount(BigInt v) =>
+        Amount(rawValue: v, fractionDigits: cryptoCurrency.fractionDigits);
+    await info.updateBalance(
+      newBalance: Balance(
+        total: amount(total),
+        spendable: amount(spendable),
+        blockedTotal: amount(blocked),
+        pendingSpendable: amount(pending),
+      ),
+      isar: mainDB.isar,
+    );
     await _updateShieldBalance();
   }
 
@@ -1001,24 +1092,39 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     return max(rate, cryptoCurrency.minFeePerByte);
   }
 
-  int _estimateSize(int inputs, Iterable<String> outputAddresses) {
-    int size = _kTxOverhead + inputs * _kP2pkhInput;
+  int _estimateSize(
+    int inputs,
+    Iterable<String> outputAddresses, {
+    int coldStakeInputs = 0,
+  }) {
+    int size =
+        _kTxOverhead +
+        inputs * _kP2pkhInput +
+        coldStakeInputs * _kColdStakeInputExtra;
     for (final a in outputAddresses) {
       size += a.startsWith(kPivxOpReturnPrefix)
           ? _kOpReturnOutput
           : cryptoCurrency.isExchangeAddress(a)
           ? _kExchangeOutput
+          : isStakingAddress(a)
+          ? _kColdStakeOutput
           : _kP2pkhOutput;
     }
     return size;
   }
 
   /// Spendable transparent outputs (shield note rows excluded).
-  List<UTXO> _spendable(List<UTXO> utxos, int chainHeight) => utxos
+  /// Delegated outputs only when [coldStake] (picked by the user), even
+  /// though they are frozen.
+  List<UTXO> _spendable(
+    List<UTXO> utxos,
+    int chainHeight, {
+    bool coldStake = false,
+  }) => utxos
       .where(
         (u) =>
             !isPivxShieldNote(u) &&
-            !u.isBlocked &&
+            (isPivxColdStakeUtxo(u) ? coldStake : !u.isBlocked) &&
             u.used != true &&
             u.isConfirmed(
               chainHeight,
@@ -1088,6 +1194,11 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     return a;
   }
 
+  /// Owner address of the delegation [txData] makes, if any.
+  static String? _coldStakeOwner(TxData txData) => txData.otherData == null
+      ? null
+      : (jsonDecode(txData.otherData!) as Map)[kPivxColdStakeOwner] as String?;
+
   @override
   Future<TxData> prepareSend({required TxData txData}) async {
     final recipients = txData.recipients;
@@ -1103,11 +1214,24 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
       if (!_shieldSupported) throw Exception("Shield is not available");
       return _prepareShieldSend(txData: txData, fromShield: fromShield);
     }
+    final coldStakeOwner = _coldStakeOwner(txData);
     for (final r in recipients) {
       // A proposal fee: OP_RETURN with the proposal hash.
       if (r.address.startsWith(kPivxOpReturnPrefix)) {
         if (r.address.length != kPivxOpReturnPrefix.length + 64) {
           throw Exception("Invalid OP_RETURN output");
+        }
+        continue;
+      }
+      // A delegation: cold staking output to this staker.
+      if (isStakingAddress(r.address)) {
+        if (coldStakeOwner == null) {
+          throw Exception("Staker addresses are only for delegating");
+        }
+        if (r.amount.raw < BigInt.from(kPivxMinDelegationSats)) {
+          throw Exception(
+            "A delegation must be at least 1 ${cryptoCurrency.ticker}",
+          );
         }
         continue;
       }
@@ -1129,7 +1253,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
           .whereType<StandardInput>()
           .map((e) => e.utxo)
           .toList();
-      final usable = _spendable(candidates, currentHeight);
+      final usable = _spendable(candidates, currentHeight, coldStake: true);
       if (usable.length != candidates.length) {
         throw Exception("Attempted to use an unavailable utxo");
       }
@@ -1175,7 +1299,8 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     }
 
     // ---- outputs + fee ------------------------------------------------------
-    final inputs = await _withKeys(selected);
+    final inputs = await _withKeys(selected, coldStake: coinControl);
+    final cold = selected.where(isPivxColdStakeUtxo).length;
     List<TxRecipient> outputs;
     BigInt fee;
 
@@ -1187,12 +1312,19 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
         _estimateSize(inputs.length, [
               recipient.address,
               if (withChange) "change",
-            ]) *
+            ], coldStakeInputs: cold) *
             feePerByte,
       );
       final amount = target - sizeFee;
       if (amount < cryptoCurrency.dustLimit.raw) {
         throw Exception("Amount is too small to pay the transaction fee");
+      }
+      if (isStakingAddress(recipient.address) &&
+          amount < BigInt.from(kPivxMinDelegationSats)) {
+        throw Exception(
+          "A delegation must be at least 1 ${cryptoCurrency.ticker} "
+          "after the fee",
+        );
       }
       outputs = [
         recipient.copyWith(
@@ -1223,10 +1355,14 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     } else {
       final addrs = recipients.map((e) => e.address).toList();
       final feeNoChange = BigInt.from(
-        _estimateSize(inputs.length, addrs) * feePerByte,
+        _estimateSize(inputs.length, addrs, coldStakeInputs: cold) * feePerByte,
       );
       final feeWithChange = BigInt.from(
-        _estimateSize(inputs.length, [...addrs, "change"]) * feePerByte,
+        _estimateSize(inputs.length, [
+              ...addrs,
+              "change",
+            ], coldStakeInputs: cold) *
+            feePerByte,
       );
       if (inSum < target + feeNoChange) {
         throw Exception(
@@ -1278,21 +1414,22 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     );
   }
 
-  /// Output values of previous transactions checked by [_verifyInputValues].
-  final _prevOutValues = <String, List<BigInt>>{};
+  /// Outputs of previous transactions, checked against their txids.
+  final _prevOuts = <String, List<PivxRawOutput>>{};
+
+  Future<List<PivxRawOutput>> _verifiedOutputs(String txid) async =>
+      _prevOuts[txid] ??= pivxVerifiedOutputs(txid, await bridge.rawTx(txid));
 
   /// Transparent signatures don't commit to the values they spend, so a
   /// bridge reporting a lower value than the real one would turn the
   /// difference into fee. Check each input against its previous
-  /// transaction, which must hash to its txid.
+  /// transaction, which must hash to its txid. Its script also tells how
+  /// to sign it (P2PKH or cold staking).
   Future<void> _verifyInputValues(List<UTXO> utxos) async {
     for (final u in utxos) {
-      var values = _prevOutValues[u.txid];
-      values ??= _prevOutValues[u.txid] = pivxVerifiedOutputValues(
-        u.txid,
-        await bridge.rawTx(u.txid),
-      );
-      if (u.vout >= values.length || values[u.vout] != BigInt.from(u.value)) {
+      final outputs = await _verifiedOutputs(u.txid);
+      if (u.vout >= outputs.length ||
+          outputs[u.vout].value != BigInt.from(u.value)) {
         throw Exception(
           "The server reported a wrong value for ${u.txid}:${u.vout}; "
           "not signing",
@@ -1301,10 +1438,24 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     }
   }
 
-  Future<List<StandardInput>> _withKeys(List<UTXO> utxos) async {
+  /// Verified script of the output [u] spends.
+  Uint8List _prevScript(UTXO u) => _prevOuts[u.txid]![u.vout].script;
+
+  /// Keys for [utxos]. Delegated outputs only when [coldStake]: the user
+  /// picked them.
+  Future<List<StandardInput>> _withKeys(
+    List<UTXO> utxos, {
+    bool coldStake = false,
+  }) async {
     final root = isViewOnly ? null : await getRootHDNode();
     if (root == null) throw Exception("View only wallets cannot sign");
     await _verifyInputValues(utxos);
+    if (!coldStake &&
+        utxos.any((u) => pivxParseColdStakeScript(_prevScript(u)) != null)) {
+      throw Exception(
+        "Delegated coins are only spent when you pick them; please retry",
+      );
+    }
     final result = <StandardInput>[];
     for (final u in utxos) {
       final address = await mainDB.getAddress(walletId, u.address!);
@@ -1331,6 +1482,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
   }) async {
     const sequence = 0xffffffff;
     var tx = coinlib.Transaction(version: 1, inputs: [], outputs: []);
+    var coldInputs = false;
 
     final tempInputs = <InputV2>[];
     for (final input in inputs) {
@@ -1340,12 +1492,31 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
         ),
         input.utxo.vout,
       );
+      final script = _prevScript(input.utxo);
+      final p2cs = pivxParseColdStakeScript(script);
+      if (p2cs != null) {
+        // Owner spend: the key must be the script's owner.
+        final hash = coinlib.hash160(input.key!.publicKey.data);
+        if (hash.toHex != p2cs.owner.toHex) {
+          throw Exception(
+            "Not the owner of delegated output ${input.utxo.txid}",
+          );
+        }
+        coldInputs = true;
+      }
       tx = tx.addInput(
-        coinlib.P2PKHInput(
-          prevOut: prevOut,
-          publicKey: input.key!.publicKey,
-          sequence: sequence,
-        ),
+        p2cs != null
+            ? PivxColdStakeInput(
+                prevOut: prevOut,
+                publicKey: input.key!.publicKey,
+                prevScript: script,
+                sequence: sequence,
+              )
+            : coinlib.P2PKHInput(
+                prevOut: prevOut,
+                publicKey: input.key!.publicKey,
+                sequence: sequence,
+              ),
       );
       tempInputs.add(
         InputV2.isarCantDoRequiredInDefaultConstructor(
@@ -1369,24 +1540,49 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     final own = (await mainDB.getAddresses(walletId).findAll())
         .map((e) => e.value)
         .toSet();
+    final coldStakeOwner = _coldStakeOwner(txData);
     final tempOutputs = <OutputV2>[];
     for (final o in outputs) {
       final opReturn = o.address.startsWith(kPivxOpReturnPrefix);
-      final output = opReturn
-          ? coinlib.Output.fromScriptBytes(
-              o.amount.raw,
-              pivxProposalFeeScript(
-                o.address.substring(kPivxOpReturnPrefix.length),
-              ),
-            )
-          : coinlib.Output.fromAddress(o.amount.raw, _parseAddress(o.address));
+      final stakerHash = pivxStakingAddressHash(
+        o.address,
+        cryptoCurrency.stakingAddressPrefix,
+      );
+      final coinlib.Output output;
+      if (opReturn) {
+        output = coinlib.Output.fromScriptBytes(
+          o.amount.raw,
+          pivxProposalFeeScript(
+            o.address.substring(kPivxOpReturnPrefix.length),
+          ),
+        );
+      } else if (stakerHash != null) {
+        final owner = _parseAddress(coldStakeOwner!);
+        if (owner is! coinlib.P2PKHAddress || !own.contains(coldStakeOwner)) {
+          throw Exception("The owner must be an address of this wallet");
+        }
+        output = coinlib.Output.fromScriptBytes(
+          o.amount.raw,
+          pivxColdStakeScript(stakerHash: stakerHash, ownerHash: owner.hash),
+        );
+      } else {
+        output = coinlib.Output.fromAddress(
+          o.amount.raw,
+          _parseAddress(o.address),
+        );
+      }
       tx = tx.addOutput(output);
       tempOutputs.add(
         OutputV2.isarCantDoRequiredInDefaultConstructor(
           scriptPubKeyHex: output.scriptPubKey.toHex,
           valueStringSats: o.amount.raw.toString(),
-          addresses: [if (!opReturn) o.address],
-          walletOwns: own.contains(o.address),
+          addresses: [
+            if (!opReturn) o.address,
+            if (stakerHash != null) coldStakeOwner!,
+          ],
+          walletOwns:
+              own.contains(o.address) ||
+              (stakerHash != null && own.contains(coldStakeOwner)),
         ),
       );
     }
@@ -1408,6 +1604,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
       outputs: tempOutputs,
       changeAddresses: changeAddresses,
       fee: fee,
+      spendsColdStake: coldInputs,
     )!;
     return (
       size: tx.size,

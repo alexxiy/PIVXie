@@ -329,9 +329,12 @@ TransactionV2? parsePivxTx(
   );
 }
 
-/// Output values of a raw PIVX transaction (any version: outputs come
-/// before the Sapling data).
-List<BigInt> pivxTxOutputValues(Uint8List raw) {
+/// One output of a raw transaction: its value and script.
+typedef PivxRawOutput = ({BigInt value, Uint8List script});
+
+/// Outputs of a raw PIVX transaction (any version: outputs come before
+/// the Sapling data).
+List<PivxRawOutput> pivxTxOutputs(Uint8List raw) {
   final view = ByteData.sublistView(raw);
   int pos = 4; // nVersion (+ nType)
   int varint() {
@@ -358,26 +361,38 @@ List<BigInt> pivxTxOutputValues(Uint8List raw) {
     pos += scriptSig;
     pos += 4; // nSequence
   }
-  final outputs = varint();
-  final values = <BigInt>[];
-  for (int i = 0; i < outputs; i++) {
-    values.add(BigInt.from(view.getInt64(pos, Endian.little)));
+  final count = varint();
+  final outputs = <PivxRawOutput>[];
+  for (int i = 0; i < count; i++) {
+    final value = BigInt.from(view.getInt64(pos, Endian.little));
     pos += 8;
-    final script = varint();
-    pos += script;
+    final length = varint();
+    if (pos + length > raw.length) {
+      throw const FormatException("Truncated transaction");
+    }
+    outputs.add((value: value, script: raw.sublist(pos, pos + length)));
+    pos += length;
   }
-  if (pos > raw.length) throw const FormatException("Truncated transaction");
-  return values;
+  return outputs;
 }
 
-/// Output values of the raw transaction [rawHex], after checking that it
+/// Output values of a raw PIVX transaction.
+List<BigInt> pivxTxOutputValues(Uint8List raw) =>
+    pivxTxOutputs(raw).map((e) => e.value).toList();
+
+/// Outputs of the raw transaction [rawHex], after checking that it
 /// hashes to [txid]. Throws when it does not.
-List<BigInt> pivxVerifiedOutputValues(String txid, String rawHex) {
+List<PivxRawOutput> pivxVerifiedOutputs(String txid, String rawHex) {
   final raw = rawHex.toUint8ListFromHex;
   final id = Uint8List.fromList(coinlib.sha256DoubleHash(raw).reversed.toList())
       .toHex;
   if (id != txid) {
     throw Exception("The server sent a wrong transaction for $txid");
   }
-  return pivxTxOutputValues(raw);
+  return pivxTxOutputs(raw);
 }
+
+/// Output values of the raw transaction [rawHex], after checking that it
+/// hashes to [txid]. Throws when it does not.
+List<BigInt> pivxVerifiedOutputValues(String txid, String rawHex) =>
+    pivxVerifiedOutputs(txid, rawHex).map((e) => e.value).toList();

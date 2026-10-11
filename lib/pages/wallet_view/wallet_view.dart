@@ -40,6 +40,7 @@ import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
 import '../address_book_views/address_book_view.dart';
+import '../pivx_cold_staking/pivx_cold_staking_view.dart';
 import '../pivx_governance/pivx_governance_view.dart';
 import '../pivx_masternodes/pivx_masternodes_view.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
@@ -820,6 +821,23 @@ class _WalletViewState extends ConsumerState<WalletView> {
                         onTap: () {
                           Navigator.of(context).pushNamed(
                             PivxMasternodesView.routeName,
+                            arguments: widget.walletId,
+                          );
+                        },
+                      ),
+                    if (wallet is PivxWallet)
+                      WalletNavigationBarItemData(
+                        label: "Cold staking",
+                        icon: Icon(
+                          Icons.ac_unit_rounded,
+                          size: 20,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .bottomNavIconIcon,
+                        ),
+                        onTap: () {
+                          Navigator.of(context).pushNamed(
+                            PivxColdStakingView.routeName,
                             arguments: widget.walletId,
                           );
                         },

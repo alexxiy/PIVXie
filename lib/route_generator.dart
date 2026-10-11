@@ -58,6 +58,8 @@ import 'pages/settings_views/global_settings_view/advanced_views/logging_setting
 import 'pages/settings_views/global_settings_view/advanced_views/manage_coin_units/edit_coin_units_view.dart';
 import 'pages/settings_views/global_settings_view/advanced_views/manage_coin_units/manage_coin_units_view.dart';
 import 'pages/settings_views/global_settings_view/advanced_views/manage_explorer_view.dart';
+import 'pages/pivx_cold_staking/pivx_cold_staking_view.dart';
+import 'pages/pivx_cold_staking/pivx_delegate_view.dart';
 import 'pages/pivx_governance/pivx_create_proposal_view.dart';
 import 'pages/pivx_governance/pivx_governance_view.dart';
 import 'pages/pivx_governance/pivx_proposal_view.dart';
@@ -1063,6 +1065,26 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       // exchange steps
+
+      case PivxColdStakingView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => PivxColdStakingView(walletId: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case PivxDelegateView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => PivxDelegateView(walletId: args),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case PivxGovernanceView.routeName:
         if (args is String) {

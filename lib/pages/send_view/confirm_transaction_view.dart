@@ -79,6 +79,9 @@ class _ConfirmTransactionViewState
   /// The first recipient; a proposal fee (OP_RETURN) reads as what it is.
   String get _recipientText {
     final address = widget.txData.recipients?.firstOrNull?.address ?? "";
+    if (widget.txData.otherData?.contains(kPivxColdStakeOwner) ?? false) {
+      return "Cold staking with staker $address";
+    }
     return address.startsWith(kPivxOpReturnPrefix)
         ? "Proposal fee, burnt (proposal ${address.substring(kPivxOpReturnPrefix.length, kPivxOpReturnPrefix.length + 16)}…)"
         : address;

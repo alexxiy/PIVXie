@@ -1,0 +1,342 @@
+part of '../pivx_wallet.dart';
+
+// Cold staking, as the owner (delegator): coins go to a P2CS script that
+// a staker's key may only stake, while this wallet keeps the key that
+// spends them. Spending a delegated output ends its delegation.
+
+/// Smallest delegation PIVX Core accepts (MIN_COLDSTAKING_AMOUNT).
+const kPivxMinDelegationSats = 100000000;
+
+/// Set in [TxData.otherData] by the delegate screen: the owner address.
+/// Recipients with a staker address (S… / W…) then become cold staking
+/// outputs owned by it.
+const kPivxColdStakeOwner = "pivxColdStakeOwner";
+
+/// [UTXO.otherData] key of a delegated output: its staker address.
+const kPivxColdStakerKey = "pivxColdStaker";
+
+const _kColdStakeFrozenReason = "Cold staking";
+
+/// Wallet otherData: the owner address delegations are made with.
+const _kOdColdStakeOwner = "pivxColdStakeOwner";
+
+/// Whether [utxo] is a delegated (cold staking) output.
+bool isPivxColdStakeUtxo(UTXO utxo) =>
+    utxo.otherData?.contains(kPivxColdStakerKey) ?? false;
+
+/// Staker address of a delegated output.
+String? pivxColdStaker(UTXO utxo) {
+  if (!isPivxColdStakeUtxo(utxo)) return null;
+  return (jsonDecode(utxo.otherData!) as Map)[kPivxColdStakerKey] as String?;
+}
+
+/// P2CS script delegating to [stakerHash] and spendable by [ownerHash]:
+/// `OP_DUP OP_HASH160 OP_ROT OP_IF OP_CHECKCOLDSTAKEVERIFY_LOF` staker
+/// `OP_ELSE` owner `OP_ENDIF OP_EQUALVERIFY OP_CHECKSIG`.
+///
+/// The "last output free" form, as PIVX Core creates until v6.0
+/// enforcement: before it, coinstakes pay masternodes in their last
+/// output, which only this form allows. It stays valid after.
+Uint8List pivxColdStakeScript({
+  required Uint8List stakerHash,
+  required Uint8List ownerHash,
+}) {
+  if (stakerHash.length != 20 || ownerHash.length != 20) {
+    throw ArgumentError("Key hashes must be 20 bytes");
+  }
+  return Uint8List.fromList([
+    0x76, 0xa9, 0x7b, 0x63, 0xd1, 0x14, ...stakerHash, //
+    0x67, 0x14, ...ownerHash, 0x68, 0x88, 0xac,
+  ]);
+}
+
+/// Staker and owner key hashes of a P2CS script, or null for any other
+/// script.
+({Uint8List staker, Uint8List owner})? pivxParseColdStakeScript(Uint8List s) {
+  if (s.length != 51 ||
+      s[0] != 0x76 ||
+      s[1] != 0xa9 ||
+      s[2] != 0x7b ||
+      s[3] != 0x63 ||
+      (s[4] != 0xd1 && s[4] != 0xd2) ||
+      s[5] != 0x14 ||
+      s[26] != 0x67 ||
+      s[27] != 0x14 ||
+      s[48] != 0x68 ||
+      s[49] != 0x88 ||
+      s[50] != 0xac) {
+    return null;
+  }
+  return (staker: s.sublist(6, 26), owner: s.sublist(28, 48));
+}
+
+/// Staker address (base58check, [prefix] 63 "S" on mainnet, 73 "W" on
+/// the test networks) of a key hash.
+String pivxStakingAddress(Uint8List hash, int prefix) =>
+    coinlib.base58Encode(Uint8List.fromList([prefix, ...hash]));
+
+/// Key hash of a staker address, or null when [address] isn't one.
+Uint8List? pivxStakingAddressHash(String address, int prefix) {
+  try {
+    final data = coinlib.base58Decode(address);
+    if (data.length != 21 || data[0] != prefix) return null;
+    return data.sublist(1);
+  } catch (_) {
+    return null;
+  }
+}
+
+/// Spends a cold staking output as its owner: `<sig> OP_FALSE <pubkey>`;
+/// OP_FALSE takes the script's owner branch. Signed like P2PKH, with
+/// the P2CS script as the script code.
+class PivxColdStakeInput extends coinlib.LegacyInput {
+  PivxColdStakeInput({
+    required super.prevOut,
+    required this.publicKey,
+    required this.prevScript,
+    this.insig,
+    super.sequence = coinlib.Input.sequenceFinal,
+  }) : super(scriptSig: _scriptSig(insig, publicKey));
+
+  final coinlib.ECPublicKey publicKey;
+  final Uint8List prevScript;
+  final coinlib.ECDSAInputSignature? insig;
+
+  static Uint8List _scriptSig(
+    coinlib.ECDSAInputSignature? insig,
+    coinlib.ECPublicKey key,
+  ) {
+    final sig = insig?.bytes;
+    return Uint8List.fromList([
+      if (sig != null) ...[sig.length, ...sig],
+      0x00,
+      key.data.length,
+      ...key.data,
+    ]);
+  }
+
+  @override
+  bool get complete => insig != null;
+
+  /// Outpoint, script length, push of a 73-byte signature, OP_FALSE,
+  /// push of a compressed key, sequence.
+  @override
+  int? get signedSize => 36 + 1 + 74 + 1 + 34 + 4;
+
+  @override
+  PivxColdStakeInput sign({
+    required coinlib.LegacySignDetails details,
+    required coinlib.ECPrivateKey key,
+  }) {
+    if (key.pubkey != publicKey) {
+      throw Exception("Incorrect key for a cold staking input");
+    }
+    return _withSignature(
+      createInputSignature(
+        key: key,
+        details: details.addScript(coinlib.Script.decompile(prevScript)),
+      ),
+    );
+  }
+
+  PivxColdStakeInput _withSignature(coinlib.ECDSAInputSignature? insig) =>
+      PivxColdStakeInput(
+        prevOut: prevOut,
+        publicKey: publicKey,
+        prevScript: prevScript,
+        insig: insig,
+        sequence: sequence,
+      );
+
+  @override
+  PivxColdStakeInput filterSignatures(
+    bool Function(coinlib.InputSignature insig) predicate,
+  ) => insig == null || predicate(insig!) ? this : _withSignature(null);
+}
+
+/// A delegated output of this wallet.
+class PivxDelegation {
+  PivxDelegation._(this.utxo, this.staker);
+
+  final UTXO utxo;
+  final String staker;
+
+  String get owner => utxo.address ?? "";
+
+  /// A cold staking reward (the output of a stake), not a delegation.
+  bool get isReward => utxo.isCoinbase;
+}
+
+extension PivxColdStakingWallet on PivxWallet {
+  int get _stakingPrefix => cryptoCurrency.stakingAddressPrefix;
+
+  bool isStakingAddress(String address) =>
+      pivxStakingAddressHash(address, _stakingPrefix) != null;
+
+  /// First letter of staker addresses on this network.
+  String get stakingAddressLetter =>
+      cryptoCurrency.network == CryptoCurrencyNetwork.main ? "S" : "W";
+
+  /// Confirmations before a delegation, or a new reward, can stake
+  /// (PIVX Core's nStakeMinDepth).
+  int get coldStakeMinDepth =>
+      cryptoCurrency.network == CryptoCurrencyNetwork.main
+      ? 600
+      : _isRegtest
+      ? 20
+      : 100;
+
+  /// Why [address] can't be delegated to, or null when it can.
+  String? stakerAddressError(String address) {
+    if (address.isEmpty) return "Enter the staker address";
+    if (isStakingAddress(address)) return null;
+    if (cryptoCurrency.validateAddress(address)) {
+      return "This is a regular address. Staker addresses start with "
+          "\"$stakingAddressLetter\".";
+    }
+    return "Not a valid staker address";
+  }
+
+  /// Why [amount] can't be delegated, or null when it can.
+  String? delegationAmountError(Amount? amount, {required Amount available}) {
+    if (amount == null) return "Enter an amount";
+    if (amount.raw < BigInt.from(kPivxMinDelegationSats)) {
+      return "The minimum is 1 ${cryptoCurrency.ticker}";
+    }
+    if (amount > available) return "More than your available balance";
+    return null;
+  }
+
+  /// Delegated outputs among [utxos] (rows of this wallet), largest
+  /// first; ones already being spent are left out.
+  List<PivxDelegation> delegationsOf(Iterable<UTXO> utxos) => [
+    for (final u in utxos)
+      if (u.used != true && pivxColdStaker(u) != null)
+        PivxDelegation._(u, pivxColdStaker(u)!),
+  ]..sort((a, b) => b.utxo.value.compareTo(a.utxo.value));
+
+  /// The current delegations.
+  Future<List<PivxDelegation>> loadDelegations() async =>
+      delegationsOf(await mainDB.getUTXOs(walletId).findAll());
+
+  /// `pivx-cli` with the flag of this wallet's network, for commands the
+  /// user runs on their own node.
+  String get pivxCliCommand =>
+      cryptoCurrency.network == CryptoCurrencyNetwork.main
+      ? "pivx-cli"
+      : _isRegtest
+      ? "pivx-cli -regtest"
+      : "pivx-cli -testnet";
+
+  /// This wallet's UTXO rows, now and on every change.
+  Stream<List<UTXO>> watchUtxoRows() => mainDB.isar.utxos
+      .where()
+      .walletIdEqualTo(walletId)
+      .watch(fireImmediately: true);
+
+  /// The address delegations are owned by. One address for all of them,
+  /// so a staker only whitelists it once: the owner of the current
+  /// delegations, else the one used before, else the receiving address.
+  Future<String> coldStakeOwnerAddress() async {
+    final current = await loadDelegations();
+    if (current.isNotEmpty) return current.first.owner;
+    final stored = info.otherData[_kOdColdStakeOwner] as String?;
+    if (stored != null) return stored;
+    final address =
+        (await getCurrentReceivingAddress())?.value ??
+        (await _deriveAddress(chain: 0, index: 0)).value;
+    await info.updateOtherData(
+      newEntries: {_kOdColdStakeOwner: address},
+      isar: mainDB.isar,
+    );
+    return address;
+  }
+
+  /// The staker most of the current delegations use, to delegate more.
+  String? currentStaker(List<PivxDelegation> delegations) {
+    final counts = <String, int>{};
+    for (final d in delegations) {
+      counts[d.staker] = (counts[d.staker] ?? 0) + d.utxo.value;
+    }
+    if (counts.isEmpty) return null;
+    return (counts.entries.toList()..sort((a, b) => b.value.compareTo(a.value)))
+        .first
+        .key;
+  }
+
+  /// Delegate [amount] to [staker]. With [subtractFee] the fee comes out
+  /// of the amount (for delegating the whole balance).
+  Future<TxData> prepareDelegation({
+    required String staker,
+    required Amount amount,
+    bool subtractFee = false,
+  }) async {
+    final owner = await coldStakeOwnerAddress();
+    return prepareSend(
+      txData: TxData(
+        recipients: [
+          TxRecipient(
+            address: staker,
+            amount: amount,
+            isChange: false,
+            addressType: AddressType.p2pkh,
+          ),
+        ],
+        otherData: jsonEncode({
+          kPivxColdStakeOwner: owner,
+          if (subtractFee) kPivxSubtractFee: true,
+        }),
+      ),
+    );
+  }
+
+  /// Spend [delegations] back to this wallet's receiving address, which
+  /// ends them. The fee comes out of the amount.
+  Future<TxData> prepareWithdrawal(List<PivxDelegation> delegations) async {
+    if (delegations.isEmpty) throw Exception("Nothing to withdraw");
+    final to =
+        (await getCurrentReceivingAddress())?.value ??
+        (await _deriveAddress(chain: 0, index: 0)).value;
+    final total = delegations.fold(
+      BigInt.zero,
+      (p, d) => p + BigInt.from(d.utxo.value),
+    );
+    return prepareSend(
+      txData: TxData(
+        recipients: [
+          TxRecipient(
+            address: to,
+            amount: Amount(
+              rawValue: total,
+              fractionDigits: cryptoCurrency.fractionDigits,
+            ),
+            isChange: false,
+            addressType: AddressType.p2pkh,
+          ),
+        ],
+        utxos: {for (final d in delegations) StandardInput(d.utxo)},
+        otherData: jsonEncode({kPivxSubtractFee: true}),
+      ),
+    );
+  }
+
+  /// Cold staking rewards received so far.
+  Future<Amount> coldStakeRewards() async {
+    final txs = await mainDB.isar.transactionV2s
+        .where()
+        .walletIdEqualTo(walletId)
+        .findAll();
+    var total = BigInt.zero;
+    for (final tx in txs) {
+      if (tx.pivxKind != PivxTxKind.coldStakeReward) continue;
+      final amount = tx.getAmountReceivedInThisWallet(
+        fractionDigits: cryptoCurrency.fractionDigits,
+      );
+      total += amount.raw;
+    }
+    return Amount(
+      rawValue: total,
+      fractionDigits: cryptoCurrency.fractionDigits,
+    );
+  }
+}
