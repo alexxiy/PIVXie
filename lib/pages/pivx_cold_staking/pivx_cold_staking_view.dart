@@ -45,8 +45,12 @@ class PivxColdStakingView extends ConsumerStatefulWidget {
 class _PivxColdStakingViewState extends ConsumerState<PivxColdStakingView> {
   StreamSubscription<List<UTXO>>? _sub;
   List<PivxDelegation>? _delegations;
+
   /// Rewards received so far, per owner address.
   Future<Map<String, BigInt>>? _rewards;
+
+  /// The reward part of outputs a stake created, by "txid:vout".
+  Map<String, BigInt> _shares = const {};
 
   PivxWallet get _wallet =>
       ref.read(pWallets).getWallet(widget.walletId) as PivxWallet;
@@ -67,6 +71,9 @@ class _PivxColdStakingViewState extends ConsumerState<PivxColdStakingView> {
         _delegations = delegations;
         _rewards = wallet.coldStakeRewardsByOwner();
       });
+      wallet.coldStakeRewardShares(delegations).then((shares) {
+        if (mounted) setState(() => _shares = shares);
+      });
     });
   }
 
@@ -79,6 +86,18 @@ class _PivxColdStakingViewState extends ConsumerState<PivxColdStakingView> {
   Future<void> _delegate() =>
       Navigator.of(context)
           .pushNamed(PivxDelegateView.routeName, arguments: widget.walletId);
+
+  /// The reward part of [d] (an output a stake created), formatted.
+  String? _rewardText(PivxDelegation d, AmountFormatter fmt) {
+    final share = _shares["${d.utxo.txid}:${d.utxo.vout}"];
+    if (!d.isReward || share == null) return null;
+    return fmt.format(
+      Amount(
+        rawValue: share,
+        fractionDigits: _wallet.cryptoCurrency.fractionDigits,
+      ),
+    );
+  }
 
   bool _canWithdraw(PivxDelegation d, int height) => d.utxo.isConfirmed(
     height,
@@ -187,9 +206,10 @@ class _PivxColdStakingViewState extends ConsumerState<PivxColdStakingView> {
                 fractionDigits: coin.fractionDigits,
               ),
             ),
-            subtitle: d.isReward
-                ? "Cold staking reward · ${_status(d, height)}"
-                : _status(d, height),
+            subtitle: _rewardText(d, fmt) == null
+                ? _status(d, height)
+                : "Includes a ${_rewardText(d, fmt)} cold staking reward · "
+                      "${_status(d, height)}",
             children: [
               PivxCopyRow(title: "Staker", value: d.staker),
               PivxCopyRow(title: "Owner (your address)", value: d.owner),
@@ -307,9 +327,10 @@ class _PivxColdStakingViewState extends ConsumerState<PivxColdStakingView> {
                                       snap.hasData
                                           ? "Rewards so far: ${fmt.format(Amount(rawValue: snap.data!.values.fold(BigInt.zero, (p, v) => p + v), fractionDigits: coin.fractionDigits))}"
                                           : " ",
-                                      style: STextStyles.w500_12(
-                                        context,
-                                      ).copyWith(color: colors.accentColorGreen),
+                                      style: STextStyles.w500_12(context)
+                                          .copyWith(
+                                            color: colors.accentColorGreen,
+                                          ),
                                     ),
                                   ),
                                 ],
@@ -358,8 +379,7 @@ class _PivxColdStakingViewState extends ConsumerState<PivxColdStakingView> {
                                       : fmt.format(
                                           Amount(
                                             rawValue: snap.data![owner]!,
-                                            fractionDigits:
-                                                coin.fractionDigits,
+                                            fractionDigits: coin.fractionDigits,
                                           ),
                                         ),
                                 ),
@@ -368,19 +388,20 @@ class _PivxColdStakingViewState extends ConsumerState<PivxColdStakingView> {
                               for (final d in delegations.where(
                                 (d) => d.owner == owner,
                               )) ...[
-                              _DelegationRow(
-                                delegation: d,
-                                amount: fmt.format(
-                                  Amount(
-                                    rawValue: BigInt.from(d.utxo.value),
-                                    fractionDigits: coin.fractionDigits,
+                                _DelegationRow(
+                                  delegation: d,
+                                  amount: fmt.format(
+                                    Amount(
+                                      rawValue: BigInt.from(d.utxo.value),
+                                      fractionDigits: coin.fractionDigits,
+                                    ),
                                   ),
+                                  reward: _rewardText(d, fmt),
+                                  status: _status(d, height),
+                                  onTap: () => _showDelegation(d),
                                 ),
-                                status: _status(d, height),
-                                onTap: () => _showDelegation(d),
-                              ),
-                              const SizedBox(height: 8),
-                            ],
+                                const SizedBox(height: 8),
+                              ],
                               const SizedBox(height: 8),
                             ],
                           ],
@@ -459,12 +480,16 @@ class _DelegationRow extends StatelessWidget {
   const _DelegationRow({
     required this.delegation,
     required this.amount,
+    required this.reward,
     required this.status,
     required this.onTap,
   });
 
   final PivxDelegation delegation;
   final String amount;
+
+  /// The reward part of [amount], for an output a stake created.
+  final String? reward;
   final String status;
   final VoidCallback onTap;
 
@@ -505,7 +530,7 @@ class _DelegationRow extends StatelessWidget {
                         if (delegation.isReward) ...[
                           const SizedBox(width: 8),
                           PivxPill(
-                            text: "Reward",
+                            text: reward == null ? "Reward" : "+$reward reward",
                             color: colors.accentColorGreen,
                           ),
                         ],
@@ -616,9 +641,8 @@ class _OwnerHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<StackColors>()!;
-    final secondary = STextStyles.w500_12(
-      context,
-    ).copyWith(color: colors.textSubtitle1);
+    final secondary = STextStyles.w500_12(context)
+        .copyWith(color: colors.textSubtitle1);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4),
       child: PivxCopyRow(

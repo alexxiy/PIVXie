@@ -215,6 +215,39 @@ extension PivxColdStakingWallet on PivxWallet {
         PivxDelegation._(u, pivxColdStaker(u)!),
   ]..sort((a, b) => b.utxo.value.compareTo(a.utxo.value));
 
+  /// The reward part of each delegated output a stake created
+  /// ([PivxDelegation.isReward]), by "txid:vout". A stake pays the staked
+  /// coins plus the reward back to the delegation, split evenly when it
+  /// splits the stake, so each output holds its share of the reward.
+  /// Other payments of the block (our masternode's) are not part of it.
+  Future<Map<String, BigInt>> coldStakeRewardShares(
+    Iterable<PivxDelegation> delegations,
+  ) async {
+    final rewards = delegations.where((d) => d.isReward).toList();
+    final txs = await _storedTxs(rewards.map((d) => d.utxo.txid));
+    final shares = <String, BigInt>{};
+    for (final d in rewards) {
+      final tx = txs[d.utxo.txid];
+      if (tx == null) continue;
+      bool ownersOutput(OutputV2 o) =>
+          o.walletOwns &&
+          pivxIsColdStakeScript(o.scriptPubKeyHex) &&
+          o.addresses.isNotEmpty &&
+          o.addresses.last == d.owner;
+      final paidBack = tx.outputs
+          .where(ownersOutput)
+          .fold(BigInt.zero, (p, o) => p + o.value);
+      final staked = tx.inputs
+          .where((i) => i.walletOwns)
+          .fold(BigInt.zero, (p, i) => p + i.value);
+      final reward = paidBack - staked;
+      if (paidBack == BigInt.zero || reward <= BigInt.zero) continue;
+      shares["${d.utxo.txid}:${d.utxo.vout}"] =
+          reward * BigInt.from(d.utxo.value) ~/ paidBack;
+    }
+    return shares;
+  }
+
   /// The current delegations.
   Future<List<PivxDelegation>> loadDelegations() async =>
       delegationsOf(await mainDB.getUTXOs(walletId).findAll());
