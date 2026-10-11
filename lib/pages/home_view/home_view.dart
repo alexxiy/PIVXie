@@ -11,6 +11,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -135,6 +136,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
     }
 
     if (_exitEnabled) {
+      _exitEnabled = false;
       return true;
     }
 
@@ -145,10 +147,11 @@ class _HomeViewState extends ConsumerState<HomeView> {
       await showDialog<dynamic>(
         context: context,
         barrierDismissible: false,
-        builder: (_) => WillPopScope(
-          onWillPop: () async {
-            _exitEnabled = true;
-            return true;
+        builder: (_) => PopScope(
+          // A back gesture closes it with no result: exit. The timeout
+          // closes it with false.
+          onPopInvokedWithResult: (didPop, result) {
+            if (didPop && result != false) _exitEnabled = true;
           },
           child: const StackDialog(title: "Tap back again to exit"),
         ),
@@ -156,11 +159,13 @@ class _HomeViewState extends ConsumerState<HomeView> {
         timeout,
         onTimeout: () {
           _exitEnabled = false;
-          if (mounted) Navigator.of(context).pop();
+          if (mounted) Navigator.of(context).pop(false);
         },
       );
     }
-    return _exitEnabled;
+    final exit = _exitEnabled;
+    _exitEnabled = false;
+    return exit;
   }
 
   // void _loadSimplexData() {
@@ -290,8 +295,15 @@ class _HomeViewState extends ConsumerState<HomeView> {
       if (next != null) unawaited(_openPendingLink());
     });
 
-    return WillPopScope(
-      onWillPop: _onWillPop,
+    // PopScope, not WillPopScope: Android 16+ (predictive back) only
+    // hands the back gesture to the app when it says it handles it.
+    // Otherwise the first back on this root screen closes the app.
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, _) async {
+        if (didPop) return;
+        if (await _onWillPop()) await SystemNavigator.pop();
+      },
       child: Background(
         child: Scaffold(
           backgroundColor: Colors.transparent,
