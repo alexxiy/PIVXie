@@ -109,7 +109,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
       return;
     }
 
-    final words = text.split(" ");
+    final words = _mnemonicWords(text);
     if (words.isEmpty) {
       unawaited(delegate.pasteText(SelectionChangedCause.toolbar));
       return;
@@ -428,13 +428,49 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
     );
   }
 
+  /// Words of a pasted phrase: split on any whitespace (spaces, new
+  /// lines), without the numbers of a numbered list ("1. word").
+  static List<String> _mnemonicWords(String text) => text
+      .trim()
+      .split(RegExp(r"\s+"))
+      .where((w) => w.isNotEmpty && !RegExp(r"^\d+[.):]?$").hasMatch(w))
+      .toList();
+
+  /// A whole phrase pasted (or typed by a keyboard's clipboard) into the
+  /// field at [index]: spread its words over the fields. Pasted into the
+  /// first field, or as many words as the phrase has, it fills them all;
+  /// otherwise the fields from [index] on. Returns whether it did.
+  bool _spreadPastedWords(String value, int index) {
+    final words = _mnemonicWords(value);
+    if (words.length < 2) return false;
+    if (index == 0 || words.length >= _controllers.length) {
+      _clearAndPopulateMnemonic(words);
+    } else {
+      _populateMnemonicFrom(index, words);
+    }
+    return true;
+  }
+
+  void _populateMnemonicFrom(int start, List<String> words) {
+    final end = min(_controllers.length, start + words.length);
+    setState(() {
+      for (int i = start; i < end; i++) {
+        final word = words[i - start];
+        _controllers[i].text = word;
+        _inputStatuses[i] = _isValidMnemonicWord(word.toLowerCase())
+            ? FormInputStatus.valid
+            : FormInputStatus.invalid;
+      }
+    });
+  }
+
   void _clearAndPopulateMnemonic(List<String> words) {
     final count = min(_controllers.length, words.length);
 
     // replace field content with listed words
     for (int i = 0; i < count; i++) {
       final word = words[i].trim();
-      _controllers[i].text = words[i];
+      _controllers[i].text = word;
       if (_isValidMnemonicWord(word.toLowerCase())) {
         setState(() {
           _inputStatuses[i] = FormInputStatus.valid;
@@ -513,9 +549,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
     );
 
     if (data?.text != null && data!.text!.isNotEmpty) {
-      final content = data.text!.trim();
-      final list = content.split(" ");
-      _clearAndPopulateMnemonic(list);
+      _clearAndPopulateMnemonic(_mnemonicWords(data.text!));
     }
   }
 
@@ -742,6 +776,11 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                                   // focusNode:
                                                   //     _focusNodes[i * 4 + j - 1],
                                                   onChanged: (value) {
+                                                    if (_spreadPastedWords(
+                                                      value,
+                                                      i * 4 + j - 1,
+                                                    ))
+                                                      return;
                                                     final FormInputStatus
                                                     formInputStatus;
 
@@ -885,6 +924,11 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                                       ? textSelectionControls
                                                       : null,
                                                   onChanged: (value) {
+                                                    if (_spreadPastedWords(
+                                                      value,
+                                                      i,
+                                                    ))
+                                                      return;
                                                     final FormInputStatus
                                                     formInputStatus;
 
@@ -1023,6 +1067,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                         : null,
                                     // focusNode: _focusNodes[i - 1],
                                     onChanged: (value) {
+                                      if (_spreadPastedWords(value, i - 1))
+                                        return;
                                       final FormInputStatus formInputStatus;
 
                                       if (value.isEmpty) {
