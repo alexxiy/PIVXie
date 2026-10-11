@@ -22,7 +22,6 @@ import '../utilities/constants.dart';
 import '../utilities/text_styles.dart';
 import '../utilities/util.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
-import 'app_icon.dart';
 import 'conditional_parent.dart';
 import 'expandable.dart';
 import 'rounded_white_container.dart';
@@ -62,8 +61,9 @@ class _AddressBookCardState extends ConsumerState<AddressBookCard> {
     ContactEntry? _contact;
     try {
       _contact = ref.watch(
-        addressBookServiceProvider
-            .select((value) => value.getContactById(contactId)),
+        addressBookServiceProvider.select(
+          (value) => value.getContactById(contactId),
+        ),
       );
     } catch (_) {
       return Container();
@@ -95,44 +95,19 @@ class _AddressBookCardState extends ConsumerState<AddressBookCard> {
             width: 32,
             height: 32,
             decoration: BoxDecoration(
-              color: contact.customId == "default"
-                  ? Theme.of(context)
-                      .extension<StackColors>()!
-                      .myStackContactIconBG
-                  : Theme.of(context)
-                      .extension<StackColors>()!
-                      .textFieldDefaultBG,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .textFieldDefaultBG,
               borderRadius: BorderRadius.circular(32),
             ),
-            child: contact.customId == "default"
-                ? const Center(
-                    child: AppIcon(
-                      width: 20,
-                    ),
-                  )
-                : contact.emojiChar != null
-                    ? Center(
-                        child: Text(contact.emojiChar!),
-                      )
-                    : Center(
-                        child: SvgPicture.asset(
-                          Assets.svg.user,
-                          width: 18,
-                        ),
-                      ),
+            child: contact.emojiChar != null
+                ? Center(child: Text(contact.emojiChar!))
+                : Center(child: SvgPicture.asset(Assets.svg.user, width: 18)),
           ),
-          const SizedBox(
-            width: 12,
-          ),
+          const SizedBox(width: 12),
           if (isDesktop)
-            Text(
-              contact.name,
-              style: STextStyles.itemSubtitle12(context),
-            ),
-          if (isDesktop)
-            const SizedBox(
-              width: 16,
-            ),
+            Text(contact.name, style: STextStyles.itemSubtitle12(context)),
+          if (isDesktop) const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: isDesktop && !desktopSendFrom
@@ -144,10 +119,7 @@ class _AddressBookCardState extends ConsumerState<AddressBookCard> {
                     contact.name,
                     style: STextStyles.itemSubtitle12(context),
                   ),
-                if (!isDesktop)
-                  const SizedBox(
-                    height: 4,
-                  ),
+                if (!isDesktop) const SizedBox(height: 4),
                 Text(
                   coinsString,
                   style: STextStyles.label(context),
@@ -186,15 +158,10 @@ class _AddressBookCardState extends ConsumerState<AddressBookCard> {
               context: context,
               useSafeArea: true,
               barrierDismissible: true,
-              builder: (_) => ContactPopUp(
-                contactId: contact.customId,
-              ),
+              builder: (_) => ContactPopUp(contactId: contact.customId),
             );
           },
-          child: Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: child,
-          ),
+          child: Padding(padding: const EdgeInsets.all(8.0), child: child),
         ),
       ),
     );

@@ -13,6 +13,7 @@ import 'package:flutter/foundation.dart';
 
 import '../db/isar/main_db.dart';
 import '../models/isar/models/contact_entry.dart';
+import '../utilities/contact_address_title.dart';
 
 class AddressBookService extends ChangeNotifier {
   ContactEntry getContactById(String id) {
@@ -24,23 +25,7 @@ class AddressBookService extends ChangeNotifier {
     }
   }
 
-  /// Id of the "My Stack" contact older versions made from the wallets'
-  /// own receiving addresses. No longer shown (see
-  /// [removeLegacySelfContact]).
-  static const legacySelfContactId = "default";
-
-  List<ContactEntry> get contacts => MainDB.instance
-      .getContactEntries()
-      .where((e) => e.customId != legacySelfContactId)
-      .toList();
-
-  /// Delete the legacy self contact (the wallets' own addresses: they are
-  /// on the receive screen).
-  Future<void> removeLegacySelfContact() async {
-    if (await MainDB.instance.isContactEntryExists(id: legacySelfContactId)) {
-      await removeContact(legacySelfContactId);
-    }
-  }
+  List<ContactEntry> get contacts => MainDB.instance.getContactEntries();
 
   /// search address book entries
   //TODO search using isar queries
@@ -62,7 +47,7 @@ class AddressBookService extends ChangeNotifier {
       return true;
     }
     for (int i = 0; i < contact.addresses.length; i++) {
-      if (contact.addresses[i].label.toLowerCase().contains(text) ||
+      if (contact.addresses[i].kind.toLowerCase().contains(text) ||
           contact.addresses[i].coin.identifier.toLowerCase().contains(text) ||
           contact.addresses[i].coin.prettyName.toLowerCase().contains(text) ||
           contact.addresses[i].coin.ticker.toLowerCase().contains(text) ||

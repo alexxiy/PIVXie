@@ -1169,8 +1169,6 @@ const ContactAddressEntrySchema = Schema(
       name: r'coinName',
       type: IsarType.string,
     ),
-    r'label': PropertySchema(id: 2, name: r'label', type: IsarType.string),
-    r'other': PropertySchema(id: 3, name: r'other', type: IsarType.string),
   },
 
   estimateSize: _contactAddressEntryEstimateSize,
@@ -1187,13 +1185,6 @@ int _contactAddressEntryEstimateSize(
   var bytesCount = offsets.last;
   bytesCount += 3 + object.address.length * 3;
   bytesCount += 3 + object.coinName.length * 3;
-  bytesCount += 3 + object.label.length * 3;
-  {
-    final value = object.other;
-    if (value != null) {
-      bytesCount += 3 + value.length * 3;
-    }
-  }
   return bytesCount;
 }
 
@@ -1205,8 +1196,6 @@ void _contactAddressEntrySerialize(
 ) {
   writer.writeString(offsets[0], object.address);
   writer.writeString(offsets[1], object.coinName);
-  writer.writeString(offsets[2], object.label);
-  writer.writeString(offsets[3], object.other);
 }
 
 ContactAddressEntry _contactAddressEntryDeserialize(
@@ -1218,8 +1207,6 @@ ContactAddressEntry _contactAddressEntryDeserialize(
   final object = ContactAddressEntry();
   object.address = reader.readString(offsets[0]);
   object.coinName = reader.readString(offsets[1]);
-  object.label = reader.readString(offsets[2]);
-  object.other = reader.readStringOrNull(offsets[3]);
   return object;
 }
 
@@ -1234,10 +1221,6 @@ P _contactAddressEntryDeserializeProp<P>(
       return (reader.readString(offset)) as P;
     case 1:
       return (reader.readString(offset)) as P;
-    case 2:
-      return (reader.readString(offset)) as P;
-    case 3:
-      return (reader.readStringOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -1528,306 +1511,6 @@ extension ContactAddressEntryQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(
         FilterCondition.greaterThan(property: r'coinName', value: ''),
-      );
-    });
-  }
-
-  QueryBuilder<ContactAddressEntry, ContactAddressEntry, QAfterFilterCondition>
-  labelEqualTo(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(
-          property: r'label',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<ContactAddressEntry, ContactAddressEntry, QAfterFilterCondition>
-  labelGreaterThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'label',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<ContactAddressEntry, ContactAddressEntry, QAfterFilterCondition>
-  labelLessThan(
-    String value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'label',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<ContactAddressEntry, ContactAddressEntry, QAfterFilterCondition>
-  labelBetween(
-    String lower,
-    String upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'label',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<ContactAddressEntry, ContactAddressEntry, QAfterFilterCondition>
-  labelStartsWith(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.startsWith(
-          property: r'label',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<ContactAddressEntry, ContactAddressEntry, QAfterFilterCondition>
-  labelEndsWith(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.endsWith(
-          property: r'label',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<ContactAddressEntry, ContactAddressEntry, QAfterFilterCondition>
-  labelContains(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.contains(
-          property: r'label',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<ContactAddressEntry, ContactAddressEntry, QAfterFilterCondition>
-  labelMatches(String pattern, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.matches(
-          property: r'label',
-          wildcard: pattern,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<ContactAddressEntry, ContactAddressEntry, QAfterFilterCondition>
-  labelIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'label', value: ''),
-      );
-    });
-  }
-
-  QueryBuilder<ContactAddressEntry, ContactAddressEntry, QAfterFilterCondition>
-  labelIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(property: r'label', value: ''),
-      );
-    });
-  }
-
-  QueryBuilder<ContactAddressEntry, ContactAddressEntry, QAfterFilterCondition>
-  otherIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const FilterCondition.isNull(property: r'other'),
-      );
-    });
-  }
-
-  QueryBuilder<ContactAddressEntry, ContactAddressEntry, QAfterFilterCondition>
-  otherIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const FilterCondition.isNotNull(property: r'other'),
-      );
-    });
-  }
-
-  QueryBuilder<ContactAddressEntry, ContactAddressEntry, QAfterFilterCondition>
-  otherEqualTo(String? value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(
-          property: r'other',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<ContactAddressEntry, ContactAddressEntry, QAfterFilterCondition>
-  otherGreaterThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(
-          include: include,
-          property: r'other',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<ContactAddressEntry, ContactAddressEntry, QAfterFilterCondition>
-  otherLessThan(
-    String? value, {
-    bool include = false,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.lessThan(
-          include: include,
-          property: r'other',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<ContactAddressEntry, ContactAddressEntry, QAfterFilterCondition>
-  otherBetween(
-    String? lower,
-    String? upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-    bool caseSensitive = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.between(
-          property: r'other',
-          lower: lower,
-          includeLower: includeLower,
-          upper: upper,
-          includeUpper: includeUpper,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<ContactAddressEntry, ContactAddressEntry, QAfterFilterCondition>
-  otherStartsWith(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.startsWith(
-          property: r'other',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<ContactAddressEntry, ContactAddressEntry, QAfterFilterCondition>
-  otherEndsWith(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.endsWith(
-          property: r'other',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<ContactAddressEntry, ContactAddressEntry, QAfterFilterCondition>
-  otherContains(String value, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.contains(
-          property: r'other',
-          value: value,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<ContactAddressEntry, ContactAddressEntry, QAfterFilterCondition>
-  otherMatches(String pattern, {bool caseSensitive = true}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.matches(
-          property: r'other',
-          wildcard: pattern,
-          caseSensitive: caseSensitive,
-        ),
-      );
-    });
-  }
-
-  QueryBuilder<ContactAddressEntry, ContactAddressEntry, QAfterFilterCondition>
-  otherIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'other', value: ''),
-      );
-    });
-  }
-
-  QueryBuilder<ContactAddressEntry, ContactAddressEntry, QAfterFilterCondition>
-  otherIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.greaterThan(property: r'other', value: ''),
       );
     });
   }

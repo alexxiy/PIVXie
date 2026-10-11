@@ -9,7 +9,6 @@
  */
 
 import 'dart:async';
-import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
@@ -44,6 +43,7 @@ import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
 import '../../widgets/stack_text_field.dart';
 import '../../widgets/textfield_icon_button.dart';
+import '../../widgets/pivx_memo_field.dart';
 
 class GenerateUriQrCodeView extends StatefulWidget {
   const GenerateUriQrCodeView({
@@ -171,16 +171,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
       queryParams["amount"] = amount.toString();
     }
     if (noteString.isNotEmpty && _pivxShield) {
-      if (utf8.encode(noteString).length > 512) {
-        unawaited(
-          showFloatingFlushBar(
-            type: FlushBarType.warning,
-            message: "Shielded memo is too long (max 512 bytes)",
-            context: context,
-          ),
-        );
-        return null;
-      }
+      // The field keeps it within kPivxMaxMemoBytes.
       queryParams["memo"] = noteString;
     } else if (noteString.isNotEmpty && !_isPivx) {
       queryParams["message"] = noteString;
@@ -444,61 +435,70 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                 textAlign: TextAlign.left,
               ),
               SizedBox(height: isDesktop ? 10 : 8),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(
-                  Constants.size.circularBorderRadius,
-                ),
-                child: TextField(
-                  autocorrect: Util.isDesktop ? false : true,
-                  enableSuggestions: Util.isDesktop ? false : true,
+              if (_pivxShield)
+                // Same 512-byte rule and counter as the send screen.
+                PivxMemoField(
                   controller: noteController,
                   focusNode: _noteFocusNode,
-                  style: isDesktop
-                      ? STextStyles.desktopTextExtraExtraSmall(context)
-                            .copyWith(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textFieldDefaultText,
-                              height: 1.8,
-                            )
-                      : STextStyles.field(context),
-                  onChanged: (_) => setState(() {}),
-                  decoration:
-                      standardInputDecoration(
-                        _pivxShield ? "Shielded memo" : "Note",
-                        _noteFocusNode,
-                        context,
-                      ).copyWith(
-                        contentPadding: isDesktop
-                            ? const EdgeInsets.only(
-                                left: 16,
-                                top: 11,
-                                bottom: 12,
-                                right: 5,
+                  hint: "Sent privately with the payment",
+                  onChanged: () => setState(() {}),
+                )
+              else
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(
+                    Constants.size.circularBorderRadius,
+                  ),
+                  child: TextField(
+                    autocorrect: Util.isDesktop ? false : true,
+                    enableSuggestions: Util.isDesktop ? false : true,
+                    controller: noteController,
+                    focusNode: _noteFocusNode,
+                    style: isDesktop
+                        ? STextStyles.desktopTextExtraExtraSmall(context)
+                              .copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textFieldDefaultText,
+                                height: 1.8,
                               )
-                            : null,
-                        suffixIcon: noteController.text.isNotEmpty
-                            ? Padding(
-                                padding: const EdgeInsets.only(right: 0),
-                                child: UnconstrainedBox(
-                                  child: Row(
-                                    children: [
-                                      TextFieldIconButton(
-                                        child: const XIcon(),
-                                        onTap: () async {
-                                          setState(() {
-                                            noteController.text = "";
-                                          });
-                                        },
-                                      ),
-                                    ],
+                        : STextStyles.field(context),
+                    onChanged: (_) => setState(() {}),
+                    decoration:
+                        standardInputDecoration(
+                          _pivxShield ? "Shielded memo" : "Note",
+                          _noteFocusNode,
+                          context,
+                        ).copyWith(
+                          contentPadding: isDesktop
+                              ? const EdgeInsets.only(
+                                  left: 16,
+                                  top: 11,
+                                  bottom: 12,
+                                  right: 5,
+                                )
+                              : null,
+                          suffixIcon: noteController.text.isNotEmpty
+                              ? Padding(
+                                  padding: const EdgeInsets.only(right: 0),
+                                  child: UnconstrainedBox(
+                                    child: Row(
+                                      children: [
+                                        TextFieldIconButton(
+                                          child: const XIcon(),
+                                          onTap: () async {
+                                            setState(() {
+                                              noteController.text = "";
+                                            });
+                                          },
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                ),
-                              )
-                            : null,
-                      ),
+                                )
+                              : null,
+                        ),
+                  ),
                 ),
-              ),
             ],
             SizedBox(height: isDesktop ? 20 : 8),
             PrimaryButton(

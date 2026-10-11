@@ -18,16 +18,8 @@ class AddressEntryData extends ChangeNotifier {
 
   AddressEntryData(this.id);
 
-  String? _addressLabel;
   String? _address;
   CryptoCurrency? _coin;
-
-  String? get addressLabel => _addressLabel;
-
-  set addressLabel(String? addressLabel) {
-    _addressLabel = addressLabel;
-    notifyListeners();
-  }
 
   String? get address => _address;
 
@@ -45,9 +37,6 @@ class AddressEntryData extends ChangeNotifier {
 
   bool get isEmpty {
     if (address != null && address!.isNotEmpty) {
-      return false;
-    }
-    if (addressLabel != null && addressLabel!.isNotEmpty) {
       return false;
     }
     if (coin != null) {
@@ -74,15 +63,11 @@ class AddressEntryData extends ChangeNotifier {
   ContactAddressEntry buildAddressEntry() {
     return ContactAddressEntry()
       ..coinName = coin!.identifier
-      ..address = address!
-      ..other = null
-      // No longer typed in (the address' kind is its title); kept when
-      // editing an older entry that has one.
-      ..label = addressLabel ?? "";
+      ..address = address!;
   }
 
   @override
   String toString() {
-    return "AddressEntryData: { addressLabel: $addressLabel, address: $address, coin: ${coin?.identifier} }";
+    return "AddressEntryData: { address: $address, coin: ${coin?.identifier} }";
   }
 }

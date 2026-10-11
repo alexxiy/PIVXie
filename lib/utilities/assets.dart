@@ -34,6 +34,13 @@ class _PERSONA {
 
   /// Holding a PIVX wallet: create or restore a wallet.
   String get addWallet => "${_path}pivxie_add_wallet.png";
+
+  /// Looping animation (animated WebP, 960x540) while a transaction is
+  /// built and sent.
+  String get txSend => "${_path}pivxie_tx_send.webp";
+
+  /// [txSend]'s sound (AAC, as long as one loop of the animation).
+  String get txSendSound => "${_path}pivxie_tx_send.m4a";
 }
 
 class _SOCIALS {

@@ -79,19 +79,21 @@ class Utf8LengthLimitingFormatter extends TextInputFormatter {
   }
 }
 
-/// The shielded memo input of a send to a shield address, with a byte
-/// counter ("37 / 512 bytes").
+/// A shielded memo input (a send to a shield address, or a payment
+/// request for one), with a byte counter ("37 / 512 bytes").
 class PivxMemoField extends StatelessWidget {
   const PivxMemoField({
     super.key,
     required this.controller,
     required this.focusNode,
     this.onChanged,
+    this.hint = "Sent privately with the payment",
   });
 
   final TextEditingController controller;
   final FocusNode focusNode;
   final VoidCallback? onChanged;
+  final String hint;
 
   @override
   Widget build(BuildContext context) {
@@ -124,7 +126,7 @@ class PivxMemoField extends StatelessWidget {
                 onChanged: (_) => onChanged?.call(),
                 decoration:
                     standardInputDecoration(
-                      "Sent privately with the payment",
+                      hint,
                       focusNode,
                       context,
                       desktopMed: isDesktop,

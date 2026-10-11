@@ -114,10 +114,6 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
     //   ref.read(addressBookFilterProvider).add(widget.coin!, false);
     // }
 
-    WidgetsBinding.instance.addPostFrameCallback(
-      (_) => ref.read(addressBookServiceProvider).removeLegacySelfContact(),
-    );
-
     super.initState();
   }
 

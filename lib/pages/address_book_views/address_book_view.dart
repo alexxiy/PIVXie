@@ -69,9 +69,6 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
     _canFilter = coins.length > 1;
     ref.read(addressBookFilterProvider).addAll(coins, false);
 
-    WidgetsBinding.instance.addPostFrameCallback(
-      (_) => ref.read(addressBookServiceProvider).removeLegacySelfContact(),
-    );
     super.initState();
   }
 

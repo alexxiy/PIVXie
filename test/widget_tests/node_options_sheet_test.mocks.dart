@@ -352,6 +352,11 @@ class MockPrefs extends _i1.Mock implements _i11.Prefs {
   ) as ({bool enabled, int minutes}));
 
   @override
+  bool get soundEffects =>
+      (super.noSuchMethod(Invocation.getter(#soundEffects), returnValue: false)
+          as bool);
+
+  @override
   bool get privacyScreen =>
       (super.noSuchMethod(Invocation.getter(#privacyScreen), returnValue: false)
           as bool);
@@ -578,6 +583,12 @@ class MockPrefs extends _i1.Mock implements _i11.Prefs {
         Invocation.setter(#autoLockInfo, autoLockInfo),
         returnValueForMissingStub: null,
       );
+
+  @override
+  set soundEffects(bool? soundEffects) => super.noSuchMethod(
+    Invocation.setter(#soundEffects, soundEffects),
+    returnValueForMissingStub: null,
+  );
 
   @override
   set privacyScreen(bool? privacyScreen) => super.noSuchMethod(

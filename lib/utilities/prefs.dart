@@ -77,6 +77,7 @@ class Prefs extends ChangeNotifier {
       _logLevel = await _getLogLevel();
       _autoLockInfo = await _getAutoLockInfo();
       _privacyScreen = await _getPrivacyScreen();
+      _soundEffects = await _getSoundEffects();
       _disableScreenShots = await _getDisableScreenShots();
 
       _initialized = true;
@@ -1186,6 +1187,29 @@ class Prefs extends ChangeNotifier {
         {"enabled": false, "minutes": 10};
 
     return (enabled: map["enabled"] as bool, minutes: map["minutes"] as int);
+  }
+
+  // sounds, e.g. while a transaction is sent (on unless turned off)
+  bool _soundEffects = true;
+  bool get soundEffects => _soundEffects;
+  set soundEffects(bool soundEffects) {
+    if (_soundEffects != soundEffects) {
+      DB.instance.put<dynamic>(
+        boxName: DB.boxNamePrefs,
+        key: "soundEffects",
+        value: soundEffects,
+      );
+      _soundEffects = soundEffects;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> _getSoundEffects() async {
+    return await DB.instance.get<dynamic>(
+          boxName: DB.boxNamePrefs,
+          key: "soundEffects",
+        ) as bool? ??
+        true;
   }
 
   // mobile screen privacy

@@ -76,6 +76,7 @@ class StackDialog extends StatelessWidget {
     this.leftButton,
     this.rightButton,
     this.icon,
+    this.header,
     required this.title,
     this.message,
     this.content,
@@ -87,6 +88,9 @@ class StackDialog extends StatelessWidget {
   final Widget? rightButton;
 
   final Widget? icon;
+
+  /// Shown above the title (e.g. an animation).
+  final Widget? header;
 
   final String title;
   final String? message;
@@ -105,6 +109,7 @@ class StackDialog extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (header != null) ...[header!, const SizedBox(height: 20)],
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [

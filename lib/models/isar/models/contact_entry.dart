@@ -41,9 +41,7 @@ class ContactEntry {
     for (final coin in AppConfig.coins) {
       final slice = addresses.where((e) => e.coin == coin).toList();
       if (slice.isNotEmpty) {
-        slice.sort(
-          (a, b) => (a.other ?? a.label).compareTo(b.other ?? b.label),
-        );
+        slice.sort((a, b) => a.address.compareTo(b.address));
         sorted.addAll(slice);
       }
     }
@@ -99,34 +97,20 @@ class ContactEntry {
 class ContactAddressEntry {
   late final String coinName;
   late final String address;
-  late final String label;
-  late final String? other;
 
   @ignore
   CryptoCurrency get coin => AppConfig.getCryptoCurrencyFor(coinName)!;
 
   ContactAddressEntry();
 
-  ContactAddressEntry copyWith({
-    CryptoCurrency? coin,
-    String? address,
-    String? label,
-    String? other,
-  }) {
+  ContactAddressEntry copyWith({CryptoCurrency? coin, String? address}) {
     return ContactAddressEntry()
       ..coinName = coin?.identifier ?? coinName
-      ..address = address ?? this.address
-      ..label = label ?? this.label
-      ..other = other ?? this.other;
+      ..address = address ?? this.address;
   }
 
   Map<String, String> toMap() {
-    return {
-      "label": label,
-      "address": address,
-      "coin": coin.identifier,
-      "other": other ?? "",
-    };
+    return {"address": address, "coin": coin.identifier};
   }
 
   @override

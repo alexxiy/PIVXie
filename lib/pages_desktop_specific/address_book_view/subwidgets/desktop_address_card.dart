@@ -84,62 +84,57 @@ class DesktopAddressCard extends ConsumerWidget {
                       );
                     },
                   ),
-                  if (contactId != "default") const SizedBox(width: 16),
-                  if (contactId != "default")
-                    Consumer(
-                      builder: (context, ref, child) {
-                        return CustomTextButton(
-                          text: "Edit",
-                          onTap: () async {
-                            ref.refresh(
-                              addressEntryDataProviderFamilyRefresher,
-                            );
-                            ref.read(addressEntryDataProvider(0)).address =
-                                entry.address;
-                            ref.read(addressEntryDataProvider(0)).addressLabel =
-                                entry.label;
-                            ref.read(addressEntryDataProvider(0)).coin =
-                                entry.coin;
+                  const SizedBox(width: 16),
+                  Consumer(
+                    builder: (context, ref, child) {
+                      return CustomTextButton(
+                        text: "Edit",
+                        onTap: () async {
+                          ref.refresh(addressEntryDataProviderFamilyRefresher);
+                          ref.read(addressEntryDataProvider(0)).address =
+                              entry.address;
+                          ref.read(addressEntryDataProvider(0)).coin =
+                              entry.coin;
 
-                            await showDialog<void>(
-                              context: context,
-                              builder: (context) => DesktopDialog(
-                                maxWidth: 580,
-                                maxHeight: 566,
-                                child: Column(
-                                  children: [
-                                    Row(
-                                      children: [
-                                        const SizedBox(width: 8),
-                                        const AppBarBackButton(isCompact: true),
-                                        Text(
-                                          "Edit address",
-                                          style: STextStyles.desktopH3(context),
-                                        ),
-                                      ],
-                                    ),
-                                    Expanded(
-                                      child: Padding(
-                                        padding: const EdgeInsets.only(
-                                          top: 20,
-                                          left: 32,
-                                          right: 32,
-                                          bottom: 32,
-                                        ),
-                                        child: EditContactAddressView(
-                                          contactId: contactId,
-                                          addressEntry: entry,
-                                        ),
+                          await showDialog<void>(
+                            context: context,
+                            builder: (context) => DesktopDialog(
+                              maxWidth: 580,
+                              maxHeight: 566,
+                              child: Column(
+                                children: [
+                                  Row(
+                                    children: [
+                                      const SizedBox(width: 8),
+                                      const AppBarBackButton(isCompact: true),
+                                      Text(
+                                        "Edit address",
+                                        style: STextStyles.desktopH3(context),
+                                      ),
+                                    ],
+                                  ),
+                                  Expanded(
+                                    child: Padding(
+                                      padding: const EdgeInsets.only(
+                                        top: 20,
+                                        left: 32,
+                                        right: 32,
+                                        bottom: 32,
+                                      ),
+                                      child: EditContactAddressView(
+                                        contactId: contactId,
+                                        addressEntry: entry,
                                       ),
                                     ),
-                                  ],
-                                ),
+                                  ),
+                                ],
                               ),
-                            );
-                          },
-                        );
-                      },
-                    ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
                 ],
               ),
             ],

@@ -12,8 +12,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../../../app_config.dart';
+import '../../../../pages/settings_views/global_settings_view/appearance_settings/theme_mode_view.dart';
+import '../../../../providers/global/prefs_provider.dart';
+import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/text_styles.dart';
+import '../../../../widgets/custom_buttons/draggable_switch_button.dart';
 import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/rounded_white_container.dart';
 import 'language_dialog.dart';
@@ -43,75 +48,153 @@ class _LanguageOptionSettings extends ConsumerState<LanguageOptionSettings> {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(
-            right: 30,
-          ),
-          child: RoundedWhiteContainer(
-            radiusMultiplier: 2,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: SvgPicture.asset(
-                    Assets.svg.circleLanguage,
-                    width: 48,
-                    height: 48,
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(right: 30),
+            child: RoundedWhiteContainer(
+              radiusMultiplier: 2,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: SvgPicture.asset(
+                      Assets.svg.circleLanguage,
+                      width: 48,
+                      height: 48,
+                    ),
                   ),
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(10),
-                      child: RichText(
-                        textAlign: TextAlign.start,
-                        text: TextSpan(
-                          children: [
-                            TextSpan(
-                              text: "Language",
-                              style: STextStyles.desktopTextSmall(context),
-                            ),
-                            TextSpan(
-                              text:
-                                  "\n\nSelect the language of your wallet. We use your system language by default.",
-                              style: STextStyles.desktopTextExtraExtraSmall(
-                                context,
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: RichText(
+                          textAlign: TextAlign.start,
+                          text: TextSpan(
+                            children: [
+                              TextSpan(
+                                text: "Language",
+                                style: STextStyles.desktopTextSmall(context),
                               ),
-                            ),
-                          ],
+                              TextSpan(
+                                text: "\n\nSelect the language of your wallet. We use your system language by default.",
+                                style: STextStyles.desktopTextExtraExtraSmall(
+                                  context,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(
-                        10,
+                    ],
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(10),
+                        child: PrimaryButton(
+                          width: 200,
+                          buttonHeight: ButtonHeight.m,
+                          enabled: true,
+                          label: "Change language",
+                          onPressed: () {
+                            chooseLanguage(context);
+                          },
+                        ),
                       ),
-                      child: PrimaryButton(
-                        width: 200,
-                        buttonHeight: ButtonHeight.m,
-                        enabled: true,
-                        label: "Change language",
-                        onPressed: () {
-                          chooseLanguage(context);
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-      ],
+          if (AppConfig.hasFeature(AppFeature.darkTheme)) ...[
+            const SizedBox(height: 20),
+            Padding(
+              padding: const EdgeInsets.only(right: 30),
+              child: RoundedWhiteContainer(
+                radiusMultiplier: 2,
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("Theme", style: STextStyles.desktopTextSmall(context)),
+                    const SizedBox(height: 12),
+                    for (final mode in AppThemeMode.values)
+                      RadioListTile<AppThemeMode>(
+                        contentPadding: EdgeInsets.zero,
+                        value: mode,
+                        groupValue: currentThemeMode(ref),
+                        activeColor: Theme.of(context)
+                            .extension<StackColors>()!
+                            .radioButtonIconEnabled,
+                        onChanged: (m) => setThemeMode(context, ref, m!),
+                        title: Text(
+                          kThemeModeTexts[mode]!.$1,
+                          style: STextStyles.desktopTextExtraSmall(context),
+                        ),
+                        subtitle: Text(
+                          kThemeModeTexts[mode]!.$2,
+                          style: STextStyles.desktopTextExtraExtraSmall(
+                            context,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+          const SizedBox(height: 20),
+          Padding(
+            padding: const EdgeInsets.only(right: 30),
+            child: RoundedWhiteContainer(
+              radiusMultiplier: 2,
+              padding: const EdgeInsets.all(20),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: RichText(
+                      text: TextSpan(
+                        children: [
+                          TextSpan(
+                            text: "Sound effects",
+                            style: STextStyles.desktopTextSmall(context),
+                          ),
+                          TextSpan(
+                            text: "\n\nPlay sounds, e.g. while a transaction is sent.",
+                            style: STextStyles.desktopTextExtraExtraSmall(
+                              context,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  SizedBox(
+                    height: 20,
+                    width: 40,
+                    child: DraggableSwitchButton(
+                      isOn: ref.watch(
+                        prefsChangeNotifierProvider.select(
+                          (value) => value.soundEffects,
+                        ),
+                      ),
+                      onValueChanged: (on) =>
+                          ref.read(prefsChangeNotifierProvider).soundEffects =
+                              on,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

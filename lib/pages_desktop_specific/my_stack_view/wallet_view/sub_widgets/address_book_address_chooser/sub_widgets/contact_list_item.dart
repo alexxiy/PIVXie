@@ -84,9 +84,7 @@ class _ContactListItemState extends ConsumerState<ContactListItem> {
                 )
                 .map(
                   (e) => Column(
-                    key: Key(
-                      "contactAddress_${e.address}_${e.label}_${++i}_key",
-                    ),
+                    key: Key("contactAddress_${e.address}_${++i}_key"),
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Container(

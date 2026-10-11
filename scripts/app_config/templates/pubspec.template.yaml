@@ -44,6 +44,8 @@ dependencies:
   http: ^1.6.0
   # pivx: payment links opened from other apps (camera, browser, ...)
   app_links: ^7.2.2
+  # Sound effects (the send animation's sound), all platforms
+  audioplayers: ^6.8.1
   local_auth: ^3.0.2
   local_auth_android: ^2.0.0
   permission_handler: ^13.0.2

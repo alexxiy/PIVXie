@@ -369,10 +369,6 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                                           e.address;
                                       ref
                                               .read(addressEntryDataProvider(0))
-                                              .addressLabel =
-                                          e.label;
-                                      ref
-                                              .read(addressEntryDataProvider(0))
                                               .coin =
                                           e.coin;
 

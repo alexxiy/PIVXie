@@ -27,7 +27,6 @@ import '../../../utilities/clipboard_interface.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
-import '../../../widgets/app_icon.dart';
 import '../../../widgets/rounded_container.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../send_view/send_view.dart';
@@ -111,11 +110,7 @@ class ContactPopUp extends ConsumerWidget {
                                             .textFieldDefaultBG,
                                         borderRadius: BorderRadius.circular(32),
                                       ),
-                                      child: contact.customId == "default"
-                                          ? const Center(
-                                              child: AppIcon(width: 20),
-                                            )
-                                          : contact.emojiChar != null
+                                      child: contact.emojiChar != null
                                           ? Center(
                                               child: Text(contact.emojiChar!),
                                             )
@@ -135,44 +130,41 @@ class ContactPopUp extends ConsumerWidget {
                                         ),
                                       ),
                                     ),
-                                    if (contact.customId != "default")
-                                      TextButton(
-                                        onPressed: () {
-                                          Navigator.pop(context);
-                                          Navigator.of(context).pushNamed(
-                                            ContactDetailsView.routeName,
-                                            arguments: contact.customId,
-                                          );
-                                        },
-                                        style: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .getSecondaryEnabledButtonStyle(
-                                              context,
-                                            )!
-                                            .copyWith(
-                                              minimumSize:
-                                                  MaterialStateProperty.all<
-                                                    Size
-                                                  >(const Size(46, 32)),
-                                            ),
-                                        child: Padding(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 18,
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.pop(context);
+                                        Navigator.of(context).pushNamed(
+                                          ContactDetailsView.routeName,
+                                          arguments: contact.customId,
+                                        );
+                                      },
+                                      style: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .getSecondaryEnabledButtonStyle(
+                                            context,
+                                          )!
+                                          .copyWith(
+                                            minimumSize:
+                                                MaterialStateProperty.all<Size>(
+                                                  const Size(46, 32),
+                                                ),
                                           ),
-                                          child: Text(
-                                            "Details",
-                                            style: STextStyles.buttonSmall(
-                                              context,
-                                            ),
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 18,
+                                        ),
+                                        child: Text(
+                                          "Details",
+                                          style: STextStyles.buttonSmall(
+                                            context,
                                           ),
                                         ),
                                       ),
+                                    ),
                                   ],
                                 ),
                               ),
-                              SizedBox(
-                                height: contact.customId == "default" ? 16 : 8,
-                              ),
+                              SizedBox(height: 8),
                               Container(
                                 height: 1,
                                 color: Theme.of(context)
@@ -226,22 +218,12 @@ class ContactPopUp extends ConsumerWidget {
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
                                           children: [
-                                            if (contact.customId == "default")
-                                              Text(
-                                                e.other!,
-                                                style:
-                                                    STextStyles.itemSubtitle12(
-                                                      context,
-                                                    ),
+                                            Text(
+                                              e.title,
+                                              style: STextStyles.itemSubtitle12(
+                                                context,
                                               ),
-                                            if (contact.customId != "default")
-                                              Text(
-                                                e.title,
-                                                style:
-                                                    STextStyles.itemSubtitle12(
-                                                      context,
-                                                    ),
-                                              ),
+                                            ),
                                             const SizedBox(height: 2),
                                             MiddleEllipsisText(
                                               e.address,
@@ -285,11 +267,9 @@ class ContactPopUp extends ConsumerWidget {
                                           ),
                                         ],
                                       ),
-                                      if (contact.customId != "default" &&
-                                          hasActiveWallet)
+                                      if (hasActiveWallet)
                                         const SizedBox(width: 4),
-                                      if (contact.customId != "default" &&
-                                          hasActiveWallet)
+                                      if (hasActiveWallet)
                                         Column(
                                           children: [
                                             const SizedBox(height: 2),

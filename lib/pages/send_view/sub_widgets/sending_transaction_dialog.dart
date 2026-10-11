@@ -8,13 +8,10 @@
  *
  */
 
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lottie/lottie.dart';
 
-import '../../../themes/coin_image_provider.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/text_styles.dart';
@@ -22,6 +19,7 @@ import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../widgets/desktop/desktop_dialog.dart';
 import '../../../widgets/stack_dialog.dart';
+import '../../../widgets/tx_send_animation.dart';
 
 class SendingTransactionDialog extends ConsumerStatefulWidget {
   const SendingTransactionDialog({
@@ -35,10 +33,11 @@ class SendingTransactionDialog extends ConsumerStatefulWidget {
 
   @override
   ConsumerState<SendingTransactionDialog> createState() =>
-      _RestoringDialogState();
+      _SendingTransactionDialogState();
 }
 
-class _RestoringDialogState extends ConsumerState<SendingTransactionDialog> {
+class _SendingTransactionDialogState
+    extends ConsumerState<SendingTransactionDialog> {
   late ProgressAndSuccessController? _progressAndSuccessController;
 
   @override
@@ -57,36 +56,22 @@ class _RestoringDialogState extends ConsumerState<SendingTransactionDialog> {
 
   @override
   Widget build(BuildContext context) {
-    final assetPath = ref.watch(
-      coinImageSecondaryProvider(
-        widget.coin,
-      ),
-    );
-
     if (Util.isDesktop) {
       return DesktopDialog(
-        maxHeight: assetPath.endsWith(".gif") ? double.infinity : null,
+        maxHeight: double.infinity,
         child: Padding(
           padding: const EdgeInsets.all(40),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              const TxSendAnimation(width: 420),
+              const SizedBox(height: 24),
               Text(
                 "Sending transaction",
                 style: STextStyles.desktopH3(context),
               ),
-              const SizedBox(
-                height: 40,
-              ),
-              assetPath.endsWith(".gif")
-                  ? Flexible(
-                      child: Image.file(
-                        File(assetPath),
-                      ),
-                    )
-                  : ProgressAndSuccess(
-                      controller: _progressAndSuccessController!,
-                    ),
+              const SizedBox(height: 24),
+              ProgressAndSuccess(controller: _progressAndSuccessController!),
             ],
           ),
         ),
@@ -96,32 +81,11 @@ class _RestoringDialogState extends ConsumerState<SendingTransactionDialog> {
         onWillPop: () async {
           return false;
         },
-        child: assetPath.endsWith(".gif")
-            ? StackDialogBase(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Image.file(
-                      File(assetPath),
-                    ),
-                    Text(
-                      "Sending transaction",
-                      textAlign: TextAlign.center,
-                      style: STextStyles.pageTitleH2(context),
-                    ),
-                    const SizedBox(
-                      height: 32,
-                    ),
-                  ],
-                ),
-              )
-            : StackDialog(
-                title: "Sending transaction",
-                icon: ProgressAndSuccess(
-                  controller: _progressAndSuccessController!,
-                ),
-              ),
+        child: StackDialog(
+          header: const TxSendAnimation(),
+          title: "Sending transaction",
+          icon: ProgressAndSuccess(controller: _progressAndSuccessController!),
+        ),
       );
     }
   }
@@ -201,13 +165,15 @@ class _ProgressAndSuccessState extends State<ProgressAndSuccess>
           values: [
             ValueDelegate.color(
               const ["**"],
-              value:
-                  Theme.of(context).extension<StackColors>()!.accentColorDark,
+              value: Theme.of(context)
+                  .extension<StackColors>()!
+                  .accentColorDark,
             ),
             ValueDelegate.strokeColor(
               const ["**"],
-              value:
-                  Theme.of(context).extension<StackColors>()!.accentColorDark,
+              value: Theme.of(context)
+                  .extension<StackColors>()!
+                  .accentColorDark,
             ),
           ],
         ),
@@ -233,7 +199,8 @@ class _ProgressAndSuccessState extends State<ProgressAndSuccess>
         height: widget.height,
         onLoaded: (composition) {
           setState(() {
-            controller2.duration = composition.duration *
+            controller2.duration =
+                composition.duration *
                 (composition.markers.last.end - composition.markers[1].start);
             controller2.value = composition.markers[1].start;
           });

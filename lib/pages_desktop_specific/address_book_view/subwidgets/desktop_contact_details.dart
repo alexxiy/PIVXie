@@ -21,7 +21,6 @@ import '../../../providers/ui/address_book_providers/address_entry_data_provider
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/text_styles.dart';
-import '../../../widgets/app_icon.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/custom_buttons/blue_text_button.dart';
 import '../../../widgets/desktop/desktop_dialog.dart';
@@ -105,16 +104,12 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
                           width: 32,
                           height: 32,
                           decoration: BoxDecoration(
-                            color: contact.customId == "default"
-                                ? Colors.transparent
-                                : Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textFieldDefaultBG,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textFieldDefaultBG,
                             borderRadius: BorderRadius.circular(32),
                           ),
-                          child: contact.customId == "default"
-                              ? const Center(child: AppIcon(width: 32))
-                              : contact.emojiChar != null
+                          child: contact.emojiChar != null
                               ? Center(child: Text(contact.emojiChar!))
                               : Center(
                                   child: SvgPicture.asset(
@@ -130,23 +125,22 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
                         ),
                       ],
                     ),
-                    if (widget.contactId != "default")
-                      SecondaryButton(
-                        label: "Options",
-                        width: 96,
-                        buttonHeight: ButtonHeight.xxs,
-                        onPressed: () async {
-                          await showDialog<void>(
-                            context: context,
-                            barrierColor: Colors.transparent,
-                            builder: (context) {
-                              return DesktopContactOptionsMenuPopup(
-                                contactId: contact.customId,
-                              );
-                            },
-                          );
-                        },
-                      ),
+                    SecondaryButton(
+                      label: "Options",
+                      width: 96,
+                      buttonHeight: ButtonHeight.xxs,
+                      onPressed: () async {
+                        await showDialog<void>(
+                          context: context,
+                          barrierColor: Colors.transparent,
+                          builder: (context) {
+                            return DesktopContactOptionsMenuPopup(
+                              contactId: contact.customId,
+                            );
+                          },
+                        );
+                      },
+                    ),
                   ],
                 ),
                 const SizedBox(height: 24),

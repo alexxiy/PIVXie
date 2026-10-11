@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app_config.dart';
+import '../../../../providers/global/prefs_provider.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../../widgets/custom_buttons/draggable_switch_button.dart';
 import '../../../../widgets/rounded_white_container.dart';
 import '../../sub_widgets/settings_list_button.dart';
 import '../language_view.dart';
 import 'theme_mode_view.dart';
 
-/// Settings > Appearance: language and theme.
+/// Settings > Appearance: language, theme and sound effects.
 class AppearanceView extends StatelessWidget {
   const AppearanceView({super.key});
 
@@ -58,6 +61,50 @@ class AppearanceView extends StatelessWidget {
                         ),
                       ],
                     ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                RoundedWhiteContainer(
+                  child: Consumer(
+                    builder: (_, ref, __) => Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Sound effects",
+                                style: STextStyles.titleBold12(context),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                "Play sounds, e.g. while a transaction "
+                                "is sent",
+                                style: STextStyles.itemSubtitle(context),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        SizedBox(
+                          height: 20,
+                          width: 40,
+                          child: DraggableSwitchButton(
+                            key: const Key("soundEffectsSwitch"),
+                            isOn: ref.watch(
+                              prefsChangeNotifierProvider.select(
+                                (value) => value.soundEffects,
+                              ),
+                            ),
+                            onValueChanged: (on) =>
+                                ref
+                                        .read(prefsChangeNotifierProvider)
+                                        .soundEffects =
+                                    on,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ],

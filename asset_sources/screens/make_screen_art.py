@@ -104,3 +104,9 @@ for name, src, floor in JOBS:
         pv.alpha_composite(content)
         pv.convert("RGB").resize((cw * 600 // ch, 600), Image.LANCZOS).save(
             OUT / f"preview_{name}_{tag}.png")
+
+# The send animation (assets/persona/pivxie_tx_send.webp) is the artwork
+# video PIVXie_tx_send.mp4 as a looping animated WebP, so Image.asset plays
+# it on every platform without a video plugin:
+#   ffmpeg -i PIVXie_tx_send.mp4 -an -vf "fps=24,scale=960:-2:flags=lanczos" \
+#     -c:v libwebp -q:v 72 -compression_level 6 -loop 0 pivxie_tx_send.webp

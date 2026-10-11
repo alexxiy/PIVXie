@@ -64,17 +64,15 @@ class _EditContactAddressViewState
     final List<ContactAddressEntry> entries = contact.addresses.toList();
 
     final entry = entries.firstWhere(
-      (e) =>
-          e.label == addressEntry.label &&
-          e.address == addressEntry.address &&
-          e.coin == addressEntry.coin,
+      (e) => e.address == addressEntry.address && e.coin == addressEntry.coin,
     );
 
     final index = entries.indexOf(entry);
     entries.remove(entry);
 
-    final ContactAddressEntry editedEntry =
-        ref.read(addressEntryDataProvider(0)).buildAddressEntry();
+    final ContactAddressEntry editedEntry = ref
+        .read(addressEntryDataProvider(0))
+        .buildAddressEntry();
 
     entries.insert(index, editedEntry);
 
@@ -111,58 +109,52 @@ class _EditContactAddressViewState
 
     return ConditionalParent(
       condition: !isDesktop,
-      builder:
-          (child) => Background(
-            child: Scaffold(
-              backgroundColor:
-                  Theme.of(context).extension<StackColors>()!.background,
-              appBar: AppBar(
-                leading: AppBarBackButton(
-                  onPressed: () async {
-                    if (FocusScope.of(context).hasFocus) {
-                      FocusScope.of(context).unfocus();
-                      await Future<void>.delayed(
-                        const Duration(milliseconds: 75),
-                      );
-                    }
-                    if (mounted) {
-                      Navigator.of(context).pop();
-                    }
-                  },
-                ),
-                title: Text(
-                  "Edit address",
-                  style: STextStyles.navBarTitle(context),
-                ),
-              ),
-              body: SafeArea(
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    return Padding(
-                      padding: const EdgeInsets.only(
-                        left: 12,
-                        top: 12,
-                        right: 12,
-                      ),
-                      child: SingleChildScrollView(
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(
-                            minHeight: constraints.maxHeight - 24,
-                          ),
-                          child: IntrinsicHeight(
-                            child: Padding(
-                              padding: const EdgeInsets.all(4),
-                              child: child,
-                            ),
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
+      builder: (child) => Background(
+        child: Scaffold(
+          backgroundColor: Theme.of(context)
+              .extension<StackColors>()!
+              .background,
+          appBar: AppBar(
+            leading: AppBarBackButton(
+              onPressed: () async {
+                if (FocusScope.of(context).hasFocus) {
+                  FocusScope.of(context).unfocus();
+                  await Future<void>.delayed(const Duration(milliseconds: 75));
+                }
+                if (mounted) {
+                  Navigator.of(context).pop();
+                }
+              },
+            ),
+            title: Text(
+              "Edit address",
+              style: STextStyles.navBarTitle(context),
             ),
           ),
+          body: SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return Padding(
+                  padding: const EdgeInsets.only(left: 12, top: 12, right: 12),
+                  child: SingleChildScrollView(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight - 24,
+                      ),
+                      child: IntrinsicHeight(
+                        child: Padding(
+                          padding: const EdgeInsets.all(4),
+                          child: child,
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      ),
       child: Column(
         children: [
           Row(
@@ -172,23 +164,17 @@ class _EditContactAddressViewState
                 width: 48,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(24),
-                  color:
-                      Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textFieldActiveBG,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textFieldActiveBG,
                 ),
                 child: Center(
-                  child:
-                      contact.emojiChar == null
-                          ? SvgPicture.asset(
-                            Assets.svg.user,
-                            height: 24,
-                            width: 24,
-                          )
-                          : Text(
-                            contact.emojiChar!,
-                            style: STextStyles.pageTitleH1(context),
-                          ),
+                  child: contact.emojiChar == null
+                      ? SvgPicture.asset(Assets.svg.user, height: 24, width: 24)
+                      : Text(
+                          contact.emojiChar!,
+                          style: STextStyles.pageTitleH1(context),
+                        ),
                 ),
               ),
               const SizedBox(width: 16),
@@ -211,16 +197,14 @@ class _EditContactAddressViewState
           const SizedBox(height: 24),
           ConditionalParent(
             condition: isDesktop,
-            builder:
-                (child) =>
-                    MouseRegion(cursor: SystemMouseCursors.click, child: child),
+            builder: (child) =>
+                MouseRegion(cursor: SystemMouseCursors.click, child: child),
             child: GestureDetector(
               onTap: () async {
                 // delete address
                 final _addresses = contact.addresses;
                 final entry = _addresses.firstWhere(
                   (e) =>
-                      e.label == addressEntry.label &&
                       e.address == addressEntry.address &&
                       e.coin == addressEntry.coin,
                 );

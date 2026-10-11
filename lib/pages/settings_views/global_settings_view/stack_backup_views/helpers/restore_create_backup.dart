@@ -783,9 +783,7 @@ abstract class SWB {
           for (final address in (contact['addresses'] as List<dynamic>)) {
             final entry = ContactAddressEntry()
               ..coinName = address['coin'] as String
-              ..address = address['address'] as String
-              ..label = address['label'] as String
-              ..other = address['other'] as String?;
+              ..address = address['address'] as String;
 
             try {
               entry.coin;
@@ -918,9 +916,7 @@ abstract class SWB {
       for (final address in (contact['addresses'] as List<dynamic>)) {
         final entry = ContactAddressEntry()
           ..coinName = address['coin'] as String
-          ..address = address['address'] as String
-          ..label = address['label'] as String
-          ..other = address['other'] as String?;
+          ..address = address['address'] as String;
 
         try {
           entry.coin;

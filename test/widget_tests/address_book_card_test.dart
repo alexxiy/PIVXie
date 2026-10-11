@@ -34,9 +34,7 @@ void main() {
         addresses: [
           ContactAddressEntry()
             ..coinName = Pivx(CryptoCurrencyNetwork.main).identifier
-            ..address = "some bch address"
-            ..label = "Bills"
-            ..other = null,
+            ..address = "some bch address",
         ],
         isFavorite: true,
         customId: '',
