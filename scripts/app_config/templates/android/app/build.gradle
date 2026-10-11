@@ -27,7 +27,7 @@ android {
     defaultConfig {
         applicationId "com.place.holder"
         minSdk flutter.minSdkVersion
-        targetSdk flutter.targetSdkVersion
+        targetSdk 37
         versionCode flutter.versionCode
         versionName flutter.versionName
 
@@ -89,7 +89,7 @@ android {
         if (task.name == 'assembleDebug') {
             task.doFirst {
                 println "The compileSdkVersion is $android.compileSdk"
-                println "The targetSdkVersion is $flutter.targetSdkVersion"
+                println "The targetSdkVersion is $android.defaultConfig.targetSdk"
                 println "The ndkVersion is $ndkVersion"
             }
         }
