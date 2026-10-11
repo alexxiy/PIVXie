@@ -61,6 +61,7 @@ import 'pages/settings_views/global_settings_view/advanced_views/manage_explorer
 import 'pages/pivx_masternodes/pivx_create_masternode_view.dart';
 import 'pages/pivx_masternodes/pivx_masternode_details_view.dart';
 import 'pages/pivx_masternodes/pivx_masternodes_view.dart';
+import 'pages/settings_views/global_settings_view/appearance_settings/appearance_view.dart';
 import 'pages/settings_views/global_settings_view/appearance_settings/theme_mode_view.dart';
 import 'pages/settings_views/global_settings_view/currency_view.dart';
 import 'pages/settings_views/global_settings_view/delete_account_view.dart';
@@ -137,6 +138,7 @@ import 'pages_desktop_specific/settings/settings_menu/syncing_preferences_settin
 import 'pages_desktop_specific/settings/settings_menu/tor_settings/tor_settings.dart';
 import 'services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'services/event_bus/events/global/wallet_sync_status_changed_event.dart';
+import 'utilities/address_utils.dart';
 import 'utilities/amount/amount.dart';
 import 'utilities/enums/add_wallet_type_enum.dart';
 import 'wallets/crypto_currency/crypto_currency.dart';
@@ -976,6 +978,21 @@ class RouteGenerator {
             builder: (_) => SendView(walletId: args.walletId, coin: args.coin),
             settings: RouteSettings(name: settings.name),
           );
+        } else if (args
+            is ({
+              CryptoCurrency coin,
+              String walletId,
+              PaymentUriData paymentUri,
+            })) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => SendView(
+              walletId: args.walletId,
+              coin: args.coin,
+              paymentUri: args.paymentUri,
+            ),
+            settings: RouteSettings(name: settings.name),
+          );
         }
 
         return _routeError("${settings.name} invalid args: ${args.toString()}");
@@ -1085,6 +1102,13 @@ class RouteGenerator {
           );
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case AppearanceView.routeName:
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const AppearanceView(),
+          settings: RouteSettings(name: settings.name),
+        );
 
       case ThemeModeView.routeName:
         return getRoute(

@@ -12,9 +12,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app_config.dart';
-import '../../models/add_wallet_list_entity/sub_classes/coin_entity.dart';
-import '../../pages/add_wallet_views/add_wallet_view/add_wallet_view.dart';
-import '../../pages/add_wallet_views/create_or_restore_wallet_view/create_or_restore_wallet_view.dart';
 import '../../pages/wallets_view/wallets_overview.dart';
 import '../../providers/providers.dart';
 import '../../themes/stack_colors.dart';
@@ -22,6 +19,7 @@ import '../../utilities/text_styles.dart';
 import '../../widgets/custom_buttons/blue_text_button.dart';
 import 'desktop_favorite_wallets.dart';
 import 'wallet_summary_table.dart';
+import '../../utilities/shown_coins.dart';
 
 class MyWallets extends ConsumerStatefulWidget {
   const MyWallets({super.key});
@@ -38,26 +36,17 @@ class _MyWalletsState extends ConsumerState<MyWallets> {
     );
 
     return Padding(
-      padding: const EdgeInsets.only(
-        top: 24,
-        left: 14,
-        right: 14,
-        bottom: 0,
-      ),
+      padding: const EdgeInsets.only(top: 24, left: 14, right: 14, bottom: 0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (showFavorites)
             const Padding(
-              padding: EdgeInsets.symmetric(
-                horizontal: 10,
-              ),
+              padding: EdgeInsets.symmetric(horizontal: 10),
               child: DesktopFavoriteWallets(),
             ),
           Padding(
-            padding: const EdgeInsets.all(
-              10,
-            ),
+            padding: const EdgeInsets.all(10),
             child: Row(
               children: [
                 Text(
@@ -71,32 +60,12 @@ class _MyWalletsState extends ConsumerState<MyWallets> {
                 const Spacer(),
                 CustomTextButton(
                   text: "Add new wallet",
-                  onTap: () {
-                    final String route;
-                    final Object? args;
-                    if (AppConfig.isSingleCoinApp) {
-                      route = CreateOrRestoreWalletView.routeName;
-                      args = CoinEntity(AppConfig.coins.first);
-                    } else {
-                      route = AddWalletView.routeName;
-                      args = null;
-                    }
-
-                    Navigator.of(
-                      context,
-                      rootNavigator: true,
-                    ).pushNamed(
-                      route,
-                      arguments: args,
-                    );
-                  },
+                  onTap: () => pushAddWallet(context, ref, rootNavigator: true),
                 ),
               ],
             ),
           ),
-          const SizedBox(
-            height: 20,
-          ),
+          const SizedBox(height: 20),
           Expanded(
             child: AppConfig.isSingleCoinApp
                 ? WalletsOverview(

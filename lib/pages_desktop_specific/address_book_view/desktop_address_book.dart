@@ -13,7 +13,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../app_config.dart';
-import '../../models/isar/models/contact_entry.dart';
 import '../../pages/address_book_views/subviews/add_address_book_entry_view.dart';
 import '../../pages/address_book_views/subviews/address_book_filter_view.dart';
 import '../../providers/global/address_book_service_provider.dart';
@@ -115,30 +114,9 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
     //   ref.read(addressBookFilterProvider).add(widget.coin!, false);
     // }
 
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final List<ContactAddressEntry> addresses = [];
-      final wallets = ref.read(pWallets).wallets;
-      for (final wallet in wallets) {
-        final address = await wallet.getCurrentReceivingAddress();
-        final addressString =
-            address?.value ?? wallet.info.cachedReceivingAddress;
-
-        addresses.add(
-          ContactAddressEntry()
-            ..coinName = wallet.info.coin.identifier
-            ..address = addressString
-            ..label = "Current Receiving"
-            ..other = wallet.info.name,
-        );
-      }
-      final self = ContactEntry(
-        name: "My ${AppConfig.prefix}",
-        addresses: addresses,
-        isFavorite: true,
-        customId: "default",
-      );
-      await ref.read(addressBookServiceProvider).editContact(self);
-    });
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => ref.read(addressBookServiceProvider).removeLegacySelfContact(),
+    );
 
     super.initState();
   }

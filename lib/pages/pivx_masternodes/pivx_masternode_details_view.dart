@@ -310,6 +310,9 @@ class _PivxMasternodeDetailsViewState
     final wallet = _wallet;
     final mn = _masternode;
     final key = _key ?? "";
+    final serviceError = _serviceController.text.trim().isEmpty
+        ? null
+        : wallet.masternodeServiceError(_serviceController.text);
 
     return Background(
       child: Scaffold(
@@ -365,26 +368,66 @@ class _PivxMasternodeDetailsViewState
                             style: STextStyles.itemSubtitle(context),
                           ),
                           const SizedBox(height: 10),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(8),
-                            child: TextField(
-                              controller: _serviceController,
-                              focusNode: _serviceFocus,
-                              autocorrect: false,
-                              enableSuggestions: false,
-                              keyboardType: TextInputType.url,
-                              style: STextStyles.field(context),
-                              decoration: standardInputDecoration(
-                                "Server IP, e.g. 203.0.113.5",
-                                _serviceFocus,
-                                context,
-                              ),
-                            ),
+                          Builder(
+                            builder: (context) {
+                              final colors = Theme.of(context)
+                                  .extension<StackColors>()!;
+                              final border = serviceError == null
+                                  ? null
+                                  : OutlineInputBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                      borderSide: BorderSide(
+                                        color: colors.textError,
+                                        width: 1.5,
+                                      ),
+                                    );
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: TextField(
+                                      controller: _serviceController,
+                                      focusNode: _serviceFocus,
+                                      autocorrect: false,
+                                      enableSuggestions: false,
+                                      keyboardType: TextInputType.url,
+                                      style: STextStyles.field(context),
+                                      onChanged: (_) => setState(() {}),
+                                      decoration:
+                                          standardInputDecoration(
+                                            "Server IP, e.g. 203.0.113.5",
+                                            _serviceFocus,
+                                            context,
+                                          ).copyWith(
+                                            enabledBorder: border,
+                                            focusedBorder: border,
+                                          ),
+                                    ),
+                                  ),
+                                  if (serviceError != null)
+                                    Padding(
+                                      padding: const EdgeInsets.only(
+                                        left: 12,
+                                        top: 4,
+                                      ),
+                                      child: Text(
+                                        serviceError,
+                                        style: STextStyles.label(context)
+                                            .copyWith(color: colors.textError),
+                                      ),
+                                    ),
+                                ],
+                              );
+                            },
                           ),
                           const SizedBox(height: 10),
                           PrimaryButton(
                             label: "Start masternode",
-                            enabled: !wallet.isViewOnly,
+                            enabled:
+                                !wallet.isViewOnly &&
+                                _serviceController.text.trim().isNotEmpty &&
+                                serviceError == null,
                             onPressed: () => _start(mn),
                           ),
                         ],

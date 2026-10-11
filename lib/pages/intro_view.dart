@@ -8,18 +8,15 @@
  *
  */
 
-import 'dart:io';
-
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/svg.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../app_config.dart';
 import '../pages_desktop_specific/password/create_password_view.dart';
 import '../themes/stack_colors.dart';
-import '../themes/theme_providers.dart';
+import '../utilities/assets.dart';
 import '../utilities/prefs.dart';
 import '../utilities/text_styles.dart';
 import '../utilities/util.dart';
@@ -49,9 +46,6 @@ class _IntroViewState extends ConsumerState<IntroView> {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType ");
-    final stack = ref.watch(
-      themeProvider.select((value) => value.assets.stack),
-    );
     return Background(
       child: Scaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
@@ -64,19 +58,11 @@ class _IntroViewState extends ConsumerState<IntroView> {
                       const Spacer(flex: 2),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 300),
-                          child: SizedBox(
-                            width: isDesktop ? 324 : 266,
-                            height: isDesktop ? 324 : 266,
-                            child: (stack.endsWith(".png"))
-                                ? Image.file(File(stack))
-                                : SvgPicture.file(
-                                    File(stack),
-                                    width: isDesktop ? 324 : 266,
-                                    height: isDesktop ? 324 : 266,
-                                  ),
-                          ),
+                        child: Image.asset(
+                          Assets.persona.welcome,
+                          width: 266,
+                          height: 266,
+                          fit: BoxFit.contain,
                         ),
                       ),
                       const Spacer(flex: 1),

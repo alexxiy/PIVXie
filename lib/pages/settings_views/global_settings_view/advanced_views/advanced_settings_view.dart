@@ -17,6 +17,7 @@ import '../../../../providers/global/prefs_provider.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/text_styles.dart';
+import '../../../../utilities/shown_coins.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/choose_coin_view.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -24,16 +25,17 @@ import '../../../../widgets/custom_buttons/draggable_switch_button.dart';
 import '../../../../widgets/rounded_white_container.dart';
 import '../../../stack_privacy_calls.dart';
 import 'logging_settings_view.dart';
+import 'manage_coin_units/edit_coin_units_view.dart';
 import 'manage_coin_units/manage_coin_units_view.dart';
 import 'manage_explorer_view.dart';
 
-class AdvancedSettingsView extends StatelessWidget {
+class AdvancedSettingsView extends ConsumerWidget {
   const AdvancedSettingsView({super.key});
 
   static const String routeName = "/advancedSettings";
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     debugPrint("BUILD: $runtimeType");
 
     return Background(
@@ -244,16 +246,17 @@ class AdvancedSettingsView extends StatelessWidget {
                         Constants.size.circularBorderRadius,
                       ),
                     ),
-                    onPressed: () {
-                      Navigator.of(context).pushNamed(
-                        ChooseCoinView.routeName,
-                        arguments: const Tuple3<String, String, String>(
-                          "Manage block explorers",
-                          "block explorer",
-                          ManageExplorerView.routeName,
-                        ),
-                      );
-                    },
+                    onPressed: () => pushCoinScoped(
+                      context,
+                      ref,
+                      listRoute: ChooseCoinView.routeName,
+                      coinRoute: ManageExplorerView.routeName,
+                      listArguments: const Tuple3<String, String, String>(
+                        "Manage block explorers",
+                        "block explorer",
+                        ManageExplorerView.routeName,
+                      ),
+                    ),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 12,
@@ -282,10 +285,12 @@ class AdvancedSettingsView extends StatelessWidget {
                         Constants.size.circularBorderRadius,
                       ),
                     ),
-                    onPressed: () {
-                      Navigator.of(context)
-                          .pushNamed(ManageCoinUnitsView.routeName);
-                    },
+                    onPressed: () => pushCoinScoped(
+                      context,
+                      ref,
+                      listRoute: ManageCoinUnitsView.routeName,
+                      coinRoute: EditCoinUnitsView.routeName,
+                    ),
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 12,

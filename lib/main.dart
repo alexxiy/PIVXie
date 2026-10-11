@@ -34,6 +34,7 @@ import 'models/models.dart';
 import 'models/node_model.dart';
 import 'pages/already_running_view.dart';
 import 'pages/home_view/home_view.dart';
+import 'pages/home_view/payment_links.dart';
 import 'pages/intro_view.dart';
 import 'pages/loading_view.dart';
 import 'pages/pinpad_views/create_pin_view.dart';
@@ -306,6 +307,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
 
   bool didLoad = false;
   bool didLoadShared = false;
+  StreamSubscription<String>? _paymentLinks;
   bool _desktopHasPassword = false;
 
   Future<void> loadShared() async {
@@ -424,6 +426,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
 
     loadingCompleter = Completer();
     WidgetsBinding.instance.addObserver(this);
+    _paymentLinks = listenForPaymentLinks(ref);
     // load locale and prefs
     ref
         .read(localeServiceChangeNotifierProvider.notifier)
@@ -483,6 +486,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
   @override
   dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    unawaited(_paymentLinks?.cancel());
     super.dispose();
   }
 
@@ -754,72 +758,72 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
         ),
       ),
       home: Util.isDesktop
-            ? FutureBuilder(
-                future: loadShared(),
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.done) {
-                    if (_desktopHasPassword) {
-                      String? startupWalletId;
-                      if (ref
+          ? FutureBuilder(
+              future: loadShared(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.done) {
+                  if (_desktopHasPassword) {
+                    String? startupWalletId;
+                    if (ref
+                        .read(prefsChangeNotifierProvider)
+                        .gotoWalletOnStartup) {
+                      startupWalletId = ref
                           .read(prefsChangeNotifierProvider)
-                          .gotoWalletOnStartup) {
-                        startupWalletId = ref
-                            .read(prefsChangeNotifierProvider)
-                            .startupWalletId;
-                      }
-
-                      return DesktopLoginView(
-                        startupWalletId: startupWalletId,
-                        load: () => load(true),
-                      );
-                    } else {
-                      return const IntroView();
+                          .startupWalletId;
                     }
-                  } else {
-                    return const LoadingView();
-                  }
-                },
-              )
-            : FutureBuilder(
-                future: load(false),
-                builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
-                  if (snapshot.connectionState == ConnectionState.done) {
-                    // FlutterNativeSplash.remove();
-                    if (ref.read(pAllWalletsInfo).isNotEmpty ||
-                        ref.read(prefsChangeNotifierProvider).hasPin) {
-                      // return HomeView();
 
-                      String? startupWalletId;
-                      if (ref
+                    return DesktopLoginView(
+                      startupWalletId: startupWalletId,
+                      load: () => load(true),
+                    );
+                  } else {
+                    return const IntroView();
+                  }
+                } else {
+                  return const LoadingView();
+                }
+              },
+            )
+          : FutureBuilder(
+              future: load(false),
+              builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
+                if (snapshot.connectionState == ConnectionState.done) {
+                  // FlutterNativeSplash.remove();
+                  if (ref.read(pAllWalletsInfo).isNotEmpty ||
+                      ref.read(prefsChangeNotifierProvider).hasPin) {
+                    // return HomeView();
+
+                    String? startupWalletId;
+                    if (ref
+                        .read(prefsChangeNotifierProvider)
+                        .gotoWalletOnStartup) {
+                      startupWalletId = ref
                           .read(prefsChangeNotifierProvider)
-                          .gotoWalletOnStartup) {
-                        startupWalletId = ref
-                            .read(prefsChangeNotifierProvider)
-                            .startupWalletId;
-                      }
-
-                      return LockscreenView(
-                        isInitialAppLogin: true,
-                        routeOnSuccess: HomeView.routeName,
-                        routeOnSuccessArguments: startupWalletId,
-                        biometricsAuthenticationTitle:
-                            "Unlock ${AppConfig.prefix}",
-                        biometricsLocalizedReason:
-                            "Unlock your ${AppConfig.appName} using biometrics",
-                        biometricsCancelButtonString: "Cancel",
-                      );
-                    } else {
-                      return const IntroView();
+                          .startupWalletId;
                     }
+
+                    return LockscreenView(
+                      isInitialAppLogin: true,
+                      routeOnSuccess: HomeView.routeName,
+                      routeOnSuccessArguments: startupWalletId,
+                      biometricsAuthenticationTitle:
+                          "Unlock ${AppConfig.prefix}",
+                      biometricsLocalizedReason:
+                          "Unlock your ${AppConfig.appName} using biometrics",
+                      biometricsCancelButtonString: "Cancel",
+                    );
                   } else {
-                    // CURRENTLY DISABLED as cannot be animated
-                    // technically not needed as FlutterNativeSplash will overlay
-                    // anything returned here until the future completes but
-                    // FutureBuilder requires you to return something
-                    return const LoadingView();
+                    return const IntroView();
                   }
-                },
-              ),
+                } else {
+                  // CURRENTLY DISABLED as cannot be animated
+                  // technically not needed as FlutterNativeSplash will overlay
+                  // anything returned here until the future completes but
+                  // FutureBuilder requires you to return something
+                  return const LoadingView();
+                }
+              },
+            ),
     );
   }
 }

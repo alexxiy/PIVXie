@@ -35,6 +35,7 @@ import '../pinpad_views/lock_screen_view.dart';
 import '../settings_views/global_settings_view/global_settings_view.dart';
 import '../settings_views/global_settings_view/hidden_settings.dart';
 import '../wallets_view/wallets_view.dart';
+import 'payment_links.dart';
 
 class HomeView extends ConsumerStatefulWidget {
   const HomeView({super.key});
@@ -64,9 +65,27 @@ class _HomeViewState extends ConsumerState<HomeView> {
 
   IdleMonitor? _idleMonitor;
 
+  /// The idle lock screen is up: payment links wait for the unlock.
+  bool _locked = false;
+  bool _openingLink = false;
+
+  Future<void> _openPendingLink() async {
+    if (_locked || _openingLink || !mounted) return;
+    final link = ref.read(pPendingPaymentLink);
+    if (link == null) return;
+    ref.read(pPendingPaymentLink.notifier).state = null;
+    _openingLink = true;
+    try {
+      await openPaymentLink(context, ref, link);
+    } finally {
+      _openingLink = false;
+    }
+  }
+
   void _onIdle() async {
     final context = _key.currentContext;
     if (context != null) {
+      _locked = true;
       await Navigator.push(
         context,
         RouteGenerator.getRoute(
@@ -84,6 +103,8 @@ class _HomeViewState extends ConsumerState<HomeView> {
           settings: const RouteSettings(name: "/unlockTimedOutAppScreen"),
         ),
       );
+      _locked = false;
+      unawaited(_openPendingLink());
     }
   }
 
@@ -220,6 +241,15 @@ class _HomeViewState extends ConsumerState<HomeView> {
 
     ref.read(prefsChangeNotifierProvider).addListener(_prefsTimeoutListener);
 
+    // A link that opened the app: after the start-up wallet (if any) is
+    // on screen.
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => Future<void>.delayed(
+        const Duration(milliseconds: 700),
+        _openPendingLink,
+      ),
+    );
+
     super.initState();
   }
 
@@ -256,6 +286,9 @@ class _HomeViewState extends ConsumerState<HomeView> {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
+    ref.listen(pPendingPaymentLink, (_, next) {
+      if (next != null) unawaited(_openPendingLink());
+    });
 
     return WillPopScope(
       onWillPop: _onWillPop,

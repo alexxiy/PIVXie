@@ -89,7 +89,7 @@ class ThemeModeView extends ConsumerWidget {
           leading: AppBarBackButton(
             onPressed: () => Navigator.of(context).pop(),
           ),
-          title: Text("Appearance", style: STextStyles.navBarTitle(context)),
+          title: Text("Theme", style: STextStyles.navBarTitle(context)),
         ),
         body: Padding(
           padding: const EdgeInsets.all(16),

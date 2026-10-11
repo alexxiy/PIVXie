@@ -12,14 +12,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../app_config.dart';
 import '../../models/isar/models/contact_entry.dart';
 import '../../providers/global/address_book_service_provider.dart';
-import '../../providers/providers.dart';
 import '../../providers/ui/address_book_providers/address_book_filter_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/constants.dart';
+import '../../utilities/shown_coins.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
@@ -27,6 +26,7 @@ import '../../widgets/address_book_card.dart';
 import '../../widgets/background.dart';
 import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/icon_widgets/x_icon.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_text_field.dart';
@@ -34,6 +34,8 @@ import '../../widgets/textfield_icon_button.dart';
 import 'subviews/add_address_book_entry_view.dart';
 import 'subviews/address_book_filter_view.dart';
 
+/// The contacts, shared by all wallets. With [coin] (picking a recipient
+/// on the send screen) only contacts with an address of that coin.
 class AddressBookView extends ConsumerStatefulWidget {
   const AddressBookView({super.key, this.coin, this.filterTerm});
 
@@ -53,53 +55,23 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
 
   String _searchTerm = "";
 
+  /// More than one coin to filter by (testnets shown).
+  late final bool _canFilter;
+
   @override
   void initState() {
     _searchController = TextEditingController();
     ref.refresh(addressBookFilterProvider);
 
-    if (widget.coin == null) {
-      final coins = [...AppConfig.coins];
+    final coins = widget.coin == null
+        ? shownCoins(ref, withWalletCoins: true)
+        : [widget.coin!];
+    _canFilter = coins.length > 1;
+    ref.read(addressBookFilterProvider).addAll(coins, false);
 
-      final bool showTestNet = ref
-          .read(prefsChangeNotifierProvider)
-          .showTestNetCoins;
-
-      if (showTestNet) {
-        ref.read(addressBookFilterProvider).addAll(coins, false);
-      } else {
-        ref
-            .read(addressBookFilterProvider)
-            .addAll(coins.where((e) => !e.network.isTestNet), false);
-      }
-    } else {
-      ref.read(addressBookFilterProvider).add(widget.coin!, false);
-    }
-
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      final List<ContactAddressEntry> addresses = [];
-      final wallets = ref.read(pWallets).wallets;
-      for (final wallet in wallets) {
-        final address = await wallet.getCurrentReceivingAddress();
-        final addressString =
-            address?.value ?? wallet.info.cachedReceivingAddress;
-
-        addresses.add(
-          ContactAddressEntry()
-            ..coinName = wallet.info.coin.identifier
-            ..address = addressString
-            ..label = "Current Receiving"
-            ..other = wallet.info.name,
-        );
-      }
-      final self = ContactEntry(
-        name: "My ${AppConfig.prefix}",
-        addresses: addresses,
-        isFavorite: true,
-        customId: "default",
-      );
-      await ref.read(addressBookServiceProvider).editContact(self);
-    });
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => ref.read(addressBookServiceProvider).removeLegacySelfContact(),
+    );
     super.initState();
   }
 
@@ -110,12 +82,53 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
     super.dispose();
   }
 
+  void _addContact() =>
+      Navigator.of(context).pushNamed(AddAddressBookEntryView.routeName);
+
+  /// Contacts with an address of a filtered coin, matching the search.
+  List<ContactEntry> _shown(List<ContactEntry> contacts) {
+    final coins = ref.watch(addressBookFilterProvider.select((v) => v.coins));
+    final service = ref.read(addressBookServiceProvider);
+    return [
+      for (final c in contacts)
+        if (c.addresses.any((a) => coins.contains(a.coin)) &&
+            service.matches(widget.filterTerm ?? _searchTerm, c))
+          c,
+    ];
+  }
+
+  Widget _appBarButton({
+    required Key key,
+    required String icon,
+    required VoidCallback onPressed,
+  }) => Padding(
+    padding: const EdgeInsets.only(top: 10, bottom: 10, right: 10),
+    child: AspectRatio(
+      aspectRatio: 1,
+      child: AppBarIconButton(
+        key: key,
+        size: 36,
+        shadows: const [],
+        color: Theme.of(context).extension<StackColors>()!.background,
+        icon: SvgPicture.asset(
+          icon,
+          color: Theme.of(context).extension<StackColors>()!.accentColorDark,
+          width: 20,
+          height: 20,
+        ),
+        onPressed: onPressed,
+      ),
+    ),
+  );
+
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
     final contacts = ref.watch(
       addressBookServiceProvider.select((value) => value.contacts),
     );
+    final shown = _shown(contacts);
+    final favorites = shown.where((e) => e.isFavorite).toList();
 
     final isDesktop = Util.isDesktop;
     return ConditionalParent(
@@ -137,66 +150,20 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
                 style: STextStyles.navBarTitle(context),
               ),
               actions: [
-                Padding(
-                  padding: const EdgeInsets.only(
-                    top: 10,
-                    bottom: 10,
-                    right: 10,
-                  ),
-                  child: AspectRatio(
-                    aspectRatio: 1,
-                    child: AppBarIconButton(
-                      key: const Key("addressBookFilterViewButton"),
-                      size: 36,
-                      shadows: const [],
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .background,
-                      icon: SvgPicture.asset(
-                        Assets.svg.filter,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorDark,
-                        width: 20,
-                        height: 20,
-                      ),
-                      onPressed: () {
+                if (_canFilter && contacts.isNotEmpty)
+                  _appBarButton(
+                    key: const Key("addressBookFilterViewButton"),
+                    icon: Assets.svg.filter,
+                    onPressed: () =>
                         Navigator.of(context)
-                            .pushNamed(AddressBookFilterView.routeName);
-                      },
-                    ),
+                            .pushNamed(AddressBookFilterView.routeName),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.only(
-                    top: 10,
-                    bottom: 10,
-                    right: 10,
+                if (contacts.isNotEmpty)
+                  _appBarButton(
+                    key: const Key("addressBookAddNewContactViewButton"),
+                    icon: Assets.svg.plus,
+                    onPressed: _addContact,
                   ),
-                  child: AspectRatio(
-                    aspectRatio: 1,
-                    child: AppBarIconButton(
-                      key: const Key("addressBookAddNewContactViewButton"),
-                      size: 36,
-                      shadows: const [],
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .background,
-                      icon: SvgPicture.asset(
-                        Assets.svg.plus,
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorDark,
-                        width: 20,
-                        height: 20,
-                      ),
-                      onPressed: () {
-                        Navigator.of(context)
-                            .pushNamed(AddAddressBookEntryView.routeName);
-                      },
-                    ),
-                  ),
-                ),
               ],
             ),
             body: SafeArea(
@@ -216,13 +183,7 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
                         child: IntrinsicHeight(
                           child: Padding(
                             padding: const EdgeInsets.all(4),
-                            child: ConstrainedBox(
-                              constraints: BoxConstraints(
-                                minHeight:
-                                    MediaQuery.of(context).size.height - 271,
-                              ),
-                              child: child,
-                            ),
+                            child: child,
                           ),
                         ),
                       ),
@@ -234,166 +195,178 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
           ),
         );
       },
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(
-              Constants.size.circularBorderRadius,
-            ),
-            child: !isDesktop
-                ? TextField(
-                    autocorrect: Util.isDesktop ? false : true,
-                    enableSuggestions: Util.isDesktop ? false : true,
-                    controller: _searchController,
-                    focusNode: _searchFocusNode,
-                    onChanged: (value) {
-                      setState(() {
-                        _searchTerm = value;
-                      });
-                    },
-                    style: STextStyles.field(context),
-                    decoration:
-                        standardInputDecoration(
-                          "Search",
-                          _searchFocusNode,
-                          context,
-                        ).copyWith(
-                          prefixIcon: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 16,
-                            ),
-                            child: SvgPicture.asset(
-                              Assets.svg.search,
-                              width: 16,
-                              height: 16,
-                            ),
-                          ),
-                          suffixIcon: _searchController.text.isNotEmpty
-                              ? Padding(
-                                  padding: const EdgeInsets.only(right: 0),
-                                  child: UnconstrainedBox(
-                                    child: Row(
-                                      children: [
-                                        TextFieldIconButton(
-                                          child: const XIcon(),
-                                          onTap: () async {
-                                            setState(() {
-                                              _searchController.text = "";
-                                              _searchTerm = "";
-                                            });
-                                          },
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                )
-                              : null,
-                        ),
-                  )
-                : null,
-          ),
-          if (!isDesktop) const SizedBox(height: 16),
-          Text("Favorites", style: STextStyles.smallMed12(context)),
-          const SizedBox(height: 12),
-          if (contacts.isNotEmpty)
-            RoundedWhiteContainer(
-              padding: EdgeInsets.all(!isDesktop ? 0 : 15),
-              child: Column(
-                children: [
-                  ...contacts
-                      .where(
-                        (element) => element.addressesSorted
-                            .where(
-                              (e) => ref.watch(
-                                addressBookFilterProvider.select(
-                                  (value) => value.coins.contains(e.coin),
-                                ),
-                              ),
-                            )
-                            .isNotEmpty,
-                      )
-                      .where(
-                        (e) =>
-                            e.isFavorite &&
-                            ref
-                                .read(addressBookServiceProvider)
-                                .matches(widget.filterTerm ?? _searchTerm, e),
-                      )
-                      .where((element) => element.isFavorite)
-                      .map(
-                        (e) => AddressBookCard(
-                          key: Key("favContactCard_${e.customId}_key"),
-                          contactId: e.customId,
-                        ),
-                      ),
-                ],
-              ),
-            ),
-          if (contacts.isEmpty)
-            RoundedWhiteContainer(
-              child: Center(
-                child: Text(
-                  "Your favorite contacts will appear here",
-                  style: STextStyles.itemSubtitle(context),
-                ),
-              ),
-            ),
-          const SizedBox(height: 16),
-          Text("All contacts", style: STextStyles.smallMed12(context)),
-          const SizedBox(height: 12),
-          if (contacts.isNotEmpty)
-            Column(
+      child: contacts.isEmpty
+          ? _NoContacts(onAdd: _addContact)
+          : Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                RoundedWhiteContainer(
-                  padding: EdgeInsets.all(!isDesktop ? 0 : 15),
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Column(
-                      children: [
-                        ...contacts
-                            .where(
-                              (element) => element.addressesSorted
-                                  .where(
-                                    (e) => ref.watch(
-                                      addressBookFilterProvider.select(
-                                        (value) => value.coins.contains(e.coin),
+                if (!isDesktop)
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(
+                      Constants.size.circularBorderRadius,
+                    ),
+                    child: TextField(
+                      autocorrect: true,
+                      enableSuggestions: true,
+                      controller: _searchController,
+                      focusNode: _searchFocusNode,
+                      onChanged: (value) {
+                        setState(() {
+                          _searchTerm = value;
+                        });
+                      },
+                      style: STextStyles.field(context),
+                      decoration:
+                          standardInputDecoration(
+                            "Search",
+                            _searchFocusNode,
+                            context,
+                          ).copyWith(
+                            prefixIcon: Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 16,
+                              ),
+                              child: SvgPicture.asset(
+                                Assets.svg.search,
+                                width: 16,
+                                height: 16,
+                              ),
+                            ),
+                            suffixIcon: _searchController.text.isNotEmpty
+                                ? Padding(
+                                    padding: const EdgeInsets.only(right: 0),
+                                    child: UnconstrainedBox(
+                                      child: Row(
+                                        children: [
+                                          TextFieldIconButton(
+                                            child: const XIcon(),
+                                            onTap: () async {
+                                              setState(() {
+                                                _searchController.text = "";
+                                                _searchTerm = "";
+                                              });
+                                            },
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   )
-                                  .isNotEmpty,
-                            )
-                            .where(
-                              (e) => ref
-                                  .read(addressBookServiceProvider)
-                                  .matches(widget.filterTerm ?? _searchTerm, e),
-                            )
-                            .map(
-                              (e) => AddressBookCard(
-                                key: Key(
-                                  "desktopContactCard_${e.customId}_key",
-                                ),
-                                contactId: e.customId,
-                              ),
-                            ),
-                      ],
+                                : null,
+                          ),
                     ),
                   ),
-                ),
+                if (!isDesktop) const SizedBox(height: 16),
+                Text("Favorites", style: STextStyles.smallMed12(context)),
+                const SizedBox(height: 12),
+                if (favorites.isNotEmpty)
+                  RoundedWhiteContainer(
+                    padding: EdgeInsets.all(!isDesktop ? 0 : 15),
+                    child: Column(
+                      children: [
+                        for (final e in favorites)
+                          AddressBookCard(
+                            key: Key("favContactCard_${e.customId}_key"),
+                            contactId: e.customId,
+                          ),
+                      ],
+                    ),
+                  )
+                else
+                  RoundedWhiteContainer(
+                    child: Center(
+                      child: Text(
+                        "Your favorite contacts will appear here",
+                        style: STextStyles.itemSubtitle(context),
+                      ),
+                    ),
+                  ),
+                const SizedBox(height: 16),
+                Text("All contacts", style: STextStyles.smallMed12(context)),
+                const SizedBox(height: 12),
+                if (shown.isNotEmpty)
+                  RoundedWhiteContainer(
+                    padding: EdgeInsets.all(!isDesktop ? 0 : 15),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        children: [
+                          for (final e in shown)
+                            AddressBookCard(
+                              key: Key("desktopContactCard_${e.customId}_key"),
+                              contactId: e.customId,
+                            ),
+                        ],
+                      ),
+                    ),
+                  )
+                else
+                  RoundedWhiteContainer(
+                    child: Center(
+                      child: Text(
+                        "No contacts found",
+                        style: STextStyles.itemSubtitle(context),
+                      ),
+                    ),
+                  ),
               ],
             ),
-          if (contacts.isEmpty)
-            RoundedWhiteContainer(
-              child: Center(
-                child: Text(
-                  "Your contacts will appear here",
-                  style: STextStyles.itemSubtitle(context),
-                ),
+    );
+  }
+}
+
+/// No contacts yet: an invitation to add one.
+class _NoContacts extends StatelessWidget {
+  const _NoContacts({required this.onAdd});
+
+  final VoidCallback onAdd;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<StackColors>()!;
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Spacer(flex: 2),
+        Center(
+          child: Container(
+            width: 96,
+            height: 96,
+            decoration: BoxDecoration(
+              color: colors.textFieldDefaultBG,
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: SvgPicture.asset(
+                Assets.svg.user,
+                width: 40,
+                height: 40,
+                color: colors.textSubtitle2,
               ),
             ),
-        ],
-      ),
+          ),
+        ),
+        const SizedBox(height: 20),
+        Text(
+          "No contacts yet",
+          textAlign: TextAlign.center,
+          style: STextStyles.pageTitleH2(context),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          "Save the people you pay often, then pick them when you send.",
+          textAlign: TextAlign.center,
+          style: STextStyles.itemSubtitle(context),
+        ),
+        const Spacer(flex: 3),
+        PrimaryButton(
+          key: const Key("addressBookAddContactButton"),
+          label: "Add contact",
+          onPressed: onAdd,
+        ),
+        const SizedBox(height: 12),
+      ],
     );
   }
 }

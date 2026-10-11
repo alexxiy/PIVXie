@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../../../../app_config.dart';
 import '../../../../../providers/global/prefs_provider.dart';
 import '../../../../../themes/coin_icon_provider.dart';
 import '../../../../../themes/stack_colors.dart';
 import '../../../../../utilities/assets.dart';
+import '../../../../../utilities/shown_coins.dart';
 import '../../../../../utilities/text_styles.dart';
 import '../../../../../utilities/util.dart';
 import '../../../../../wallets/crypto_currency/crypto_currency.dart';
@@ -32,22 +32,17 @@ class ManageCoinUnitsView extends ConsumerWidget {
         builder: (context) => EditCoinUnitsView(coin: coin),
       );
     } else {
-      Navigator.of(context).pushNamed(
-        EditCoinUnitsView.routeName,
-        arguments: coin,
-      );
+      Navigator.of(context)
+          .pushNamed(EditCoinUnitsView.routeName, arguments: coin);
     }
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final showTestNet = ref.watch(
+    ref.watch(
       prefsChangeNotifierProvider.select((value) => value.showTestNetCoins),
     );
-
-    final coins = showTestNet
-        ? AppConfig.coins
-        : AppConfig.coins.where((e) => !e.network.isTestNet).toList();
+    final coins = shownCoins(ref, withWalletCoins: true);
 
     return ConditionalParent(
       condition: Util.isDesktop,
@@ -61,21 +56,14 @@ class ManageCoinUnitsView extends ConsumerWidget {
               children: [
                 Padding(
                   padding: const EdgeInsets.only(left: 32),
-                  child: Text(
-                    "Units",
-                    style: STextStyles.desktopH3(context),
-                  ),
+                  child: Text("Units", style: STextStyles.desktopH3(context)),
                 ),
                 const DesktopDialogCloseButton(),
               ],
             ),
             Expanded(
               child: Padding(
-                padding: const EdgeInsets.only(
-                  left: 32,
-                  right: 32,
-                  bottom: 32,
-                ),
+                padding: const EdgeInsets.only(left: 32, right: 32, bottom: 32),
                 child: child,
               ),
             ),
@@ -86,27 +74,23 @@ class ManageCoinUnitsView extends ConsumerWidget {
         condition: !Util.isDesktop,
         builder: (child) => Background(
           child: Scaffold(
-            backgroundColor:
-                Theme.of(context).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(context)
+                .extension<StackColors>()!
+                .background,
             appBar: AppBar(
               leading: AppBarBackButton(
                 onPressed: () {
                   Navigator.of(context).pop();
                 },
               ),
-              title: Text(
-                "Units",
-                style: STextStyles.navBarTitle(context),
-              ),
+              title: Text("Units", style: STextStyles.navBarTitle(context)),
             ),
             body: SafeArea(child: child),
           ),
         ),
         child: ListView.separated(
           itemCount: Util.isDesktop ? coins.length : coins.length + 2,
-          separatorBuilder: (_, __) => const SizedBox(
-            height: 12,
-          ),
+          separatorBuilder: (_, __) => const SizedBox(height: 12),
           itemBuilder: (_, index) {
             if (!Util.isDesktop) {
               if (index == 0) {
@@ -120,15 +104,10 @@ class ManageCoinUnitsView extends ConsumerWidget {
             return Padding(
               padding: Util.isDesktop
                   ? EdgeInsets.zero
-                  : const EdgeInsets.symmetric(
-                      horizontal: 16,
-                    ),
+                  : const EdgeInsets.symmetric(horizontal: 16),
               child: RoundedWhiteContainer(
                 padding: Util.isDesktop
-                    ? const EdgeInsets.symmetric(
-                        vertical: 16,
-                        horizontal: 14,
-                      )
+                    ? const EdgeInsets.symmetric(vertical: 16, horizontal: 14)
                     : const EdgeInsets.all(12),
                 borderColor: Util.isDesktop
                     ? Theme.of(context).extension<StackColors>()!.textSubtitle6
@@ -139,26 +118,18 @@ class ManageCoinUnitsView extends ConsumerWidget {
                 child: Row(
                   children: [
                     SvgPicture.file(
-                      File(
-                        ref.watch(
-                          coinIconProvider(coin),
-                        ),
-                      ),
+                      File(ref.watch(coinIconProvider(coin))),
                       width: 24,
                       height: 24,
                     ),
-                    const SizedBox(
-                      width: 12,
-                    ),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Text(
                         "Edit ${coin.prettyName} units",
                         style: STextStyles.titleBold12(context),
                       ),
                     ),
-                    const SizedBox(
-                      width: 12,
-                    ),
+                    const SizedBox(width: 12),
                     SvgPicture.asset(
                       Assets.svg.chevronRight,
                       width: Util.isDesktop ? 20 : 14,

@@ -10,6 +10,7 @@
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+
 import '../db/isar/main_db.dart';
 import '../models/isar/models/contact_entry.dart';
 
@@ -23,7 +24,23 @@ class AddressBookService extends ChangeNotifier {
     }
   }
 
-  List<ContactEntry> get contacts => MainDB.instance.getContactEntries();
+  /// Id of the "My Stack" contact older versions made from the wallets'
+  /// own receiving addresses. No longer shown (see
+  /// [removeLegacySelfContact]).
+  static const legacySelfContactId = "default";
+
+  List<ContactEntry> get contacts => MainDB.instance
+      .getContactEntries()
+      .where((e) => e.customId != legacySelfContactId)
+      .toList();
+
+  /// Delete the legacy self contact (the wallets' own addresses: they are
+  /// on the receive screen).
+  Future<void> removeLegacySelfContact() async {
+    if (await MainDB.instance.isContactEntryExists(id: legacySelfContactId)) {
+      await removeContact(legacySelfContactId);
+    }
+  }
 
   /// search address book entries
   //TODO search using isar queries

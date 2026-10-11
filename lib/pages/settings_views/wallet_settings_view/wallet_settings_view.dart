@@ -18,7 +18,6 @@ import 'package:tuple/tuple.dart';
 import '../../../models/keys/key_data_interface.dart';
 import '../../../models/keys/view_only_wallet_data.dart';
 import '../../../providers/global/wallets_provider.dart';
-import '../../../providers/ui/transaction_filter_provider.dart';
 import '../../../route_generator.dart';
 import '../../../services/event_bus/events/global/node_connection_status_changed_event.dart';
 import '../../../services/event_bus/events/global/wallet_sync_status_changed_event.dart';
@@ -33,10 +32,7 @@ import '../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interfa
 import '../../../widgets/background.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/rounded_white_container.dart';
-import '../../address_book_views/address_book_view.dart';
-import '../../home_view/home_view.dart';
 import '../../pinpad_views/lock_screen_view.dart';
-import '../global_settings_view/syncing_preferences_views/syncing_preferences_view.dart';
 import '../sub_widgets/settings_list_button.dart';
 import 'wallet_backup_views/wallet_backup_view.dart';
 import 'wallet_network_settings_view/wallet_network_settings_view.dart';
@@ -231,16 +227,6 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
         body: _WalletSettingsViewBody(
           children: [
             SettingsListButton(
-              iconAssetName: Assets.svg.addressBook,
-              iconSize: 16,
-              title: "Address book",
-              onPressed: () {
-                Navigator.of(context)
-                    .pushNamed(AddressBookView.routeName, arguments: coin);
-              },
-            ),
-            const SizedBox(height: 8),
-            SettingsListButton(
               iconAssetName: Assets.svg.node,
               iconSize: 16,
               title: "Network",
@@ -277,15 +263,6 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                   WalletSettingsWalletSettingsView.routeName,
                   arguments: walletId,
                 );
-              },
-            ),
-            const SizedBox(height: 8),
-            SettingsListButton(
-              iconAssetName: Assets.svg.arrowRotate,
-              title: "Syncing preferences",
-              onPressed: () {
-                Navigator.of(context)
-                    .pushNamed(SyncingPreferencesView.routeName);
               },
             ),
             // const SizedBox(
@@ -332,38 +309,6 @@ class _WalletSettingsViewBody extends StatelessWidget {
                         RoundedWhiteContainer(
                           padding: const EdgeInsets.all(4),
                           child: Column(children: children),
-                        ),
-
-                        const SizedBox(height: 12),
-                        const Spacer(),
-                        Consumer(
-                          builder: (_, ref, __) {
-                            return TextButton(
-                              onPressed: () {
-                                ref
-                                        .read(
-                                          transactionFilterProvider.notifier,
-                                        )
-                                        .state =
-                                    null;
-
-                                Navigator.of(context).popUntil(
-                                  ModalRoute.withName(HomeView.routeName),
-                                );
-                              },
-                              style: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .getSecondaryEnabledButtonStyle(context),
-                              child: Text(
-                                "Log out",
-                                style: STextStyles.button(context).copyWith(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .accentColorDark,
-                                ),
-                              ),
-                            );
-                          },
                         ),
                       ],
                     ),

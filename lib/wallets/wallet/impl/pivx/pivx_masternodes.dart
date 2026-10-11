@@ -144,6 +144,38 @@ extension PivxMasternodes on PivxWallet {
     return masternodes.any((m) => m.label.trim().toLowerCase() == a);
   }
 
+  /// PIVX Core takes any alias without whitespace or "#" (masternode.conf
+  /// is space separated and "#" starts a comment); PIVXie keeps to
+  /// letters, digits, "_", "-" and ".", which also read well in a file
+  /// name or a URL.
+  static final _aliasPattern = RegExp(r"^[A-Za-z0-9_.-]{1,32}$");
+
+  /// Why [alias] can't name a new masternode, or null when it can.
+  String? masternodeAliasError(String alias) {
+    final a = alias.trim();
+    if (a.isEmpty) return "Enter a masternode alias";
+    if (!_aliasPattern.hasMatch(a)) {
+      return a.length > 32
+          ? "At most 32 characters"
+          : "Only letters, digits, \"_\", \"-\" and \".\"";
+    }
+    if (isMasternodeAliasTaken(a)) {
+      return "Another masternode is already called \"$a\"";
+    }
+    return null;
+  }
+
+  /// Why [text] is not a usable server address (see
+  /// [normalizeMasternodeService]), or null when it is.
+  String? masternodeServiceError(String text) {
+    try {
+      normalizeMasternodeService(text);
+      return null;
+    } on FormatException catch (e) {
+      return e.message;
+    }
+  }
+
   bool _isMasternodeCollateral(String txid, int vout) =>
       masternodes.any((m) => m.txid == txid && m.vout == vout);
 
@@ -412,12 +444,12 @@ extension PivxMasternodes on PivxWallet {
       final rest = s.substring(end + 1);
       if (rest.isNotEmpty) {
         if (!rest.startsWith(":")) throw const FormatException("Invalid port");
-        port = int.parse(rest.substring(1));
+        port = _parsePort(rest.substring(1));
       }
     } else if (":".allMatches(s).length == 1) {
       final i = s.indexOf(":");
       host = s.substring(0, i);
-      port = int.parse(s.substring(i + 1));
+      port = _parsePort(s.substring(i + 1));
     } else {
       host = s;
     }
@@ -426,12 +458,27 @@ extension PivxMasternodes on PivxWallet {
       throw const FormatException("Enter the server's IP address");
     }
     if (port <= 0 || port > 65535) throw const FormatException("Invalid port");
-    if (!_isRegtest && port != masternodePort) {
+    // As PIVX Core checks a masternode broadcast: mainnet masternodes run
+    // on 51472 and other networks never do. Testnet uses its default port;
+    // regtest (several nodes on one host) any other.
+    if (_isRegtest) {
+      if (port == kPivxMasternodePortMain) {
+        throw const FormatException(
+          "Port $kPivxMasternodePortMain is for mainnet masternodes only",
+        );
+      }
+    } else if (port != masternodePort) {
       throw FormatException("Masternodes must use port $masternodePort");
     }
     return ip.type == InternetAddressType.IPv6
         ? "[${ip.address}]:$port"
         : "${ip.address}:$port";
+  }
+
+  static int _parsePort(String text) {
+    final port = int.tryParse(text.trim());
+    if (port == null) throw const FormatException("Invalid port");
+    return port;
   }
 
   /// 16-byte IP (IPv4 mapped into IPv6) and big-endian port, as PIVX

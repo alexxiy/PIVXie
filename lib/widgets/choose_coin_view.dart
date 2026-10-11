@@ -15,12 +15,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../providers/providers.dart';
-import '../app_config.dart';
 import '../themes/coin_icon_provider.dart';
 import '../themes/stack_colors.dart';
 import '../utilities/constants.dart';
 import '../utilities/text_styles.dart';
-import '../wallets/crypto_currency/crypto_currency.dart';
+import '../utilities/shown_coins.dart';
 import 'background.dart';
 import 'custom_buttons/app_bar_icon_button.dart';
 import 'rounded_white_container.dart';
@@ -52,14 +51,6 @@ class ChooseCoinView extends ConsumerStatefulWidget {
 }
 
 class _ChooseCoinViewState extends ConsumerState<ChooseCoinView> {
-  List<CryptoCurrency> _coins = [...AppConfig.coins];
-
-  @override
-  void initState() {
-    _coins = _coins.toList();
-    super.initState();
-  }
-
   @override
   void dispose() {
     super.dispose();
@@ -67,13 +58,10 @@ class _ChooseCoinViewState extends ConsumerState<ChooseCoinView> {
 
   @override
   Widget build(BuildContext context) {
-    final bool showTestNet = ref.watch(
+    ref.watch(
       prefsChangeNotifierProvider.select((value) => value.showTestNetCoins),
     );
-
-    final List<CryptoCurrency> coins = showTestNet
-        ? _coins
-        : _coins.where((e) => e.network == CryptoCurrencyNetwork.main).toList();
+    final coins = shownCoins(ref, withWalletCoins: true);
 
     return Background(
       child: Scaffold(

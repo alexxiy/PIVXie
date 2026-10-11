@@ -39,6 +39,7 @@ import '../../utilities/text_styles.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
+import '../address_book_views/address_book_view.dart';
 import '../pivx_masternodes/pivx_masternodes_view.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../widgets/background.dart';
@@ -486,6 +487,37 @@ class _WalletViewState extends ConsumerState<WalletView> {
                               ),
                             );
                           },
+                        ),
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.only(
+                        top: 10,
+                        bottom: 10,
+                        right: 10,
+                      ),
+                      child: AspectRatio(
+                        aspectRatio: 1,
+                        child: AppBarIconButton(
+                          semanticsLabel:
+                              "Address Book Button. Takes To Address Book.",
+                          key: const Key("walletViewAddressBookButton"),
+                          size: 36,
+                          shadows: const [],
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .background,
+                          icon: SvgPicture.asset(
+                            Assets.svg.addressBook,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .accentColorDark,
+                            width: 18,
+                            height: 18,
+                          ),
+                          onPressed: () =>
+                              Navigator.of(context)
+                                  .pushNamed(AddressBookView.routeName),
                         ),
                       ),
                     ),

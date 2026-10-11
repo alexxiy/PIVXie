@@ -9,13 +9,14 @@
  */
 
 import 'package:flutter/material.dart';
+
 import '../../../models/add_wallet_list_entity/add_wallet_list_entity.dart';
-import 'sub_widgets/coin_image.dart';
 import 'sub_widgets/create_or_restore_wallet_subtitle.dart';
 import 'sub_widgets/create_or_restore_wallet_title.dart';
 import 'sub_widgets/create_wallet_button_group.dart';
 import '../../../pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import '../../../themes/stack_colors.dart';
+import '../../../utilities/assets.dart';
 import '../../../utilities/util.dart';
 import '../../../widgets/background.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -23,10 +24,7 @@ import '../../../widgets/desktop/desktop_app_bar.dart';
 import '../../../widgets/desktop/desktop_scaffold.dart';
 
 class CreateOrRestoreWalletView extends StatelessWidget {
-  const CreateOrRestoreWalletView({
-    super.key,
-    required this.entity,
-  });
+  const CreateOrRestoreWalletView({super.key, required this.entity});
 
   static const routeName = "/createOrRestoreWallet";
 
@@ -60,30 +58,19 @@ class CreateOrRestoreWalletView extends StatelessWidget {
                     coin: entity.cryptoCurrency,
                     isDesktop: isDesktop,
                   ),
-                  const SizedBox(
-                    height: 16,
-                  ),
+                  const SizedBox(height: 16),
                   SizedBox(
                     width: 324,
-                    child: CreateRestoreWalletSubTitle(
-                      isDesktop: isDesktop,
-                    ),
+                    child: CreateRestoreWalletSubTitle(isDesktop: isDesktop),
                   ),
-                  const SizedBox(
-                    height: 32,
+                  const SizedBox(height: 32),
+                  Image.asset(
+                    Assets.persona.addWallet,
+                    width: 324,
+                    height: 324,
+                    fit: BoxFit.contain,
                   ),
-                  CoinImage(
-                    coin: entity.cryptoCurrency,
-                    width: isDesktop
-                        ? 324
-                        : MediaQuery.of(context).size.width / 1.6,
-                    height: isDesktop
-                        ? null
-                        : MediaQuery.of(context).size.width / 1.6,
-                  ),
-                  const SizedBox(
-                    height: 32,
-                  ),
+                  const SizedBox(height: 32),
                   CreateWalletButtonGroup(
                     coin: entity.cryptoCurrency,
                     isDesktop: isDesktop,
@@ -100,8 +87,9 @@ class CreateOrRestoreWalletView extends StatelessWidget {
     } else {
       return Background(
         child: Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(context)
+              .extension<StackColors>()!
+              .background,
           appBar: AppBar(
             leading: AppBarBackButton(
               onPressed: () {
@@ -125,34 +113,21 @@ class CreateOrRestoreWalletView extends StatelessWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
-                              const Spacer(
-                                flex: 2,
+                              const Spacer(flex: 2),
+                              Image.asset(
+                                Assets.persona.addWallet,
+                                width: MediaQuery.of(context).size.width / 1.6,
+                                height: MediaQuery.of(context).size.width / 1.6,
+                                fit: BoxFit.contain,
                               ),
-                              CoinImage(
-                                coin: entity.cryptoCurrency,
-                                width: isDesktop
-                                    ? 324
-                                    : MediaQuery.of(context).size.width / 1.6,
-                                height: isDesktop
-                                    ? null
-                                    : MediaQuery.of(context).size.width / 1.6,
-                              ),
-                              const Spacer(
-                                flex: 2,
-                              ),
+                              const Spacer(flex: 2),
                               CreateRestoreWalletTitle(
                                 coin: entity.cryptoCurrency,
                                 isDesktop: isDesktop,
                               ),
-                              const SizedBox(
-                                height: 8,
-                              ),
-                              CreateRestoreWalletSubTitle(
-                                isDesktop: isDesktop,
-                              ),
-                              const Spacer(
-                                flex: 5,
-                              ),
+                              const SizedBox(height: 8),
+                              CreateRestoreWalletSubTitle(isDesktop: isDesktop),
+                              const Spacer(flex: 5),
                               CreateWalletButtonGroup(
                                 coin: entity.cryptoCurrency,
                                 isDesktop: isDesktop,

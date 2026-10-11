@@ -15,8 +15,9 @@ abstract class Assets {
   static const persona = _PERSONA();
 }
 
-/// The PIVXie mascot (the Void Pixie) for the privacy choice. PNGs with
-/// 1.5x-4.0x density variants, drawn at 140 logical px.
+/// The PIVXie mascot (the Void Pixie). PNGs with 1.5x-4.0x density
+/// variants: the privacy choice at 140 logical px, the screen artwork
+/// within 280.
 class _PERSONA {
   const _PERSONA();
 
@@ -27,6 +28,12 @@ class _PERSONA {
 
   /// "Incognito": external calls off.
   String get private => "${_path}pivxie_private.png";
+
+  /// Holding a "WELCOME" banner: the first screen.
+  String get welcome => "${_path}pivxie_welcome.png";
+
+  /// Holding a PIVX wallet: create or restore a wallet.
+  String get addWallet => "${_path}pivxie_add_wallet.png";
 }
 
 class _SOCIALS {

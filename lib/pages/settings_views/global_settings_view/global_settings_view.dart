@@ -11,24 +11,25 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app_config.dart';
 import '../../../route_generator.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
+import '../../../utilities/shown_coins.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../widgets/background.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/rounded_white_container.dart';
-import '../../address_book_views/address_book_view.dart';
 import '../../pinpad_views/lock_screen_view.dart';
 import '../sub_widgets/settings_list_button.dart';
 import 'about_view.dart';
 import 'advanced_views/advanced_settings_view.dart';
-import 'appearance_settings/theme_mode_view.dart';
+import 'appearance_settings/appearance_view.dart';
 import 'currency_view.dart';
 import 'delete_account_view.dart';
-import 'language_view.dart';
+import 'manage_nodes_views/coin_nodes_view.dart';
 import 'manage_nodes_views/manage_nodes_view.dart';
 import 'security_views/security_view.dart';
 import 'stack_backup_views/stack_backup_view.dart';
@@ -37,13 +38,13 @@ import 'support_view.dart';
 import 'syncing_preferences_views/syncing_preferences_view.dart';
 import 'tor_settings/tor_settings_view.dart';
 
-class GlobalSettingsView extends StatelessWidget {
+class GlobalSettingsView extends ConsumerWidget {
   const GlobalSettingsView({super.key});
 
   static const String routeName = "/globalSettings";
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     debugPrint("BUILD: $runtimeType");
     return Background(
       child: Scaffold(
@@ -76,16 +77,6 @@ class GlobalSettingsView extends StatelessWidget {
                               padding: const EdgeInsets.all(4),
                               child: Column(
                                 children: [
-                                  SettingsListButton(
-                                    iconAssetName: Assets.svg.addressBook,
-                                    iconSize: 16,
-                                    title: "Address book",
-                                    onPressed: () {
-                                      Navigator.of(context)
-                                          .pushNamed(AddressBookView.routeName);
-                                    },
-                                  ),
-                                  const SizedBox(height: 8),
                                   SettingsListButton(
                                     iconAssetName: Assets.svg.downloadFolder,
                                     iconSize: 14,
@@ -138,17 +129,6 @@ class GlobalSettingsView extends StatelessWidget {
                                   ),
                                   const SizedBox(height: 8),
                                   SettingsListButton(
-                                    iconAssetName: Assets.svg.language,
-                                    iconSize: 18,
-                                    title: "Language",
-                                    onPressed: () {
-                                      Navigator.of(context).pushNamed(
-                                        LanguageSettingsView.routeName,
-                                      );
-                                    },
-                                  ),
-                                  const SizedBox(height: 8),
-                                  SettingsListButton(
                                     iconAssetName: Assets.svg.tor,
                                     iconSize: 18,
                                     title: "Tor Settings",
@@ -162,10 +142,12 @@ class GlobalSettingsView extends StatelessWidget {
                                     iconAssetName: Assets.svg.node,
                                     iconSize: 16,
                                     title: "Manage nodes",
-                                    onPressed: () {
-                                      Navigator.of(context)
-                                          .pushNamed(ManageNodesView.routeName);
-                                    },
+                                    onPressed: () => pushCoinScoped(
+                                      context,
+                                      ref,
+                                      listRoute: ManageNodesView.routeName,
+                                      coinRoute: CoinNodesView.routeName,
+                                    ),
                                   ),
                                   const SizedBox(height: 8),
                                   SettingsListButton(
@@ -189,20 +171,16 @@ class GlobalSettingsView extends StatelessWidget {
                                       );
                                     },
                                   ),
-                                  if (AppConfig.hasFeature(
-                                    AppFeature.darkTheme,
-                                  )) ...[
-                                    const SizedBox(height: 8),
-                                    SettingsListButton(
-                                      iconAssetName: Assets.svg.sun,
-                                      iconSize: 18,
-                                      title: "Appearance",
-                                      onPressed: () {
-                                        Navigator.of(context)
-                                            .pushNamed(ThemeModeView.routeName);
-                                      },
-                                    ),
-                                  ],
+                                  const SizedBox(height: 8),
+                                  SettingsListButton(
+                                    iconAssetName: Assets.svg.sun,
+                                    iconSize: 18,
+                                    title: "Appearance",
+                                    onPressed: () {
+                                      Navigator.of(context)
+                                          .pushNamed(AppearanceView.routeName);
+                                    },
+                                  ),
                                   if (Platform.isIOS) const SizedBox(height: 8),
                                   if (Platform.isIOS)
                                     SettingsListButton(

@@ -12,21 +12,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app_config.dart';
-import '../../../models/add_wallet_list_entity/sub_classes/coin_entity.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../wallets/isar/providers/all_wallets_info_provider.dart';
 import '../../../widgets/custom_buttons/blue_text_button.dart';
-import '../../add_wallet_views/add_wallet_view/add_wallet_view.dart';
-import '../../add_wallet_views/create_or_restore_wallet_view/create_or_restore_wallet_view.dart';
 import '../wallets_overview.dart';
 import 'wallet_list_item.dart';
+import '../../../utilities/shown_coins.dart';
 
-class AllWallets extends StatelessWidget {
+class AllWallets extends ConsumerWidget {
   const AllWallets({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     debugPrint("BUILD: $runtimeType");
     return Column(
       children: [
@@ -41,42 +39,23 @@ class AllWallets extends StatelessWidget {
             ),
             CustomTextButton(
               text: "Add new",
-              onTap: () {
-                final String route;
-                final Object? args;
-                if (AppConfig.isSingleCoinApp) {
-                  route = CreateOrRestoreWalletView.routeName;
-                  args = CoinEntity(AppConfig.coins.first);
-                } else {
-                  route = AddWalletView.routeName;
-                  args = null;
-                }
-                Navigator.of(context).pushNamed(
-                  route,
-                  arguments: args,
-                );
-              },
+              onTap: () => pushAddWallet(context, ref),
             ),
           ],
         ),
-        const SizedBox(
-          height: 10,
-        ),
+        const SizedBox(height: 10),
         Expanded(
           child: Consumer(
             builder: (_, ref, __) {
               final walletsByCoin = ref.watch(pAllWalletsInfoByCoin);
 
               if (AppConfig.isSingleCoinApp && walletsByCoin.isNotEmpty) {
-                return WalletsOverview(
-                  coin: AppConfig.coins.first,
-                );
+                return WalletsOverview(coin: AppConfig.coins.first);
               }
 
               // Every coin is a network of the same one (PIVX and its test
               // network): no per-coin groups, list the wallets directly.
-              if (AppConfig.coins.map((e) => e.mainNetId).toSet().length ==
-                      1 &&
+              if (AppConfig.coins.map((e) => e.mainNetId).toSet().length == 1 &&
                   walletsByCoin.isNotEmpty) {
                 return WalletsOverview(
                   // New state (wallet list) whenever wallets change.
@@ -97,10 +76,7 @@ class AllWallets extends StatelessWidget {
                   final int walletCount = walletsByCoin[index].wallets.length;
                   return Padding(
                     padding: const EdgeInsets.symmetric(vertical: 4),
-                    child: WalletListItem(
-                      coin: coin,
-                      walletCount: walletCount,
-                    ),
+                    child: WalletListItem(coin: coin, walletCount: walletCount),
                   );
                 },
               );

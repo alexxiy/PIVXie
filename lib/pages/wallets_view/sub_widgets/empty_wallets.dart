@@ -15,14 +15,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../../app_config.dart';
-import '../../../models/add_wallet_list_entity/sub_classes/coin_entity.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../themes/theme_providers.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
-import '../../add_wallet_views/add_wallet_view/add_wallet_view.dart';
-import '../../add_wallet_views/create_or_restore_wallet_view/create_or_restore_wallet_view.dart';
+import '../../../utilities/shown_coins.dart';
 
 class EmptyWallets extends ConsumerWidget {
   const EmptyWallets({super.key});
@@ -33,43 +31,32 @@ class EmptyWallets extends ConsumerWidget {
 
     final isDesktop = Util.isDesktop;
 
-    final stack =
-        ref.watch(themeProvider.select((value) => value.assets.stack));
+    final stack = ref.watch(
+      themeProvider.select((value) => value.assets.stack),
+    );
 
     return SafeArea(
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: 43,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: 43),
         child: ConstrainedBox(
           constraints: BoxConstraints(
             maxWidth: isDesktop ? 330 : double.infinity,
           ),
           child: Column(
             children: [
-              const Spacer(
-                flex: 2,
-              ),
+              const Spacer(flex: 2),
               SizedBox(
                 width: isDesktop ? 324 : MediaQuery.of(context).size.width / 3,
                 child: (stack.endsWith(".png"))
-                    ? Image.file(
-                        File(
-                          stack,
-                        ),
-                      )
+                    ? Image.file(File(stack))
                     : SvgPicture.file(
-                        File(
-                          stack,
-                        ),
+                        File(stack),
                         width: isDesktop
                             ? 324
                             : MediaQuery.of(context).size.width / 3,
                       ),
               ),
-              SizedBox(
-                height: isDesktop ? 30 : 16,
-              ),
+              SizedBox(height: isDesktop ? 30 : 16),
               Text(
                 AppConfig.emptyWalletsMessage,
                 textAlign: TextAlign.center,
@@ -85,29 +72,19 @@ class EmptyWallets extends ConsumerWidget {
                             .textSubtitle1,
                       ),
               ),
-              SizedBox(
-                height: isDesktop ? 30 : 16,
-              ),
+              SizedBox(height: isDesktop ? 30 : 16),
               if (isDesktop)
                 const SizedBox(
                   width: 328,
                   height: 70,
-                  child: AddWalletButton(
-                    isDesktop: true,
-                  ),
+                  child: AddWalletButton(isDesktop: true),
                 ),
               if (!isDesktop)
                 const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    AddWalletButton(
-                      isDesktop: false,
-                    ),
-                  ],
+                  children: [AddWalletButton(isDesktop: false)],
                 ),
-              const Spacer(
-                flex: 5,
-              ),
+              const Spacer(flex: 5),
             ],
           ),
         ),
@@ -129,38 +106,10 @@ class AddWalletButton extends ConsumerWidget {
       style: Theme.of(context)
           .extension<StackColors>()!
           .getPrimaryEnabledButtonStyle(context),
-      onPressed: () {
-        if (AppConfig.isSingleCoinApp) {
-          if (isDesktop) {
-            Navigator.of(
-              context,
-              rootNavigator: true,
-            ).pushNamed(
-              CreateOrRestoreWalletView.routeName,
-              arguments: CoinEntity(AppConfig.coins.first),
-            );
-          } else {
-            Navigator.of(context).pushNamed(
-              CreateOrRestoreWalletView.routeName,
-              arguments: CoinEntity(AppConfig.coins.first),
-            );
-          }
-        } else {
-          if (isDesktop) {
-            Navigator.of(
-              context,
-              rootNavigator: true,
-            ).pushNamed(AddWalletView.routeName);
-          } else {
-            Navigator.of(context).pushNamed(AddWalletView.routeName);
-          }
-        }
-      },
+      onPressed: () => pushAddWallet(context, ref, rootNavigator: isDesktop),
       child: Center(
         child: Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 16,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
@@ -178,9 +127,7 @@ class AddWalletButton extends ConsumerWidget {
                       width: isDesktop ? 18 : null,
                       height: isDesktop ? 18 : null,
                     ),
-              SizedBox(
-                width: isDesktop ? 8 : 5,
-              ),
+              SizedBox(width: isDesktop ? 8 : 5),
               Text(
                 "Add Wallet",
                 style: isDesktop

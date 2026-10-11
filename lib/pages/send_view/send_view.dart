@@ -23,7 +23,6 @@ import '../../models/input.dart';
 import '../../models/isar/models/isar_models.dart';
 import '../../models/send_view_auto_fill_data.dart';
 import '../../providers/providers.dart';
-import '../../providers/ui/fee_rate_type_state_provider.dart';
 import '../../providers/ui/preview_tx_button_state_provider.dart';
 import '../../providers/wallet/public_private_balance_state_provider.dart';
 import '../../route_generator.dart';
@@ -52,11 +51,11 @@ import '../../widgets/animated_text.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/custom_buttons/blue_text_button.dart';
-import '../../widgets/fee_slider.dart';
 import '../../widgets/icon_widgets/addressbook_icon.dart';
 import '../../widgets/icon_widgets/clipboard_icon.dart';
 import '../../widgets/icon_widgets/qrcode_icon.dart';
 import '../../widgets/icon_widgets/x_icon.dart';
+import '../../widgets/rounded_container.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
 import '../../widgets/stack_text_field.dart';
@@ -67,7 +66,6 @@ import 'confirm_transaction_view.dart';
 import 'sub_widgets/building_transaction_dialog.dart';
 import 'sub_widgets/pivx_change_address_sheet.dart';
 import 'sub_widgets/dual_balance_selection_sheet.dart';
-import 'sub_widgets/transaction_fee_selection_sheet.dart';
 
 class SendView extends ConsumerStatefulWidget {
   const SendView({
@@ -75,6 +73,7 @@ class SendView extends ConsumerStatefulWidget {
     required this.walletId,
     required this.coin,
     this.autoFillData,
+    this.paymentUri,
     this.clipboard = const ClipboardWrapper(),
   });
 
@@ -83,6 +82,10 @@ class SendView extends ConsumerStatefulWidget {
   final String walletId;
   final CryptoCurrency coin;
   final SendViewAutoFillData? autoFillData;
+
+  /// A payment request to fill in, as if its QR code was scanned here
+  /// (e.g. a pivx: link opened from another app).
+  final PaymentUriData? paymentUri;
   final ClipboardInterface clipboard;
 
   @override
@@ -473,22 +476,9 @@ class _SendViewState extends ConsumerState<SendView> {
       return cachedFees[amount]!;
     }
 
-    final feeObject = await wallet.fees;
-    final BigInt feeRate;
-    switch (ref.read(feeRateTypeMobileStateProvider)) {
-      case FeeRateType.fast:
-        feeRate = feeObject.fast;
-        break;
-      case FeeRateType.average:
-        feeRate = feeObject.medium;
-        break;
-      case FeeRateType.slow:
-        feeRate = feeObject.slow;
-        break;
-      default:
-        feeRate = BigInt.from(-1);
-    }
-
+    // PIVX has no fee market: every transparent send pays the relay
+    // minimum (fast = average = slow).
+    final feeRate = (await wallet.fees).medium;
     fee = await wallet.estimateFeeFor(amount, feeRate);
     cachedFees[amount] = ref
         .read(pAmountFormatter(coin))
@@ -621,8 +611,7 @@ class _SendViewState extends ConsumerState<SendView> {
             ),
           ],
           memo: memo,
-          feeRateType: ref.read(feeRateTypeMobileStateProvider),
-          satsPerVByte: isCustomFee.value ? customFeeRate : null,
+          feeRateType: FeeRateType.average,
           utxos: (coinControlEnabled && selectedUTXOs.isNotEmpty)
               ? selectedUTXOs
               : null,
@@ -771,45 +760,6 @@ class _SendViewState extends ConsumerState<SendView> {
     _cryptoAmountChanged();
   }
 
-  final isCustomFee = ValueNotifier(false);
-  int customFeeRate = 1;
-
-  void _onFeeSelectPressed() {
-    showModalBottomSheet<dynamic>(
-      backgroundColor: Colors.transparent,
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (_) => TransactionFeeSelectionSheet(
-        walletId: walletId,
-        amount:
-            (Decimal.tryParse(cryptoAmountController.text) ??
-                    ref.watch(pSendAmount)?.decimal ??
-                    Decimal.zero)
-                .toAmount(fractionDigits: coin.fractionDigits),
-        updateChosen: (String fee) {
-          if (fee == "custom") {
-            if (!isCustomFee.value) {
-              setState(() {
-                isCustomFee.value = true;
-              });
-            }
-            return;
-          }
-
-          _setCurrentFee(fee, true);
-          setState(() {
-            _calculateFeesFuture = Future(() => fee);
-            if (isCustomFee.value) {
-              isCustomFee.value = false;
-            }
-          });
-        },
-      ),
-    );
-  }
-
   /// Chosen change address for a send from [balance] (null: automatic).
   String? _pivxChange(BalanceType balance) => balance == BalanceType.private
       ? _pivxShieldChangeAddress
@@ -823,14 +773,6 @@ class _SendViewState extends ConsumerState<SendView> {
     walletId = widget.walletId;
     clipboard = widget.clipboard;
 
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.refresh(feeSheetSessionCacheProvider);
-    });
-    isCustomFee.addListener(() {
-      if (!isCustomFee.value) {
-        customFeeRate = 1;
-      }
-    });
     _currentFee = 0.toAmountAsRaw(fractionDigits: coin.fractionDigits);
 
     _calculateFeesFuture = calculateFees(
@@ -872,6 +814,12 @@ class _SendViewState extends ConsumerState<SendView> {
           _cryptoAmountChanged();
         }
         _setValidAddressProviders(_address);
+      });
+    }
+
+    if (widget.paymentUri != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _applyUri(widget.paymentUri!);
       });
     }
 
@@ -932,7 +880,6 @@ class _SendViewState extends ConsumerState<SendView> {
     _cryptoFocus.dispose();
     _baseFocus.dispose();
     _memoFocus.dispose();
-    isCustomFee.dispose();
     super.dispose();
   }
 
@@ -1891,120 +1838,42 @@ class _SendViewState extends ConsumerState<SendView> {
                             ),
                             const SizedBox(height: 12),
                             Text(
-                              "Transaction fee (estimated)",
+                              "Network fee (estimated)",
                               style: STextStyles.smallMed12(context),
                               textAlign: TextAlign.left,
                             ),
                             const SizedBox(height: 8),
-                            Stack(
-                              children: [
-                                TextField(
-                                  autocorrect: Util.isDesktop ? false : true,
-                                  enableSuggestions: Util.isDesktop
-                                      ? false
-                                      : true,
-                                  controller: feeController,
-                                  readOnly: true,
-                                  textInputAction: TextInputAction.none,
-                                ),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                  ),
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 12,
-                                    ),
-                                    child: RawMaterialButton(
-                                      splashColor: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .highlight,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(
-                                          Constants.size.circularBorderRadius,
-                                        ),
-                                      ),
-                                      onPressed: _onFeeSelectPressed,
-                                      child: Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Row(
-                                            children: [
-                                              Text(
-                                                ref
-                                                    .watch(
-                                                      feeRateTypeMobileStateProvider,
-                                                    )
-                                                    .prettyName,
-                                                style:
-                                                    STextStyles.itemSubtitle12(
-                                                      context,
-                                                    ),
-                                              ),
-                                              const SizedBox(width: 10),
-                                              FutureBuilder(
-                                                future: _calculateFeesFuture,
-                                                builder: (context, snapshot) {
-                                                  if (snapshot.connectionState ==
-                                                          ConnectionState
-                                                              .done &&
-                                                      snapshot.hasData) {
-                                                    _setCurrentFee(
-                                                      snapshot.data!,
-                                                      false,
-                                                    );
-                                                    return Text(
-                                                      isCustomFee.value
-                                                          ? ""
-                                                          : "~${snapshot.data!}",
-                                                      style:
-                                                          STextStyles.itemSubtitle(
-                                                            context,
-                                                          ),
-                                                    );
-                                                  } else {
-                                                    return AnimatedText(
-                                                      stringsToLoopThrough:
-                                                          stringsToLoopThrough,
-                                                      style:
-                                                          STextStyles.itemSubtitle(
-                                                            context,
-                                                          ),
-                                                    );
-                                                  }
-                                                },
-                                              ),
-                                            ],
-                                          ),
-                                          SvgPicture.asset(
-                                            Assets.svg.chevronDown,
-                                            width: 8,
-                                            height: 4,
-                                            color: Theme.of(context)
-                                                .extension<StackColors>()!
-                                                .textSubtitle2,
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            if (isCustomFee.value)
-                              Padding(
-                                padding: const EdgeInsets.only(
-                                  bottom: 12,
-                                  top: 16,
-                                ),
-                                child: FeeSlider(
-                                  coin: coin,
-                                  onSatVByteChanged: (rate) {
-                                    customFeeRate = rate;
-                                  },
-                                ),
+                            // PIVX has no fee market: the fee is the
+                            // network minimum, nothing to choose.
+                            RoundedContainer(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textFieldDefaultBG,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 14,
                               ),
+                              child: FutureBuilder(
+                                future: _calculateFeesFuture,
+                                builder: (context, snapshot) {
+                                  if (snapshot.connectionState ==
+                                          ConnectionState.done &&
+                                      snapshot.hasData) {
+                                    _setCurrentFee(snapshot.data!, false);
+                                    return Text(
+                                      "~${snapshot.data!}",
+                                      style: STextStyles.itemSubtitle12(
+                                        context,
+                                      ),
+                                    );
+                                  }
+                                  return AnimatedText(
+                                    stringsToLoopThrough: stringsToLoopThrough,
+                                    style: STextStyles.itemSubtitle(context),
+                                  );
+                                },
+                              ),
+                            ),
                             const Spacer(),
                             const SizedBox(height: 12),
                             TextButton(

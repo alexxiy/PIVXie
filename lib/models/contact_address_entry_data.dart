@@ -9,6 +9,7 @@
  */
 
 import 'package:flutter/cupertino.dart';
+
 import 'isar/models/contact_entry.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 
@@ -65,11 +66,9 @@ class AddressEntryData extends ChangeNotifier {
     return isValidAddress;
   }
 
+  /// The address belongs to a known coin (the form sets [coin] from it).
   bool get isValidAddress {
-    if (coin == null) {
-      return true;
-    }
-    if (_address == null) {
+    if (_address == null || coin == null) {
       return false;
     }
     return _coin!.validateAddress(_address!);

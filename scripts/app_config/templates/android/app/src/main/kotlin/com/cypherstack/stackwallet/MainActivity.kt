@@ -55,12 +55,15 @@ class MainActivity: FlutterFragmentActivity() {
         return this.bufferedReader(charset).use { it.readText() }
     }
 
+    // An opened backup file. Other links (pivx: payments) are app_links'.
     private fun handleOpenFile(intent: Intent?) {
-        val uri = intent?.data
-        if (uri != null) {
-            var inputStream = this.contentResolver.openInputStream(uri!!)
-            val inputAsString = inputStream!!.readTextAndClose()
-            openPath = inputAsString
+        val uri = intent?.data ?: return
+        if (uri.scheme != "content" && uri.scheme != "file") return
+        try {
+            val inputStream = this.contentResolver.openInputStream(uri) ?: return
+            openPath = inputStream.readTextAndClose()
+        } catch (e: Exception) {
+            openPath = null
         }
     }
 }

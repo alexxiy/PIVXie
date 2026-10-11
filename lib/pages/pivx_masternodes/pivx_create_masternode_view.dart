@@ -172,12 +172,11 @@ class _PivxCreateMasternodeViewState
       return;
     }
     final label = _labelController.text.trim();
-    if (label.isEmpty || wallet.isMasternodeAliasTaken(label)) {
+    final aliasError = wallet.masternodeAliasError(label);
+    if (aliasError != null) {
       await showFloatingFlushBar(
         type: FlushBarType.warning,
-        message: label.isEmpty
-            ? "Enter a masternode alias"
-            : "Another masternode is already called \"$label\"",
+        message: aliasError,
         context: context,
       );
       return;
@@ -271,9 +270,8 @@ class _PivxCreateMasternodeViewState
           onSuccessInsteadOfRouteOnSuccess: () async {
             await saving;
             if (mounted) {
-              Navigator.of(
-                context,
-              ).popUntil(ModalRoute.withName(PivxMasternodesView.routeName));
+              Navigator.of(context)
+                  .popUntil(ModalRoute.withName(PivxMasternodesView.routeName));
             }
           },
         ),
@@ -360,9 +358,8 @@ class _PivxCreateMasternodeViewState
                       ? "Chosen automatically"
                       : "${_coins.length} selected · "
                             "${fmt.format(Amount(rawValue: sum, fractionDigits: _wallet.cryptoCurrency.fractionDigits))}",
-                  style: STextStyles.w500_12(
-                    context,
-                  ).copyWith(color: colors.textSubtitle1),
+                  style: STextStyles.w500_12(context)
+                      .copyWith(color: colors.textSubtitle1),
                 ),
               ],
             ),
@@ -379,6 +376,70 @@ class _PivxCreateMasternodeViewState
     );
   }
 
+  String? get _aliasError =>
+      _wallet.masternodeAliasError(_labelController.text);
+
+  String? get _keyError =>
+      _pasteKey &&
+          _keyController.text.trim().isNotEmpty &&
+          !_wallet.isValidMasternodeKey(_keyController.text)
+      ? "Not a ${_wallet.cryptoCurrency.prettyName} masternode private key"
+      : null;
+
+  String? get _serviceError => _serviceController.text.trim().isEmpty
+      ? null
+      : _wallet.masternodeServiceError(_serviceController.text);
+
+  /// A text field outlined in red, with [error] under it, while its
+  /// content is invalid.
+  Widget _field({
+    required TextEditingController controller,
+    required FocusNode focus,
+    required String hint,
+    required String? error,
+    bool plain = false,
+    TextInputType? keyboardType,
+  }) {
+    final colors = Theme.of(context).extension<StackColors>()!;
+    final border = error == null
+        ? null
+        : OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide(color: colors.textError, width: 1.5),
+          );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: TextField(
+            controller: controller,
+            focusNode: focus,
+            autocorrect: !plain,
+            enableSuggestions: !plain,
+            keyboardType: keyboardType,
+            style: STextStyles.field(context),
+            onChanged: (_) => setState(() {}),
+            decoration: standardInputDecoration(
+              hint,
+              focus,
+              context,
+            ).copyWith(enabledBorder: border, focusedBorder: border),
+          ),
+        ),
+        if (error != null)
+          Padding(
+            padding: const EdgeInsets.only(left: 12, top: 4),
+            child: Text(
+              error,
+              style: STextStyles.label(context)
+                  .copyWith(color: colors.textError),
+            ),
+          ),
+      ],
+    );
+  }
+
   Widget _subtitle(String text) => Text(
     text,
     style: STextStyles.w500_12(context).copyWith(
@@ -392,6 +453,9 @@ class _PivxCreateMasternodeViewState
     final wallet = _wallet;
     final collateral =
         "${wallet.masternodeCollateral.decimal} ${wallet.cryptoCurrency.ticker}";
+    final aliasError = _aliasError;
+    final keyError = _keyError;
+    final serviceError = widget.existing ? _serviceError : null;
 
     return Background(
       child: Scaffold(
@@ -420,19 +484,12 @@ class _PivxCreateMasternodeViewState
               ],
               Text("Masternode alias", style: STextStyles.smallMed12(context)),
               const SizedBox(height: 8),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(8),
-                child: TextField(
-                  controller: _labelController,
-                  focusNode: _labelFocus,
-                  style: STextStyles.field(context),
-                  onChanged: (_) => setState(() {}),
-                  decoration: standardInputDecoration(
-                    "e.g. MN1",
-                    _labelFocus,
-                    context,
-                  ),
-                ),
+              _field(
+                controller: _labelController,
+                focus: _labelFocus,
+                hint: "e.g. MN1",
+                error: aliasError,
+                plain: true,
               ),
               const SizedBox(height: 20),
               Text(
@@ -497,21 +554,14 @@ class _PivxCreateMasternodeViewState
                   style: STextStyles.smallMed12(context),
                 ),
                 const SizedBox(height: 8),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: TextField(
-                    controller: _serviceController,
-                    focusNode: _serviceFocus,
-                    autocorrect: false,
-                    enableSuggestions: false,
-                    keyboardType: TextInputType.url,
-                    style: STextStyles.field(context),
-                    decoration: standardInputDecoration(
-                      "e.g. 203.0.113.5",
-                      _serviceFocus,
-                      context,
-                    ),
-                  ),
+                _field(
+                  controller: _serviceController,
+                  focus: _serviceFocus,
+                  hint:
+                      "e.g. 203.0.113.5 or 203.0.113.5:${wallet.masternodePort}",
+                  error: serviceError,
+                  plain: true,
+                  keyboardType: TextInputType.url,
                 ),
               ] else ...[
                 _option(
@@ -566,9 +616,8 @@ class _PivxCreateMasternodeViewState
                                   Text(
                                     a.value,
                                     overflow: TextOverflow.ellipsis,
-                                    style: STextStyles.w500_12(
-                                      context,
-                                    ).copyWith(color: colors.textSubtitle1),
+                                    style: STextStyles.w500_12(context)
+                                        .copyWith(color: colors.textSubtitle1),
                                   ),
                                 ],
                               ),
@@ -600,21 +649,12 @@ class _PivxCreateMasternodeViewState
               ),
               const SizedBox(height: 8),
               if (_pasteKey)
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: TextField(
-                    controller: _keyController,
-                    focusNode: _keyFocus,
-                    autocorrect: false,
-                    enableSuggestions: false,
-                    style: STextStyles.field(context),
-                    onChanged: (_) => setState(() {}),
-                    decoration: standardInputDecoration(
-                      "Paste the masternode private key",
-                      _keyFocus,
-                      context,
-                    ),
-                  ),
+                _field(
+                  controller: _keyController,
+                  focus: _keyFocus,
+                  hint: "Paste the masternode private key",
+                  error: keyError,
+                  plain: true,
                 )
               else
                 RoundedWhiteContainer(
@@ -645,8 +685,11 @@ class _PivxCreateMasternodeViewState
               PrimaryButton(
                 label: widget.existing ? "Add masternode" : "Send collateral",
                 enabled:
-                    _labelController.text.trim().isNotEmpty &&
-                    (!_pasteKey || _keyController.text.trim().isNotEmpty) &&
+                    aliasError == null &&
+                    (!_pasteKey ||
+                        (_keyController.text.trim().isNotEmpty &&
+                            keyError == null)) &&
+                    serviceError == null &&
                     (!widget.existing || _output != null),
                 onPressed: _create,
               ),

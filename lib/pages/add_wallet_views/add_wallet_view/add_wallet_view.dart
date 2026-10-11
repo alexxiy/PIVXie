@@ -10,32 +10,26 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/svg.dart';
 
-import '../../../app_config.dart';
 import '../../../models/add_wallet_list_entity/add_wallet_list_entity.dart';
 import '../../../models/add_wallet_list_entity/sub_classes/coin_entity.dart';
 import '../../../pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import '../../../providers/providers.dart';
 import '../../../themes/stack_colors.dart';
-import '../../../utilities/assets.dart';
-import '../../../utilities/constants.dart';
-import '../../../utilities/text_styles.dart';
+import '../../../utilities/shown_coins.dart';
 import '../../../utilities/util.dart';
-import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../widgets/background.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/desktop/desktop_app_bar.dart';
 import '../../../widgets/desktop/desktop_scaffold.dart';
-import '../../../widgets/expandable.dart';
-import '../../../widgets/icon_widgets/x_icon.dart';
 import '../../../widgets/rounded_white_container.dart';
-import '../../../widgets/stack_text_field.dart';
-import '../../../widgets/textfield_icon_button.dart';
+import 'sub_widgets/add_wallet_entity_list.dart';
 import 'sub_widgets/add_wallet_text.dart';
-import 'sub_widgets/expanding_sub_list_item.dart';
 import 'sub_widgets/next_button.dart';
 
+/// Pick the coin of a new wallet. Only reached when there is more than
+/// one (testnets shown); otherwise "add wallet" goes straight to
+/// create / restore (see [pushAddWallet]).
 class AddWalletView extends ConsumerStatefulWidget {
   const AddWalletView({super.key});
 
@@ -46,66 +40,21 @@ class AddWalletView extends ConsumerStatefulWidget {
 }
 
 class _AddWalletViewState extends ConsumerState<AddWalletView> {
-  late final TextEditingController _searchFieldController;
-  late final FocusNode _searchFocusNode;
-
-  String _searchTerm = "";
-
-  final _coinsTestnet = [...AppConfig.coins.where((e) => e.network.isTestNet)];
-  final _coins = [
-    ...AppConfig.coins.where((e) => e.network == CryptoCurrencyNetwork.main),
-  ];
-  final List<AddWalletListEntity> coinEntities = [];
-  final List<AddWalletListEntity> coinTestnetEntities = [];
+  late final List<AddWalletListEntity> _entities;
 
   final bool isDesktop = Util.isDesktop;
 
-  List<AddWalletListEntity> filter(
-    String text,
-    List<AddWalletListEntity> entities,
-  ) {
-    final _entities = [...entities];
-    if (text.isNotEmpty) {
-      final lowercaseTerm = text.toLowerCase();
-      _entities.retainWhere(
-        (e) =>
-            e.ticker.toLowerCase().contains(lowercaseTerm) ||
-            e.name.toLowerCase().contains(lowercaseTerm) ||
-            e.cryptoCurrency.identifier.toLowerCase().contains(lowercaseTerm),
-      );
-    }
-
-    return _entities;
-  }
-
   @override
   void initState() {
-    _searchFieldController = TextEditingController();
-    _searchFocusNode = FocusNode();
-
-    coinEntities.addAll(_coins.map((e) => CoinEntity(e)));
-
-    if (ref.read(prefsChangeNotifierProvider).showTestNetCoins) {
-      coinTestnetEntities.addAll(_coinsTestnet.map((e) => CoinEntity(e)));
-    }
+    _entities = [for (final coin in shownCoins(ref)) CoinEntity(coin)];
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         ref.refresh(addWalletSelectedEntityStateProvider);
-        if (isDesktop) {
-          _searchFocusNode.requestFocus();
-        }
       }
     });
 
     super.initState();
-  }
-
-  @override
-  void dispose() {
-    _searchFieldController.dispose();
-    _searchFocusNode.dispose();
-    super.dispose();
   }
 
   @override
@@ -128,114 +77,9 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
                 width: 480,
                 child: RoundedWhiteContainer(
                   radiusMultiplier: 2,
-                  padding: const EdgeInsets.only(
-                    left: 16,
-                    top: 16,
-                    right: 16,
-                    bottom: 0,
-                  ),
-                  child: Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(4.0),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(
-                            Constants.size.circularBorderRadius,
-                          ),
-                          child: TextField(
-                            autocorrect: Util.isDesktop ? false : true,
-                            enableSuggestions: Util.isDesktop ? false : true,
-                            controller: _searchFieldController,
-                            focusNode: _searchFocusNode,
-                            onChanged: (value) {
-                              setState(() {
-                                _searchTerm = value;
-                              });
-                            },
-                            style: STextStyles.desktopTextMedium(context)
-                                .copyWith(height: 2),
-                            decoration:
-                                standardInputDecoration(
-                                  "Search",
-                                  _searchFocusNode,
-                                  context,
-                                ).copyWith(
-                                  contentPadding: const EdgeInsets.symmetric(
-                                    vertical: 10,
-                                  ),
-                                  prefixIcon: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 16,
-                                      // vertical: 20,
-                                    ),
-                                    child: SvgPicture.asset(
-                                      Assets.svg.search,
-                                      width: 24,
-                                      height: 24,
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .textFieldDefaultSearchIconLeft,
-                                    ),
-                                  ),
-                                  suffixIcon:
-                                      _searchFieldController.text.isNotEmpty
-                                      ? Padding(
-                                          padding: const EdgeInsets.only(
-                                            right: 10,
-                                          ),
-                                          child: UnconstrainedBox(
-                                            child: Row(
-                                              children: [
-                                                TextFieldIconButton(
-                                                  child: const XIcon(
-                                                    width: 24,
-                                                    height: 24,
-                                                  ),
-                                                  onTap: () async {
-                                                    setState(() {
-                                                      _searchFieldController
-                                                              .text =
-                                                          "";
-                                                      _searchTerm = "";
-                                                    });
-                                                  },
-                                                ),
-                                              ],
-                                            ),
-                                          ),
-                                        )
-                                      : null,
-                                ),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Expanded(
-                        child: SingleChildScrollView(
-                          child: Column(
-                            children: [
-                              ExpandingSubListItem(
-                                title: "Coins",
-                                entities: filter(_searchTerm, coinEntities),
-                                initialState: ExpandableState.expanded,
-                                animationDurationMultiplier: 0.5,
-                              ),
-                              if (coinTestnetEntities.isNotEmpty)
-                                ExpandingSubListItem(
-                                  title: "Testnet",
-                                  entities: filter(
-                                    _searchTerm,
-                                    coinTestnetEntities,
-                                  ),
-                                  initialState: ExpandableState.expanded,
-                                  animationDurationMultiplier: 0.5,
-                                ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                    ],
+                  padding: const EdgeInsets.all(16),
+                  child: SingleChildScrollView(
+                    child: AddWalletEntityList(entities: _entities),
                   ),
                 ),
               ),
@@ -273,90 +117,9 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
                   children: [
                     const AddWalletText(isDesktop: false),
                     const SizedBox(height: 16),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(
-                        Constants.size.circularBorderRadius,
-                      ),
-                      child: Semantics(
-                        label: "Search Text Field. Inputs Text To Search In Wallets.",
-                        excludeSemantics: true,
-                        child: TextField(
-                          autofocus: isDesktop,
-                          autocorrect: !isDesktop,
-                          enableSuggestions: !isDesktop,
-                          controller: _searchFieldController,
-                          focusNode: _searchFocusNode,
-                          onChanged: (value) =>
-                              setState(() => _searchTerm = value),
-                          style: STextStyles.field(context),
-                          decoration:
-                              standardInputDecoration(
-                                "Search",
-                                _searchFocusNode,
-                                context,
-                                desktopMed: isDesktop,
-                              ).copyWith(
-                                prefixIcon: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 10,
-                                    vertical: 16,
-                                  ),
-                                  child: SvgPicture.asset(
-                                    Assets.svg.search,
-                                    width: 16,
-                                    height: 16,
-                                  ),
-                                ),
-                                suffixIcon:
-                                    _searchFieldController.text.isNotEmpty
-                                    ? Padding(
-                                        padding: const EdgeInsets.only(
-                                          right: 0,
-                                        ),
-                                        child: UnconstrainedBox(
-                                          child: Row(
-                                            children: [
-                                              TextFieldIconButton(
-                                                child: const XIcon(),
-                                                onTap: () async {
-                                                  setState(() {
-                                                    _searchFieldController
-                                                            .text =
-                                                        "";
-                                                    _searchTerm = "";
-                                                  });
-                                                },
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      )
-                                    : null,
-                              ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 10),
                     Expanded(
                       child: SingleChildScrollView(
-                        child: Column(
-                          children: [
-                            ExpandingSubListItem(
-                              title: "Coins",
-                              entities: filter(_searchTerm, coinEntities),
-                              initialState: ExpandableState.expanded,
-                            ),
-                            if (coinTestnetEntities.isNotEmpty)
-                              ExpandingSubListItem(
-                                title: "Testnet",
-                                entities: filter(
-                                  _searchTerm,
-                                  coinTestnetEntities,
-                                ),
-                                initialState: ExpandableState.expanded,
-                              ),
-                          ],
-                        ),
+                        child: AddWalletEntityList(entities: _entities),
                       ),
                     ),
                     const SizedBox(height: 16),
