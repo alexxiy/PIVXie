@@ -304,6 +304,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     _client = null;
     _clientKey = null;
     _stopWatching();
+    _noWatch = false;
     await refresh();
   }
 
@@ -317,6 +318,10 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
 
   int _watchGeneration = 0;
   bool _watching = false;
+
+  /// The bridge has no `/api/v2/watch`: don't ask again until the node
+  /// changes.
+  bool _noWatch = false;
 
   @override
   Future<void> refresh() async {
@@ -345,7 +350,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
   }
 
   void _startWatching() {
-    if (_watching || !shouldAutoSync) return;
+    if (_watching || _noWatch || !shouldAutoSync) return;
     _watching = true;
     unawaited(_watchLoop(++_watchGeneration));
   }
@@ -361,6 +366,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     String? hash;
     int? seq;
     int failures = 0;
+    int refreshFailures = 0;
     try {
       while (alive()) {
         PivxBridgeWatch? r;
@@ -381,6 +387,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
             Logging.instance.w(
               "PIVX: bridge has no /api/v2/watch; polling only",
             );
+            _noWatch = true;
             return;
           }
           failures++;
@@ -404,7 +411,12 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
             "${r.txids.isNotEmpty ? " txs ${r.txids}" : ""}"
             "${r.reset ? " reset" : ""}; refreshing",
           );
-          await _refreshWhenIdle();
+          final took = await _refreshWhenIdle();
+          refreshFailures = lastRefreshFailed ? refreshFailures + 1 : 0;
+          if (!alive()) return;
+          await Future<void>.delayed(
+            _pauseAfterRefresh(took, failures: refreshFailures),
+          );
         }
       }
     } finally {
@@ -412,17 +424,33 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     }
   }
 
-  /// [refresh] skips when one is already running, which may have
-  /// started before the change; wait for it, then refresh again.
-  Future<void> _refreshWhenIdle() async {
+  /// [refresh] joins one already running, which may have started before
+  /// the change: wait for it (or a rescan), then refresh again. Returns
+  /// how long the refresh took.
+  Future<Duration> _refreshWhenIdle() async {
     while (refreshMutex.isLocked) {
       await Future<void>.delayed(const Duration(milliseconds: 300));
     }
+    final start = DateTime.now();
     try {
       await refresh();
     } catch (_) {
       // Logged by refresh(); the loop keeps going.
     }
+    return DateTime.now().difference(start);
+  }
+
+  /// Pause between refreshes the long-poll triggers, so it can't keep the
+  /// wallet syncing back to back: e.g. a bridge catching up on many
+  /// blocks answers at each one, and a refresh slower than the block
+  /// interval always finds a new block. As long as the refresh took
+  /// (5 s to 1 min); after failed refreshes, 30 s doubling up to 5 min.
+  /// Changes meanwhile are picked up by the next long-poll right away.
+  static Duration _pauseAfterRefresh(Duration took, {required int failures}) {
+    if (failures > 0) {
+      return Duration(seconds: min(300, 30 * (1 << min(failures - 1, 4))));
+    }
+    return Duration(milliseconds: took.inMilliseconds.clamp(5000, 60000));
   }
 
   bool get _reparseHistory =>

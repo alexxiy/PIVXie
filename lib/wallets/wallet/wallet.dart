@@ -363,11 +363,24 @@ abstract class Wallet<T extends CryptoCurrency> {
 
   bool doNotFireRefreshEvents = false;
 
+  /// The refresh running now: callers meanwhile join it instead of
+  /// getting a future that never completes.
+  Future<void>? _refreshInFlight;
+
+  /// Whether the last refresh failed (the node unreachable, ...).
+  bool get lastRefreshFailed => _lastRefreshFailed;
+  bool _lastRefreshFailed = false;
+
   // Should fire events
-  Future<void> refresh() async {
+  Future<void> refresh() => _refreshInFlight ??= _startRefresh().whenComplete(
+    () => _refreshInFlight = null,
+  );
+
+  Future<void> _startRefresh() {
     final refreshCompleter = Completer<void>();
     final future = refreshCompleter.future.then(
       (_) {
+        _lastRefreshFailed = false;
         if (!doNotFireRefreshEvents) {
           GlobalEventBus.instance.fire(
             WalletSyncStatusChangedEvent(
@@ -384,6 +397,7 @@ abstract class Wallet<T extends CryptoCurrency> {
         // refresh then; and keep the periodic refresh going even if no
         // refresh has succeeded yet (else the wallet stays "unable to
         // sync" until reopened).
+        _lastRefreshFailed = true;
         _isConnected = false;
         _ensurePeriodicRefresh();
         if (!doNotFireRefreshEvents) {
@@ -444,16 +458,12 @@ abstract class Wallet<T extends CryptoCurrency> {
 
   // Should fire events
   Future<void> _refresh(Completer<void> completer) async {
-    // Awaiting this lock could be dangerous.
-    // Since refresh is periodic (generally)
-    if (refreshMutex.isLocked) {
-      return;
-    }
     final start = DateTime.now();
 
     try {
-      // this acquire should be almost instant due to above check.
-      // Slight possibility of race but should be irrelevant
+      // Refreshes don't overlap ([refresh] joins the running one); the
+      // lock is otherwise held by a rescan (recover): wait for it. (Not
+      // waiting left this refresh's future pending forever.)
       await refreshMutex.acquire();
 
       if (!doNotFireRefreshEvents) {

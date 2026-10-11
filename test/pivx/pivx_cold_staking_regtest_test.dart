@@ -207,8 +207,14 @@ void main() {
           await _cli(["delegatorremove", o]);
         }
         try {
-          for (var i = 0; i < 5 && await unspent(); i++) {
-            await _cli(["generate", "1"]);
+          // With only our delegation to stake, a try can find no kernel
+          // ("Couldn't create new blocks"): try again.
+          for (var i = 0; i < 10 && await unspent(); i++) {
+            try {
+              await _cli(["generate", "1"]);
+            } catch (e) {
+              await Future<void>.delayed(const Duration(seconds: 2));
+            }
           }
         } finally {
           await _cli(["lockunspent", "true", "true", locked]);
