@@ -5,6 +5,9 @@
         android:name="android.permission.INTERNET"/>
     <uses-permission
         android:name="android.permission.CAMERA"/>
+    <!-- Android 17: reaching a node on the local network (home server). -->
+    <uses-permission
+        android:name="android.permission.ACCESS_LOCAL_NETWORK"/>
     <application
         android:name="${applicationName}"
         android:label="PlaceHolderName"

@@ -496,12 +496,26 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     super.didChangeLocales(locales);
   }
 
+  /// Android: while the app is away, the privacy overlay (a focusable
+  /// native view) takes the input focus from Flutter. Back in the app,
+  /// the keyboard stays hidden while its space is still kept free (a blank
+  /// area). Show it again for the focused text field.
+  void _restoreKeyboard() {
+    if (!Platform.isAndroid) return;
+    final focused = FocusManager.instance.primaryFocus?.context;
+    if (focused?.findAncestorWidgetOfExactType<EditableText>() == null) return;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      SystemChannels.textInput.invokeMethod<void>("TextInput.show");
+    });
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) async {
     debugPrint("didChangeAppLifecycleState: ${state.name}");
 
     if (state == AppLifecycleState.resumed) {
       await _mobileAppPrivacy?.disableOverlay();
+      _restoreKeyboard();
     } else {
       if (ref.read(prefsChangeNotifierProvider).privacyScreen) {
         await _mobileAppPrivacy?.enableOverlay(

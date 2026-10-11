@@ -7,6 +7,7 @@ import 'package:socks5_proxy/socks_client.dart';
 import '../../../app_config.dart';
 import '../../../models/node_model.dart';
 import '../../../services/tor_service.dart';
+import '../../../utilities/local_network_access.dart';
 import '../../../utilities/prefs.dart';
 import '../../crypto_currency/crypto_currency.dart';
 
@@ -142,6 +143,11 @@ class PivxBridgeClient {
     _httpClient = null;
   }
 
+  /// Android 17 needs the user's permission to reach a bridge on the
+  /// local network (over Tor the proxy connects, not the app).
+  Future<void> _localNetworkReady() =>
+      useTor ? Future.value() : LocalNetworkAccess.ensure(baseUri.host);
+
   Future<({int code, String body})> _send(
     String method,
     Uri url, {
@@ -149,6 +155,7 @@ class PivxBridgeClient {
     String? body,
     Duration timeout = _timeout,
   }) async {
+    await _localNetworkReady();
     HttpClientRequest? request;
     try {
       return await () async {
@@ -362,6 +369,7 @@ class PivxBridgeClient {
   /// Fails when no data arrives for [_timeout], so a stalled stream
   /// can't hold up the sync forever.
   Stream<List<int>> shieldData(int startBlock) async* {
+    await _localNetworkReady();
     final request = await _http
         .getUrl(_uri("/getshielddata", {"startBlock": "$startBlock"}))
         .timeout(_timeout);
@@ -522,6 +530,7 @@ class PivxBridgeClient {
     ({InternetAddress host, int port})? proxy,
     void Function(int received, int? total)? onProgress,
   }) async {
+    if (proxy == null) await LocalNetworkAccess.ensure(url.host);
     final client = _newHttpClient(proxy);
     final tmp = File("${file.path}.part");
     try {
