@@ -370,19 +370,24 @@ extension PivxColdStakingWallet on PivxWallet {
     final byOwner = <String, BigInt>{};
     for (final tx in txs) {
       if (tx.pivxKind != PivxTxKind.coldStakeReward) continue;
-      final out = tx.outputs.where(
-        (o) => o.walletOwns && pivxIsColdStakeScript(o.scriptPubKeyHex),
-      );
-      if (out.isEmpty || out.first.addresses.isEmpty) continue;
-      // P2CS outputs list the staker, then the owner.
-      final owner = out.first.addresses.last;
-      byOwner[owner] =
-          (byOwner[owner] ?? BigInt.zero) +
-          tx
-              .getAmountReceivedInThisWallet(
-                fractionDigits: cryptoCurrency.fractionDigits,
-              )
-              .raw;
+      // The staked delegated output comes back with the reward to the
+      // same script. Other payments in the block (our masternode's) are
+      // not cold staking rewards. P2CS inputs and outputs list the
+      // staker, then the owner.
+      void add(List<String> addresses, BigInt value) {
+        if (addresses.isEmpty) return;
+        final owner = addresses.last;
+        byOwner[owner] = (byOwner[owner] ?? BigInt.zero) + value;
+      }
+
+      for (final o in tx.outputs) {
+        if (o.walletOwns && pivxIsColdStakeScript(o.scriptPubKeyHex)) {
+          add(o.addresses, o.value);
+        }
+      }
+      for (final i in tx.inputs) {
+        if (i.walletOwns) add(i.addresses, -i.value);
+      }
     }
     return byOwner;
   }

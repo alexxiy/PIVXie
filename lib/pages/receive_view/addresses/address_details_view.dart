@@ -424,7 +424,10 @@ class _AddressDetailsTxV2List extends ConsumerWidget {
               ),
             ]),
           ]),
-          sortBy: [const SortProperty(property: "timestamp", sort: Sort.desc)],
+          sortBy: const [
+            SortProperty(property: "timestamp", sort: Sort.desc),
+            SortProperty(property: "height", sort: Sort.desc),
+          ],
         );
 
     final count = query.countSync();

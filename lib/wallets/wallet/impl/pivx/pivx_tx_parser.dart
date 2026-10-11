@@ -33,6 +33,9 @@ bool pivxIsColdStakeScript(String scriptHex) =>
 ///
 /// Shield spends are inputs without an outpoint; shield notes are outputs
 /// without a script. Outputs to one of [changeAddresses] are change.
+///
+/// Someone else's stake paying us more than [masternodePayment] is a
+/// budget proposal payment, the way PIVX Core tells them apart.
 PivxTxClass? classifyPivxTx({
   required List<InputV2> inputs,
   required List<OutputV2> outputs,
@@ -41,6 +44,7 @@ PivxTxClass? classifyPivxTx({
   bool coinbase = false,
   bool coinstake = false,
   bool spendsColdStake = false,
+  BigInt? masternodePayment,
 }) {
   BigInt sum(Iterable<BigInt> v) => v.fold(BigInt.zero, (p, e) => p + e);
   bool isChange(OutputV2 o) =>
@@ -72,10 +76,13 @@ PivxTxClass? classifyPivxTx({
         amount: ownedOut - ownedIn,
       );
     }
-    // Someone else's stake paid one of our addresses.
+    // Someone else's stake paid one of our addresses: our masternode
+    // or, above the masternode payment, our proposal.
     return (
       type: TransactionType.incoming,
-      kind: PivxTxKind.masternodeReward,
+      kind: masternodePayment != null && ownedOut > masternodePayment
+          ? PivxTxKind.budgetPayment
+          : PivxTxKind.masternodeReward,
       amount: ownedOut,
     );
   }
@@ -182,6 +189,7 @@ Map<String, dynamic> pivxTxOtherData({
 ///
 /// [shieldAddresses] are the shield addresses handed out; notes to any
 /// other address of ours are change (PIVX Core's IsNoteSaplingChange).
+/// [masternodePayment] gives the masternode payment at a block height.
 /// Returns null for a transaction that doesn't touch the wallet.
 TransactionV2? parsePivxTx(
   Map<String, dynamic> json, {
@@ -193,6 +201,7 @@ TransactionV2? parsePivxTx(
   Map<String, dynamic>? shield,
   Map<String, Map<String, dynamic>> nullifierNotes = const {},
   bool Function(OutpointV2 outpoint)? isColdStakeOutpoint,
+  BigInt Function(int? height)? masternodePayment,
 }) {
   final all = {...receiving, ...change};
   final changeAddresses = <String>{};
@@ -290,6 +299,7 @@ TransactionV2? parsePivxTx(
   final fee = json["fees"] == null
       ? null
       : BigInt.parse(json["fees"] as String);
+  final height = json["blockHeight"] as int? ?? -1;
   final c = classifyPivxTx(
     inputs: inputs,
     outputs: outputs,
@@ -305,6 +315,7 @@ TransactionV2? parsePivxTx(
               i.outpoint != null &&
               isColdStakeOutpoint(i.outpoint!),
         ),
+    masternodePayment: masternodePayment?.call(height > 0 ? height : null),
   );
   if (c == null) return null;
 
@@ -315,7 +326,6 @@ TransactionV2? parsePivxTx(
         (n["memo"] as String).trim(),
   ].join("\n");
 
-  final height = json["blockHeight"] as int? ?? -1;
   final txid = json["txid"] as String;
   return TransactionV2(
     walletId: walletId,

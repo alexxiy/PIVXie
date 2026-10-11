@@ -20,6 +20,7 @@ enum PivxTxCategory {
   stakingReward("Staking rewards"),
   masternodeReward("Masternode rewards"),
   coldStakingReward("Cold staking rewards"),
+  proposalPayment("Proposal payments"),
   delegation("Delegated"),
   undelegation("Undelegated"),
   shield("Shielded"),
@@ -39,6 +40,8 @@ enum PivxTxCategory {
         return masternodeReward;
       case PivxTxKind.coldStakeReward:
         return coldStakingReward;
+      case PivxTxKind.budgetPayment:
+        return proposalPayment;
       case PivxTxKind.delegation:
         return delegation;
       case PivxTxKind.undelegation:

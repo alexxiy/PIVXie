@@ -59,9 +59,13 @@ class PagedTransactions extends ChangeNotifier {
   Future<void> _queue = Future.value();
   int _generation = 0;
 
+  /// Newest first. Blocks can share a timestamp (several mined within a
+  /// second, as on regtest): the higher block comes first.
   Query<TransactionV2> _query(int offset, int limit) => _isar.transactionV2s
-      .where(sort: Sort.desc)
+      .where()
       .walletIdEqualToAnyTimestamp(walletId)
+      .sortByTimestampDesc()
+      .thenByHeightDesc()
       .offset(offset)
       .limit(limit)
       .build();

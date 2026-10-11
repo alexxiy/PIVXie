@@ -550,7 +550,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
 
   /// Bumped when parsing changes: the next sync re-parses all history.
   static const _kTxParseVersion = "pivxTxParseVersion";
-  static const _txParseVersion = 3;
+  static const _txParseVersion = 4;
 
   /// The wallet's view of a bridge tx; see [parsePivxTx].
   TransactionV2? _parseTx(
@@ -572,6 +572,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     shield: _shield?.txInfo[json["txid"]],
     nullifierNotes: _shield?.nullifierNotes ?? const {},
     isColdStakeOutpoint: _isColdStakeOutpoint,
+    masternodePayment: cryptoCurrency.masternodePaymentAt,
   );
 
   /// Whether [outpoint] is a cold-stake (P2CS) output of a stored tx.
@@ -1225,7 +1226,10 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
       throw Exception("The owner must be an address of this wallet");
     }
     return (
-      script: pivxColdStakeScript(stakerHash: stakerHash, ownerHash: owner.hash),
+      script: pivxColdStakeScript(
+        stakerHash: stakerHash,
+        ownerHash: owner.hash,
+      ),
       addresses: [address, ownerAddress!],
       ours: true,
     );

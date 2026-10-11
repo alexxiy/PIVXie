@@ -128,6 +128,19 @@ class Pivx extends Bip39HDCurrency {
     }
   }
 
+  /// Masternode payment of a block at [height] (unknown: the current
+  /// one): 6 PIV since the v5.5 upgrade, 3 PIV before (PIVX Core's
+  /// nNewMNBlockReward / nMNBlockReward).
+  BigInt masternodePaymentAt(int? height) {
+    final v55 = switch (network) {
+      CryptoCurrencyNetwork.main => 3715200,
+      // Testnet; regtest activates it at 576.
+      _ => 650,
+    };
+    final coins = height != null && height < v55 ? 3 : 6;
+    return BigInt.from(coins) * BigInt.from(10).pow(fractionDigits);
+  }
+
   /// Cold staking address version byte (`S…` / `W…`).
   int get stakingAddressPrefix {
     switch (network) {

@@ -273,6 +273,8 @@ class TransactionV2 {
         return label("Masternode reward", "Masternode reward");
       case PivxTxKind.coldStakeReward:
         return label("Cold staking reward", "Cold staking reward");
+      case PivxTxKind.budgetPayment:
+        return label("Proposal payment", "Proposal payment");
       case PivxTxKind.blockReward:
         return label("Block reward", "Block reward");
       case PivxTxKind.delegation:
@@ -349,6 +351,10 @@ abstract final class PivxTxKind {
   static const stakeReward = "stakeReward";
   static const masternodeReward = "masternodeReward";
   static const coldStakeReward = "coldStakeReward";
+
+  /// A budget proposal paid by the network (in a coinstake, instead of
+  /// the masternode payment).
+  static const budgetPayment = "budgetPayment";
   static const blockReward = "blockReward";
   static const delegation = "delegation";
   static const undelegation = "undelegation";
@@ -362,7 +368,7 @@ abstract final class PivxTxKind {
   static String? iconAsset(String? kind, {required bool pending}) {
     final name = switch (kind) {
       stakeReward || blockReward => "stake-reward",
-      masternodeReward => "masternode-reward",
+      masternodeReward || budgetPayment => "masternode-reward",
       coldStakeReward => "cold-stake-reward",
       delegation => "delegation",
       undelegation => "undelegation",
@@ -380,6 +386,7 @@ abstract final class PivxTxKind {
     stakeReward,
     masternodeReward,
     coldStakeReward,
+    budgetPayment,
     blockReward,
   };
 }

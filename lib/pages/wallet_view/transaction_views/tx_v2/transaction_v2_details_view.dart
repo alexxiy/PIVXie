@@ -34,6 +34,7 @@ import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../../wallets/wallet/impl/pivx/pivx_tx_parser.dart';
 import '../../../../widgets/icon_buttons.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/conditional_parent.dart';
@@ -85,7 +86,7 @@ class _TransactionV2DetailsViewState
   late final String unit;
   late final int minConfirms;
 
-  late List<({List<String> addresses, Amount amount})> data;
+  late List<({List<String> addresses, Amount amount, bool coldStake})> data;
 
   bool showFeePending = false;
 
@@ -148,6 +149,10 @@ class _TransactionV2DetailsViewState
         (
           addresses: e.addresses,
           amount: Amount(rawValue: e.value, fractionDigits: fractionDigits),
+          // A delegated output: staker and owner, one amount.
+          coldStake:
+              pivxIsColdStakeScript(e.scriptPubKeyHex) &&
+              e.addresses.length == 2,
         ),
     ];
 
@@ -512,40 +517,53 @@ class _TransactionV2DetailsViewState
                                                             CrossAxisAlignment
                                                                 .start,
                                                         children: [
-                                                          ...data[i].addresses.map((
-                                                            e,
-                                                          ) {
-                                                            return FutureBuilder(
-                                                              future:
-                                                                  fetchContactNameFor(
-                                                                    e,
-                                                                  ),
-                                                              builder: (builderContext, AsyncSnapshot<String> snapshot) {
-                                                                final String
-                                                                addressOrContactName;
-                                                                if (snapshot.connectionState ==
-                                                                        ConnectionState
-                                                                            .done &&
-                                                                    snapshot
-                                                                        .hasData) {
-                                                                  addressOrContactName =
+                                                          if (data[i].coldStake)
+                                                            OutputCard(
+                                                              address: data[i]
+                                                                  .addresses
+                                                                  .first,
+                                                              owner: data[i]
+                                                                  .addresses
+                                                                  .last,
+                                                              amount: data[i]
+                                                                  .amount,
+                                                              coin: coin,
+                                                            )
+                                                          else
+                                                            ...data[i].addresses.map((
+                                                              e,
+                                                            ) {
+                                                              return FutureBuilder(
+                                                                future:
+                                                                    fetchContactNameFor(
+                                                                      e,
+                                                                    ),
+                                                                builder: (builderContext, AsyncSnapshot<String> snapshot) {
+                                                                  final String
+                                                                  addressOrContactName;
+                                                                  if (snapshot.connectionState ==
+                                                                          ConnectionState
+                                                                              .done &&
                                                                       snapshot
-                                                                          .data!;
-                                                                } else {
-                                                                  addressOrContactName =
-                                                                      e;
-                                                                }
+                                                                          .hasData) {
+                                                                    addressOrContactName =
+                                                                        snapshot
+                                                                            .data!;
+                                                                  } else {
+                                                                    addressOrContactName =
+                                                                        e;
+                                                                  }
 
-                                                                return OutputCard(
-                                                                  address:
-                                                                      addressOrContactName,
-                                                                  amount: data[i]
-                                                                      .amount,
-                                                                  coin: coin,
-                                                                );
-                                                              },
-                                                            );
-                                                          }),
+                                                                  return OutputCard(
+                                                                    address:
+                                                                        addressOrContactName,
+                                                                    amount: data[i]
+                                                                        .amount,
+                                                                    coin: coin,
+                                                                  );
+                                                                },
+                                                              );
+                                                            }),
                                                         ],
                                                       ),
                                                     ),
@@ -648,15 +666,14 @@ class _TransactionV2DetailsViewState
                                               )
                                             : GestureDetector(
                                                 onTap: () {
-                                                  Navigator.of(
-                                                    context,
-                                                  ).pushNamed(
-                                                    EditNoteView.routeName,
-                                                    arguments: Tuple2(
-                                                      _transaction.txid,
-                                                      walletId,
-                                                    ),
-                                                  );
+                                                  Navigator.of(context)
+                                                      .pushNamed(
+                                                        EditNoteView.routeName,
+                                                        arguments: Tuple2(
+                                                          _transaction.txid,
+                                                          walletId,
+                                                        ),
+                                                      );
                                                 },
                                                 child: Row(
                                                   children: [
@@ -687,8 +704,7 @@ class _TransactionV2DetailsViewState
                                       ref
                                               .watch(
                                                 pTransactionNote((
-                                                  txid:
-                                                      _transaction.txid,
+                                                  txid: _transaction.txid,
                                                   walletId: walletId,
                                                 )),
                                               )
@@ -1051,31 +1067,40 @@ class OutputCard extends ConsumerWidget {
     required this.address,
     required this.amount,
     required this.coin,
+    this.owner,
   });
 
   final String address;
   final Amount amount;
   final CryptoCurrency coin;
 
+  /// Owner of a delegated (cold staking) output; [address] is then its
+  /// cold staking address.
+  final String? owner;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final labelStyle = Util.isDesktop
+        ? STextStyles.desktopTextExtraExtraSmall(context)
+        : STextStyles.itemSubtitle(context);
+    final valueStyle = Util.isDesktop
+        ? STextStyles.desktopTextExtraExtraSmall(context).copyWith(
+            color: Theme.of(context).extension<StackColors>()!.textDark,
+          )
+        : STextStyles.itemSubtitle12(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "Address",
-          style: Util.isDesktop
-              ? STextStyles.desktopTextExtraExtraSmall(context)
-              : STextStyles.itemSubtitle(context),
+          owner == null ? "Address" : "Cold staking address",
+          style: labelStyle,
         ),
-        SelectableText(
-          address,
-          style: Util.isDesktop
-              ? STextStyles.desktopTextExtraExtraSmall(context).copyWith(
-                  color: Theme.of(context).extension<StackColors>()!.textDark,
-                )
-              : STextStyles.itemSubtitle12(context),
-        ),
+        SelectableText(address, style: valueStyle),
+        if (owner != null) ...[
+          const SizedBox(height: 10),
+          Text("Owner address", style: labelStyle),
+          SelectableText(owner!, style: valueStyle),
+        ],
         const SizedBox(height: 10),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1136,6 +1161,8 @@ class _PivxTxParts extends StatelessWidget {
           value: o.value,
           tag: !o.walletOwns
               ? null
+              : pivxIsColdStakeScript(o.scriptPubKeyHex)
+              ? "Delegated"
               : o.addresses.any(change.contains)
               ? "Change"
               : "Yours",

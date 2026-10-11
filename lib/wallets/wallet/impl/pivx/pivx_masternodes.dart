@@ -384,9 +384,18 @@ extension PivxMasternodes on PivxWallet {
         .findAll();
     var total = BigInt.zero;
     for (final tx in txs) {
-      if (tx.pivxKind != PivxTxKind.masternodeReward) continue;
+      // Our delegation may stake the very block that pays our masternode:
+      // that coinstake shows as a cold staking reward.
+      if (tx.pivxKind != PivxTxKind.masternodeReward &&
+          tx.pivxKind != PivxTxKind.coldStakeReward) {
+        continue;
+      }
       for (final o in tx.outputs) {
-        if (o.walletOwns && o.addresses.contains(mn.address)) total += o.value;
+        if (o.walletOwns &&
+            o.addresses.contains(mn.address) &&
+            !pivxIsColdStakeScript(o.scriptPubKeyHex)) {
+          total += o.value;
+        }
       }
     }
     return Amount(
