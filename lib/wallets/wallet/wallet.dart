@@ -377,24 +377,15 @@ abstract class Wallet<T extends CryptoCurrency> {
             ),
           );
         }
-        if (shouldAutoSync) {
-          _periodicRefreshTimer ??= Timer.periodic(
-            const Duration(seconds: 150),
-            (timer) async {
-              // chain height check currently broken
-              // if ((await chainHeight) != (await storedChainHeight)) {
-
-              // TODO: [prio=med] some kind of quick check if wallet needs to refresh to replace the old refreshIfThereIsNewData call
-              // if (await refreshIfThereIsNewData()) {
-              unawaited(refresh());
-
-              // }
-              // }
-            },
-          );
-        }
+        _ensurePeriodicRefresh();
       },
       onError: (Object e, StackTrace s) {
+        // Let the network-alive ping notice when the node is back and
+        // refresh then; and keep the periodic refresh going even if no
+        // refresh has succeeded yet (else the wallet stays "unable to
+        // sync" until reopened).
+        _isConnected = false;
+        _ensurePeriodicRefresh();
         if (!doNotFireRefreshEvents) {
           GlobalEventBus.instance.fire(
             NodeConnectionStatusChangedEvent(
@@ -422,6 +413,14 @@ abstract class Wallet<T extends CryptoCurrency> {
     unawaited(_refresh(refreshCompleter));
 
     return future;
+  }
+
+  void _ensurePeriodicRefresh() {
+    if (!shouldAutoSync) return;
+    _periodicRefreshTimer ??= Timer.periodic(
+      const Duration(seconds: 150),
+      (_) => unawaited(refresh()),
+    );
   }
 
   void _fireRefreshPercentChange(double percent) {

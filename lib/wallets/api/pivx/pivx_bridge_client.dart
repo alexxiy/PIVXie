@@ -79,6 +79,11 @@ class PivxBridgeClient {
     final chain = (status["backend"] as Map?)?["chain"] as String?;
     final expectMain = coin.network == CryptoCurrencyNetwork.main;
     if (chain == null) return "Bridge has no address index (/api/v2)";
+    try {
+      await getBlockCount();
+    } catch (e) {
+      return "The bridge's PIVX node is not reachable ($e)";
+    }
     if (expectMain != (chain == "main")) {
       return "Bridge serves \"$chain\", wallet expects ${coin.network.name}";
     }
@@ -101,7 +106,23 @@ class PivxBridgeClient {
   /// streams) are kept alive and reused instead of set up per call.
   HttpClient? _httpClient;
 
-  HttpClient get _http => _httpClient ??= _newHttpClient(_proxy);
+  /// Last request start or end (wall clock, so it also covers time the
+  /// app was frozen in the background).
+  DateTime _lastActivity = DateTime.now();
+
+  /// After a pause, pooled connections may be dead (sleep, network
+  /// change) and a request on one hangs until the timeout, so start a
+  /// fresh client. Running requests still finish on the old one.
+  HttpClient get _http {
+    final now = DateTime.now();
+    if (_httpClient != null &&
+        now.difference(_lastActivity) > const Duration(seconds: 20)) {
+      _httpClient!.close();
+      _httpClient = null;
+    }
+    _lastActivity = now;
+    return _httpClient ??= _newHttpClient(_proxy);
+  }
 
   static HttpClient _newHttpClient(({InternetAddress host, int port})? proxy) {
     final client = HttpClient()
@@ -136,6 +157,7 @@ class PivxBridgeClient {
         if (body != null) request!.add(utf8.encode(body));
         final response = await request!.close();
         final text = await response.transform(utf8.decoder).join();
+        _lastActivity = DateTime.now();
         return (code: response.statusCode, body: text);
       }().timeout(timeout);
     } on TimeoutException {

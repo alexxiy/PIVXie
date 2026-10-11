@@ -276,7 +276,11 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
       final status = await bridge.status();
       final chain = (status["backend"] as Map?)?["chain"] as String?;
       if (chain != null) _bridgeChain = chain;
-      return status["backend"] != null;
+      if (status["backend"] == null) return false;
+      // The bridge answers /api/v2 from its own index even when its node
+      // is down; syncing needs the node.
+      await bridge.getBlockCount();
+      return true;
     } catch (_) {
       return false;
     }
