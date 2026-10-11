@@ -27,7 +27,6 @@ import '../wallets/wallet/wallet.dart';
 import 'event_bus/events/wallet_added_event.dart';
 import 'event_bus/global_event_bus.dart';
 import 'node_service.dart';
-import 'notifications_service.dart';
 
 class Wallets {
   Wallets._private();
@@ -89,13 +88,6 @@ class Wallets {
       boxName: DB.boxNameWalletsToDeleteOnStart,
       value: walletId,
     );
-
-    // delete notifications tied to deleted wallet
-    for (final notification in NotificationsService.instance.notifications) {
-      if (notification.walletId == walletId) {
-        await NotificationsService.instance.delete(notification, false);
-      }
-    }
 
     await mainDB.isar.writeTxn(() async {
       await mainDB.isar.walletInfo.deleteByWalletId(walletId);

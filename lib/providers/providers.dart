@@ -14,7 +14,6 @@ export './global/clipboard_provider.dart';
 export './global/duress_provider.dart';
 export './global/locale_provider.dart';
 export './global/node_service_provider.dart';
-export './global/notifications_provider.dart';
 export './global/prefs_provider.dart';
 export './global/global_nav_key_provider.dart';
 export './global/price_provider.dart';

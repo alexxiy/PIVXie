@@ -44,7 +44,6 @@ import 'pages/generic/single_field_edit_view.dart';
 import 'pages/home_view/home_view.dart';
 import 'pages/intro_view.dart';
 import 'pages/manage_favorites_view/manage_favorites_view.dart';
-import 'pages/notification_views/notifications_view.dart';
 import 'pages/pinpad_views/create_pin_view.dart';
 import 'pages/receive_view/addresses/address_details_view.dart';
 import 'pages/receive_view/addresses/edit_address_label_view.dart';
@@ -59,13 +58,10 @@ import 'pages/settings_views/global_settings_view/advanced_views/logging_setting
 import 'pages/settings_views/global_settings_view/advanced_views/manage_coin_units/edit_coin_units_view.dart';
 import 'pages/settings_views/global_settings_view/advanced_views/manage_coin_units/manage_coin_units_view.dart';
 import 'pages/settings_views/global_settings_view/advanced_views/manage_explorer_view.dart';
-import 'pages/settings_views/global_settings_view/appearance_settings/appearance_settings_view.dart';
 import 'pages/pivx_masternodes/pivx_create_masternode_view.dart';
 import 'pages/pivx_masternodes/pivx_masternode_details_view.dart';
 import 'pages/pivx_masternodes/pivx_masternodes_view.dart';
 import 'pages/settings_views/global_settings_view/appearance_settings/theme_mode_view.dart';
-import 'pages/settings_views/global_settings_view/appearance_settings/manage_themes.dart';
-import 'pages/settings_views/global_settings_view/appearance_settings/system_brightness_theme_selection_view.dart';
 import 'pages/settings_views/global_settings_view/currency_view.dart';
 import 'pages/settings_views/global_settings_view/delete_account_view.dart';
 import 'pages/settings_views/global_settings_view/global_settings_view.dart';
@@ -124,14 +120,12 @@ import 'pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_del
 import 'pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/qr_code_desktop_popup_content.dart';
 import 'pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/unlock_wallet_keys_desktop.dart';
 import 'pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/wallet_keys_desktop_popup.dart';
-import 'pages_desktop_specific/notifications/desktop_notifications_view.dart';
 import 'pages_desktop_specific/password/create_password_view.dart';
 import 'pages_desktop_specific/password/delete_password_warning_view.dart';
 import 'pages_desktop_specific/password/forgot_password_desktop_view.dart';
 import 'pages_desktop_specific/password/forgotten_passphrase_restore_from_swb.dart';
 import 'pages_desktop_specific/settings/desktop_settings_view.dart';
 import 'pages_desktop_specific/settings/settings_menu/advanced_settings/advanced_settings.dart';
-import 'pages_desktop_specific/settings/settings_menu/appearance_settings/appearance_settings.dart';
 import 'pages_desktop_specific/settings/settings_menu/backup_and_restore/backup_and_restore_settings.dart';
 import 'pages_desktop_specific/settings/settings_menu/currency_settings/currency_settings.dart';
 import 'pages_desktop_specific/settings/settings_menu/desktop_about_view.dart';
@@ -456,13 +450,6 @@ class RouteGenerator {
           settings: RouteSettings(name: settings.name),
         );
 
-      case AppearanceSettingsView.routeName:
-        return getRoute(
-          shouldUseMaterialRoute: useMaterialPageRoute,
-          builder: (_) => const AppearanceSettingsView(),
-          settings: RouteSettings(name: settings.name),
-        );
-
       case SyncingPreferencesView.routeName:
         return getRoute(
           shouldUseMaterialRoute: useMaterialPageRoute,
@@ -684,13 +671,6 @@ class RouteGenerator {
           );
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
-
-      case SystemBrightnessThemeSelectionView.routeName:
-        return getRoute(
-          shouldUseMaterialRoute: useMaterialPageRoute,
-          builder: (_) => const SystemBrightnessThemeSelectionView(),
-          settings: RouteSettings(name: settings.name),
-        );
 
       case WalletNetworkSettingsView.routeName:
         if (args is Tuple3<String, WalletSyncStatus, NodeConnectionStatus>) {
@@ -1014,16 +994,6 @@ class RouteGenerator {
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
-      case NotificationsView.routeName:
-        if (args is String?) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => NotificationsView(walletId: args),
-            settings: RouteSettings(name: settings.name),
-          );
-        }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
-
       case WalletSettingsView.routeName:
         if (args
             is Tuple4<
@@ -1181,13 +1151,6 @@ class RouteGenerator {
           settings: RouteSettings(name: settings.name),
         );
 
-      case DesktopNotificationsView.routeName:
-        return getRoute(
-          shouldUseMaterialRoute: useMaterialPageRoute,
-          builder: (_) => const DesktopNotificationsView(),
-          settings: RouteSettings(name: settings.name),
-        );
-
       case DesktopSettingsView.routeName:
         return getRoute(
           shouldUseMaterialRoute: useMaterialPageRoute,
@@ -1271,20 +1234,6 @@ class RouteGenerator {
         return getRoute(
           shouldUseMaterialRoute: useMaterialPageRoute,
           builder: (_) => const SyncingPreferencesSettings(),
-          settings: RouteSettings(name: settings.name),
-        );
-
-      case AppearanceOptionSettings.routeName:
-        return getRoute(
-          shouldUseMaterialRoute: useMaterialPageRoute,
-          builder: (_) => const AppearanceOptionSettings(),
-          settings: RouteSettings(name: settings.name),
-        );
-
-      case ManageThemesView.routeName:
-        return getRoute(
-          shouldUseMaterialRoute: useMaterialPageRoute,
-          builder: (_) => const ManageThemesView(),
           settings: RouteSettings(name: settings.name),
         );
 

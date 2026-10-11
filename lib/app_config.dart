@@ -9,11 +9,10 @@ import 'wallets/crypto_currency/crypto_currency.dart';
 part 'app_config.g.dart';
 
 enum AppFeature {
-  themeSelection,
   tor,
 
-  /// Ships light and dark default themes (no theme store); settings offer
-  /// System / Light / Dark.
+  /// Ships light and dark default themes; settings offer System / Light /
+  /// Dark.
   darkTheme,
 }
 

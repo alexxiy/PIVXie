@@ -16,7 +16,6 @@ import 'package:mutex/mutex.dart';
 
 import '../../app_config.dart';
 import '../../models/node_model.dart';
-import '../../models/notification_model.dart';
 import '../../services/wallets_service.dart';
 import '../../utilities/logger.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
@@ -34,9 +33,11 @@ class DB {
   // in use
   // TODO: migrate
   static const String boxNameNodeModels = "nodeModels";
-  static const String boxNameNotifications = "notificationModels";
-  static const String boxNameWatchedTransactions =
-      "watchedTxNotificationModels";
+  /// Boxes of the removed in-app notification feed; deleted on start.
+  static const _legacyNotificationBoxes = [
+    "notificationModels",
+    "watchedTxNotificationModels",
+  ];
   static const String boxNameWalletsToDeleteOnStart = "walletsToDeleteOnStart";
   static const String boxNamePriceCache = "priceAPIPrice24hCache";
 
@@ -51,8 +52,6 @@ class DB {
   Box<NodeModel>? _boxNodeModels;
   Box<NodeModel>? _boxPrimaryNodes;
   Box<dynamic>? _boxAllWalletsData;
-  Box<NotificationModel>? _boxNotifications;
-  Box<NotificationModel>? _boxWatchedTransactions;
   Box<String>? _boxFavoriteWallets;
   Box<dynamic>? _boxPrefs;
   Box<dynamic>? _boxDBInfo;
@@ -107,12 +106,11 @@ class DB {
       _boxAllWalletsData = await hive.openBox<dynamic>(boxNameAllWalletsData);
     }
 
-    _boxNotifications = await hive.openBox<NotificationModel>(
-      boxNameNotifications,
-    );
-    _boxWatchedTransactions = await hive.openBox<NotificationModel>(
-      boxNameWatchedTransactions,
-    );
+    for (final name in _legacyNotificationBoxes) {
+      try {
+        await hive.deleteBoxFromDisk(name);
+      } catch (_) {}
+    }
     _boxFavoriteWallets = await hive.openBox<String>(boxNameFavoriteWallets);
 
     await Future.wait([
@@ -249,10 +247,6 @@ class DB {
       await DB.instance.deleteBoxFromDisk(boxName: "debugInfoBox");
       await DB.instance.deleteBoxFromDisk(boxName: DB.boxNameNodeModels);
       await DB.instance.deleteBoxFromDisk(boxName: DB.boxNameAllWalletsData);
-      await DB.instance.deleteBoxFromDisk(boxName: DB.boxNameNotifications);
-      await DB.instance.deleteBoxFromDisk(
-        boxName: DB.boxNameWatchedTransactions,
-      );
       await DB.instance.deleteBoxFromDisk(boxName: DB.boxNameFavoriteWallets);
       await DB.instance.deleteBoxFromDisk(boxName: DB.boxNamePrefs);
       await DB.instance.deleteBoxFromDisk(

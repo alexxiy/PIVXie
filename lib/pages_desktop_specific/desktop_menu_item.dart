@@ -8,16 +8,13 @@
  *
  */
 
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../providers/desktop/current_desktop_menu_item.dart';
-import '../providers/global/notifications_provider.dart';
 import '../themes/stack_colors.dart';
-import '../themes/theme_providers.dart';
 import '../utilities/assets.dart';
 import '../utilities/text_styles.dart';
 import 'desktop_menu.dart';
@@ -49,36 +46,6 @@ class DesktopMyStackIcon extends ConsumerWidget {
                 .accentColorDark
                 .withOpacity(0.8),
     );
-  }
-}
-
-class DesktopNotificationsIcon extends ConsumerWidget {
-  const DesktopNotificationsIcon({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final hasUnread = ref.watch(pAnyGlobalUnreadNotifications);
-    return hasUnread
-        ? SvgPicture.file(
-            File(
-              ref.watch(themeProvider.select((value) => value.assets.bellNew)),
-            ),
-            width: 20,
-            height: 20,
-          )
-        : SvgPicture.asset(
-            Assets.svg.bell,
-            width: 20,
-            height: 20,
-            color:
-                DesktopMenuItemId.notifications ==
-                    ref.watch(currentDesktopMenuItemProvider)
-                ? Theme.of(context).extension<StackColors>()!.accentColorDark
-                : Theme.of(context)
-                      .extension<StackColors>()!
-                      .accentColorDark
-                      .withOpacity(0.8),
-          );
   }
 }
 

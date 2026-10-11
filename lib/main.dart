@@ -30,10 +30,8 @@ import 'app_config.dart';
 import 'db/db_version_migration.dart';
 import 'db/hive/db.dart';
 import 'db/isar/main_db.dart';
-import 'notifications/open_transaction.dart';
 import 'models/models.dart';
 import 'models/node_model.dart';
-import 'models/notification_model.dart';
 import 'pages/already_running_view.dart';
 import 'pages/home_view/home_view.dart';
 import 'pages/intro_view.dart';
@@ -50,8 +48,6 @@ import 'providers/providers.dart';
 import 'route_generator.dart';
 import 'services/locale_service.dart';
 import 'services/node_service.dart';
-import 'services/notifications_api.dart';
-import 'services/notifications_service.dart';
 import 'services/tor_service.dart';
 import 'themes/theme_providers.dart';
 import 'themes/theme_service.dart';
@@ -64,7 +60,6 @@ import 'utilities/prefs.dart';
 import 'utilities/stack_file_system.dart';
 import 'utilities/util.dart';
 import 'wallets/isar/providers/all_wallets_info_provider.dart';
-import 'widgets/crypto_notifications.dart';
 
 final openedFromSWBFileStringStateProvider = StateProvider<String?>(
   (ref) => null,
@@ -122,9 +117,6 @@ void main(List<String> args) async {
   DB.instance.hive.registerAdapter(UtxoDataAdapter());
   DB.instance.hive.registerAdapter(UtxoObjectAdapter());
   DB.instance.hive.registerAdapter(StatusAdapter());
-
-  // notification model adapter
-  DB.instance.hive.registerAdapter(NotificationModelAdapter());
 
   // node model adapter
   DB.instance.hive.registerAdapter(NodeModelAdapter());
@@ -237,7 +229,6 @@ void main(List<String> args) async {
 
   // SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
   //     overlays: [SystemUiOverlay.bottom]);
-  unawaited(NotificationApi.init());
 
   await loadCoinlibFuture;
 
@@ -309,7 +300,6 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
 
   // late final Wallets _wallets;
   // late final Prefs _prefs;
-  late final NotificationsService _notificationsService;
   late final NodeService _nodeService;
 
   late final Completer<void> loadingCompleter;
@@ -351,25 +341,11 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       ref.read(applicationThemesDirectoryPathProvider.notifier).state =
           StackFileSystem.themesDir!.path;
 
-      _notificationsService = ref.read(notificationsProvider);
       _nodeService = ref.read(nodeServiceChangeNotifierProvider);
-
-      NotificationApi.prefs = ref.read(prefsChangeNotifierProvider);
-      NotificationApi.notificationsService = _notificationsService;
-      NotificationApi.onOpenTransaction = (walletId, txid) {
-        final navigator = ref.read(pNavKey).currentState;
-        if (navigator != null) {
-          unawaited(openTransactionDetails(navigator, walletId, txid));
-        }
-      };
 
       unawaited(ref.read(baseCurrenciesProvider).update());
 
       await _nodeService.updateDefaults();
-      await _notificationsService.init(
-        nodeService: _nodeService,
-        prefs: ref.read(prefsChangeNotifierProvider),
-      );
       ref.read(priceAnd24hChangeNotifierProvider).start(true);
       if (loadWallets) {
         await UiStallWatch.run(
@@ -777,8 +753,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
           ),
         ),
       ),
-      home: CryptoNotifications(
-        child: Util.isDesktop
+      home: Util.isDesktop
             ? FutureBuilder(
                 future: loadShared(),
                 builder: (context, snapshot) {
@@ -845,7 +820,6 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
                   }
                 },
               ),
-      ),
     );
   }
 }

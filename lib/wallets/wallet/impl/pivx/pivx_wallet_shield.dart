@@ -333,7 +333,6 @@ extension _PivxShield on PivxWallet {
       final tx = _parseTx(await bridge.tx(txid), sets: sets);
       if (tx != null) txns.add(tx);
     }
-    await _notifyIncoming(txns);
     await _storeTxs(txns);
   }
 

@@ -8,15 +8,6 @@ void main() {
     test("nodes", () => expect(DB.boxNameNodeModels, "nodeModels"));
     test("wallets info", () => expect(DB.boxNameAllWalletsData, "wallets"));
     test(
-      "notifications",
-      () => expect(DB.boxNameNotifications, "notificationModels"),
-    );
-    test(
-      "watched transactions",
-      () =>
-          expect(DB.boxNameWatchedTransactions, "watchedTxNotificationModels"),
-    );
-    test(
       "favorite wallets",
       () => expect(DB.boxNameFavoriteWallets, "favoriteWallets"),
     );

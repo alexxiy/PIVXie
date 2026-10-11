@@ -35,8 +35,10 @@ Future<String> _cli(List<String> args) async {
   return (r.stdout as String).trim();
 }
 
+/// Regtest blocks can be reorged (the masternode nodes stake too), so a
+/// confirmation may take a little while.
 Future<void> _waitFor(Future<bool> Function() check) async {
-  for (int i = 0; i < 30; i++) {
+  for (int i = 0; i < 90; i++) {
     if (await check()) return;
     await Future<void>.delayed(const Duration(seconds: 1));
   }

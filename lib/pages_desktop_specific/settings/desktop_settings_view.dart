@@ -11,7 +11,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../app_config.dart';
 import '../../route_generator.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/text_styles.dart';
@@ -19,7 +18,6 @@ import '../../widgets/desktop/desktop_app_bar.dart';
 import '../../widgets/desktop/desktop_scaffold.dart';
 import 'settings_menu.dart';
 import 'settings_menu/advanced_settings/advanced_settings.dart';
-import 'settings_menu/appearance_settings/appearance_settings.dart';
 import 'settings_menu/backup_and_restore/backup_and_restore_settings.dart';
 import 'settings_menu/currency_settings/currency_settings.dart';
 import 'settings_menu/language_settings/language_settings.dart';
@@ -77,12 +75,6 @@ class _DesktopSettingsViewState extends ConsumerState<DesktopSettingsView> {
         onGenerateRoute: RouteGenerator.generateRoute,
         initialRoute: SyncingPreferencesSettings.routeName,
       ), //syncing prefs
-      if (AppConfig.hasFeature(AppFeature.themeSelection))
-        const Navigator(
-          key: Key("settingsAppearanceDesktopKey"),
-          onGenerateRoute: RouteGenerator.generateRoute,
-          initialRoute: AppearanceOptionSettings.routeName,
-        ), //appearance
       const Navigator(
         key: Key("settingsAdvancedDesktopKey"),
         onGenerateRoute: RouteGenerator.generateRoute,

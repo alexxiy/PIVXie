@@ -8,7 +8,6 @@
  *
  */
 
-import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,11 +15,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/desktop/current_desktop_menu_item.dart';
 import '../providers/global/active_wallet_provider.dart';
 import '../providers/global/auto_swb_service_provider.dart';
-import '../providers/global/notifications_provider.dart';
 import '../providers/global/prefs_provider.dart';
 import '../providers/global/wallets_provider.dart';
 import '../providers/ui/transaction_filter_provider.dart';
-import '../providers/ui/unread_notifications_provider.dart';
 import '../route_generator.dart';
 import '../themes/stack_colors.dart';
 import '../utilities/enums/backup_frequency_type.dart';
@@ -30,7 +27,6 @@ import '../widgets/background.dart';
 import 'address_book_view/desktop_address_book.dart';
 import 'desktop_menu.dart';
 import 'my_stack_view/my_stack_view.dart';
-import 'notifications/desktop_notifications_view.dart';
 import 'password/desktop_unlock_app_dialog.dart';
 import 'settings/desktop_settings_view.dart';
 import 'settings/settings_menu/desktop_about_view.dart';
@@ -121,11 +117,6 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
       // onGenerateRoute: RouteGenerator.generateRoute,
       // initialRoute: MyStackView.routeName,
     ),
-    DesktopMenuItemId.notifications: const Navigator(
-      key: Key("desktopNotificationsHomeKey"),
-      onGenerateRoute: RouteGenerator.generateRoute,
-      initialRoute: DesktopNotificationsView.routeName,
-    ),
     DesktopMenuItemId.addressBook: const Navigator(
       key: Key("desktopAddressBookHomeKey"),
       onGenerateRoute: RouteGenerator.generateRoute,
@@ -175,39 +166,6 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
       }
     }
     ref.read(prevDesktopMenuItemProvider.notifier).state = newKey;
-
-    // check for unread notifications and refresh provider before
-    // showing notifications view
-    if (newKey == DesktopMenuItemId.notifications) {
-      ref.refresh(unreadNotificationsStateProvider);
-    }
-    // mark notifications as read if leaving notifications view
-    if (ref.read(currentDesktopMenuItemProvider) ==
-            DesktopMenuItemId.notifications &&
-        newKey != DesktopMenuItemId.notifications) {
-      final Set<int> unreadNotificationIds = ref.read(
-        unreadNotificationsStateProvider,
-      );
-
-      if (unreadNotificationIds.isNotEmpty) {
-        final List<Future<void>> futures = [];
-        for (int i = 0; i < unreadNotificationIds.length - 1; i++) {
-          futures.add(
-            ref
-                .read(notificationsProvider)
-                .markAsRead(unreadNotificationIds.elementAt(i), false),
-          );
-        }
-
-        // wait for multiple to update if any
-        Future.wait(futures).then((_) {
-          // only notify listeners once
-          ref
-              .read(notificationsProvider)
-              .markAsRead(unreadNotificationIds.last, true);
-        });
-      }
-    }
   }
 
   @override

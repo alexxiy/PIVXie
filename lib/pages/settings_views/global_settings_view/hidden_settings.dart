@@ -8,13 +8,11 @@
  *
  */
 
-import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import '../../../notifications/show_flush_bar.dart';
 import '../../../providers/providers.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
@@ -71,46 +69,6 @@ class HiddenSettings extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          Consumer(
-                            builder: (_, ref, __) {
-                              return GestureDetector(
-                                onTap: () async {
-                                  final notifs = ref
-                                      .read(notificationsProvider)
-                                      .notifications;
-
-                                  for (final n in notifs) {
-                                    await ref
-                                        .read(notificationsProvider)
-                                        .delete(n, false);
-                                  }
-                                  await ref
-                                      .read(notificationsProvider)
-                                      .delete(notifs[0], true);
-
-                                  if (context.mounted) {
-                                    unawaited(
-                                      showFloatingFlushBar(
-                                        type: FlushBarType.success,
-                                        message: "Notification history deleted",
-                                        context: context,
-                                      ),
-                                    );
-                                  }
-                                },
-                                child: RoundedWhiteContainer(
-                                  child: Text(
-                                    "Delete notifications",
-                                    style: STextStyles.button(context).copyWith(
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .accentColorDark,
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
                           const SizedBox(height: 12),
                           Consumer(
                             builder: (_, ref, __) {

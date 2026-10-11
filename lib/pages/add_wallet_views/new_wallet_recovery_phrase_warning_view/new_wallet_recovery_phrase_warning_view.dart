@@ -21,7 +21,6 @@ import '../../../app_config.dart';
 import '../../../pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import '../../../providers/global/secure_store_provider.dart';
 import '../../../providers/providers.dart';
-import '../../../services/transaction_notification_tracker.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/logger.dart';
@@ -130,8 +129,6 @@ class _NewWalletRecoveryPhraseWarningViewState
             .read(nodeServiceChangeNotifierProvider)
             .save(node, null, false);
       }
-
-      final txTracker = TransactionNotificationTracker(walletId: info.walletId);
 
       String? mnemonicPassphrase;
       String? mnemonic;

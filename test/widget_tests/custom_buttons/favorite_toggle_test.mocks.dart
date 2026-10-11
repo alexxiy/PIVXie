@@ -106,22 +106,6 @@ class MockThemeService extends _i1.Mock implements _i4.ThemeService {
       ) as _i6.Future<bool>);
 
   @override
-  _i6.Future<List<_i4.StackThemeMetaData>> fetchThemes() => (super.noSuchMethod(
-    Invocation.method(#fetchThemes, []),
-    returnValue: _i6.Future<List<_i4.StackThemeMetaData>>.value(
-      <_i4.StackThemeMetaData>[],
-    ),
-  ) as _i6.Future<List<_i4.StackThemeMetaData>>);
-
-  @override
-  _i6.Future<_i7.Uint8List> fetchTheme({
-    required _i4.StackThemeMetaData? themeMetaData,
-  }) => (super.noSuchMethod(
-    Invocation.method(#fetchTheme, [], {#themeMetaData: themeMetaData}),
-    returnValue: _i6.Future<_i7.Uint8List>.value(_i7.Uint8List(0)),
-  ) as _i6.Future<_i7.Uint8List>);
-
-  @override
   _i5.StackTheme? getTheme({required String? themeId}) =>
       (super.noSuchMethod(Invocation.method(#getTheme, [], {#themeId: themeId}))
           as _i5.StackTheme?);

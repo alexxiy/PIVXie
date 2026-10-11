@@ -12,7 +12,6 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:archive/archive_io.dart';
-import 'package:crypto/crypto.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar_community/isar.dart';
@@ -21,9 +20,7 @@ import '../app_config.dart';
 import '../db/isar/main_db.dart';
 import '../models/isar/stack_theme.dart';
 import '../networking/http.dart';
-import '../services/tor_service.dart';
 import '../utilities/logger.dart';
-import '../utilities/prefs.dart';
 import '../utilities/stack_file_system.dart';
 
 final pThemeService = Provider<ThemeService>((ref) {
@@ -36,7 +33,6 @@ class ThemeService {
   static ThemeService? _instance;
   static ThemeService get instance => _instance ??= ThemeService._();
 
-  static const String baseServerUrl = "https://themes.stackwallet.com";
 
   MainDB? _db;
   MainDB get db => _db!;
@@ -124,8 +120,7 @@ class ThemeService {
         await _updateDefaultTheme("light");
       }
     }
-    if (AppConfig.hasFeature(AppFeature.themeSelection) ||
-        AppConfig.hasFeature(AppFeature.darkTheme)) {
+    if (AppConfig.hasFeature(AppFeature.darkTheme)) {
       if (!(await ThemeService.instance.verifyInstalled(themeId: "dark"))) {
         await _updateDefaultTheme("dark");
       } else {
@@ -181,123 +176,9 @@ class ThemeService {
     }
   }
 
-  Future<List<StackThemeMetaData>> fetchThemes() async {
-    try {
-      final response = await client.get(
-        url: Uri.parse("$baseServerUrl/themes"),
-        proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
-            ? null
-            : Prefs.instance.useTor
-            ? TorService.sharedInstance.getProxyInfo()
-            : null,
-      );
-
-      final jsonList = jsonDecode(response.body) as List;
-
-      final result = List<Map<String, dynamic>>.from(jsonList)
-          .map((e) => StackThemeMetaData.fromMap(e))
-          .where((e) => e.id != "light" && e.id != "dark")
-          .toList();
-
-      return result;
-    } catch (e, s) {
-      Logging.instance.w(
-        "Failed to fetch themes list: ",
-        error: e,
-        stackTrace: s,
-      );
-      rethrow;
-    }
-  }
-
-  Future<Uint8List> fetchTheme({
-    required StackThemeMetaData themeMetaData,
-  }) async {
-    try {
-      final response = await client.get(
-        url: Uri.parse("$baseServerUrl/theme/${themeMetaData.id}"),
-        proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
-            ? null
-            : Prefs.instance.useTor
-            ? TorService.sharedInstance.getProxyInfo()
-            : null,
-      );
-
-      final bytes = Uint8List.fromList(response.bodyBytes);
-
-      // verify hash
-      final digest = sha256.convert(bytes);
-      if (digest.toString() == themeMetaData.sha256) {
-        return bytes;
-      } else {
-        throw Exception(
-          "Fetched theme archive sha256 hash ($digest) does not"
-          " match requested $themeMetaData",
-        );
-      }
-    } catch (e, s) {
-      Logging.instance.w(
-        "Failed to fetch themes list: ",
-        error: e,
-        stackTrace: s,
-      );
-      rethrow;
-    }
-  }
-
   StackTheme? getTheme({required String themeId}) =>
       db.isar.stackThemes.where().themeIdEqualTo(themeId).findFirstSync();
 
   List<StackTheme> get installedThemes =>
       db.isar.stackThemes.where().findAllSync();
-}
-
-class StackThemeMetaData {
-  final String name;
-  final String id;
-  final int version;
-  final String sha256;
-  final String size;
-  final String previewImageUrl;
-
-  StackThemeMetaData({
-    required this.name,
-    required this.id,
-    required this.version,
-    required this.sha256,
-    required this.size,
-    required this.previewImageUrl,
-  });
-
-  static StackThemeMetaData fromMap(Map<String, dynamic> map) {
-    try {
-      return StackThemeMetaData(
-        name: map["name"] as String,
-        id: map["id"] as String,
-        version: map["version"] as int? ?? 1,
-        sha256: map["sha256"] as String,
-        size: map["size"] as String,
-        previewImageUrl: map["previewImageUrl"] as String,
-      );
-    } catch (e, s) {
-      Logging.instance.f(
-        "Failed to create instance of StackThemeMetaData using $map",
-        error: e,
-        stackTrace: s,
-      );
-      rethrow;
-    }
-  }
-
-  @override
-  String toString() {
-    return "$runtimeType("
-        "name: $name, "
-        "id: $id, "
-        "version: $version, "
-        "sha256: $sha256, "
-        "size: $size, "
-        "previewImageUrl: $previewImageUrl"
-        ")";
-  }
 }

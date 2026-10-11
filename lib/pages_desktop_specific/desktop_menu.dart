@@ -26,7 +26,6 @@ import 'settings/settings_menu.dart';
 
 enum DesktopMenuItemId {
   myStack,
-  notifications,
   addressBook,
   settings,
   support,
@@ -83,7 +82,6 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
   @override
   void initState() {
     controllers = [
-      DMIController(),
       DMIController(),
       DMIController(),
       DMIController(),
@@ -187,24 +185,13 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                             ),
                             const SizedBox(height: 2),
                             DesktopMenuItem(
-                              key: const ValueKey('notifications'),
-                              duration: duration,
-                              icon: const DesktopNotificationsIcon(),
-                              label: "Notifications",
-                              value: DesktopMenuItemId.notifications,
-                              onChanged: updateSelectedMenuItem,
-                              controller: controllers[1],
-                              isExpandedInitially: !_isMinimized,
-                            ),
-                            const SizedBox(height: 2),
-                            DesktopMenuItem(
                               key: const ValueKey('addressBook'),
                               duration: duration,
                               icon: const DesktopAddressBookIcon(),
                               label: "Address Book",
                               value: DesktopMenuItemId.addressBook,
                               onChanged: updateSelectedMenuItem,
-                              controller: controllers[2],
+                              controller: controllers[1],
                               isExpandedInitially: !_isMinimized,
                             ),
                             const SizedBox(height: 2),
@@ -215,7 +202,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                               label: "Settings",
                               value: DesktopMenuItemId.settings,
                               onChanged: updateSelectedMenuItem,
-                              controller: controllers[3],
+                              controller: controllers[2],
                               isExpandedInitially: !_isMinimized,
                             ),
                             const SizedBox(height: 2),
@@ -226,7 +213,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                               label: "Support",
                               value: DesktopMenuItemId.support,
                               onChanged: updateSelectedMenuItem,
-                              controller: controllers[4],
+                              controller: controllers[3],
                               isExpandedInitially: !_isMinimized,
                             ),
                             const SizedBox(height: 2),
@@ -237,7 +224,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                               label: "About",
                               value: DesktopMenuItemId.about,
                               onChanged: updateSelectedMenuItem,
-                              controller: controllers[5],
+                              controller: controllers[4],
                               isExpandedInitially: !_isMinimized,
                             ),
                           ],
@@ -264,7 +251,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                           //     SystemNavigator.pop();
                           //   }
                         },
-                        controller: controllers[6],
+                        controller: controllers[5],
                         isExpandedInitially: !_isMinimized,
                       ),
                     ],

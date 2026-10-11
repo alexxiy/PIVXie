@@ -19,7 +19,6 @@ import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../models/isar/models/isar_models.dart';
 import '../../../models/keys/view_only_wallet_data.dart';
 import '../../../models/paymint/fee_object_model.dart';
-import '../../../services/notifications_api.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/enums/derive_path_type_enum.dart';
 import '../../../utilities/enums/fee_rate_type_enum.dart';
@@ -29,7 +28,6 @@ import '../../../services/tor_service.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/stack_file_system.dart';
 import '../../../utilities/ui_stall_watch.dart';
-import '../../../widgets/crypto_notifications.dart';
 import '../../../wl_gen/interfaces/lib_pivx_shield_interface.dart';
 import '../../api/pivx/pivx_bridge_client.dart';
 import '../../crypto_currency/crypto_currency.dart';
@@ -486,19 +484,16 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     final txns = <TransactionV2>[
       for (final json in result.txs) ?_parseTx(json, sets: sets),
     ];
-    await _notifyIncoming(txns);
     await UiStallWatch.run(
       "PIVX ${info.name}: store ${txns.length} txs",
       () => _storeTxs(txns),
     );
-    await info.updateOtherData(
-      newEntries: {
-        _kTxParseVersion: _txParseVersion,
-        // History is in: from now on new incoming txs notify.
-        _kNotifyReady: true,
-      },
-      isar: mainDB.isar,
-    );
+    if (info.otherData[_kTxParseVersion] != _txParseVersion) {
+      await info.updateOtherData(
+        newEntries: {_kTxParseVersion: _txParseVersion},
+        isar: mainDB.isar,
+      );
+    }
   }
 
   /// Bumped when parsing changes: the next sync re-parses all history.
@@ -608,46 +603,6 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
       "${o.valueStringSats}:${o.addresses.join(",")}:${o.walletOwns}",
   ].join("|");
 
-  // ===========================================================================
-  // Notifications
-
-  /// Set once a full history sync is done; earlier history (first sync,
-  /// restores, rescans) raises no notifications. Cleared by [recover].
-  static const _kNotifyReady = "pivxNotifyReady";
-
-  /// Notify about [txns] that bring funds in and are not stored yet.
-  /// Call before storing them.
-  Future<void> _notifyIncoming(List<TransactionV2> txns) async {
-    if (info.otherData[_kNotifyReady] != true) return;
-    final incoming = txns.where((e) => e.type == TransactionType.incoming);
-    final stored = await _storedTxs(incoming.map((e) => e.txid));
-    for (final tx in incoming) {
-      if (stored.containsKey(tx.txid)) continue;
-      final amount = tx.getAmountReceivedInThisWallet(
-        fractionDigits: cryptoCurrency.fractionDigits,
-      );
-      final label = switch (tx.pivxKind) {
-        PivxTxKind.stakeReward => "Staking reward",
-        PivxTxKind.masternodeReward => "Masternode reward",
-        PivxTxKind.coldStakeReward => "Cold staking reward",
-        PivxTxKind.blockReward => "Block reward",
-        _ => "Received",
-      };
-      CryptoNotificationsEventBus.instance.fire(
-        CryptoNotificationEvent(
-          title: "$label ${amount.decimal} ${cryptoCurrency.ticker}",
-          walletId: walletId,
-          walletName: info.name,
-          date: DateTime.now(),
-          shouldWatchForUpdates: false,
-          coin: cryptoCurrency,
-          txid: tx.txid,
-          payload: NotificationApi.txPayload(walletId, tx.txid),
-        ),
-      );
-    }
-  }
-
   final _blockHashes = <int, String>{};
 
   Future<String> _blockHashAt(int height) async =>
@@ -748,12 +703,6 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
   @override
   Future<void> recover({required bool isRescan}) async {
     await refreshMutex.protect(() async {
-      // The history below is old news (a restored backup may carry the
-      // flag over), so it raises no notifications.
-      await info.updateOtherData(
-        newEntries: {_kNotifyReady: false},
-        isar: mainDB.isar,
-      );
       if (isRescan) {
         await mainDB.deleteWalletBlockchainData(walletId);
       }
