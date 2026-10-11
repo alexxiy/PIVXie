@@ -1,24 +1,31 @@
-"""PIVXie launcher icon sources from the artwork (app_icon_orig.jpg).
+"""PIVXie launcher icon sources from the artwork (app_icon_orig_v2.jpg:
+the winged Void Pixie with the PIVX shield on a violet gradient tile).
 
 Writes 1024 px sources for flutter_launcher_icons, which scales them to
 every Android density (mdpi..xxxhdpi), every iOS size and the desktop
 icons:
 
-- icon.png              iOS / Windows: the tile, opaque, square.
-- macos-icon.png        macOS / Android legacy: the tile with
-                        transparent corners and a small margin.
-- adaptive_foreground.png  Android 8+ foreground: the pixie and shield cut
-                        out (BiRefNet), transparent.
-- adaptive_background.png  Android 8+ background: the tile's dark violet.
-- adaptive_monochrome.png  Android 13 themed (monochrome) icon.
+- icon.png                 iOS / Windows: full-bleed square (the
+                           platforms apply their own corner mask).
+- macos-icon.png           macOS / Android legacy: rounded tile on
+                           transparent with a small margin.
+- adaptive_foreground.png  Android 8+ foreground: the emblem cut out.
+- adaptive_background.png  Android 8+ background: the violet gradient.
+- adaptive_monochrome.png  Android 13 themed icon: the emblem's
+                           silhouette with the "P" and eyes cut out.
 
-Usage: python make_icon.py <app_icon_orig.jpg> <out dir>
+The artwork's tile has white corners, so the background is rebuilt as a
+smooth gradient fitted to the artwork's own background pixels and the
+emblem (BiRefNet matte) is put back on it.
+
+Usage: python make_icon.py <app_icon_orig_v2.jpg> <out dir>
+(needs `pip install "rembg[cpu]" pillow numpy`)
 """
 import sys
 from pathlib import Path
 
 import numpy as np
-from PIL import Image, ImageDraw, ImageFilter
+from PIL import Image, ImageDraw
 from rembg import new_session, remove
 
 SRC = Path(sys.argv[1])
@@ -26,109 +33,114 @@ OUT = Path(sys.argv[2])
 OUT.mkdir(parents=True, exist_ok=True)
 S = 1024
 
-art = Image.open(SRC).convert("RGB")
-W, H = art.size
-k = W / 2048  # geometry below measured on the 2048 px artwork
+art = Image.open(SRC).convert("RGB").resize((S, S), Image.LANCZOS)
+rgb = np.asarray(art).astype(np.float32)
 
-# The tile (dark rim around the neon frame).
-TILE = tuple(round(v * k) for v in (146, 112, 1901, 1903))
-RADIUS = round(262 * k)
-
-
-def tile_mask(size, box, radius, scale=4):
-    """Anti-aliased rounded rectangle."""
-    big = Image.new("L", (size[0] * scale, size[1] * scale), 0)
-    ImageDraw.Draw(big).rounded_rectangle(
-        [v * scale for v in box], radius=radius * scale, fill=255
-    )
-    return big.resize(size, Image.LANCZOS)
-
-
-x0, y0, x1, y1 = TILE
-side = max(x1 - x0, y1 - y0)
-cx, cy = (x0 + x1) / 2, (y0 + y1) / 2
-sq = (round(cx - side / 2), round(cy - side / 2),
-      round(cx + side / 2), round(cy + side / 2))
-
-# --- tile with alpha
-mask = tile_mask((W, H), TILE, RADIUS)
-tile_rgba = art.copy()
-tile_rgba.putalpha(mask)
-tile_rgba = tile_rgba.crop(sq)
-
-# icon.png: opaque; outside the tile (masked away by iOS / Windows
-# shapes anyway) takes the rim colour instead of the grid backdrop.
-rim = Image.new("RGB", tile_rgba.size, (20, 14, 46))
-rim.paste(tile_rgba, (0, 0), tile_rgba)
-rim.resize((S, S), Image.LANCZOS).save(OUT / "icon.png", optimize=True)
-
-# macos-icon.png: tile on transparent with ~6% margin.
-inner = round(S * 0.88)
-t = tile_rgba.convert("RGBa").resize((inner, inner), Image.LANCZOS).convert("RGBA")
-mac = Image.new("RGBA", (S, S), (0, 0, 0, 0))
-mac.alpha_composite(t, ((S - inner) // 2, (S - inner) // 2))
-mac.save(OUT / "macos-icon.png", optimize=True)
-
-# --- adaptive foreground: cut the character out of the tile interior.
-INNER = tuple(round(v * k) for v in (285, 255, 1765, 1760))
-interior = art.crop(INNER)
-matte = remove(interior, session=new_session("birefnet-general"), only_mask=True)
+# --- emblem matte
+matte = remove(art, session=new_session("birefnet-general"), only_mask=True)
 m = np.asarray(matte).astype(np.float32) / 255
 m = np.clip((m - 0.3) / 0.4, 0, 1)
-fg = interior.copy()
-fg.putalpha(Image.fromarray((m * 255).astype(np.uint8)))
-bbox = fg.getbbox()
-fg = fg.crop(bbox)
-# flutter_launcher_icons insets the foreground by 16% per side (the
-# 66/108 dp safe zone); 80% of that keeps wings and shield inside a
-# circular mask.
-fw, fh = fg.size
-scale = (S * 0.80) / max(fw, fh)
-fg = fg.convert("RGBa").resize((round(fw * scale), round(fh * scale)),
-                               Image.LANCZOS).convert("RGBA")
-canvas = Image.new("RGBA", (S, S), (0, 0, 0, 0))
-canvas.alpha_composite(fg, ((S - fg.width) // 2, (S - fg.height) // 2))
-canvas.save(OUT / "adaptive_foreground.png", optimize=True)
+# keep the white tile corners out of the matte
+white = rgb.min(axis=2) > 200
+m[white & (m < 0.99)] = 0
 
-# --- adaptive background: radial violet like the tile interior.
-yy, xx = np.mgrid[0:S, 0:S].astype(np.float32)
-r = np.sqrt((xx - S / 2) ** 2 + (yy - S / 2) ** 2) / (S / 2 * 1.2)
-r = np.clip(r, 0, 1)[..., None]
-centre = np.array([52, 30, 112], np.float32)
-edge = np.array([18, 12, 44], np.float32)
-bg = (centre * (1 - r) + edge * r).astype(np.uint8)
-Image.fromarray(bg, "RGB").save(OUT / "adaptive_background.png", optimize=True)
+# --- background: 2D quadratic fit per channel over background pixels
+yy, xx = np.mgrid[0:S, 0:S].astype(np.float32) / S - 0.5
+feats = np.stack([np.ones_like(xx), xx, yy, xx * xx, yy * yy, xx * yy], -1)
+bgmask = (m < 0.02) & ~white
+# stay clear of the tile's rounded edge (antialiased with white)
+edge = np.sqrt(xx**2 + yy**2) < 0.47
+sel = bgmask & edge
+A = feats[sel]
+bg = np.zeros_like(rgb)
+for c in range(3):
+    coef, *_ = np.linalg.lstsq(A, rgb[..., c][sel], rcond=None)
+    bg[..., c] = feats @ coef
+bg = np.clip(bg, 0, 255)
+Image.fromarray(bg.astype(np.uint8)).save(OUT / "adaptive_background.png", optimize=True)
 
-# --- monochrome: white silhouette of the foreground.
-alpha = canvas.getchannel("A")
-mono = Image.merge("LA", (Image.new("L", (S, S), 255), alpha))
+# emblem RGBA (original colours, matte alpha)
+emblem = Image.fromarray(
+    np.dstack([rgb, m * 255]).round().astype(np.uint8), "RGBA"
+)
+
+# --- icon.png: emblem back on the fitted background, full bleed
+full = Image.fromarray(bg.astype(np.uint8)).convert("RGBA")
+full.alpha_composite(emblem)
+full.convert("RGB").save(OUT / "icon.png", optimize=True)
+
+# --- macos-icon.png: rounded tile, ~6% margin
+def rounded(img, radius_frac, scale=4):
+    big = Image.new("L", (S * scale, S * scale), 0)
+    ImageDraw.Draw(big).rounded_rectangle(
+        [0, 0, S * scale - 1, S * scale - 1], radius=round(S * scale * radius_frac), fill=255
+    )
+    out = img.copy()
+    out.putalpha(big.resize((S, S), Image.LANCZOS))
+    return out
+
+inner = round(S * 0.88)
+tile = rounded(full, 0.2237).convert("RGBa").resize((inner, inner), Image.LANCZOS).convert("RGBA")
+mac = Image.new("RGBA", (S, S), (0, 0, 0, 0))
+mac.alpha_composite(tile, ((S - inner) // 2, (S - inner) // 2))
+mac.save(OUT / "macos-icon.png", optimize=True)
+
+# --- adaptive foreground: emblem centred, 80% of the 16%-inset area
+bbox = emblem.getbbox()
+cut = emblem.crop(bbox)
+scale = (S * 0.80) / max(cut.size)
+cut = cut.convert("RGBa").resize(
+    (round(cut.width * scale), round(cut.height * scale)), Image.LANCZOS
+).convert("RGBA")
+fg = Image.new("RGBA", (S, S), (0, 0, 0, 0))
+fg.alpha_composite(cut, ((S - cut.width) // 2, (S - cut.height) // 2))
+fg.save(OUT / "adaptive_foreground.png", optimize=True)
+
+# --- monochrome: silhouette, light details (P, eyes) cut out
+f = np.asarray(fg).astype(np.float32)
+lum = f[..., :3].mean(axis=2)
+alpha = f[..., 3] / 255
+hole = np.clip((lum - 110) / 60, 0, 1)  # the white/cyan P, violet eyes
+mono_a = alpha * (1 - hole)
+# shield fill is mid-violet: keep it solid unless clearly light
+mono = Image.merge(
+    "LA",
+    (Image.new("L", (S, S), 255), Image.fromarray((mono_a * 255).astype(np.uint8))),
+)
 mono.save(OUT / "adaptive_monochrome.png", optimize=True)
 
-# --- previews: Android circle / squircle masks, iOS, legacy.
-def preview_adaptive(shape):
-    full = Image.open(OUT / "adaptive_background.png").convert("RGBA")
-    f = canvas.resize((round(S * 0.68),) * 2, Image.LANCZOS)
-    full.alpha_composite(f, ((S - f.width) // 2, (S - f.height) // 2))
-    # launchers show the central 72/108 of the layers
+# --- preview sheet: Android circle / squircle, iOS, legacy, themed
+def adaptive_preview(shape, layer_fg, layer_bg):
+    canvas = layer_bg.convert("RGBA").copy()
+    f2 = layer_fg.resize((round(S * 0.68),) * 2, Image.LANCZOS)
+    canvas.alpha_composite(f2, ((S - f2.width) // 2, (S - f2.height) // 2))
     vis = round(S * 72 / 108)
     off = (S - vis) // 2
-    full = full.crop((off, off, off + vis, off + vis)).resize((256, 256), Image.LANCZOS)
-    m = Image.new("L", (256 * 4, 256 * 4), 0)
-    d = ImageDraw.Draw(m)
+    canvas = canvas.crop((off, off, off + vis, off + vis)).resize((256, 256), Image.LANCZOS)
+    mk = Image.new("L", (1024, 1024), 0)
+    d = ImageDraw.Draw(mk)
     if shape == "circle":
         d.ellipse([0, 0, 1023, 1023], fill=255)
     else:
         d.rounded_rectangle([0, 0, 1023, 1023], radius=300, fill=255)
-    full.putalpha(m.resize((256, 256), Image.LANCZOS))
-    return full
+    canvas.putalpha(mk.resize((256, 256), Image.LANCZOS))
+    return canvas
 
-sheet = Image.new("RGBA", (256 * 4 + 50, 300), (236, 236, 240, 255))
-sheet.alpha_composite(preview_adaptive("circle"), (10, 20))
-sheet.alpha_composite(preview_adaptive("squircle"), (276, 20))
-ios = Image.open(OUT / "icon.png").convert("RGBA").resize((256, 256), Image.LANCZOS)
-m = Image.new("L", (1024, 1024), 0)
-ImageDraw.Draw(m).rounded_rectangle([0, 0, 1023, 1023], radius=229, fill=255)
-ios.putalpha(m.resize((256, 256), Image.LANCZOS))
+themed_bg = Image.new("RGB", (S, S), (40, 40, 52))
+themed_fg = Image.merge(
+    "RGBA",
+    (
+        Image.new("L", (S, S), 200),
+        Image.new("L", (S, S), 190),
+        Image.new("L", (S, S), 255),
+        mono.getchannel("A"),
+    ),
+)
+sheet = Image.new("RGBA", (256 * 5 + 60, 300), (236, 236, 240, 255))
+sheet.alpha_composite(adaptive_preview("circle", fg, Image.open(OUT / "adaptive_background.png")), (10, 20))
+sheet.alpha_composite(adaptive_preview("squircle", fg, Image.open(OUT / "adaptive_background.png")), (276, 20))
+ios = rounded(full, 0.2237).resize((256, 256), Image.LANCZOS)
 sheet.alpha_composite(ios, (542, 20))
 sheet.alpha_composite(mac.resize((256, 256), Image.LANCZOS), (808, 20))
+sheet.alpha_composite(adaptive_preview("circle", themed_fg, themed_bg), (1074, 20))
 sheet.convert("RGB").save(OUT / "preview.png")
