@@ -26,12 +26,20 @@ import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/static_overflow_row/static_overflow_row.dart';
 import '../../../coin_control/desktop_coin_control_view.dart';
+import '../../../../pages/pivx_governance/pivx_governance_view.dart';
+import '../../../../pages/pivx_masternodes/pivx_masternodes_view.dart';
+import '../../../../wallets/wallet/impl/pivx_wallet.dart';
 import 'more_features/more_features_dialog.dart';
 
 enum WalletFeature {
   coinControl(
     "Coin control",
     "Control, freeze, and utilize outputs at your discretion",
+  ),
+  masternodes("Masternodes", "Create, start and follow your masternodes"),
+  governance(
+    "Governance",
+    "Budget proposals: follow them and vote with your masternodes",
   ),
 
   // special cases
@@ -41,6 +49,12 @@ enum WalletFeature {
   final String description;
   const WalletFeature(this.label, this.description);
 }
+
+/// A feature's icon: an SVG asset path or a Material [IconData].
+Widget walletFeatureIcon(Object icon, double size, Color color) =>
+    icon is IconData
+    ? Icon(icon, size: size, color: color)
+    : SvgPicture.asset(icon as String, width: size, height: size, color: color);
 
 class DesktopWalletFeatures extends ConsumerStatefulWidget {
   const DesktopWalletFeatures({super.key, required this.walletId});
@@ -54,7 +68,7 @@ class DesktopWalletFeatures extends ConsumerStatefulWidget {
 
 class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
   Future<void> _onMorePressed(
-    List<(WalletFeature, String, FutureOr<void> Function())> options,
+    List<(WalletFeature, Object, FutureOr<void> Function())> options,
   ) async {
     await showDialog<void>(
       context: context,
@@ -62,6 +76,9 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
           MoreFeaturesDialog(walletId: widget.walletId, options: options),
     );
   }
+
+  void _push(String route) =>
+      Navigator.of(context).pushNamed(route, arguments: widget.walletId);
 
   void _onCoinControlPressed() {
     Navigator.of(
@@ -81,22 +98,35 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
           ),
         );
 
-    final options = [
+    final isViewOnly = wallet is ViewOnlyOptionInterface && wallet.isViewOnly;
+
+    final options = <(WalletFeature, Object, FutureOr<void> Function())>[
       if (showCoinControl)
         (
           WalletFeature.coinControl,
           Assets.svg.coinControl.gamePad,
           _onCoinControlPressed,
         ),
+      if (wallet is PivxWallet && !isViewOnly)
+        (
+          WalletFeature.masternodes,
+          Icons.dns_rounded,
+          () => _push(PivxMasternodesView.routeName),
+        ),
+      if (wallet is PivxWallet)
+        (
+          WalletFeature.governance,
+          Icons.how_to_vote_rounded,
+          () => _push(PivxGovernanceView.routeName),
+        ),
     ];
 
-    final isViewOnly = wallet is ViewOnlyOptionInterface && wallet.isViewOnly;
     final canGen =
         !(isViewOnly &&
             wallet.viewOnlyType == ViewOnlyWalletType.addressOnly) &&
         wallet is MultiAddressInterface;
 
-    final extraOptions = [
+    final extraOptions = <(WalletFeature, Object, FutureOr<void> Function())>[
       if (canGen) (WalletFeature.reuseAddress, Assets.svg.key, () => ()),
     ];
 
@@ -133,11 +163,10 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
                 label: option.$1.label,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 buttonHeight: ButtonHeight.l,
-                icon: SvgPicture.asset(
+                icon: walletFeatureIcon(
                   option.$2,
-                  height: 20,
-                  width: 20,
-                  color: Theme.of(context)
+                  20,
+                  Theme.of(context)
                       .extension<StackColors>()!
                       .buttonTextSecondary,
                 ),

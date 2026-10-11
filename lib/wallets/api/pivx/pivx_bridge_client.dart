@@ -414,6 +414,81 @@ class PivxBridgeClient {
     return json.toString();
   }
 
+  // ---------------------------------------------------------------------------
+  // Governance (budget proposals), via the RPC proxy
+  // ---------------------------------------------------------------------------
+
+  /// `getbudgetinfo`: every known budget proposal.
+  Future<List<Map<String, dynamic>>> budgetInfo() async {
+    final json = await _getJson("/getbudgetinfo");
+    return [
+      if (json is List)
+        for (final e in json) Map<String, dynamic>.from(e as Map),
+    ];
+  }
+
+  /// `getbudgetprojection`: the proposals the next superblock would pay.
+  Future<List<Map<String, dynamic>>> budgetProjection() async {
+    final json = await _getJson("/getbudgetprojection");
+    return [
+      if (json is List)
+        for (final e in json) Map<String, dynamic>.from(e as Map),
+    ];
+  }
+
+  /// `getmasternodecount`: `{total, stable, enabled, ...}`.
+  Future<Map<String, dynamic>> masternodeCount() async =>
+      Map<String, dynamic>.from(await _getJson("/getmasternodecount") as Map);
+
+  /// RPC proxy params: comma separated (every bridge), or a JSON array
+  /// when a value contains a comma (e.g. a proposal name; newer bridges).
+  static String _params(List<Object> values) =>
+      values.any((v) => v is String && v.contains(","))
+      ? jsonEncode(values)
+      : values.join(",");
+
+  /// `getbudgetvotes` of the proposal [name], only the votes of
+  /// [masternodeIds] (`txid-vout`).
+  Future<List<Map<String, dynamic>>> budgetVotes(
+    String name, {
+    required Iterable<String> masternodeIds,
+  }) async {
+    final ids = masternodeIds.toList();
+    if (ids.isEmpty) return const [];
+    final match = ids.map((id) => ".mnId == ${jsonEncode(id)}").join(" or ");
+    final json = await _getJson("/getbudgetvotes", {
+      "params": _params([name]),
+      "filter": "[.[] | select($match)]",
+    });
+    return [
+      if (json is List)
+        for (final e in json) Map<String, dynamic>.from(e as Map),
+    ];
+  }
+
+  /// `mnbudgetrawvote`: relay a budget vote signed with the masternode
+  /// key. Returns the node's answer ("Voted successfully" or why not).
+  Future<String> budgetRawVote({
+    required String collateralTxid,
+    required int collateralVout,
+    required String proposalHash,
+    required bool yes,
+    required int time,
+    required String signatureBase64,
+  }) async {
+    final json = await _getJson("/mnbudgetrawvote", {
+      "params": _params([
+        collateralTxid,
+        collateralVout,
+        proposalHash,
+        yes ? "yes" : "no",
+        time,
+        signatureBase64,
+      ]),
+    });
+    return json.toString();
+  }
+
   /// Download [url] into [file], reporting `(received, total)`.
   static Future<void> downloadToFile(
     Uri url,

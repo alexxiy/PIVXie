@@ -36,7 +36,7 @@ class MoreFeaturesDialog extends ConsumerStatefulWidget {
   });
 
   final String walletId;
-  final List<(WalletFeature, String, FutureOr<void> Function())> options;
+  final List<(WalletFeature, Object, FutureOr<void> Function())> options;
 
   @override
   ConsumerState<MoreFeaturesDialog> createState() => _MoreFeaturesDialogState();
@@ -231,7 +231,7 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
                         return _MoreFeaturesItem(
                           label: option.$1.label,
                           detail: option.$1.description,
-                          iconAsset: option.$2,
+                          icon: option.$2,
                           onPressed: () async {
                             Navigator.of(context, rootNavigator: true).pop();
                             option.$3();
@@ -256,7 +256,7 @@ class _MoreFeaturesItem extends StatefulWidget {
     super.key,
     required this.label,
     required this.detail,
-    required this.iconAsset,
+    required this.icon,
     this.isSvgFile = false,
     this.onPressed,
   });
@@ -266,7 +266,9 @@ class _MoreFeaturesItem extends StatefulWidget {
 
   final String label;
   final String detail;
-  final String iconAsset;
+
+  /// SVG path (asset, or file with [isSvgFile]) or [IconData].
+  final Object icon;
   final bool isSvgFile;
   final Future<void> Function()? onPressed;
 
@@ -302,18 +304,17 @@ class _MoreFeaturesItemState extends State<_MoreFeaturesItem> {
             child: Center(
               child: widget.isSvgFile
                   ? SvgPicture.file(
-                      File(widget.iconAsset),
+                      File(widget.icon as String),
                       width: _MoreFeaturesItem.iconSize,
                       height: _MoreFeaturesItem.iconSize,
                       color: Theme.of(context)
                           .extension<StackColors>()!
                           .settingsIconIcon,
                     )
-                  : SvgPicture.asset(
-                      widget.iconAsset,
-                      width: _MoreFeaturesItem.iconSize,
-                      height: _MoreFeaturesItem.iconSize,
-                      color: Theme.of(context)
+                  : walletFeatureIcon(
+                      widget.icon,
+                      _MoreFeaturesItem.iconSize,
+                      Theme.of(context)
                           .extension<StackColors>()!
                           .settingsIconIcon,
                     ),

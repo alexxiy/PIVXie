@@ -40,6 +40,7 @@ import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
 import '../address_book_views/address_book_view.dart';
+import '../pivx_governance/pivx_governance_view.dart';
 import '../pivx_masternodes/pivx_masternodes_view.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../widgets/background.dart';
@@ -819,6 +820,23 @@ class _WalletViewState extends ConsumerState<WalletView> {
                         onTap: () {
                           Navigator.of(context).pushNamed(
                             PivxMasternodesView.routeName,
+                            arguments: widget.walletId,
+                          );
+                        },
+                      ),
+                    if (wallet is PivxWallet)
+                      WalletNavigationBarItemData(
+                        label: "Governance",
+                        icon: Icon(
+                          Icons.how_to_vote_rounded,
+                          size: 20,
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .bottomNavIconIcon,
+                        ),
+                        onTap: () {
+                          Navigator.of(context).pushNamed(
+                            PivxGovernanceView.routeName,
                             arguments: widget.walletId,
                           );
                         },

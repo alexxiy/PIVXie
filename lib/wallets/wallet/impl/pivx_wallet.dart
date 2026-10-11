@@ -7,6 +7,7 @@ import 'dart:typed_data';
 
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
+import 'package:decimal/decimal.dart';
 import 'package:isar_community/isar.dart';
 import 'package:mutex/mutex.dart';
 
@@ -41,6 +42,7 @@ import 'pivx/pivx_shield_state.dart';
 import 'pivx/pivx_shield_stream.dart';
 import 'pivx/pivx_tx_parser.dart';
 
+part 'pivx/pivx_governance.dart';
 part 'pivx/pivx_masternodes.dart';
 part 'pivx/pivx_wallet_shield.dart';
 
