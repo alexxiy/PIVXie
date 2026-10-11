@@ -8,14 +8,18 @@
  *
  */
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../themes/stack_colors.dart';
+import '../../../utilities/logger.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../widgets/animated_widgets/rotating_arrows.dart';
+import '../../../widgets/desktop/desktop_dialog.dart';
 import '../../../widgets/desktop/secondary_button.dart';
 import '../../../widgets/stack_dialog.dart';
 import '../../../widgets/tx_send_animation.dart';
@@ -89,5 +93,85 @@ class _BuildingTransactionDialogState
         ),
       );
     }
+  }
+}
+
+/// Build a transaction behind the "Generating transaction" dialog, like
+/// the send screen. Returns null when the user cancels, or when building
+/// fails (shown in a "Transaction failed" dialog).
+Future<T?> showBuildingTransaction<T>({
+  required BuildContext context,
+  required CryptoCurrency coin,
+  required Future<T> Function() build,
+}) async {
+  var cancelled = false;
+  final navigator = Navigator.of(context, rootNavigator: true);
+  unawaited(
+    showDialog<void>(
+      context: context,
+      useSafeArea: false,
+      barrierDismissible: false,
+      builder: (context) {
+        if (!Util.isDesktop) {
+          // Its Cancel button closes it.
+          return BuildingTransactionDialog(
+            coin: coin,
+            onCancel: () => cancelled = true,
+          );
+        }
+        return DesktopDialog(
+          maxWidth: 400,
+          maxHeight: double.infinity,
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: BuildingTransactionDialog(
+              coin: coin,
+              onCancel: () {
+                cancelled = true;
+                Navigator.of(context).pop();
+              },
+            ),
+          ),
+        );
+      },
+    ),
+  );
+
+  try {
+    final results = await Future.wait<Object?>([
+      build(),
+      // Like the send screen: long enough to see what is happening.
+      Future<void>.delayed(const Duration(milliseconds: 2500)),
+    ]);
+    if (cancelled) return null;
+    navigator.pop();
+    return results.first as T;
+  } catch (e, s) {
+    Logging.instance.e("Building a transaction failed", error: e, stackTrace: s);
+    if (cancelled) return null;
+    navigator.pop();
+    if (context.mounted) {
+      await showDialog<void>(
+        context: context,
+        useSafeArea: false,
+        builder: (context) => StackDialog(
+          title: "Transaction failed",
+          message: e.toString().replaceFirst("Exception: ", ""),
+          rightButton: TextButton(
+            style: Theme.of(
+              context,
+            ).extension<StackColors>()!.getSecondaryEnabledButtonStyle(context),
+            child: Text(
+              "Ok",
+              style: STextStyles.button(context).copyWith(
+                color: Theme.of(context).extension<StackColors>()!.accentColorDark,
+              ),
+            ),
+            onPressed: () => Navigator.of(context).pop(),
+          ),
+        ),
+      );
+    }
+    return null;
   }
 }

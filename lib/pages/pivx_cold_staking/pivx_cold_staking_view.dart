@@ -5,14 +5,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../models/isar/models/isar_models.dart';
-import '../../notifications/show_flush_bar.dart';
 import '../../providers/global/wallets_provider.dart';
 import '../../route_generator.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/amount/amount_formatter.dart';
 import '../../utilities/block_explorers.dart';
-import '../../utilities/show_loading.dart';
 import '../../utilities/text_styles.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/models/tx_data.dart';
@@ -26,6 +24,8 @@ import '../../widgets/rounded_white_container.dart';
 import '../pivx_governance/pivx_governance_widgets.dart';
 import '../pivx_masternodes/pivx_masternodes_view.dart';
 import '../send_view/confirm_transaction_view.dart';
+import '../send_view/sub_widgets/building_transaction_dialog.dart';
+import '../send_view/sub_widgets/pivx_funding_card.dart';
 import 'pivx_delegate_view.dart';
 
 /// Coins this wallet delegated to a cold staker, from the wallet's menu.
@@ -45,8 +45,8 @@ class PivxColdStakingView extends ConsumerStatefulWidget {
 class _PivxColdStakingViewState extends ConsumerState<PivxColdStakingView> {
   StreamSubscription<List<UTXO>>? _sub;
   List<PivxDelegation>? _delegations;
-  Future<Amount>? _rewards;
-  String? _owner;
+  /// Rewards received so far, per owner address.
+  Future<Map<String, BigInt>>? _rewards;
 
   PivxWallet get _wallet =>
       ref.read(pWallets).getWallet(widget.walletId) as PivxWallet;
@@ -65,8 +65,7 @@ class _PivxColdStakingViewState extends ConsumerState<PivxColdStakingView> {
       final delegations = wallet.delegationsOf(rows);
       setState(() {
         _delegations = delegations;
-        _rewards = wallet.coldStakeRewards();
-        _owner = delegations.isEmpty ? null : delegations.first.owner;
+        _rewards = wallet.coldStakeRewardsByOwner();
       });
     });
   }
@@ -89,25 +88,12 @@ class _PivxColdStakingViewState extends ConsumerState<PivxColdStakingView> {
 
   Future<void> _withdraw(List<PivxDelegation> delegations) async {
     final wallet = _wallet;
-    Exception? error;
-    final txData = await showLoading<TxData>(
-      whileFutureAlt: () => wallet.prepareWithdrawal(delegations),
+    final txData = await showBuildingTransaction<TxData>(
       context: context,
-      message: "Preparing the transaction",
-      onException: (e) => error = e,
+      coin: wallet.cryptoCurrency,
+      build: () => wallet.prepareWithdrawal(delegations),
     );
-    if (!mounted) return;
-    if (txData == null) {
-      await showFloatingFlushBar(
-        type: FlushBarType.warning,
-        message:
-            error?.toString().replaceFirst("Exception: ", "") ??
-            "Could not prepare the transaction",
-        context: context,
-        duration: const Duration(seconds: 5),
-      );
-      return;
-    }
+    if (!mounted || txData == null) return;
     await Navigator.of(context).push(
       RouteGenerator.getRoute<void>(
         shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
@@ -165,6 +151,14 @@ class _PivxColdStakingViewState extends ConsumerState<PivxColdStakingView> {
         Text(
           "Delegated coins are frozen, so a normal send never uses them by "
           "accident.",
+          style: STextStyles.itemSubtitle(context),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          "Delegated coins sit at an owner address of this wallet. A staker "
+          "only stakes coins whose owner address it has on its whitelist, "
+          "so give it every owner address you delegate from. The list "
+          "groups your delegations by owner address.",
           style: STextStyles.itemSubtitle(context),
         ),
       ],
@@ -307,27 +301,17 @@ class _PivxColdStakingViewState extends ConsumerState<PivxColdStakingView> {
                                     style: STextStyles.pageTitleH2(context),
                                   ),
                                   const SizedBox(height: 4),
-                                  FutureBuilder<Amount>(
+                                  FutureBuilder<Map<String, BigInt>>(
                                     future: _rewards,
                                     builder: (context, snap) => Text(
                                       snap.hasData
-                                          ? "Rewards so far: "
-                                                "${fmt.format(snap.data!)}"
+                                          ? "Rewards so far: ${fmt.format(Amount(rawValue: snap.data!.values.fold(BigInt.zero, (p, v) => p + v), fractionDigits: coin.fractionDigits))}"
                                           : " ",
-                                      style: STextStyles.w500_12(context)
-                                          .copyWith(
-                                            color: colors.accentColorGreen,
-                                          ),
+                                      style: STextStyles.w500_12(
+                                        context,
+                                      ).copyWith(color: colors.accentColorGreen),
                                     ),
                                   ),
-                                  const SizedBox(height: 8),
-                                  if (_owner != null)
-                                    PivxCopyRow(
-                                      title:
-                                          "Owner address (on your staker's "
-                                          "whitelist)",
-                                      value: _owner!,
-                                    ),
                                 ],
                               ),
                             ),
@@ -349,7 +333,41 @@ class _PivxColdStakingViewState extends ConsumerState<PivxColdStakingView> {
                               ],
                             ),
                             const SizedBox(height: 8),
-                            for (final d in delegations) ...[
+                            for (final owner in {
+                              for (final d in delegations) d.owner,
+                            }) ...[
+                              FutureBuilder<Map<String, BigInt>>(
+                                future: _rewards,
+                                builder: (context, snap) => _OwnerHeader(
+                                  walletId: widget.walletId,
+                                  owner: owner,
+                                  delegated: fmt.format(
+                                    Amount(
+                                      rawValue: delegations
+                                          .where((d) => d.owner == owner)
+                                          .fold(
+                                            BigInt.zero,
+                                            (p, d) =>
+                                                p + BigInt.from(d.utxo.value),
+                                          ),
+                                      fractionDigits: coin.fractionDigits,
+                                    ),
+                                  ),
+                                  rewards: snap.data?[owner] == null
+                                      ? null
+                                      : fmt.format(
+                                          Amount(
+                                            rawValue: snap.data![owner]!,
+                                            fractionDigits:
+                                                coin.fractionDigits,
+                                          ),
+                                        ),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              for (final d in delegations.where(
+                                (d) => d.owner == owner,
+                              )) ...[
                               _DelegationRow(
                                 delegation: d,
                                 amount: fmt.format(
@@ -361,6 +379,8 @@ class _PivxColdStakingViewState extends ConsumerState<PivxColdStakingView> {
                                 status: _status(d, height),
                                 onTap: () => _showDelegation(d),
                               ),
+                              const SizedBox(height: 8),
+                            ],
                               const SizedBox(height: 8),
                             ],
                           ],
@@ -572,6 +592,43 @@ class _Sheet extends StatelessWidget {
             const SizedBox(height: 12),
             ...children,
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// An owner address with what it has delegated and earned; tap to copy
+/// it (e.g. for the staker's whitelist).
+class _OwnerHeader extends StatelessWidget {
+  const _OwnerHeader({
+    required this.walletId,
+    required this.owner,
+    required this.delegated,
+    required this.rewards,
+  });
+
+  final String walletId;
+  final String owner;
+  final String delegated;
+  final String? rewards;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<StackColors>()!;
+    final secondary = STextStyles.w500_12(
+      context,
+    ).copyWith(color: colors.textSubtitle1);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: PivxCopyRow(
+        title: "Owner · ${pivxAddressTitle(walletId, owner)}",
+        value: owner,
+        footer: Text(
+          rewards == null
+              ? "$delegated delegated"
+              : "$delegated delegated · $rewards rewards",
+          style: secondary,
         ),
       ),
     );

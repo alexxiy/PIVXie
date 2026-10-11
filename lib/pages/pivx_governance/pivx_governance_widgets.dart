@@ -202,10 +202,14 @@ class PivxCopyRow extends StatelessWidget {
     required this.value,
     this.onOpen,
     this.openTooltip,
+    this.footer,
   });
 
   final String title;
   final String value;
+
+  /// Shown under the value.
+  final Widget? footer;
 
   /// Shows a link button (e.g. to the block explorer).
   final VoidCallback? onOpen;
@@ -243,6 +247,7 @@ class PivxCopyRow extends StatelessWidget {
                   ),
                   const SizedBox(height: 2),
                   SelectableText(value, style: STextStyles.w500_14(context)),
+                  if (footer != null) ...[const SizedBox(height: 2), footer!],
                 ],
               ),
             ),

@@ -176,23 +176,59 @@ void main() {
                 .every((u) => u["txid"] != delegationTxid || u["vout"] != 1),
       );
 
-      // Let the node stake until it picks our 4000 PIV. The stake (split
-      // in several outputs above the stake split threshold) and its
-      // reward stay delegated to the same staker and owner.
-      String? stakeTxid;
-      for (var i = 0; i < 400 && stakeTxid == null; i++) {
-        final out = await _cli(["gettxout", delegationTxid, "0"]);
-        if (out.isEmpty) {
-          await _waitFor(() async {
-            for (final u in await bridge.utxo(owner.toString())) {
-              if (u["coinstake"] == true) stakeTxid = u["txid"] as String;
-            }
-            return stakeTxid != null;
-          });
-        } else {
-          await _cli(["generate", "1"]);
+      // Let the node stake our 4000 PIV. The stake (split in several
+      // outputs above the stake split threshold) and its reward stay
+      // delegated to the same staker and owner. Once deep enough to stake,
+      // the node's other coins (its own and delegations from earlier runs)
+      // are locked for a few blocks: its staker skips locked coins, and
+      // otherwise rarely picks ours among a thousand.
+      Future<bool> unspent() async =>
+          (await _cli(["gettxout", delegationTxid, "0"])).isNotEmpty;
+      for (var i = 0; i < 25 && await unspent(); i++) {
+        await _cli(["generate", "1"]);
+      }
+      if (await unspent()) {
+        final own = (jsonDecode(await _cli(["listunspent", "0"])) as List)
+            .cast<Map<String, dynamic>>();
+        final locked = jsonEncode([
+          for (final u in own) {"txid": u["txid"], "vout": u["vout"]},
+        ]);
+        // Delegations of earlier runs can't be locked: take their owners
+        // off the whitelist instead.
+        final cold = (jsonDecode(await _cli(["listcoldutxos"])) as List)
+            .cast<Map<String, dynamic>>();
+        final owners = {
+          for (final u in cold)
+            if (u["whitelisted"] == "true" && u["coin-owner"] != "$owner")
+              u["coin-owner"] as String,
+        };
+        await _cli(["lockunspent", "false", "true", locked]);
+        for (final o in owners) {
+          await _cli(["delegatorremove", o]);
+        }
+        try {
+          for (var i = 0; i < 5 && await unspent(); i++) {
+            await _cli(["generate", "1"]);
+          }
+        } finally {
+          await _cli(["lockunspent", "true", "true", locked]);
+          for (final o in owners) {
+            await _cli(["delegatoradd", o]);
+          }
         }
       }
+      expect(
+        await unspent(),
+        isFalse,
+        reason: "the delegation was never staked",
+      );
+      String? stakeTxid;
+      await _waitFor(() async {
+        for (final u in await bridge.utxo(owner.toString())) {
+          if (u["coinstake"] == true) stakeTxid = u["txid"] as String;
+        }
+        return stakeTxid != null;
+      });
       expect(stakeTxid, isNotNull, reason: "the delegation was never staked");
       final staked = pivxVerifiedOutputs(
         stakeTxid!,
@@ -230,6 +266,12 @@ void main() {
       expect(withdrawn.pivxKind, PivxTxKind.undelegation);
       final rewarded = await parse(stakeTxid!);
       expect(rewarded.pivxKind, PivxTxKind.coldStakeReward);
+      // Rewards are counted per owner from the delegated outputs, which
+      // list the staker, then the owner.
+      final rewardOut = rewarded.outputs.where(
+        (o) => o.walletOwns && pivxIsColdStakeScript(o.scriptPubKeyHex),
+      );
+      expect(rewardOut.first.addresses, [staker, owner.toString()]);
       expect(
         rewarded.getAmountReceivedInThisWallet(fractionDigits: 8).raw,
         ours.fold(BigInt.zero, (p, o) => p + o.value) -

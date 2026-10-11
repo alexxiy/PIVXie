@@ -13,7 +13,6 @@ import '../../route_generator.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/amount/amount_formatter.dart';
-import '../../utilities/show_loading.dart';
 import '../../utilities/text_styles.dart';
 import '../../wallets/models/tx_data.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
@@ -25,6 +24,7 @@ import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_text_field.dart';
 import '../coin_control/coin_control_view.dart';
 import '../send_view/confirm_transaction_view.dart';
+import '../send_view/sub_widgets/building_transaction_dialog.dart';
 import 'pivx_masternodes_view.dart';
 
 enum _Collateral { newAddress, ownAddress, existingOutput }
@@ -217,9 +217,10 @@ class _PivxCreateMasternodeViewState
         : _ownAddress?.value;
     if (address == null) return;
 
-    Exception? error;
-    final prepared = await showLoading<(TxData, int)>(
-      whileFutureAlt: () async {
+    final prepared = await showBuildingTransaction<(TxData, int)>(
+      context: context,
+      coin: wallet.cryptoCurrency,
+      build: () async {
         final txData = await wallet.prepareMasternodeCollateral(
           address: address,
           utxos: _coins,
@@ -227,22 +228,8 @@ class _PivxCreateMasternodeViewState
         );
         return (txData, wallet.collateralVout(txData, address));
       },
-      context: context,
-      message: "Preparing collateral",
-      onException: (e) => error = e,
     );
-    if (!mounted) return;
-    if (prepared == null) {
-      await showFloatingFlushBar(
-        type: FlushBarType.warning,
-        message:
-            error?.toString().replaceFirst("Exception: ", "") ??
-            "Could not prepare the collateral transaction",
-        context: context,
-        duration: const Duration(seconds: 5),
-      );
-      return;
-    }
+    if (!mounted || prepared == null) return;
 
     final (txData, vout) = prepared;
     final key = _key;

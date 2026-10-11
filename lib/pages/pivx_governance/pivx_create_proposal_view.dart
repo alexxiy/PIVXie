@@ -5,13 +5,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../notifications/show_flush_bar.dart';
 import '../../providers/global/wallets_provider.dart';
 import '../../route_generator.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/amount/amount_formatter.dart';
-import '../../utilities/show_loading.dart';
 import '../../utilities/text_styles.dart';
 import '../../wallets/models/tx_data.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
@@ -22,6 +20,7 @@ import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_text_field.dart';
 import '../pivx_masternodes/pivx_masternodes_view.dart';
 import '../send_view/confirm_transaction_view.dart';
+import '../send_view/sub_widgets/building_transaction_dialog.dart';
 import '../send_view/sub_widgets/pivx_funding_card.dart';
 import 'pivx_governance_view.dart';
 
@@ -126,9 +125,10 @@ class _PivxCreateProposalViewState
       return;
     }
     final wallet = _wallet;
-    Exception? error;
-    final prepared = await showLoading<(TxData, PivxPendingProposal)>(
-      whileFutureAlt: () => wallet.prepareProposal(
+    final prepared = await showBuildingTransaction<(TxData, PivxPendingProposal)>(
+      context: context,
+      coin: wallet.cryptoCurrency,
+      build: () => wallet.prepareProposal(
         name: _name.text.trim(),
         url: _url.text.trim(),
         payments: _payments,
@@ -137,22 +137,8 @@ class _PivxCreateProposalViewState
         amount: _amountValue!,
         funding: _funding,
       ),
-      context: context,
-      message: "Preparing the fee transaction",
-      onException: (e) => error = e,
     );
-    if (!mounted) return;
-    if (prepared == null) {
-      await showFloatingFlushBar(
-        type: FlushBarType.warning,
-        message:
-            error?.toString().replaceFirst("Exception: ", "") ??
-            "Could not prepare the fee transaction",
-        context: context,
-        duration: const Duration(seconds: 5),
-      );
-      return;
-    }
+    if (!mounted || prepared == null) return;
     final (txData, proposal) = prepared;
     Future<void>? saving;
     await Navigator.of(context).push(

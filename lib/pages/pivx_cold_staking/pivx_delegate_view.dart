@@ -6,14 +6,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../notifications/show_flush_bar.dart';
 import '../../providers/global/barcode_scanner_provider.dart';
 import '../../providers/global/wallets_provider.dart';
 import '../../route_generator.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/amount/amount_formatter.dart';
-import '../../utilities/show_loading.dart';
 import '../../utilities/text_styles.dart';
 import '../../wallets/models/tx_data.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
@@ -29,6 +27,7 @@ import '../../widgets/stack_text_field.dart';
 import '../pivx_governance/pivx_governance_widgets.dart';
 import '../pivx_masternodes/pivx_masternodes_view.dart';
 import '../send_view/confirm_transaction_view.dart';
+import '../send_view/sub_widgets/building_transaction_dialog.dart';
 import '../send_view/sub_widgets/pivx_funding_card.dart';
 import 'pivx_cold_staking_view.dart';
 
@@ -170,31 +169,18 @@ class _PivxDelegateViewState extends ConsumerState<PivxDelegateView> {
       return;
     }
     final wallet = _wallet;
-    Exception? error;
-    final txData = await showLoading<TxData>(
-      whileFutureAlt: () => wallet.prepareDelegation(
+    final txData = await showBuildingTransaction<TxData>(
+      context: context,
+      coin: wallet.cryptoCurrency,
+      build: () => wallet.prepareDelegation(
         staker: _staker.text.trim(),
         amount: _amountValue!,
         owner: _owner!,
         funding: _funding,
         subtractFee: _subtractFee,
       ),
-      context: context,
-      message: "Preparing the delegation",
-      onException: (e) => error = e,
     );
-    if (!mounted) return;
-    if (txData == null) {
-      await showFloatingFlushBar(
-        type: FlushBarType.warning,
-        message:
-            error?.toString().replaceFirst("Exception: ", "") ??
-            "Could not prepare the delegation",
-        context: context,
-        duration: const Duration(seconds: 5),
-      );
-      return;
-    }
+    if (!mounted || txData == null) return;
     await Navigator.of(context).push(
       RouteGenerator.getRoute<void>(
         shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,

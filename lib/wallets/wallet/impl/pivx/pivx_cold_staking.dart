@@ -359,23 +359,31 @@ extension PivxColdStakingWallet on PivxWallet {
     );
   }
 
-  /// Cold staking rewards received so far.
-  Future<Amount> coldStakeRewards() async {
+  /// Cold staking rewards received so far, per owner address: each
+  /// stake spends one delegated output and pays the stake plus the reward
+  /// back to the same owner. Includes rewards of coins since withdrawn.
+  Future<Map<String, BigInt>> coldStakeRewardsByOwner() async {
     final txs = await mainDB.isar.transactionV2s
         .where()
         .walletIdEqualTo(walletId)
         .findAll();
-    var total = BigInt.zero;
+    final byOwner = <String, BigInt>{};
     for (final tx in txs) {
       if (tx.pivxKind != PivxTxKind.coldStakeReward) continue;
-      final amount = tx.getAmountReceivedInThisWallet(
-        fractionDigits: cryptoCurrency.fractionDigits,
+      final out = tx.outputs.where(
+        (o) => o.walletOwns && pivxIsColdStakeScript(o.scriptPubKeyHex),
       );
-      total += amount.raw;
+      if (out.isEmpty || out.first.addresses.isEmpty) continue;
+      // P2CS outputs list the staker, then the owner.
+      final owner = out.first.addresses.last;
+      byOwner[owner] =
+          (byOwner[owner] ?? BigInt.zero) +
+          tx
+              .getAmountReceivedInThisWallet(
+                fractionDigits: cryptoCurrency.fractionDigits,
+              )
+              .raw;
     }
-    return Amount(
-      rawValue: total,
-      fractionDigits: cryptoCurrency.fractionDigits,
-    );
+    return byOwner;
   }
 }
