@@ -24,6 +24,8 @@ import '../../../utilities/enums/derive_path_type_enum.dart';
 import '../../../utilities/enums/fee_rate_type_enum.dart';
 import '../../../utilities/extensions/extensions.dart';
 import '../../../utilities/flutter_secure_storage_interface.dart';
+import '../../../services/event_bus/events/global/refresh_percent_changed_event.dart';
+import '../../../services/event_bus/global_event_bus.dart';
 import '../../../services/tor_service.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/stack_file_system.dart';
@@ -456,6 +458,8 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
 
   @override
   Future<void> updateTransactions() async {
+    _lastProgress = -1;
+    _syncProgress(0);
     final xpub = await accountXpub;
     final result = await UiStallWatch.run(
       "PIVX ${info.name}: history",
@@ -470,6 +474,8 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
       "PIVX ${info.name}: addresses",
       () => _syncAddresses(result.info["tokens"] as List?),
     );
+    // The transparent history is one request: its share of the bar.
+    _syncProgress(_shieldSupported ? 0.1 : 0.9);
 
     // Shield first: transparent txs with a shield side (shielding,
     // unshielding) are only classified right with the scan's data.
@@ -488,6 +494,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
       "PIVX ${info.name}: store ${txns.length} txs",
       () => _storeTxs(txns),
     );
+    _syncProgress(1);
     if (info.otherData[_kTxParseVersion] != _txParseVersion) {
       await info.updateOtherData(
         newEntries: {_kTxParseVersion: _txParseVersion},
@@ -703,28 +710,68 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
   @override
   Future<void> recover({required bool isRescan}) async {
     await refreshMutex.protect(() async {
-      if (isRescan) {
-        await mainDB.deleteWalletBlockchainData(walletId);
+      _recovering = true;
+      _lastProgress = -1;
+      try {
+        await _recover(isRescan: isRescan);
+      } finally {
+        _recovering = false;
       }
-      await checkSaveInitialReceivingAddress();
-      final (_, change) = await _highestStoredIndices();
-      if (change < 0) {
-        await mainDB.updateOrPutAddresses([
-          await _deriveAddress(chain: 1, index: 0),
-        ]);
-      }
-      await updateChainHeight();
-      if (_shieldSupported) {
-        await _resetShield(
-          fromHeight: info.restoreHeight > 0
-              ? info.restoreHeight
-              : _defaultShieldRestoreHeight,
-        );
-      }
-      await updateTransactions();
-      await updateUTXOs();
-      await updateBalance();
     });
+    if (!doNotFireRefreshEvents) {
+      GlobalEventBus.instance.fire(RefreshPercentChangedEvent(1, walletId));
+    }
+  }
+
+  Future<void> _recover({required bool isRescan}) async {
+    if (isRescan) {
+      await mainDB.deleteWalletBlockchainData(walletId);
+    }
+    await checkSaveInitialReceivingAddress();
+    final (_, change) = await _highestStoredIndices();
+    if (change < 0) {
+      await mainDB.updateOrPutAddresses([
+        await _deriveAddress(chain: 1, index: 0),
+      ]);
+    }
+    await updateChainHeight();
+    if (_shieldSupported) {
+      await _resetShield(
+        fromHeight: info.restoreHeight > 0
+            ? info.restoreHeight
+            : _defaultShieldRestoreHeight,
+      );
+    }
+    await updateTransactions();
+    await updateUTXOs();
+    await updateBalance();
+  }
+
+  // ===========================================================================
+  // Sync progress
+
+  @override
+  bool get reportsSyncProgress => true;
+
+  /// Set while [recover] runs: progress then covers the whole 0-100 %
+  /// (a rescan or restore has no refresh around it).
+  bool _recovering = false;
+  double _lastProgress = -1;
+
+  /// Progress (0..1) of the history step: the bridge's transparent
+  /// history, then the shield scan by block height. Throttled to whole
+  /// percents.
+  void _syncProgress(double fraction) {
+    final f = fraction.clamp(0.0, 1.0);
+    if (f < 1 && (f - _lastProgress).abs() < 0.01) return;
+    _lastProgress = f;
+    if (!_recovering) {
+      reportSyncProgress(f);
+    } else if (!doNotFireRefreshEvents) {
+      GlobalEventBus.instance.fire(
+        RefreshPercentChangedEvent(0.05 + 0.9 * f, walletId),
+      );
+    }
   }
 
   @override

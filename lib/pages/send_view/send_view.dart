@@ -55,6 +55,7 @@ import '../../widgets/icon_widgets/addressbook_icon.dart';
 import '../../widgets/icon_widgets/clipboard_icon.dart';
 import '../../widgets/icon_widgets/qrcode_icon.dart';
 import '../../widgets/icon_widgets/x_icon.dart';
+import '../../widgets/pivx_memo_field.dart';
 import '../../widgets/rounded_container.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
@@ -147,7 +148,10 @@ class _SendViewState extends ConsumerState<SendView> {
       _address = paymentData.address.trim();
 
       // shield memo
-      memoController.text = paymentData.additionalParams['memo'] ?? "";
+      memoController.text = truncateUtf8(
+        paymentData.additionalParams['memo'] ?? "",
+        kPivxMaxMemoBytes,
+      );
 
       // autofill notes field
       if (paymentData.message != null) {
@@ -1748,39 +1752,11 @@ class _SendViewState extends ConsumerState<SendView> {
                                 textAlign: TextAlign.left,
                               ),
                               const SizedBox(height: 8),
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(
-                                  Constants.size.circularBorderRadius,
-                                ),
-                                child: TextField(
-                                  key: const Key("sendViewPivxMemoFieldKey"),
-                                  controller: memoController,
-                                  focusNode: _pivxMemoFocusNode,
-                                  maxLength: 512,
-                                  minLines: 1,
-                                  maxLines: 4,
-                                  style: STextStyles.field(context),
-                                  onChanged: (_) => setState(() {}),
-                                  decoration:
-                                      standardInputDecoration(
-                                        "Sent privately with the payment",
-                                        _pivxMemoFocusNode,
-                                        context,
-                                      ).copyWith(
-                                        suffixIcon:
-                                            memoController.text.isNotEmpty
-                                            ? UnconstrainedBox(
-                                                child: TextFieldIconButton(
-                                                  child: const XIcon(),
-                                                  onTap: () => setState(
-                                                    () => memoController.text =
-                                                        "",
-                                                  ),
-                                                ),
-                                              )
-                                            : null,
-                                      ),
-                                ),
+                              PivxMemoField(
+                                key: const Key("sendViewPivxMemoFieldKey"),
+                                controller: memoController,
+                                focusNode: _pivxMemoFocusNode,
+                                onChanged: () => setState(() {}),
                               ),
                               const SizedBox(height: 4),
                             ],

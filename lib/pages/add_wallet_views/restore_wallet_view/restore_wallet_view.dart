@@ -206,6 +206,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
               barrierDismissible: false,
               builder: (context) {
                 return RestoringDialog(
+                  walletId: info.walletId,
                   onCancel: () async {
                     isRestoring = false;
 

@@ -30,6 +30,7 @@ import '../../../../../widgets/loading_indicator.dart';
 import '../../../../../widgets/rounded_container.dart';
 import '../sub_views/recovery_phrase_view.dart';
 import 'restoring_item_card.dart';
+import '../../../../../widgets/wallet_sync_progress.dart';
 
 class RestoringWalletCard extends ConsumerStatefulWidget {
   const RestoringWalletCard({super.key, required this.provider});
@@ -162,6 +163,12 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
                     "Unable to restore. Tap icon to retry.",
                     style: STextStyles.errorSmall(context),
                   )
+                : restoringStatus == StackRestoringStatus.restoring
+                ? WalletSyncProgress(
+                    walletId: ref.watch(
+                      provider.select((value) => value.walletId),
+                    ),
+                  )
                 : ref.watch(provider.select((value) => value.address)) != null
                 ? Text(
                     ref.watch(provider.select((value) => value.address))!,
@@ -250,6 +257,12 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
                   ? Text(
                       "Unable to restore. Tap icon to retry.",
                       style: STextStyles.errorSmall(context),
+                    )
+                  : restoringStatus == StackRestoringStatus.restoring
+                  ? WalletSyncProgress(
+                      walletId: ref.watch(
+                        provider.select((value) => value.walletId),
+                      ),
                     )
                   : ref.watch(provider.select((value) => value.address)) != null
                   ? Text(

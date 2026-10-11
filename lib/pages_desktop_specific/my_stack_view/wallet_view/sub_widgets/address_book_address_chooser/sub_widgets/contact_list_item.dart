@@ -20,6 +20,8 @@ import '../../../../../../widgets/custom_buttons/blue_text_button.dart';
 import '../../../../../../widgets/expandable.dart';
 import '../../../../../../widgets/rounded_white_container.dart';
 import '../../../../../../widgets/wallet_info_row/sub_widgets/wallet_info_row_coin_icon.dart';
+import '../../../../../../utilities/contact_address_title.dart';
+import '../../../../../../widgets/middle_ellipsis_text.dart';
 
 class ContactListItem extends ConsumerStatefulWidget {
   const ContactListItem({
@@ -51,8 +53,9 @@ class _ContactListItemState extends ConsumerState<ContactListItem> {
   @override
   Widget build(BuildContext context) {
     final contact = ref.watch(
-      addressBookServiceProvider
-          .select((value) => value.getContactById(contactId)),
+      addressBookServiceProvider.select(
+        (value) => value.getContactById(contactId),
+      ),
     );
 
     // hack fix until we use a proper database (not Hive)
@@ -68,14 +71,8 @@ class _ContactListItemState extends ConsumerState<ContactListItem> {
           });
         },
         header: Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: 20,
-            vertical: 14,
-          ),
-          child: AddressBookCard(
-            contactId: contactId,
-            indicatorDown: _state,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          child: AddressBookCard(contactId: contactId, indicatorDown: _state),
         ),
         body: Column(
           mainAxisSize: MainAxisSize.min,
@@ -110,9 +107,7 @@ class _ContactListItemState extends ConsumerState<ContactListItem> {
                               child: Row(
                                 children: [
                                   WalletInfoCoinIcon(coin: e.coin),
-                                  const SizedBox(
-                                    width: 12,
-                                  ),
+                                  const SizedBox(width: 12),
                                   Flexible(
                                     child: Column(
                                       mainAxisSize: MainAxisSize.min,
@@ -120,28 +115,22 @@ class _ContactListItemState extends ConsumerState<ContactListItem> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          "${contactId == "default" ? e.other! : e.label} (${e.coin.ticker})",
-                                          style: STextStyles
-                                              .desktopTextExtraExtraSmall(
-                                            context,
-                                          ).copyWith(
-                                            color: Theme.of(context)
-                                                .extension<StackColors>()!
-                                                .textDark,
-                                          ),
-                                        ),
-                                        Row(
-                                          children: [
-                                            Flexible(
-                                              child: Text(
-                                                e.address,
-                                                style: STextStyles
-                                                    .desktopTextExtraExtraSmall(
-                                                  context,
-                                                ),
+                                          e.title,
+                                          style:
+                                              STextStyles.desktopTextExtraExtraSmall(
+                                                context,
+                                              ).copyWith(
+                                                color: Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .textDark,
                                               ),
-                                            ),
-                                          ],
+                                        ),
+                                        MiddleEllipsisText(
+                                          e.address,
+                                          style:
+                                              STextStyles.desktopTextExtraExtraSmall(
+                                                context,
+                                              ),
                                         ),
                                       ],
                                     ),

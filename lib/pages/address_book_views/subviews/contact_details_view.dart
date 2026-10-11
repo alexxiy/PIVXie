@@ -40,6 +40,8 @@ import '../../wallet_view/transaction_views/tx_v2/transaction_v2_card.dart';
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/output_v2.dart';
+import '../../../utilities/contact_address_title.dart';
+import '../../../widgets/middle_ellipsis_text.dart';
 
 class ContactDetailsView extends ConsumerStatefulWidget {
   const ContactDetailsView({
@@ -344,19 +346,16 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                                           CrossAxisAlignment.start,
                                       children: [
                                         Text(
-                                          "${e.label} (${e.coin.ticker})",
+                                          e.title,
                                           style: STextStyles.itemSubtitle12(
                                             context,
                                           ),
                                         ),
                                         const SizedBox(height: 2),
-                                        FittedBox(
-                                          fit: BoxFit.scaleDown,
-                                          child: Text(
-                                            e.address,
-                                            style: STextStyles.itemSubtitle(
-                                              context,
-                                            ).copyWith(fontSize: 8),
+                                        MiddleEllipsisText(
+                                          e.address,
+                                          style: STextStyles.itemSubtitle(
+                                            context,
                                           ),
                                         ),
                                       ],

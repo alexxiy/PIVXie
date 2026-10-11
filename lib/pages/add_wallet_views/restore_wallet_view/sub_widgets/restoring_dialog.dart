@@ -9,6 +9,7 @@
  */
 
 import 'package:flutter/material.dart';
+
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
@@ -17,14 +18,15 @@ import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/stack_dialog.dart';
+import '../../../../widgets/wallet_sync_progress.dart';
 
 class RestoringDialog extends StatefulWidget {
-  const RestoringDialog({
-    super.key,
-    required this.onCancel,
-  });
+  const RestoringDialog({super.key, required this.onCancel, this.walletId});
 
   final Future<void> Function() onCancel;
+
+  /// Shows the restore's progress when set.
+  final String? walletId;
 
   @override
   State<RestoringDialog> createState() => _RestoringDialogState();
@@ -53,24 +55,15 @@ class _RestoringDialogState extends State<RestoringDialog> {
                 }
               },
             ),
-            const Spacer(
-              flex: 1,
-            ),
-            const RotatingArrows(
-              width: 40,
-              height: 40,
-            ),
-            const Spacer(
-              flex: 2,
-            ),
+            const Spacer(flex: 1),
+            const RotatingArrows(width: 40, height: 40),
+            const Spacer(flex: 2),
             Text(
               "Restoring wallet...",
               style: STextStyles.desktopH2(context),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(
-              height: 16,
-            ),
+            const SizedBox(height: 16),
             Text(
               "Restoring your wallet may take a while.\nPlease do not exit this screen.",
               style: STextStyles.desktopTextMedium(context).copyWith(
@@ -78,15 +71,14 @@ class _RestoringDialogState extends State<RestoringDialog> {
               ),
               textAlign: TextAlign.center,
             ),
-            const Spacer(
-              flex: 2,
-            ),
-            Padding(
-              padding: const EdgeInsets.only(
-                left: 32,
-                right: 32,
-                bottom: 32,
+            if (widget.walletId != null)
+              Padding(
+                padding: const EdgeInsets.only(left: 32, right: 32, top: 24),
+                child: WalletSyncProgress(walletId: widget.walletId!),
               ),
+            const Spacer(flex: 2),
+            Padding(
+              padding: const EdgeInsets.only(left: 32, right: 32, bottom: 32),
               child: SecondaryButton(
                 label: "Cancel",
                 width: 272.5,
@@ -109,18 +101,15 @@ class _RestoringDialogState extends State<RestoringDialog> {
         child: StackDialog(
           title: "Restoring wallet",
           message: "This may take a while. Please do not exit this screen.",
-          icon: const RotatingArrows(
-            width: 24,
-            height: 24,
-          ),
+          content: widget.walletId == null
+              ? null
+              : WalletSyncProgress(walletId: widget.walletId!),
+          icon: const RotatingArrows(width: 24, height: 24),
           rightButton: TextButton(
             style: Theme.of(context)
                 .extension<StackColors>()!
                 .getSecondaryEnabledButtonStyle(context),
-            child: Text(
-              "Cancel",
-              style: STextStyles.itemSubtitle12(context),
-            ),
+            child: Text("Cancel", style: STextStyles.itemSubtitle12(context)),
             onPressed: () async {
               await onCancel.call();
               if (mounted) {

@@ -52,9 +52,9 @@ class StackDialogBase extends StatelessWidget {
                     borderRadius: BorderRadius.circular(20),
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.popupBG,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .popupBG,
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Padding(padding: padding, child: child),
@@ -78,6 +78,7 @@ class StackDialog extends StatelessWidget {
     this.icon,
     required this.title,
     this.message,
+    this.content,
     this.width,
     this.padding = const EdgeInsets.all(24),
   });
@@ -89,6 +90,9 @@ class StackDialog extends StatelessWidget {
 
   final String title;
   final String? message;
+
+  /// Shown under [message] (e.g. a progress bar).
+  final Widget? content;
 
   final double? width;
   final EdgeInsets padding;
@@ -124,6 +128,7 @@ class StackDialog extends StatelessWidget {
                 ),
               ],
             ),
+          if (content != null) ...[const SizedBox(height: 16), content!],
           if (leftButton != null || rightButton != null)
             const SizedBox(height: 20),
           if (leftButton != null || rightButton != null)
@@ -224,9 +229,8 @@ class StackOkDialog extends StatelessWidget {
                               Navigator.of(context, rootNavigator: true).pop();
                             } else {
                               int count = 0;
-                              Navigator.of(
-                                context,
-                              ).popUntil((_) => count++ >= 2);
+                              Navigator.of(context)
+                                  .popUntil((_) => count++ >= 2);
                               // onOkPressed?.call("OK");
                             }
                           },

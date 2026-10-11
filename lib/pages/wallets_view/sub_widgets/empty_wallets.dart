@@ -8,20 +8,23 @@
  *
  */
 
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../../app_config.dart';
 import '../../../themes/stack_colors.dart';
+import '../../../providers/global/prefs_provider.dart';
 import '../../../themes/theme_providers.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../utilities/shown_coins.dart';
+import '../../add_wallet_views/create_or_restore_wallet_view/create_or_restore_wallet_view.dart';
 
+/// No wallet yet. With a single coin (mainnet PIVX only) this is the
+/// "Create new wallet / Restore wallet" screen itself; with testnets shown,
+/// an "Add wallet" button that leads to the coin choice.
 class EmptyWallets extends ConsumerWidget {
   const EmptyWallets({super.key});
 
@@ -31,9 +34,16 @@ class EmptyWallets extends ConsumerWidget {
 
     final isDesktop = Util.isDesktop;
 
-    final stack = ref.watch(
-      themeProvider.select((value) => value.assets.stack),
+    ref.watch(
+      prefsChangeNotifierProvider.select((value) => value.showTestNetCoins),
     );
+    final coins = shownCoins(ref);
+    if (coins.length == 1) {
+      return CreateOrRestoreWalletContent(
+        coin: coins.first,
+        padding: const EdgeInsets.only(bottom: 16),
+      );
+    }
 
     return SafeArea(
       child: Padding(
@@ -45,16 +55,11 @@ class EmptyWallets extends ConsumerWidget {
           child: Column(
             children: [
               const Spacer(flex: 2),
-              SizedBox(
-                width: isDesktop ? 324 : MediaQuery.of(context).size.width / 3,
-                child: (stack.endsWith(".png"))
-                    ? Image.file(File(stack))
-                    : SvgPicture.file(
-                        File(stack),
-                        width: isDesktop
-                            ? 324
-                            : MediaQuery.of(context).size.width / 3,
-                      ),
+              Image.asset(
+                Assets.persona.addWallet,
+                width: isDesktop ? 280 : MediaQuery.of(context).size.width / 2,
+                height: isDesktop ? 280 : MediaQuery.of(context).size.width / 2,
+                fit: BoxFit.contain,
               ),
               SizedBox(height: isDesktop ? 30 : 16),
               Text(

@@ -27,6 +27,8 @@ import '../../../utilities/text_styles.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/custom_buttons/blue_text_button.dart';
 import '../../../widgets/desktop/desktop_dialog.dart';
+import '../../../utilities/contact_address_title.dart';
+import '../../../widgets/middle_ellipsis_text.dart';
 
 class DesktopAddressCard extends ConsumerWidget {
   const DesktopAddressCard({
@@ -46,44 +48,34 @@ class DesktopAddressCard extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SvgPicture.file(
-          File(
-            ref.watch(coinIconProvider(entry.coin)),
-          ),
+          File(ref.watch(coinIconProvider(entry.coin))),
           height: 32,
           width: 32,
         ),
-        const SizedBox(
-          width: 16,
-        ),
+        const SizedBox(width: 16),
         Flexible(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               SelectableText(
-                "${contactId == "default" ? entry.other : entry.label} (${entry.coin.ticker})",
+                entry.title,
                 style: STextStyles.desktopTextExtraExtraSmall(context).copyWith(
                   color: Theme.of(context).extension<StackColors>()!.textDark,
                 ),
               ),
-              const SizedBox(
-                height: 2,
-              ),
-              SelectableText(
+              const SizedBox(height: 2),
+              MiddleEllipsisText(
                 entry.address,
                 style: STextStyles.desktopTextExtraExtraSmall(context),
               ),
-              const SizedBox(
-                height: 8,
-              ),
+              const SizedBox(height: 8),
               Row(
                 children: [
                   CustomTextButton(
                     text: "Copy",
                     onTap: () {
-                      clipboard.setData(
-                        ClipboardData(text: entry.address),
-                      );
+                      clipboard.setData(ClipboardData(text: entry.address));
                       showFloatingFlushBar(
                         type: FlushBarType.info,
                         message: "Copied to clipboard",
@@ -92,10 +84,7 @@ class DesktopAddressCard extends ConsumerWidget {
                       );
                     },
                   ),
-                  if (contactId != "default")
-                    const SizedBox(
-                      width: 16,
-                    ),
+                  if (contactId != "default") const SizedBox(width: 16),
                   if (contactId != "default")
                     Consumer(
                       builder: (context, ref, child) {
@@ -121,12 +110,8 @@ class DesktopAddressCard extends ConsumerWidget {
                                   children: [
                                     Row(
                                       children: [
-                                        const SizedBox(
-                                          width: 8,
-                                        ),
-                                        const AppBarBackButton(
-                                          isCompact: true,
-                                        ),
+                                        const SizedBox(width: 8),
+                                        const AppBarBackButton(isCompact: true),
                                         Text(
                                           "Edit address",
                                           style: STextStyles.desktopH3(context),

@@ -3,14 +3,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
 import '../../../../providers/providers.dart';
+import '../../../../providers/wallet/desktop_fee_providers.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/amount/amount.dart';
-import '../../../../utilities/enums/fee_rate_type_enum.dart';
+import '../../../../utilities/amount/amount_formatter.dart';
 import '../../../../utilities/text_styles.dart';
-import '../../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../widgets/animated_text.dart';
-import '../../../../widgets/desktop/desktop_fee_dialog.dart';
 
+/// The estimated network fee. PIVX has no fee market: every transparent
+/// send pays the relay minimum, so there is nothing to choose.
 class DesktopSendFeeForm extends ConsumerWidget {
   const DesktopSendFeeForm({super.key, required this.walletId});
 
@@ -23,63 +25,48 @@ class DesktopSendFeeForm extends ConsumerWidget {
     "Calculating...",
   ];
 
+  Future<Amount> _fee(WidgetRef ref, Amount amount) async {
+    final cache = ref.read(feeSheetSessionCacheProvider);
+    final wallet = ref.read(pWallets).getWallet(walletId);
+    return cache.average[amount] ??= await wallet.estimateFeeFor(
+      amount,
+      (await wallet.fees).medium,
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colors = Theme.of(context).extension<StackColors>()!;
+    final coin = ref.watch(pWalletCoin(walletId));
+    final amount = ref.watch(sendAmountProvider);
+    final style = STextStyles.desktopTextExtraExtraSmall(context)
+        .copyWith(color: colors.textFieldActiveText);
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "Transaction fee (estimated)",
-          style: STextStyles.desktopTextExtraSmall(context).copyWith(
-            color: Theme.of(context)
-                .extension<StackColors>()!
-                .textFieldActiveSearchIconRight,
-          ),
+          "Network fee (estimated)",
+          style: STextStyles.desktopTextExtraSmall(context)
+              .copyWith(color: colors.textFieldActiveSearchIconRight),
           textAlign: TextAlign.left,
         ),
         const SizedBox(height: 10),
         Padding(
           padding: const EdgeInsets.all(10),
           child: FutureBuilder(
-            future: ref.watch(
-              pWallets.select((value) => value.getWallet(walletId).fees),
-            ),
+            future: _fee(ref, amount),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.done &&
                   snapshot.hasData) {
-                return DesktopFeeItem(
-                  feeObject: snapshot.data,
-                  feeRateType: FeeRateType.average,
-                  walletId: walletId,
-                  isButton: false,
-                  feeFor:
-                      ({
-                        required Amount amount,
-                        required FeeRateType feeRateType,
-                        required BigInt feeRate,
-                        required CryptoCurrency coin,
-                      }) async {
-                        final cache = ref.read(feeSheetSessionCacheProvider);
-                        return cache.average[amount] ??= await ref
-                            .read(pWallets)
-                            .getWallet(walletId)
-                            .estimateFeeFor(amount, feeRate);
-                      },
-                  isSelected: true,
+                return Text(
+                  "~${ref.watch(pAmountFormatter(coin)).format(snapshot.data!, indicatePrecisionLoss: false)}",
+                  style: style,
                 );
               }
-              return Row(
-                children: [
-                  AnimatedText(
-                    stringsToLoopThrough: _stringsToLoopThrough,
-                    style: STextStyles.desktopTextExtraExtraSmall(context)
-                        .copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textFieldActiveText,
-                        ),
-                  ),
-                ],
+              return AnimatedText(
+                stringsToLoopThrough: _stringsToLoopThrough,
+                style: style,
               );
             },
           ),

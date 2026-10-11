@@ -22,7 +22,6 @@ import '../../../../pages/send_view/confirm_transaction_view.dart';
 import '../../../../pages/send_view/sub_widgets/building_transaction_dialog.dart';
 import '../../../../pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
 import '../../../../providers/providers.dart';
-import '../../../../providers/ui/fee_rate_type_state_provider.dart';
 import '../../../../providers/ui/preview_tx_button_state_provider.dart';
 import '../../../../providers/wallet/desktop_fee_providers.dart';
 import '../../../../themes/stack_colors.dart';
@@ -37,11 +36,14 @@ import '../../../../utilities/logger.dart';
 import '../../../../utilities/prefs.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
+import '../../../../utilities/enums/fee_rate_type_enum.dart';
+import '../../../../wallets/crypto_currency/coins/pivx.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/models/tx_data.dart';
 import '../../../../widgets/custom_buttons/blue_text_button.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
+import '../../../../widgets/pivx_memo_field.dart';
 import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/desktop/qr_code_scanner_dialog.dart';
@@ -262,7 +264,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               addressType: wallet.cryptoCurrency.getAddressType(_address!)!,
             ),
           ],
-          feeRateType: ref.read(feeRateTypeDesktopStateProvider),
+          // PIVX: only a shield recipient gets the (encrypted) memo.
+          memo: _sendsToShield && memoController.text.isNotEmpty
+              ? memoController.text
+              : null,
+          feeRateType: FeeRateType.average,
           utxos: (coinControlEnabled && ref.read(pDesktopUseUTXOs).isNotEmpty)
               ? ref.read(pDesktopUseUTXOs)
               : null,
@@ -462,11 +468,20 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         .validateAddress(address ?? "");
   }
 
+  bool get _sendsToShield =>
+      coin is Pivx && (coin as Pivx).isShieldAddress(_address ?? "");
+
   void _applyUri(PaymentUriData paymentData) {
     try {
       // auto fill address
       _address = paymentData.address;
       sendToController.text = _address!;
+
+      // shield memo
+      memoController.text = truncateUtf8(
+        paymentData.additionalParams['memo'] ?? "",
+        kPivxMaxMemoBytes,
+      );
 
       // autofill notes field.
       if (paymentData.message != null) {
@@ -1063,8 +1078,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                                     );
 
                                 if (entry != null) {
-                                  sendToController.text =
-                                      entry.other ?? entry.label;
+                                  sendToController.text = entry.address;
 
                                   _address = entry.address;
 
@@ -1125,6 +1139,20 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             }
           },
         ),
+        if (_sendsToShield) ...[
+          const SizedBox(height: 20),
+          Text(
+            "Shielded memo (optional)",
+            style: STextStyles.desktopTextExtraSmall(context).copyWith(
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .textFieldActiveSearchIconRight,
+            ),
+            textAlign: TextAlign.left,
+          ),
+          const SizedBox(height: 10),
+          PivxMemoField(controller: memoController, focusNode: _memoFocus),
+        ],
         const SizedBox(height: 20),
         DesktopSendFeeForm(walletId: walletId),
         const SizedBox(height: 36),

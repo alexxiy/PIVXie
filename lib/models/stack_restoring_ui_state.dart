@@ -32,9 +32,6 @@ class StackRestoringUIState extends ChangeNotifier {
         (_preferences == StackRestoringStatus.success) ||
         (_preferences == StackRestoringStatus.failed);
     _done &=
-        (_trades == StackRestoringStatus.success) ||
-        (_trades == StackRestoringStatus.failed);
-    _done &=
         (_nodes == StackRestoringStatus.success) ||
         (_nodes == StackRestoringStatus.failed);
 
@@ -55,7 +52,6 @@ class StackRestoringUIState extends ChangeNotifier {
     bool _succeeded = _decryption == StackRestoringStatus.success;
     _succeeded &= _addressBook == StackRestoringStatus.success;
     _succeeded &= _preferences == StackRestoringStatus.success;
-    _succeeded &= _trades == StackRestoringStatus.success;
     _succeeded &= _nodes == StackRestoringStatus.success;
 
     for (final wallet in _walletStates.values) {
@@ -83,13 +79,6 @@ class StackRestoringUIState extends ChangeNotifier {
   StackRestoringStatus get preferences => _preferences;
   set preferences(StackRestoringStatus state) {
     _preferences = state;
-    notifyListeners();
-  }
-
-  StackRestoringStatus _trades = StackRestoringStatus.waiting;
-  StackRestoringStatus get trades => _trades;
-  set trades(StackRestoringStatus state) {
-    _trades = state;
     notifyListeners();
   }
 

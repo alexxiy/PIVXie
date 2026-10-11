@@ -9,6 +9,7 @@
  */
 
 import 'package:flutter/material.dart';
+
 import '../../../../../utilities/text_styles.dart';
 import '../../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../../widgets/rounded_white_container.dart';
@@ -28,7 +29,7 @@ class RestoringItemCard extends StatelessWidget {
   final Widget left;
   final Widget right;
   final String title;
-  final Text? subTitle;
+  final Widget? subTitle;
   final double leftSize;
   final Widget? button;
   final VoidCallback? onRightTapped;
@@ -44,42 +45,23 @@ class RestoringItemCard extends StatelessWidget {
             child: Row(
               // crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                SizedBox(
-                  width: leftSize,
-                  height: leftSize,
-                ),
-                const SizedBox(
-                  width: 12,
-                ),
+                SizedBox(width: leftSize, height: leftSize),
+                const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        title,
-                        style: STextStyles.titleBold12(context),
-                      ),
-                      if (subTitle != null)
-                        const SizedBox(
-                          height: 2,
-                        ),
+                      Text(title, style: STextStyles.titleBold12(context)),
+                      if (subTitle != null) const SizedBox(height: 2),
                       if (subTitle != null) subTitle!,
-                      if (button != null)
-                        const SizedBox(
-                          height: 2,
-                        ),
+                      if (button != null) const SizedBox(height: 2),
                       if (button != null) button!,
                     ],
                   ),
                 ),
-                const SizedBox(
-                  width: 12,
-                ),
-                const SizedBox(
-                  width: 20,
-                  height: 20,
-                ),
+                const SizedBox(width: 12),
+                const SizedBox(width: 20, height: 20),
               ],
             ),
           ),
@@ -87,9 +69,7 @@ class RestoringItemCard extends StatelessWidget {
             padding: const EdgeInsets.all(10),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                left,
-              ],
+              children: [left],
             ),
           ),
           Positioned.fill(

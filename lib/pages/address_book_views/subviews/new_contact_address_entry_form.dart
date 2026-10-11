@@ -49,10 +49,8 @@ class NewContactAddressEntryForm extends ConsumerStatefulWidget {
 
 class _NewContactAddressEntryFormState
     extends ConsumerState<NewContactAddressEntryForm> {
-  late final TextEditingController addressLabelController;
   late final TextEditingController addressController;
 
-  late final FocusNode addressLabelFocusNode;
   late final FocusNode addressFocusNode;
 
   /// Coins an address may belong to; the address picks its coin (PIVX
@@ -95,14 +93,6 @@ class _NewContactAddressEntryFormState
         addressController.text = paymentData.address;
         _setAddress(addressController.text);
 
-        addressLabelController.text =
-            paymentData.label ?? addressLabelController.text;
-        ref
-            .read(addressEntryDataProvider(widget.id))
-            .addressLabel = addressLabelController.text.isEmpty
-            ? null
-            : addressLabelController.text;
-
         // now check for non standard encoded basic address
       } else if (coins.any((c) => c.validateAddress(qrResult.rawContent!))) {
         addressController.text = qrResult.rawContent!;
@@ -139,11 +129,8 @@ class _NewContactAddressEntryFormState
 
   @override
   void initState() {
-    addressLabelController = TextEditingController()
-      ..text = ref.read(addressEntryDataProvider(widget.id)).addressLabel ?? "";
     addressController = TextEditingController()
       ..text = ref.read(addressEntryDataProvider(widget.id)).address ?? "";
-    addressLabelFocusNode = FocusNode();
     addressFocusNode = FocusNode();
     coins = shownCoins(ref, withWalletCoins: true);
     super.initState();
@@ -151,9 +138,7 @@ class _NewContactAddressEntryFormState
 
   @override
   void dispose() {
-    addressLabelController.dispose();
     addressController.dispose();
-    addressLabelFocusNode.dispose();
     addressFocusNode.dispose();
     super.dispose();
   }
@@ -164,53 +149,6 @@ class _NewContactAddressEntryFormState
 
     return Column(
       children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(
-            Constants.size.circularBorderRadius,
-          ),
-          child: TextField(
-            autocorrect: Util.isDesktop ? false : true,
-            enableSuggestions: Util.isDesktop ? false : true,
-            focusNode: addressLabelFocusNode,
-            controller: addressLabelController,
-            style: STextStyles.field(context),
-            decoration:
-                standardInputDecoration(
-                  "Enter address label",
-                  addressLabelFocusNode,
-                  context,
-                ).copyWith(
-                  labelStyle: isDesktop
-                      ? STextStyles.fieldLabel(context)
-                      : null,
-                  suffixIcon: addressLabelController.text.isNotEmpty
-                      ? Padding(
-                          padding: const EdgeInsets.only(right: 0),
-                          child: UnconstrainedBox(
-                            child: Row(
-                              children: [
-                                TextFieldIconButton(
-                                  child: const XIcon(),
-                                  onTap: () async {
-                                    setState(() {
-                                      addressLabelController.text = "";
-                                    });
-                                  },
-                                ),
-                              ],
-                            ),
-                          ),
-                        )
-                      : null,
-                ),
-            onChanged: (newValue) {
-              ref.read(addressEntryDataProvider(widget.id)).addressLabel =
-                  newValue;
-              setState(() {});
-            },
-          ),
-        ),
-        const SizedBox(height: 8),
         ClipRRect(
           borderRadius: BorderRadius.circular(
             Constants.size.circularBorderRadius,

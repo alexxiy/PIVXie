@@ -32,6 +32,8 @@ import '../../../widgets/rounded_container.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../send_view/send_view.dart';
 import 'contact_details_view.dart';
+import '../../../utilities/contact_address_title.dart';
+import '../../../widgets/middle_ellipsis_text.dart';
 
 class ContactPopUp extends ConsumerWidget {
   const ContactPopUp({
@@ -234,18 +236,18 @@ class ContactPopUp extends ConsumerWidget {
                                               ),
                                             if (contact.customId != "default")
                                               Text(
-                                                "${e.label} (${e.coin.ticker})",
+                                                e.title,
                                                 style:
                                                     STextStyles.itemSubtitle12(
                                                       context,
                                                     ),
                                               ),
                                             const SizedBox(height: 2),
-                                            Text(
+                                            MiddleEllipsisText(
                                               e.address,
                                               style: STextStyles.itemSubtitle(
                                                 context,
-                                              ).copyWith(fontSize: 8),
+                                              ),
                                             ),
                                           ],
                                         ),
@@ -294,7 +296,7 @@ class ContactPopUp extends ConsumerWidget {
                                             GestureDetector(
                                               onTap: () {
                                                 final String contactLabel =
-                                                    "${contact.name} (${e.label})";
+                                                    "${contact.name} (${e.kind})";
                                                 final String address =
                                                     e.address;
 

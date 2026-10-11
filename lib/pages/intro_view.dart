@@ -20,7 +20,6 @@ import '../utilities/assets.dart';
 import '../utilities/prefs.dart';
 import '../utilities/text_styles.dart';
 import '../utilities/util.dart';
-import '../widgets/app_icon.dart';
 import '../widgets/background.dart';
 import '../widgets/desktop/secondary_button.dart';
 import 'stack_privacy_calls.dart';
@@ -94,14 +93,15 @@ class _IntroViewState extends ConsumerState<IntroView> {
                   )
                 : SizedBox(
                     width: 350,
-                    height: 540,
+                    height: 620,
                     child: Column(
                       children: [
                         const Spacer(flex: 2),
-                        const SizedBox(
-                          width: 130,
-                          height: 130,
-                          child: AppIcon(),
+                        Image.asset(
+                          Assets.persona.welcome,
+                          width: 200,
+                          height: 200,
+                          fit: BoxFit.contain,
                         ),
                         const Spacer(flex: 42),
                         AppNameText(isDesktop: isDesktop),

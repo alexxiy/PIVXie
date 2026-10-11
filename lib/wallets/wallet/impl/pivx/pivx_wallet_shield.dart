@@ -189,11 +189,19 @@ extension _PivxShield on PivxWallet {
 
     // Nothing to fetch until a new block is known (the chain height is
     // updated first on every refresh).
-    if (await chainHeight > state.lastProcessedBlock) {
+    final tip = await chainHeight;
+    if (tip > state.lastProcessedBlock) {
+      // Progress by height (the stream only has blocks with shield
+      // data): 10 % to 95 % of the history step.
+      final span = tip - scannedFrom;
+      void progress(int height) =>
+          _syncProgress(0.1 + 0.85 * (height - scannedFrom) / span);
+
       var batch = <PivxShieldBlock>[];
       await for (final block in parsePivxShieldStream(
         bridge.shieldData(state.lastProcessedBlock + 1),
       )) {
+        progress(block.height);
         batch.add(block);
         if (batch.length >= _kShieldBatchBlocks) {
           await _processShieldBlocks(state, batch, walletTxids);
@@ -203,6 +211,7 @@ extension _PivxShield on PivxWallet {
       if (batch.isNotEmpty) {
         await _processShieldBlocks(state, batch, walletTxids);
       }
+      progress(tip);
     }
 
     // Verify against the chain like MyPIVXWallet: a wrong root means a

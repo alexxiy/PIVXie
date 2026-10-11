@@ -126,7 +126,7 @@ class _WalletNetworkSettingsViewState
             context: context,
             useSafeArea: false,
             barrierDismissible: false,
-            builder: (context) => const RescanningDialog(),
+            builder: (context) => RescanningDialog(walletId: widget.walletId),
           ),
         );
 

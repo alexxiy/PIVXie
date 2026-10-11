@@ -423,6 +423,17 @@ abstract class Wallet<T extends CryptoCurrency> {
     );
   }
 
+  /// A wallet that reports its own progress through the history step (the
+  /// long one, e.g. a shield scan) with [reportSyncProgress] instead of the
+  /// fixed steps.
+  bool get reportsSyncProgress => false;
+
+  /// Progress (0..1) of [updateTransactions] / [updateUTXOs] during a
+  /// refresh: 30 % to 80 % of the whole.
+  @protected
+  void reportSyncProgress(double fraction) =>
+      _fireRefreshPercentChange(0.3 + 0.5 * fraction.clamp(0.0, 1.0));
+
   void _fireRefreshPercentChange(double percent) {
     if (!doNotFireRefreshEvents) {
       GlobalEventBus.instance.fire(
@@ -479,11 +490,11 @@ abstract class Wallet<T extends CryptoCurrency> {
       }
       _fireRefreshPercentChange(0.3);
       final fetchFuture = updateTransactions();
-      _fireRefreshPercentChange(0.6);
+      if (!reportsSyncProgress) _fireRefreshPercentChange(0.6);
       final utxosRefreshFuture = updateUTXOs();
-      _fireRefreshPercentChange(0.65);
+      if (!reportsSyncProgress) _fireRefreshPercentChange(0.65);
       await utxosRefreshFuture;
-      _fireRefreshPercentChange(0.70);
+      if (!reportsSyncProgress) _fireRefreshPercentChange(0.70);
       await fetchFuture;
 
       _fireRefreshPercentChange(0.80);

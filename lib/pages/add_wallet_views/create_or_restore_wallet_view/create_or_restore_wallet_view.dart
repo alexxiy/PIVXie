@@ -11,17 +11,18 @@
 import 'package:flutter/material.dart';
 
 import '../../../models/add_wallet_list_entity/add_wallet_list_entity.dart';
-import 'sub_widgets/create_or_restore_wallet_subtitle.dart';
-import 'sub_widgets/create_or_restore_wallet_title.dart';
-import 'sub_widgets/create_wallet_button_group.dart';
 import '../../../pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/util.dart';
+import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../widgets/background.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/desktop/desktop_app_bar.dart';
 import '../../../widgets/desktop/desktop_scaffold.dart';
+import 'sub_widgets/create_or_restore_wallet_subtitle.dart';
+import 'sub_widgets/create_or_restore_wallet_title.dart';
+import 'sub_widgets/create_wallet_button_group.dart';
 
 class CreateOrRestoreWalletView extends StatelessWidget {
   const CreateOrRestoreWalletView({super.key, required this.entity});
@@ -34,55 +35,14 @@ class CreateOrRestoreWalletView extends StatelessWidget {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    final isDesktop = Util.isDesktop;
-
-    if (isDesktop) {
+    if (Util.isDesktop) {
       return DesktopScaffold(
         appBar: const DesktopAppBar(
           isCompactHeight: false,
           leading: AppBarBackButton(),
           trailing: ExitToMyStackButton(),
         ),
-        body: SingleChildScrollView(
-          child: Center(
-            // Center the content horizontally
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 480),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  /*const Spacer(
-                    flex: 10,
-                  ),*/
-                  CreateRestoreWalletTitle(
-                    coin: entity.cryptoCurrency,
-                    isDesktop: isDesktop,
-                  ),
-                  const SizedBox(height: 16),
-                  SizedBox(
-                    width: 324,
-                    child: CreateRestoreWalletSubTitle(isDesktop: isDesktop),
-                  ),
-                  const SizedBox(height: 32),
-                  Image.asset(
-                    Assets.persona.addWallet,
-                    width: 324,
-                    height: 324,
-                    fit: BoxFit.contain,
-                  ),
-                  const SizedBox(height: 32),
-                  CreateWalletButtonGroup(
-                    coin: entity.cryptoCurrency,
-                    isDesktop: isDesktop,
-                  ),
-                  /*const Spacer(
-                    flex: 15,
-                  ),*/
-                ],
-              ),
-            ),
-          ),
-        ),
+        body: CreateOrRestoreWalletContent(coin: entity.cryptoCurrency),
       );
     } else {
       return Background(
@@ -100,50 +60,94 @@ class CreateOrRestoreWalletView extends StatelessWidget {
           body: SafeArea(
             child: Container(
               color: Theme.of(context).extension<StackColors>()!.background,
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return SingleChildScrollView(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minHeight: constraints.maxHeight,
-                      ),
-                      child: IntrinsicHeight(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              const Spacer(flex: 2),
-                              Image.asset(
-                                Assets.persona.addWallet,
-                                width: MediaQuery.of(context).size.width / 1.6,
-                                height: MediaQuery.of(context).size.width / 1.6,
-                                fit: BoxFit.contain,
-                              ),
-                              const Spacer(flex: 2),
-                              CreateRestoreWalletTitle(
-                                coin: entity.cryptoCurrency,
-                                isDesktop: isDesktop,
-                              ),
-                              const SizedBox(height: 8),
-                              CreateRestoreWalletSubTitle(isDesktop: isDesktop),
-                              const Spacer(flex: 5),
-                              CreateWalletButtonGroup(
-                                coin: entity.cryptoCurrency,
-                                isDesktop: isDesktop,
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  );
-                },
-              ),
+              child: CreateOrRestoreWalletContent(coin: entity.cryptoCurrency),
             ),
           ),
         ),
       );
     }
+  }
+}
+
+/// The mascot, a title and the "Create new wallet" / "Restore wallet"
+/// buttons. Also what the wallet list shows while there is no wallet yet.
+class CreateOrRestoreWalletContent extends StatelessWidget {
+  const CreateOrRestoreWalletContent({
+    super.key,
+    required this.coin,
+    this.padding = const EdgeInsets.all(16),
+  });
+
+  final CryptoCurrency coin;
+
+  /// Mobile only.
+  final EdgeInsets padding;
+
+  @override
+  Widget build(BuildContext context) {
+    if (Util.isDesktop) {
+      return SingleChildScrollView(
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 480),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                CreateRestoreWalletTitle(coin: coin, isDesktop: true),
+                const SizedBox(height: 16),
+                const SizedBox(
+                  width: 324,
+                  child: CreateRestoreWalletSubTitle(isDesktop: true),
+                ),
+                const SizedBox(height: 32),
+                Image.asset(
+                  Assets.persona.addWallet,
+                  width: 280,
+                  height: 280,
+                  fit: BoxFit.contain,
+                ),
+                const SizedBox(height: 32),
+                CreateWalletButtonGroup(coin: coin, isDesktop: true),
+                const SizedBox(height: 32),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    final side = MediaQuery.of(context).size.width / 1.6;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: IntrinsicHeight(
+              child: Padding(
+                padding: padding,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const Spacer(flex: 2),
+                    Image.asset(
+                      Assets.persona.addWallet,
+                      width: side,
+                      height: side,
+                      fit: BoxFit.contain,
+                    ),
+                    const Spacer(flex: 2),
+                    CreateRestoreWalletTitle(coin: coin, isDesktop: false),
+                    const SizedBox(height: 8),
+                    const CreateRestoreWalletSubTitle(isDesktop: false),
+                    const Spacer(flex: 5),
+                    CreateWalletButtonGroup(coin: coin, isDesktop: false),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 }

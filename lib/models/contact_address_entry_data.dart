@@ -57,10 +57,7 @@ class AddressEntryData extends ChangeNotifier {
   }
 
   bool get isValid {
-    if (_address == null || coin == null || _addressLabel == null) {
-      return false;
-    }
-    if (_address!.isEmpty || _addressLabel!.isEmpty) {
+    if (_address == null || coin == null || _address!.isEmpty) {
       return false;
     }
     return isValidAddress;
@@ -79,7 +76,9 @@ class AddressEntryData extends ChangeNotifier {
       ..coinName = coin!.identifier
       ..address = address!
       ..other = null
-      ..label = addressLabel!;
+      // No longer typed in (the address' kind is its title); kept when
+      // editing an older entry that has one.
+      ..label = addressLabel ?? "";
   }
 
   @override

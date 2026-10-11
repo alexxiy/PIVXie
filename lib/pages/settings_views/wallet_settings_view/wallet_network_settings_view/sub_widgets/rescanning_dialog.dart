@@ -9,17 +9,23 @@
  */
 
 import 'package:flutter/material.dart';
+
 import '../../../../../utilities/util.dart';
 import '../../../../../widgets/animated_widgets/rotating_arrows.dart';
 import '../../../../../widgets/conditional_parent.dart';
 import '../../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../../widgets/stack_dialog.dart';
+import '../../../../../widgets/wallet_sync_progress.dart';
 
 class RescanningDialog extends StatefulWidget {
   const RescanningDialog({
     super.key,
+    this.walletId,
     // required this.onCancel,
   });
+
+  /// Shows the rescan's progress when set.
+  final String? walletId;
 
   // final VoidCallback onCancel;
 
@@ -70,17 +76,17 @@ class _RescanningDialogState extends State<RescanningDialog>
       child: ConditionalParent(
         condition: isDesktop,
         builder: (child) => DesktopDialog(
-          maxHeight: 150,
+          maxHeight: widget.walletId == null ? 150 : 210,
           maxWidth: 500,
           child: child,
         ),
-        child: const StackDialog(
+        child: StackDialog(
           title: "Rescanning blockchain",
           message: "This may take a while. Please do not exit this screen.",
-          icon: RotatingArrows(
-            width: 24,
-            height: 24,
-          ),
+          content: widget.walletId == null
+              ? null
+              : WalletSyncProgress(walletId: widget.walletId!),
+          icon: const RotatingArrows(width: 24, height: 24),
           // rightButton: TextButton(
           //   style: Theme.of(context).textButtonTheme.style?.copyWith(
           //     backgroundColor: MaterialStateProperty.all<Color>(
