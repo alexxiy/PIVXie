@@ -748,20 +748,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
               SafeArea(
                 child: WalletNavigationBar(
                   items: [
-                    WalletNavigationBarItemData(
-                      label: "Receive",
-                      icon: const ReceiveNavIcon(),
-                      onTap: () {
-                        if (mounted) {
-                          unawaited(
-                            Navigator.of(context).pushNamed(
-                              ReceiveView.routeName,
-                              arguments: walletId,
-                            ),
-                          );
-                        }
-                      },
-                    ),
                     if (!viewOnly)
                       WalletNavigationBarItemData(
                         label: "Send",
@@ -788,6 +774,20 @@ class _WalletViewState extends ConsumerState<WalletView> {
                           );
                         },
                       ),
+                    WalletNavigationBarItemData(
+                      label: "Receive",
+                      icon: const ReceiveNavIcon(),
+                      onTap: () {
+                        if (mounted) {
+                          unawaited(
+                            Navigator.of(context).pushNamed(
+                              ReceiveView.routeName,
+                              arguments: walletId,
+                            ),
+                          );
+                        }
+                      },
+                    ),
                   ],
                   moreItems: <WalletNavigationBarItemData>[
                     if (ref.watch(
