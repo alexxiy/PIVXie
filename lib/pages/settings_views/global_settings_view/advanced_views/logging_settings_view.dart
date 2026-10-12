@@ -10,6 +10,7 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:archive/archive_io.dart';
 import 'package:file_picker/file_picker.dart';
@@ -22,6 +23,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../../app_config.dart';
+import '../../../../notifications/show_flush_bar.dart';
 import '../../../../providers/global/prefs_provider.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
@@ -83,8 +85,9 @@ class _LoggingSettingsViewState extends ConsumerState<LoggingSettingsView> {
     // if (Platform.isIOS) {
     //   chosenPath = currentPath;
     // } else {
-    final String path =
-        Platform.isWindows ? currentPath.replaceAll("/", "\\") : currentPath;
+    final String path = Platform.isWindows
+        ? currentPath.replaceAll("/", "\\")
+        : currentPath;
     chosenPath = await FilePicker.getDirectoryPath(
       dialogTitle: "Choose Log Save location",
       initialDirectory: path,
@@ -94,7 +97,8 @@ class _LoggingSettingsViewState extends ConsumerState<LoggingSettingsView> {
     return chosenPath;
   }
 
-  Future<void> _exportHelper() async {
+  /// The log files, zipped.
+  Future<Uint8List> _zipLogs() async {
     final logsDir = await StackFileSystem.applicationLogsDirectory(
       ref.read(prefsChangeNotifierProvider),
     );
@@ -120,11 +124,20 @@ class _LoggingSettingsViewState extends ConsumerState<LoggingSettingsView> {
       throw Exception("Failed to add log files to archive");
     }
 
+    return Uint8List.fromList(ZipEncoder().encode(archive));
+  }
+
+  String get _zipName {
+    final date = DateTime.now().toIso8601String().substring(0, 10);
+    return "${AppConfig.appName.toLowerCase()}-logs-$date.zip";
+  }
+
+  Future<void> _shareLogs() async {
+    final bytes = await _zipLogs();
     // Write zip to a temp location
     final tempDir = await getTemporaryDirectory();
-    final zipPath = path.join(tempDir.path, 'logs.zip');
-    final zipFile = File(zipPath);
-    await zipFile.writeAsBytes(ZipEncoder().encode(archive));
+    final zipFile = File(path.join(tempDir.path, _zipName));
+    await zipFile.writeAsBytes(bytes);
 
     await SharePlus.instance.share(
       ShareParams(
@@ -134,30 +147,61 @@ class _LoggingSettingsViewState extends ConsumerState<LoggingSettingsView> {
     );
   }
 
+  /// Android: the app can't write files to a folder of the user's choice
+  /// (the folder picker only grants document access), so the logs are
+  /// saved as a zip through the system "Save as" screen instead.
+  Future<void> _saveLogs() async {
+    final bytes = await showLoading(
+      whileFuture: _zipLogs(),
+      context: context,
+      message: "Preparing logs...",
+      onException: (e) => throw e,
+    );
+    if (bytes == null) return;
+    final uri = await FilePicker.saveFile(
+      dialogTitle: "Save logs",
+      fileName: _zipName,
+      bytes: bytes,
+      mimeType: "application/zip",
+    );
+    if (uri != null && mounted) {
+      unawaited(
+        showFloatingFlushBar(
+          type: FlushBarType.success,
+          message: "Logs saved",
+          context: context,
+        ),
+      );
+    }
+  }
+
   bool _exportLock = false;
-  Future<void> _androidExportLogs() async {
+  Future<void> _androidExportLogs({required bool save}) async {
     if (_exportLock) {
       return;
     }
     _exportLock = true;
     try {
-      await showLoading(
-        whileFuture: _exportHelper(),
-        context: context,
-        message: "Exporting logs...",
-        onException: (e) => throw e,
-      );
+      if (save) {
+        await _saveLogs();
+      } else {
+        await showLoading(
+          whileFuture: _shareLogs(),
+          context: context,
+          message: "Exporting logs...",
+          onException: (e) => throw e,
+        );
+      }
     } catch (e, s) {
       Logging.instance.e("Failed to export logs", error: e, stackTrace: s);
       if (mounted) {
         unawaited(
           showDialog(
             context: context,
-            builder:
-                (context) => StackOkDialog(
-                  title: "Failed to export logs",
-                  message: e.toString(),
-                ),
+            builder: (context) => StackOkDialog(
+              title: "Failed to export logs",
+              message: e.toString(),
+            ),
           ),
         );
       }
@@ -223,10 +267,9 @@ class _LoggingSettingsViewState extends ConsumerState<LoggingSettingsView> {
                           const SizedBox(width: 16),
                           SvgPicture.asset(
                             Assets.svg.folder,
-                            color:
-                                Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.textDark3,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark3,
                             width: 16,
                             height: 16,
                           ),
@@ -264,54 +307,57 @@ class _LoggingSettingsViewState extends ConsumerState<LoggingSettingsView> {
                 const SizedBox(height: 16),
                 const Spacer(),
 
-                if (Platform.isAndroid)
+                if (Platform.isAndroid) ...[
                   SecondaryButton(
-                    label: "Export logs",
-                    onPressed: _androidExportLogs,
+                    label: "Share logs",
+                    onPressed: () => _androidExportLogs(save: false),
                   ),
-                if (Platform.isAndroid) const SizedBox(height: 16),
-
-                PrimaryButton(
-                  label: "Select log save location",
-                  onPressed: () async {
-                    if (_lock) {
-                      return;
-                    }
-                    _lock = true;
-                    try {
-                      await _edit();
-                    } catch (e, s) {
-                      Logging.instance.e(
-                        "Failed to change logs path",
-                        error: e,
-                        stackTrace: s,
-                      );
-                      if (context.mounted) {
-                        final String err;
-                        if (e.toString().contains(
-                          "OS Error: Operation not permitted",
-                        )) {
-                          err = "Cannot use chosen location";
-                        } else {
-                          err = e.toString();
-                        }
-
-                        unawaited(
-                          showDialog(
-                            context: context,
-                            builder:
-                                (context) => StackOkDialog(
-                                  title: "Failed to change logs path",
-                                  message: err,
-                                ),
-                          ),
-                        );
+                  const SizedBox(height: 16),
+                  PrimaryButton(
+                    label: "Save logs to a file",
+                    onPressed: () => _androidExportLogs(save: true),
+                  ),
+                ] else
+                  PrimaryButton(
+                    label: "Select log save location",
+                    onPressed: () async {
+                      if (_lock) {
+                        return;
                       }
-                    } finally {
-                      _lock = false;
-                    }
-                  },
-                ),
+                      _lock = true;
+                      try {
+                        await _edit();
+                      } catch (e, s) {
+                        Logging.instance.e(
+                          "Failed to change logs path",
+                          error: e,
+                          stackTrace: s,
+                        );
+                        if (context.mounted) {
+                          final String err;
+                          if (e.toString().contains(
+                            "OS Error: Operation not permitted",
+                          )) {
+                            err = "Cannot use chosen location";
+                          } else {
+                            err = e.toString();
+                          }
+
+                          unawaited(
+                            showDialog(
+                              context: context,
+                              builder: (context) => StackOkDialog(
+                                title: "Failed to change logs path",
+                                message: err,
+                              ),
+                            ),
+                          );
+                        }
+                      } finally {
+                        _lock = false;
+                      }
+                    },
+                  ),
                 const SizedBox(height: 16),
               ],
             ),
