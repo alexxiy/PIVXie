@@ -844,7 +844,14 @@ class _TransactionV2DetailsViewState
                                         : "Pending";
                                   }
 
-                                  confirmations = confirms.toString();
+                                  // Rewards (coinbase / coinstake) can be
+                                  // spent once mature: show how far along.
+                                  final needed = coin.minCoinbaseConfirms;
+                                  confirmations =
+                                      _transaction.isCoinbase() &&
+                                          confirms < needed
+                                      ? "$confirms / $needed"
+                                      : confirms.toString();
 
                                   return Column(
                                     children: [
@@ -921,7 +928,9 @@ class _TransactionV2DetailsViewState
                                                 style: detailStyle,
                                               ),
                                             if (isDesktop)
-                                              IconCopyButton(data: height),
+                                              IconCopyButton(
+                                                data: confirmations,
+                                              ),
                                           ],
                                         ),
                                       ),
