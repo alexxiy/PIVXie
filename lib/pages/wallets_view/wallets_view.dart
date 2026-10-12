@@ -11,10 +11,10 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'sub_widgets/all_wallets.dart';
 import 'sub_widgets/empty_wallets.dart';
 import 'sub_widgets/favorite_wallets.dart';
-import '../../app_config.dart';
 import '../../providers/providers.dart';
 import '../../themes/theme_providers.dart';
 import '../../wallets/isar/providers/all_wallets_info_provider.dart';
@@ -29,36 +29,27 @@ class WalletsView extends ConsumerWidget {
     debugPrint("BUILD: $runtimeType");
     final hasWallets = ref.watch(pAllWalletsInfo).isNotEmpty;
 
-    // Single coin family apps (PIVXie) list wallets directly; favorites
-    // would only repeat that list.
-    final showFavorites =
-        AppConfig.coins.map((e) => e.mainNetId).toSet().length > 1 &&
-        ref.watch(
-          prefsChangeNotifierProvider.select(
-            (value) => value.showFavoriteWallets,
-          ),
-        );
+    // Favorite wallet cards above the wallet list, as on desktop.
+    final showFavorites = ref.watch(
+      prefsChangeNotifierProvider.select((value) => value.showFavoriteWallets),
+    );
 
     return SafeArea(
       child: hasWallets
           ? Padding(
               padding: EdgeInsets.only(
-                top:
-                    ref.watch(themeProvider).themeId == "fruit_sorbet" ? 6 : 20,
+                top: ref.watch(themeProvider).themeId == "fruit_sorbet"
+                    ? 6
+                    : 20,
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   if (showFavorites) const FavoriteWallets(),
-                  if (showFavorites)
-                    const SizedBox(
-                      height: 20,
-                    ),
+                  if (showFavorites) const SizedBox(height: 20),
                   const Expanded(
                     child: Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 16,
-                      ),
+                      padding: EdgeInsets.symmetric(horizontal: 16),
                       child: AllWallets(),
                     ),
                   ),
@@ -66,11 +57,7 @@ class WalletsView extends ConsumerWidget {
               ),
             )
           : const Padding(
-              padding: EdgeInsets.only(
-                top: 20,
-                left: 16,
-                right: 16,
-              ),
+              padding: EdgeInsets.only(top: 20, left: 16, right: 16),
               child: EmptyWallets(),
             ),
     );

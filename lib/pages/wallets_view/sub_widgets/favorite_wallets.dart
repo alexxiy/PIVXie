@@ -49,9 +49,7 @@ class _FavoriteWalletsState extends ConsumerState<FavoriteWallets> {
     screenWidth = (window.physicalSize.shortestSide / window.devicePixelRatio);
     viewportFraction = cardWidth / screenWidth;
 
-    _pageController = cpv.PageController(
-      viewportFraction: viewportFraction,
-    );
+    _pageController = cpv.PageController(viewportFraction: viewportFraction);
 
     _pageController.addListener(() {
       if (_pageController.position.pixels > (cardWidth * (_favLength - 1))) {
@@ -86,13 +84,11 @@ class _FavoriteWalletsState extends ConsumerState<FavoriteWallets> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(
-            horizontal: standardPadding,
-          ),
+          padding: const EdgeInsets.symmetric(horizontal: standardPadding),
           child: Row(
             children: [
               Text(
-                "Favorite Wallets",
+                "Favorite wallets",
                 style: STextStyles.itemSubtitle(context).copyWith(
                   color: Theme.of(context).extension<StackColors>()!.textDark3,
                 ),
@@ -114,22 +110,17 @@ class _FavoriteWalletsState extends ConsumerState<FavoriteWallets> {
                         .accentColorDark,
                   ),
                   onPressed: () {
-                    Navigator.of(context).pushNamed(
-                      ManageFavoritesView.routeName,
-                    );
+                    Navigator.of(context)
+                        .pushNamed(ManageFavoritesView.routeName);
                   },
                 ),
             ],
           ),
         ),
-        const SizedBox(
-          height: 20,
-        ),
+        const SizedBox(height: 20),
         !hasFavorites
             ? Padding(
-                padding: const EdgeInsets.only(
-                  left: standardPadding,
-                ),
+                padding: const EdgeInsets.only(left: standardPadding),
                 child: Container(
                   height: cardHeight,
                   width: cardWidth,
@@ -142,8 +133,9 @@ class _FavoriteWalletsState extends ConsumerState<FavoriteWallets> {
                     ),
                   ),
                   child: MaterialButton(
-                    splashColor:
-                        Theme.of(context).extension<StackColors>()!.highlight,
+                    splashColor: Theme.of(context)
+                        .extension<StackColors>()!
+                        .highlight,
                     key: const Key("favoriteWalletsAddFavoriteButtonKey"),
                     padding: const EdgeInsets.all(12),
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -167,14 +159,11 @@ class _FavoriteWalletsState extends ConsumerState<FavoriteWallets> {
                               .extension<StackColors>()!
                               .textSubtitle1,
                         ),
-                        const SizedBox(
-                          width: 4,
-                        ),
+                        const SizedBox(width: 4),
                         Text(
                           "Add a favorite",
-                          style: STextStyles.itemSubtitle(context).copyWith(
-                            fontSize: 10,
-                          ),
+                          style: STextStyles.itemSubtitle(context)
+                              .copyWith(fontSize: 10),
                         ),
                       ],
                     ),
@@ -214,23 +203,23 @@ class _FavoriteWalletsState extends ConsumerState<FavoriteWallets> {
                         curve: Curves.decelerate,
                         child: index < favorites.length
                             ? index == _focusedIndex
-                                ? Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 4,
-                                    ),
-                                    child: FavoriteCard(
+                                  ? Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 4,
+                                      ),
+                                      child: FavoriteCard(
+                                        key: Key("favCard_$walletId"),
+                                        walletId: walletId!,
+                                        width: cardWidth,
+                                        height: cardHeight,
+                                      ),
+                                    )
+                                  : FavoriteCard(
                                       key: Key("favCard_$walletId"),
                                       walletId: walletId!,
                                       width: cardWidth,
                                       height: cardHeight,
-                                    ),
-                                  )
-                                : FavoriteCard(
-                                    key: Key("favCard_$walletId"),
-                                    walletId: walletId!,
-                                    width: cardWidth,
-                                    height: cardHeight,
-                                  )
+                                    )
                             : Container(),
                       ),
                     );
