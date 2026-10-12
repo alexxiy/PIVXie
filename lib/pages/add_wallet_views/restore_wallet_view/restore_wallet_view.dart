@@ -223,30 +223,33 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
     final colors = Theme.of(context).extension<StackColors>()!;
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
-      child: Wrap(
-        spacing: 8,
-        runSpacing: 8,
-        children: [
-          // The first one stands out: Next takes it.
-          for (final (n, word) in words.indexed)
-            ActionChip(
-              label: Text(
-                word,
-                style: STextStyles.field(context).copyWith(
-                  color: colors.textRestore,
-                  fontSize: 14,
-                  fontWeight: n == 0 ? FontWeight.w600 : null,
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            // The first one stands out: Next takes it.
+            for (final (n, word) in words.indexed)
+              ActionChip(
+                label: Text(
+                  word,
+                  style: STextStyles.field(context).copyWith(
+                    color: colors.textRestore,
+                    fontSize: 14,
+                    fontWeight: n == 0 ? FontWeight.w600 : null,
+                  ),
                 ),
+                backgroundColor: colors.textFieldDefaultBG,
+                side: BorderSide(
+                  color: n == 0
+                      ? colors.accentColorBlue
+                      : colors.textFieldActiveBG,
+                ),
+                onPressed: () => _pickSuggestion(index, word),
               ),
-              backgroundColor: colors.textFieldDefaultBG,
-              side: BorderSide(
-                color: n == 0
-                    ? colors.accentColorBlue
-                    : colors.textFieldActiveBG,
-              ),
-              onPressed: () => _pickSuggestion(index, word),
-            ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -863,8 +866,16 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                                       i * 4 + j - 1 == 1
                                                       ? textSelectionControls
                                                       : null,
-                                                  // focusNode:
-                                                  //     _focusNodes[i * 4 + j - 1],
+                                                  focusNode:
+                                                      _focusNodes[i * 4 +
+                                                          j -
+                                                          1],
+                                                  textInputAction:
+                                                      TextInputAction.next,
+                                                  onFieldSubmitted: (_) =>
+                                                      _submitWord(
+                                                        i * 4 + j - 1,
+                                                      ),
                                                   onChanged: (value) {
                                                     if (_spreadPastedWords(
                                                       value,
@@ -928,10 +939,22 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                                             : 14,
                                                       ),
                                                 ),
+                                                if (_focusedField ==
+                                                    i * 4 + j - 1)
+                                                  _wordSuggestions(
+                                                    i * 4 + j - 1,
+                                                  ),
+                                                // Not while typing a word that has suggestions.
                                                 if (_inputStatuses[i * 4 +
-                                                        j -
-                                                        1] ==
-                                                    FormInputStatus.invalid)
+                                                            j -
+                                                            1] ==
+                                                        FormInputStatus
+                                                            .invalid &&
+                                                    (_focusedField !=
+                                                            i * 4 + j - 1 ||
+                                                        _suggestionsFor(
+                                                          i * 4 + j - 1,
+                                                        ).isEmpty))
                                                   Align(
                                                     alignment:
                                                         Alignment.topLeft,
@@ -1014,6 +1037,11 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                                   selectionControls: i == 1
                                                       ? textSelectionControls
                                                       : null,
+                                                  focusNode: _focusNodes[i],
+                                                  textInputAction:
+                                                      TextInputAction.next,
+                                                  onFieldSubmitted: (_) =>
+                                                      _submitWord(i),
                                                   onChanged: (value) {
                                                     if (_spreadPastedWords(
                                                       value,
@@ -1060,8 +1088,14 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                                             : 14,
                                                       ),
                                                 ),
+                                                if (_focusedField == i)
+                                                  _wordSuggestions(i),
                                                 if (_inputStatuses[i] ==
-                                                    FormInputStatus.invalid)
+                                                        FormInputStatus
+                                                            .invalid &&
+                                                    (_focusedField != i ||
+                                                        _suggestionsFor(i)
+                                                            .isEmpty))
                                                   Align(
                                                     alignment:
                                                         Alignment.topLeft,
