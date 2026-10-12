@@ -92,6 +92,7 @@ void main() {
     expect(tx.pivxKind, PivxTxKind.coldStakeReward);
     expect(tx.type, TransactionType.incoming);
     expect(amount(tx), BigInt.from(10 * _coin));
+    expect(tx.pivxAlsoMasternodeReward, isTrue);
   });
 
   test("someone else's stake pays our masternode or our proposal", () {
@@ -114,6 +115,7 @@ void main() {
 
     final reward = parse(paying(6 * _coin), {_masternode});
     expect(reward.pivxKind, PivxTxKind.masternodeReward);
+    expect(reward.pivxAlsoMasternodeReward, isFalse);
     expect(amount(reward), BigInt.from(6 * _coin));
 
     final budget = parse(paying(500 * _coin), {_masternode});

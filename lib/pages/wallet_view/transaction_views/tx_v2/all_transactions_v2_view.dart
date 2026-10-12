@@ -954,14 +954,24 @@ class _DesktopTransactionCardRowState
               const SizedBox(width: 12),
               Expanded(
                 flex: 3,
-                child: Text(
-                  whatIsIt(_transaction, currentHeight),
-                  style: STextStyles.desktopTextExtraExtraSmall(context)
-                      .copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textDark,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      whatIsIt(_transaction, currentHeight),
+                      style: STextStyles.desktopTextExtraExtraSmall(context)
+                          .copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark,
+                          ),
+                    ),
+                    if (_transaction.pivxAlsoMasternodeReward)
+                      Text(
+                        "+ Masternode reward",
+                        style: STextStyles.label(context),
                       ),
+                  ],
                 ),
               ),
               if (kDebugMode)

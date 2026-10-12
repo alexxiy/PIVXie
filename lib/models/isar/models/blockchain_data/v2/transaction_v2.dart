@@ -184,6 +184,18 @@ class TransactionV2 {
   String? get pivxKind =>
       _getFromOtherData(key: TxV2OdKeys.pivxKind) as String?;
 
+  /// A cold staking reward whose block also paid one of our masternodes:
+  /// an owned output besides the delegated (P2CS) ones.
+  @ignore
+  bool get pivxAlsoMasternodeReward =>
+      pivxKind == PivxTxKind.coldStakeReward &&
+      outputs.any(
+        (o) =>
+            o.walletOwns &&
+            o.scriptPubKeyHex.isNotEmpty &&
+            !o.scriptPubKeyHex.startsWith("76a97b63"),
+      );
+
   /// PIVX change addresses among the outputs.
   @ignore
   Set<String> get pivxChangeAddresses => {
