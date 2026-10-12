@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../../pages/wallet_view/sub_widgets/wallet_balance_toggle_sheet.dart';
 import '../../../../pages/wallet_view/sub_widgets/wallet_refresh_button.dart';
@@ -20,6 +21,7 @@ import '../../../../services/event_bus/events/global/wallet_sync_status_changed_
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/amount/amount.dart';
 import '../../../../utilities/amount/amount_formatter.dart';
+import '../../../../utilities/assets.dart';
 import '../../../../utilities/enums/wallet_balance_toggle_state.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
@@ -108,9 +110,42 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 if (title != null)
-                  Text(
-                    title,
-                    style: STextStyles.desktopTextExtraExtraSmall(context),
+                  // As on mobile: the title opens the balance choice.
+                  MouseRegion(
+                    cursor: SystemMouseCursors.click,
+                    child: GestureDetector(
+                      onTap: () => showDialog<void>(
+                        context: context,
+                        builder: (_) => DesktopDialog(
+                          maxWidth: 480,
+                          maxHeight: double.infinity,
+                          child: WalletBalanceToggleSheet(walletId: walletId),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            title,
+                            style: STextStyles.desktopTextExtraExtraSmall(
+                              context,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          SvgPicture.asset(
+                            Assets.svg.chevronDown,
+                            width: 10,
+                            height: 5,
+                            colorFilter: ColorFilter.mode(
+                              Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textSubtitle1,
+                              BlendMode.srcIn,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 FittedBox(
                   fit: BoxFit.scaleDown,
@@ -136,20 +171,10 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
               initialSyncStatus: widget.initialSyncStatus,
             ),
 
-            const SizedBox(width: 8),
-            if (pivxShield)
-              DesktopBalanceChoiceButton(
-                onPressed: () => showDialog<void>(
-                  context: context,
-                  builder: (_) => DesktopDialog(
-                    maxWidth: 480,
-                    maxHeight: double.infinity,
-                    child: WalletBalanceToggleSheet(walletId: walletId),
-                  ),
-                ),
-              )
-            else
+            if (!pivxShield) ...[
+              const SizedBox(width: 8),
               const DesktopBalanceToggleButton(),
+            ],
           ],
         );
       },
