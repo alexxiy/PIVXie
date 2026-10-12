@@ -195,16 +195,6 @@ class GlobalSettingsView extends ConsumerWidget {
                                     ),
                                   const SizedBox(height: 8),
                                   SettingsListButton(
-                                    iconAssetName: Assets.svg.ellipsis,
-                                    iconSize: 18,
-                                    title: "About",
-                                    onPressed: () {
-                                      Navigator.of(context)
-                                          .pushNamed(AboutView.routeName);
-                                    },
-                                  ),
-                                  const SizedBox(height: 8),
-                                  SettingsListButton(
                                     iconAssetName: Assets.svg.solidSliders,
                                     iconSize: 16,
                                     title: "Advanced",
@@ -222,6 +212,16 @@ class GlobalSettingsView extends ConsumerWidget {
                                     onPressed: () {
                                       Navigator.of(context)
                                           .pushNamed(SupportView.routeName);
+                                    },
+                                  ),
+                                  const SizedBox(height: 8),
+                                  SettingsListButton(
+                                    iconAssetName: Assets.svg.ellipsis,
+                                    iconSize: 18,
+                                    title: "About",
+                                    onPressed: () {
+                                      Navigator.of(context)
+                                          .pushNamed(AboutView.routeName);
                                     },
                                   ),
                                   // TextButton(
