@@ -38,6 +38,7 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
       "Appearance",
       "Tor settings",
       "Nodes",
+      "Startup",
       "Syncing preferences",
       "Advanced",
     ];

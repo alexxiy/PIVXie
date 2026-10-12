@@ -23,6 +23,7 @@ import 'settings_menu/currency_settings/currency_settings.dart';
 import 'settings_menu/language_settings/language_settings.dart';
 import 'settings_menu/nodes_settings.dart';
 import 'settings_menu/security_settings.dart';
+import 'settings_menu/startup_settings.dart';
 import 'settings_menu/syncing_preferences_settings.dart';
 import 'settings_menu/tor_settings/tor_settings.dart';
 
@@ -70,6 +71,11 @@ class _DesktopSettingsViewState extends ConsumerState<DesktopSettingsView> {
         onGenerateRoute: RouteGenerator.generateRoute,
         initialRoute: NodesSettings.routeName,
       ), //nodes
+      const Navigator(
+        key: Key("settingsStartupDesktopKey"),
+        onGenerateRoute: RouteGenerator.generateRoute,
+        initialRoute: StartupSettings.routeName,
+      ), //startup
       const Navigator(
         key: Key("settingsSyncingPreferencesDesktopKey"),
         onGenerateRoute: RouteGenerator.generateRoute,

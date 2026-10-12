@@ -198,28 +198,16 @@ Future<void> openPaymentLinkDesktop(
   if (open != null) await closeDesktopWallet(ref, open);
   if (!context.mounted) return;
 
-  final wallet = ref.read(pWallets).getWallet(walletId);
-  final canContinue = await checkShowNodeTorSettingsMismatch(
-    context: context,
-    currency: wallet.cryptoCurrency,
-    prefs: ref.read(prefsChangeNotifierProvider),
-    nodeService: ref.read(nodeServiceChangeNotifierProvider),
-    allowCancel: true,
-    rootNavigator: true,
+  await openDesktopWallet(
+    context,
+    ref,
+    nav,
+    walletId,
+    beforePush: () => ref.read(pDesktopPaymentLink.notifier).state = (
+      walletId: walletId,
+      data: data,
+    ),
   );
-  if (!canContinue || !context.mounted) return;
-  await showLoading(
-    whileFuture: wallet.init(),
-    context: context,
-    message: "Opening ${wallet.info.name}",
-    rootNavigator: true,
-  );
-  if (!context.mounted) return;
-  ref.read(pDesktopPaymentLink.notifier).state = (
-    walletId: walletId,
-    data: data,
-  );
-  unawaited(nav.pushNamed(DesktopWalletView.routeName, arguments: walletId));
 }
 
 Future<String?> _chooseWalletDesktop(

@@ -29,6 +29,7 @@ import '../widgets/background.dart';
 import 'address_book_view/desktop_address_book.dart';
 import 'desktop_menu.dart';
 import 'my_stack_view/my_stack_view.dart';
+import 'my_stack_view/wallet_view/desktop_wallet_view.dart';
 import 'password/desktop_unlock_app_dialog.dart';
 import 'settings/desktop_settings_view.dart';
 import 'settings/settings_menu/desktop_about_view.dart';
@@ -64,6 +65,15 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
     } finally {
       _openingLink = false;
     }
+  }
+
+  Future<void> _openStartupWallet() async {
+    final prefs = ref.read(prefsChangeNotifierProvider);
+    final walletId = prefs.startupWalletId;
+    final nav = myStackViewNavKey.currentState as NavigatorState?;
+    if (!prefs.gotoWalletOnStartup || walletId == null || nav == null) return;
+    if (!ref.read(pWallets).wallets.any((w) => w.walletId == walletId)) return;
+    await openDesktopWallet(context, ref, nav, walletId);
   }
 
   void _onIdle() async {
@@ -123,10 +133,15 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
 
     ref.read(prefsChangeNotifierProvider).addListener(_prefsTimeoutListener);
 
-    // A link that came while the app was starting or locked.
-    WidgetsBinding.instance.addPostFrameCallback(
-      (_) => unawaited(_openPendingLink()),
-    );
+    // A link that came while the app was starting, or else the wallet
+    // chosen in the startup preferences.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (ref.read(pPendingPaymentLink) != null) {
+        unawaited(_openPendingLink());
+      } else {
+        unawaited(_openStartupWallet());
+      }
+    });
 
     super.initState();
   }

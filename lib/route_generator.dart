@@ -139,6 +139,7 @@ import 'pages_desktop_specific/settings/settings_menu/desktop_support_view.dart'
 import 'pages_desktop_specific/settings/settings_menu/language_settings/language_settings.dart';
 import 'pages_desktop_specific/settings/settings_menu/nodes_settings.dart';
 import 'pages_desktop_specific/settings/settings_menu/security_settings.dart';
+import 'pages_desktop_specific/settings/settings_menu/startup_settings.dart';
 import 'pages_desktop_specific/settings/settings_menu/syncing_preferences_settings.dart';
 import 'pages_desktop_specific/settings/settings_menu/tor_settings/tor_settings.dart';
 import 'services/event_bus/events/global/node_connection_status_changed_event.dart';
@@ -1337,6 +1338,13 @@ class RouteGenerator {
         return getRoute(
           shouldUseMaterialRoute: useMaterialPageRoute,
           builder: (_) => const NodesSettings(),
+          settings: RouteSettings(name: settings.name),
+        );
+
+      case StartupSettings.routeName:
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => const StartupSettings(),
           settings: RouteSettings(name: settings.name),
         );
 

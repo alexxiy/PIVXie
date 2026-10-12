@@ -33,6 +33,8 @@ import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/enums/backup_frequency_type.dart';
 import '../../../utilities/enums/sync_type_enum.dart';
+import '../../../utilities/show_loading.dart';
+import '../../../utilities/show_node_tor_settings_mismatch.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../wallets/wallet/wallet.dart';
@@ -365,4 +367,34 @@ Future<void> closeDesktopWallet(WidgetRef ref, String walletId) async {
   }
 
   ref.read(currentWalletIdProvider.notifier).state = null;
+}
+
+/// Open a wallet from My PIVXie ([nav]) as its card does: check the node
+/// and Tor settings, load it, then show it. [beforePush] runs just before.
+Future<void> openDesktopWallet(
+  BuildContext context,
+  WidgetRef ref,
+  NavigatorState nav,
+  String walletId, {
+  VoidCallback? beforePush,
+}) async {
+  final wallet = ref.read(pWallets).getWallet(walletId);
+  final canContinue = await checkShowNodeTorSettingsMismatch(
+    context: context,
+    currency: wallet.cryptoCurrency,
+    prefs: ref.read(prefsChangeNotifierProvider),
+    nodeService: ref.read(nodeServiceChangeNotifierProvider),
+    allowCancel: true,
+    rootNavigator: true,
+  );
+  if (!canContinue || !context.mounted) return;
+  await showLoading(
+    whileFuture: wallet.init(),
+    context: context,
+    message: "Opening ${wallet.info.name}",
+    rootNavigator: true,
+  );
+  if (!context.mounted) return;
+  beforePush?.call();
+  unawaited(nav.pushNamed(DesktopWalletView.routeName, arguments: walletId));
 }
