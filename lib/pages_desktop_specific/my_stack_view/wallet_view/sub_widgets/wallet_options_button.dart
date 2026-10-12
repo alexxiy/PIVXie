@@ -21,25 +21,69 @@ import '../../../../utilities/constants.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../addresses/desktop_wallet_addresses_view.dart';
 import 'desktop_delete_wallet_dialog.dart';
+import 'wallet_keys_button.dart';
 
 enum _WalletOptions {
-  addressList,
+  walletKeys,
   deleteWallet;
 
   String get prettyName {
     switch (this) {
-      case _WalletOptions.addressList:
-        return "Address list";
+      case _WalletOptions.walletKeys:
+        return "Wallet keys";
       case _WalletOptions.deleteWallet:
         return "Delete wallet";
     }
   }
 }
 
-class WalletOptionsButton extends ConsumerWidget {
-  const WalletOptionsButton({super.key, required this.walletId});
+/// Opens the list of the wallet's addresses.
+class AddressListButton extends StatelessWidget {
+  const AddressListButton({super.key, required this.walletId});
 
   final String walletId;
+
+  @override
+  Widget build(BuildContext context) {
+    return RawMaterialButton(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(1000)),
+      onPressed: () => Navigator.of(context)
+          .pushNamed(DesktopWalletAddressesView.routeName, arguments: walletId),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 19, horizontal: 32),
+        child: Row(
+          children: [
+            SvgPicture.asset(
+              Assets.svg.list,
+              width: 20,
+              height: 20,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .buttonTextSecondary,
+            ),
+            const SizedBox(width: 6),
+            Text(
+              "Address list",
+              style: STextStyles.desktopMenuItemSelected(context),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class WalletOptionsButton extends ConsumerWidget {
+  const WalletOptionsButton({
+    super.key,
+    required this.walletId,
+    this.showKeys = true,
+  });
+
+  final String walletId;
+
+  /// A watch-only wallet of a single address has no keys to show.
+  final bool showKeys;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -55,9 +99,9 @@ class WalletOptionsButton extends ConsumerWidget {
               onDeletePressed: () async {
                 Navigator.of(context).pop(_WalletOptions.deleteWallet);
               },
-              onAddressListPressed: () async {
-                Navigator.of(context).pop(_WalletOptions.addressList);
-              },
+              onWalletKeysPressed: showKeys
+                  ? () => Navigator.of(context).pop(_WalletOptions.walletKeys)
+                  : null,
               walletId: walletId,
             );
           },
@@ -65,13 +109,8 @@ class WalletOptionsButton extends ConsumerWidget {
 
         if (context.mounted && func != null) {
           switch (func) {
-            case _WalletOptions.addressList:
-              unawaited(
-                Navigator.of(context).pushNamed(
-                  DesktopWalletAddressesView.routeName,
-                  arguments: walletId,
-                ),
-              );
+            case _WalletOptions.walletKeys:
+              unawaited(showWalletKeys(context, walletId));
               break;
             case _WalletOptions.deleteWallet:
               final result = await showDialog<bool?>(
@@ -125,12 +164,14 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
   const WalletOptionsPopupMenu({
     super.key,
     required this.onDeletePressed,
-    required this.onAddressListPressed,
+    required this.onWalletKeysPressed,
     required this.walletId,
   });
 
   final VoidCallback onDeletePressed;
-  final VoidCallback onAddressListPressed;
+
+  /// Null: no Wallet keys item.
+  final VoidCallback? onWalletKeysPressed;
   final String walletId;
 
   @override
@@ -156,40 +197,42 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  TransparentButton(
-                    onPressed: onAddressListPressed,
-                    child: Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          SvgPicture.asset(
-                            Assets.svg.list,
-                            width: 20,
-                            height: 20,
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textFieldActiveSearchIconLeft,
-                          ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Text(
-                              _WalletOptions.addressList.prettyName,
-                              style:
-                                  STextStyles.desktopTextExtraExtraSmall(
-                                    context,
-                                  ).copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .textDark,
-                                  ),
+                  if (onWalletKeysPressed != null) ...[
+                    TransparentButton(
+                      onPressed: onWalletKeysPressed,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            SvgPicture.asset(
+                              Assets.svg.key,
+                              width: 20,
+                              height: 20,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textFieldActiveSearchIconLeft,
                             ),
-                          ),
-                        ],
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Text(
+                                _WalletOptions.walletKeys.prettyName,
+                                style:
+                                    STextStyles.desktopTextExtraExtraSmall(
+                                      context,
+                                    ).copyWith(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .textDark,
+                                    ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 8),
+                    const SizedBox(height: 8),
+                  ],
                   TransparentButton(
                     onPressed: onDeletePressed,
                     child: Padding(

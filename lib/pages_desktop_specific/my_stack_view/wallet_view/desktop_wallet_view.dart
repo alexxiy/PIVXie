@@ -50,7 +50,6 @@ import 'sub_widgets/desktop_wallet_features.dart';
 import 'sub_widgets/desktop_wallet_summary.dart';
 import 'sub_widgets/my_wallet.dart';
 import 'sub_widgets/network_info_button.dart';
-import 'sub_widgets/wallet_keys_button.dart';
 import 'sub_widgets/wallet_options_button.dart';
 
 /// [eventBus] should only be set during testing
@@ -217,11 +216,13 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                     walletId: widget.walletId,
                     eventBus: eventBus,
                   ),
-                  if (showKeysButton) const SizedBox(width: 2),
-                  if (showKeysButton)
-                    WalletKeysButton(walletId: widget.walletId),
                   const SizedBox(width: 2),
-                  WalletOptionsButton(walletId: widget.walletId),
+                  AddressListButton(walletId: widget.walletId),
+                  const SizedBox(width: 2),
+                  WalletOptionsButton(
+                    walletId: widget.walletId,
+                    showKeys: showKeysButton,
+                  ),
                   const SizedBox(width: 12),
                 ],
               ),
