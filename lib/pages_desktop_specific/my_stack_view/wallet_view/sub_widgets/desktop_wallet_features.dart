@@ -213,29 +213,33 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
 
     final isViewOnly = wallet is ViewOnlyOptionInterface && wallet.isViewOnly;
 
+    // On the bar: governance and masternodes; the rest is under More.
     final options = <(WalletFeature, Object, FutureOr<void> Function())>[
-      if (showCoinControl)
-        (WalletFeature.coinControl, Icons.checklist_rtl, _onCoinControlPressed),
-      if (wallet is PivxWallet && !isViewOnly)
-        (
-          WalletFeature.masternodes,
-          Icons.dns_rounded,
-          () => _push(PivxMasternodesView.routeName),
-        ),
-      if (wallet is PivxWallet)
-        (
-          WalletFeature.coldStaking,
-          Icons.ac_unit_rounded,
-          () => _push(PivxColdStakingView.routeName),
-        ),
       if (wallet is PivxWallet)
         (
           WalletFeature.governance,
           Icons.how_to_vote_rounded,
           () => _push(PivxGovernanceView.routeName),
         ),
+      if (wallet is PivxWallet && !isViewOnly)
+        (
+          WalletFeature.masternodes,
+          Icons.dns_rounded,
+          () => _push(PivxMasternodesView.routeName),
+        ),
+    ];
+
+    final moreOptions = <(WalletFeature, Object, FutureOr<void> Function())>[
+      if (wallet is PivxWallet)
+        (
+          WalletFeature.coldStaking,
+          Icons.ac_unit_rounded,
+          () => _push(PivxColdStakingView.routeName),
+        ),
       if (wallet is PivxWallet && wallet.supportsShield && !isViewOnly)
         (WalletFeature.privatize, Icons.shield_rounded, _onPrivatizePressed),
+      if (showCoinControl)
+        (WalletFeature.coinControl, Icons.checklist_rtl, _onCoinControlPressed),
     ];
 
     final canGen =
@@ -248,7 +252,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
     ];
 
     return StaticOverflowRow(
-      forcedOverflow: extraOptions.isNotEmpty,
+      forcedOverflow: moreOptions.isNotEmpty || extraOptions.isNotEmpty,
       overflowBuilder: (count) {
         return Padding(
           padding: const EdgeInsets.only(left: 16),
@@ -266,6 +270,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
             ),
             onPressed: () => _onMorePressed([
               ...options.sublist(options.length - count),
+              ...moreOptions,
               ...extraOptions,
             ]),
           ),
