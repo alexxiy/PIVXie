@@ -23,6 +23,7 @@ import '../send_view/confirm_transaction_view.dart';
 import '../send_view/sub_widgets/building_transaction_dialog.dart';
 import '../send_view/sub_widgets/pivx_funding_card.dart';
 import 'pivx_governance_view.dart';
+import '../../widgets/desktop/desktop_page_column.dart';
 
 /// Ask the network for funds: name, link, payee, amount per payout,
 /// payouts and the first one. Publishing costs a 50 PIV fee (burnt);
@@ -45,6 +46,7 @@ class _PivxCreateProposalViewState
   final _nameFocus = FocusNode();
   final _url = TextEditingController(text: "https://");
   final _urlFocus = FocusNode();
+
   /// Where the payouts go: one of the wallet's addresses.
   String? _payee;
   PivxFunding _funding = kPivxAutoFunding;
@@ -125,38 +127,43 @@ class _PivxCreateProposalViewState
       return;
     }
     final wallet = _wallet;
-    final prepared = await showBuildingTransaction<(TxData, PivxPendingProposal)>(
-      context: context,
-      coin: wallet.cryptoCurrency,
-      build: () => wallet.prepareProposal(
-        name: _name.text.trim(),
-        url: _url.text.trim(),
-        payments: _payments,
-        blockStart: _start!,
-        paymentAddress: _payee!,
-        amount: _amountValue!,
-        funding: _funding,
-      ),
-    );
+    final prepared =
+        await showBuildingTransaction<(TxData, PivxPendingProposal)>(
+          context: context,
+          coin: wallet.cryptoCurrency,
+          build: () => wallet.prepareProposal(
+            name: _name.text.trim(),
+            url: _url.text.trim(),
+            payments: _payments,
+            blockStart: _start!,
+            paymentAddress: _payee!,
+            amount: _amountValue!,
+            funding: _funding,
+          ),
+        );
     if (!mounted || prepared == null) return;
     final (txData, proposal) = prepared;
     Future<void>? saving;
     await Navigator.of(context).push(
       RouteGenerator.getRoute<void>(
         shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
-        builder: (_) => ConfirmTransactionView(
-          txData: txData,
-          walletId: widget.walletId,
-          onSuccess: () {
-            saving = wallet.addPendingProposal(proposal, txData.txid!);
-          },
-          onSuccessInsteadOfRouteOnSuccess: () async {
-            await saving;
-            if (mounted) {
-              Navigator.of(context)
-                  .popUntil(ModalRoute.withName(PivxGovernanceView.routeName));
-            }
-          },
+        builder: (_) => DesktopPageColumn(
+          card: true,
+          child: ConfirmTransactionView(
+            txData: txData,
+            walletId: widget.walletId,
+            onSuccess: () {
+              saving = wallet.addPendingProposal(proposal, txData.txid!);
+            },
+            onSuccessInsteadOfRouteOnSuccess: () async {
+              await saving;
+              if (mounted) {
+                Navigator.of(
+                  context,
+                ).popUntil(ModalRoute.withName(PivxGovernanceView.routeName));
+              }
+            },
+          ),
         ),
         settings: const RouteSettings(name: ConfirmTransactionView.routeName),
       ),
@@ -437,7 +444,8 @@ class _PivxCreateProposalViewState
                       funding: _funding,
                       amount: fee,
                       onChanged: (f) => setState(() => _funding = f),
-                    ),                    const SizedBox(height: 16),
+                    ),
+                    const SizedBox(height: 16),
                     RoundedWhiteContainer(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,

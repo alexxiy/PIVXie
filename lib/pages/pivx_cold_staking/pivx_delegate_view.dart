@@ -30,6 +30,7 @@ import '../send_view/confirm_transaction_view.dart';
 import '../send_view/sub_widgets/building_transaction_dialog.dart';
 import '../send_view/sub_widgets/pivx_funding_card.dart';
 import 'pivx_cold_staking_view.dart';
+import '../../widgets/desktop/desktop_page_column.dart';
 
 const _kMasternodeSpaceUrl = "https://masternode.space";
 
@@ -184,16 +185,20 @@ class _PivxDelegateViewState extends ConsumerState<PivxDelegateView> {
     await Navigator.of(context).push(
       RouteGenerator.getRoute<void>(
         shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
-        builder: (_) => ConfirmTransactionView(
-          txData: txData,
-          walletId: widget.walletId,
-          onSuccess: () {},
-          onSuccessInsteadOfRouteOnSuccess: () {
-            if (mounted) {
-              Navigator.of(context)
-                  .popUntil(ModalRoute.withName(PivxColdStakingView.routeName));
-            }
-          },
+        builder: (_) => DesktopPageColumn(
+          card: true,
+          child: ConfirmTransactionView(
+            txData: txData,
+            walletId: widget.walletId,
+            onSuccess: () {},
+            onSuccessInsteadOfRouteOnSuccess: () {
+              if (mounted) {
+                Navigator.of(
+                  context,
+                ).popUntil(ModalRoute.withName(PivxColdStakingView.routeName));
+              }
+            },
+          ),
         ),
         settings: const RouteSettings(name: ConfirmTransactionView.routeName),
       ),
@@ -513,7 +518,9 @@ class _PivxDelegateViewState extends ConsumerState<PivxDelegateView> {
                     PivxOwnAddressField(
                       walletId: widget.walletId,
                       value: _owner,
-                      tags: {for (final o in _owners) o: "owns your delegations"},
+                      tags: {
+                        for (final o in _owners) o: "owns your delegations",
+                      },
                       onChanged: (a) => setState(() => _owner = a),
                     ),
                     Padding(
@@ -527,8 +534,7 @@ class _PivxDelegateViewState extends ConsumerState<PivxDelegateView> {
                                   "wallet. The staker can stake them but "
                                   "never spend them.",
                         style: STextStyles.label(context).copyWith(
-                          color:
-                              _owners.isNotEmpty && !_owners.contains(_owner)
+                          color: _owners.isNotEmpty && !_owners.contains(_owner)
                               ? colors.accentColorOrange
                               : colors.textSubtitle1,
                         ),

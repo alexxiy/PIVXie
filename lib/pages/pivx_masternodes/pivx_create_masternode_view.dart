@@ -26,6 +26,7 @@ import '../coin_control/coin_control_view.dart';
 import '../send_view/confirm_transaction_view.dart';
 import '../send_view/sub_widgets/building_transaction_dialog.dart';
 import 'pivx_masternodes_view.dart';
+import '../../widgets/desktop/desktop_page_column.dart';
 
 enum _Collateral { newAddress, ownAddress, existingOutput }
 
@@ -240,27 +241,31 @@ class _PivxCreateMasternodeViewState
     await Navigator.of(context).push(
       RouteGenerator.getRoute<void>(
         shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
-        builder: (_) => ConfirmTransactionView(
-          txData: txData,
-          walletId: widget.walletId,
-          onSuccess: () {
-            // Recorded (and its output frozen) once broadcast.
-            saving = wallet.addMasternode(
-              label: label,
-              address: address,
-              txid: txData.txid!,
-              vout: vout,
-              masternodeKey: key,
-              addressLabel: addressLabel,
-            );
-          },
-          onSuccessInsteadOfRouteOnSuccess: () async {
-            await saving;
-            if (mounted) {
-              Navigator.of(context)
-                  .popUntil(ModalRoute.withName(PivxMasternodesView.routeName));
-            }
-          },
+        builder: (_) => DesktopPageColumn(
+          card: true,
+          child: ConfirmTransactionView(
+            txData: txData,
+            walletId: widget.walletId,
+            onSuccess: () {
+              // Recorded (and its output frozen) once broadcast.
+              saving = wallet.addMasternode(
+                label: label,
+                address: address,
+                txid: txData.txid!,
+                vout: vout,
+                masternodeKey: key,
+                addressLabel: addressLabel,
+              );
+            },
+            onSuccessInsteadOfRouteOnSuccess: () async {
+              await saving;
+              if (mounted) {
+                Navigator.of(
+                  context,
+                ).popUntil(ModalRoute.withName(PivxMasternodesView.routeName));
+              }
+            },
+          ),
         ),
         settings: const RouteSettings(name: ConfirmTransactionView.routeName),
       ),

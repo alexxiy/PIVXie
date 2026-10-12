@@ -27,6 +27,7 @@ import '../send_view/confirm_transaction_view.dart';
 import '../send_view/sub_widgets/building_transaction_dialog.dart';
 import '../send_view/sub_widgets/pivx_funding_card.dart';
 import 'pivx_delegate_view.dart';
+import '../../widgets/desktop/desktop_page_column.dart';
 
 /// Coins this wallet delegated to a cold staker, from the wallet's menu.
 /// The wallet is only ever the owner (delegator).
@@ -116,16 +117,20 @@ class _PivxColdStakingViewState extends ConsumerState<PivxColdStakingView> {
     await Navigator.of(context).push(
       RouteGenerator.getRoute<void>(
         shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
-        builder: (_) => ConfirmTransactionView(
-          txData: txData,
-          walletId: widget.walletId,
-          onSuccess: () {},
-          onSuccessInsteadOfRouteOnSuccess: () {
-            if (mounted) {
-              Navigator.of(context)
-                  .popUntil(ModalRoute.withName(PivxColdStakingView.routeName));
-            }
-          },
+        builder: (_) => DesktopPageColumn(
+          card: true,
+          child: ConfirmTransactionView(
+            txData: txData,
+            walletId: widget.walletId,
+            onSuccess: () {},
+            onSuccessInsteadOfRouteOnSuccess: () {
+              if (mounted) {
+                Navigator.of(
+                  context,
+                ).popUntil(ModalRoute.withName(PivxColdStakingView.routeName));
+              }
+            },
+          ),
         ),
         settings: const RouteSettings(name: ConfirmTransactionView.routeName),
       ),

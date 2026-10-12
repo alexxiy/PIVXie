@@ -151,6 +151,7 @@ import 'wallets/models/tx_data.dart';
 import 'wallets/wallet/wallet.dart';
 import 'wallets/wallet/impl/pivx_wallet.dart';
 import 'widgets/choose_coin_view.dart';
+import 'widgets/desktop/desktop_page_column.dart';
 
 /*
  * This file contains all the routes for the app.
@@ -279,19 +280,22 @@ class RouteGenerator {
         if (args is Tuple2<String, CoinControlViewType>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) =>
-                CoinControlView(walletId: args.item1, type: args.item2),
+            builder: (_) => DesktopPageColumn(
+              child: CoinControlView(walletId: args.item1, type: args.item2),
+            ),
             settings: RouteSettings(name: settings.name),
           );
         } else if (args
             is Tuple4<String, CoinControlViewType, Amount?, Set<UTXO>?>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => CoinControlView(
-              walletId: args.item1,
-              type: args.item2,
-              requestedTotal: args.item3,
-              selectedUTXOs: args.item4,
+            builder: (_) => DesktopPageColumn(
+              child: CoinControlView(
+                walletId: args.item1,
+                type: args.item2,
+                requestedTotal: args.item3,
+                selectedUTXOs: args.item4,
+              ),
             ),
             settings: RouteSettings(name: settings.name),
           );
@@ -305,12 +309,14 @@ class RouteGenerator {
             >) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => CoinControlView(
-              walletId: args.item1,
-              type: args.item2,
-              requestedTotal: args.item3,
-              selectedUTXOs: args.item4,
-              pivx: args.item5,
+            builder: (_) => DesktopPageColumn(
+              child: CoinControlView(
+                walletId: args.item1,
+                type: args.item2,
+                requestedTotal: args.item3,
+                selectedUTXOs: args.item4,
+                pivx: args.item5,
+              ),
             ),
             settings: RouteSettings(name: settings.name),
           );
@@ -321,8 +327,9 @@ class RouteGenerator {
         if (args is Tuple2<Id, String>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) =>
-                UtxoDetailsView(walletId: args.item2, utxoId: args.item1),
+            builder: (_) => DesktopPageColumn(
+              child: UtxoDetailsView(walletId: args.item2, utxoId: args.item1),
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -1070,7 +1077,8 @@ class RouteGenerator {
         if (args is String) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => PivxColdStakingView(walletId: args),
+            builder: (_) =>
+                DesktopPageColumn(child: PivxColdStakingView(walletId: args)),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -1080,7 +1088,8 @@ class RouteGenerator {
         if (args is String) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => PivxDelegateView(walletId: args),
+            builder: (_) =>
+                DesktopPageColumn(child: PivxDelegateView(walletId: args)),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -1090,7 +1099,8 @@ class RouteGenerator {
         if (args is String) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => PivxGovernanceView(walletId: args),
+            builder: (_) =>
+                DesktopPageColumn(child: PivxGovernanceView(walletId: args)),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -1100,7 +1110,9 @@ class RouteGenerator {
         if (args is String) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => PivxCreateProposalView(walletId: args),
+            builder: (_) => DesktopPageColumn(
+              child: PivxCreateProposalView(walletId: args),
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -1115,10 +1127,12 @@ class RouteGenerator {
             })) {
           return getRoute<bool>(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => PivxProposalView(
-              walletId: args.walletId,
-              proposal: args.proposal,
-              governance: args.governance,
+            builder: (_) => DesktopPageColumn(
+              child: PivxProposalView(
+                walletId: args.walletId,
+                proposal: args.proposal,
+                governance: args.governance,
+              ),
             ),
             settings: RouteSettings(name: settings.name),
           );
@@ -1129,7 +1143,8 @@ class RouteGenerator {
         if (args is String) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => PivxMasternodesView(walletId: args),
+            builder: (_) =>
+                DesktopPageColumn(child: PivxMasternodesView(walletId: args)),
             settings: RouteSettings(name: settings.name),
           );
         }
@@ -1139,16 +1154,20 @@ class RouteGenerator {
         if (args is String) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => PivxCreateMasternodeView(walletId: args),
+            builder: (_) => DesktopPageColumn(
+              child: PivxCreateMasternodeView(walletId: args),
+            ),
             settings: RouteSettings(name: settings.name),
           );
         }
         if (args is ({String walletId, bool existing})) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => PivxCreateMasternodeView(
-              walletId: args.walletId,
-              existing: args.existing,
+            builder: (_) => DesktopPageColumn(
+              child: PivxCreateMasternodeView(
+                walletId: args.walletId,
+                existing: args.existing,
+              ),
             ),
             settings: RouteSettings(name: settings.name),
           );
@@ -1159,9 +1178,11 @@ class RouteGenerator {
         if (args is ({String walletId, String id})) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => PivxMasternodeDetailsView(
-              walletId: args.walletId,
-              masternodeId: args.id,
+            builder: (_) => DesktopPageColumn(
+              child: PivxMasternodeDetailsView(
+                walletId: args.walletId,
+                masternodeId: args.id,
+              ),
             ),
             settings: RouteSettings(name: settings.name),
           );
