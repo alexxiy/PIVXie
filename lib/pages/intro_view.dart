@@ -114,6 +114,8 @@ class _IntroViewState extends ConsumerState<IntroView> {
                           SecondaryButton(
                             label: "Restore from ${AppConfig.prefix} backup",
                             onPressed: () {
+                              // Stored now; the backup may bring its own.
+                              Prefs.instance.externalCalls = true;
                               Navigator.of(context).pushNamed(
                                 CreatePasswordView.routeName,
                                 arguments: true,
@@ -244,6 +246,8 @@ class GetStartedButton extends StatelessWidget {
                   .extension<StackColors>()!
                   .getPrimaryEnabledButtonStyle(context),
               onPressed: () {
+                // As on mobile: Easy Crypto until chosen otherwise.
+                Prefs.instance.externalCalls = true;
                 Navigator.of(context)
                     .pushNamed(StackPrivacyCalls.routeName, arguments: false);
               },

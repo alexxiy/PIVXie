@@ -762,19 +762,21 @@ class Prefs extends ChangeNotifier {
 
   bool get externalCalls => _externalCalls;
 
+  // Always stored, even when unchanged: price updates wait until the
+  // choice is stored (isExternalCallsSet).
   set externalCalls(bool externalCalls) {
-    if (_externalCalls != externalCalls) {
-      DB.instance
-          .put<dynamic>(
-            boxName: DB.boxNamePrefs,
-            key: "externalCalls",
-            value: externalCalls,
-          )
-          .then((_) {
+    DB.instance
+        .put<dynamic>(
+          boxName: DB.boxNamePrefs,
+          key: "externalCalls",
+          value: externalCalls,
+        )
+        .then((_) {
+          if (_externalCalls != externalCalls) {
             _externalCalls = externalCalls;
             notifyListeners();
-          });
-    }
+          }
+        });
   }
 
   Future<bool> _getHasExternalCalls() async {

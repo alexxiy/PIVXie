@@ -258,6 +258,7 @@ abstract class SWB {
       prefs['syncType'] = _prefs.syncType.name;
       prefs['walletIdsSyncOnStartup'] = _prefs.walletIdsSyncOnStartup;
       prefs['showTestNetCoins'] = _prefs.showTestNetCoins;
+      prefs['externalCalls'] = _prefs.externalCalls;
       prefs['isAutoBackupEnabled'] = _prefs.isAutoBackupEnabled;
       prefs['autoBackupLocation'] = _prefs.autoBackupLocation;
       prefs['backupFrequencyType'] = _prefs.backupFrequencyType.toString();
@@ -915,13 +916,17 @@ abstract class SWB {
     _prefs.syncType = prefs['syncType'] == "currentWalletOnly"
         ? SyncingType.currentWalletOnly
         : prefs['syncType'] == "selectedWalletsAtStartup"
-        ? SyncingType.currentWalletOnly
+        ? SyncingType.selectedWalletsAtStartup
         : SyncingType.allWalletsOnStartup; //
     _prefs.walletIdsSyncOnStartup =
         (prefs['walletIdsSyncOnStartup'] as List<dynamic>)
             .map<String>((e) => e as String)
             .toList();
     _prefs.showTestNetCoins = prefs['showTestNetCoins'] as bool;
+    // The PIVXie experience (older backups do not have it).
+    if (prefs['externalCalls'] is bool) {
+      _prefs.externalCalls = prefs['externalCalls'] as bool;
+    }
     _prefs.isAutoBackupEnabled = prefs['isAutoBackupEnabled'] as bool;
     _prefs.autoBackupLocation = prefs['autoBackupLocation'] as String?;
     _prefs.backupFrequencyType = BackupFrequencyType.values.firstWhere(
