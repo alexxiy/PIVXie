@@ -726,7 +726,12 @@ abstract class SWB {
       await status;
     }
 
-    if (!Platform.isLinux) await WakelockPlus.disable();
+    try {
+      if (!Platform.isLinux) await WakelockPlus.disable();
+    } catch (e, s) {
+      // Not worth failing a restore whose wallets are all in.
+      Logging.instance.w("SWB restore: wakelock", error: e, stackTrace: s);
+    }
     // check if cancel was requested and restore previous state
     if (_checkShouldCancel(preRestoreState, secureStorageInterface)) {
       return false;

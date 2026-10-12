@@ -98,7 +98,9 @@ class _StackRestoreProgressViewState
       ),
     );
 
-    await SWB.cancelRestore();
+    // Once the restore has returned nothing would answer the request:
+    // there is nothing left to cancel.
+    if (!_restoreEnded) await SWB.cancelRestore();
     shouldPop = true;
 
     int count = 0;
@@ -156,6 +158,21 @@ class _StackRestoreProgressViewState
     ref.refresh(stackRestoringUIStateProvider);
     final uiState = ref.read(stackRestoringUIStateProvider);
 
+    // Every step reported but the restore doesn't return (stuck loading
+    // the wallets afterwards): don't leave "Cancel" up forever.
+    var graceStarted = false;
+    void onChange() {
+      if (graceStarted || !uiState.done) return;
+      graceStarted = true;
+      Future<void>.delayed(const Duration(seconds: 20), () {
+        if (mounted && !_restoreEnded && !_success && uiState.done) {
+          Logging.instance.w("SWB restore: steps done but still running");
+          setState(() => _success = true);
+        }
+      });
+    }
+
+    uiState.addListener(onChange);
     bool? finished;
     try {
       finished = await SWB.restoreStackWalletJSON(
@@ -164,10 +181,17 @@ class _StackRestoreProgressViewState
         ref.read(secureStoreProvider),
       );
     } catch (e, s) {
-      Logging.instance.w("$e\n$s", error: e, stackTrace: s);
+      Logging.instance.e("SWB restore failed", error: e, stackTrace: s);
+    } finally {
+      _restoreEnded = true;
+      uiState.removeListener(onChange);
     }
+    Logging.instance.i("SWB restore ended: $finished, done: ${uiState.done}");
 
-    if (finished != null && finished && uiState.done) {
+    // Every step has its result (all ticks, or some failed): the restore
+    // is over, so OK rather than "Cancel", even if loading the wallets
+    // afterwards failed (OK adds them). Not when it was cancelled.
+    if (mounted && finished != false && uiState.done) {
       setState(() {
         _success = true;
       });
@@ -175,6 +199,9 @@ class _StackRestoreProgressViewState
   }
 
   bool _success = false;
+
+  /// [SWB.restoreStackWalletJSON] returned (or threw).
+  bool _restoreEnded = false;
   bool pendingCancel = false;
 
   Future<bool> _onWillPop() async {
@@ -577,6 +604,7 @@ class _StackRestoreProgressViewState
                     ? TextButton(
                         onPressed: () async {
                           if (_success) {
+                            _addWalletsToHomeView();
                             if (widget.shouldPushToHome) {
                               Navigator.of(context).popUntil(
                                 ModalRoute.withName(HomeView.routeName),
