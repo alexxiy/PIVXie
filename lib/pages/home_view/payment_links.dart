@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
 import '../../app_config.dart';
+import '../../models/isar/models/contact_entry.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../pages_desktop_specific/desktop_menu.dart';
 import '../../pages_desktop_specific/my_stack_view/my_stack_view.dart';
@@ -20,6 +21,8 @@ import '../../utilities/logger.dart';
 import '../../utilities/show_loading.dart';
 import '../../utilities/show_node_tor_settings_mismatch.dart';
 import '../../utilities/text_styles.dart';
+import '../../utilities/util.dart';
+import '../../wallets/crypto_currency/coins/pivx.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../wallets/wallet/wallet.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
@@ -110,7 +113,7 @@ Future<void> openPaymentLink(
   final (:data, :coin, :wallets) = found;
   final walletId = wallets.length == 1
       ? wallets.first.walletId
-      : await _chooseWallet(context, wallets);
+      : await _chooseWallet(context, wallets, desktop: false);
   if (walletId == null || !context.mounted) return;
 
   final nav = Navigator.of(context);
@@ -172,7 +175,7 @@ Future<void> openPaymentLinkDesktop(
   final (:data, coin: _, :wallets) = found;
   final walletId = wallets.length == 1
       ? wallets.first.walletId
-      : await _chooseWalletDesktop(context, wallets);
+      : await _chooseWallet(context, wallets, desktop: true);
   if (walletId == null || !context.mounted) return;
 
   ref.read(prevDesktopMenuItemProvider.notifier).state =
@@ -210,79 +213,145 @@ Future<void> openPaymentLinkDesktop(
   );
 }
 
-Future<String?> _chooseWalletDesktop(
+/// Pay a contact: one of its addresses (asked when it has several) opens
+/// the send screen of a wallet that can pay it, as a pivx: link would.
+Future<void> payContact(
   BuildContext context,
-  List<Wallet> wallets,
-) => showDialog<String>(
-  context: context,
-  builder: (context) => DesktopDialog(
-    maxWidth: 450,
-    maxHeight: double.infinity,
-    child: Padding(
-      padding: const EdgeInsets.only(left: 32, bottom: 32),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text("Pay from", style: STextStyles.desktopH3(context)),
-              const DesktopDialogCloseButton(),
-            ],
-          ),
-          const SizedBox(height: 12),
-          for (final w in wallets)
-            Padding(
-              padding: const EdgeInsets.only(right: 32, bottom: 8),
-              child: RoundedWhiteContainer(
-                borderColor: Theme.of(context)
-                    .extension<StackColors>()!
-                    .textFieldDefaultBG,
-                onPressed: () => Navigator.of(context).pop(w.walletId),
-                child: Text(
-                  w.info.name,
-                  style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                    color: Theme.of(context).extension<StackColors>()!.textDark,
-                  ),
-                ),
+  WidgetRef ref,
+  ContactEntry contact,
+) async {
+  final addresses = contact.addressesSorted;
+  if (addresses.isEmpty) return;
+  final address = addresses.length == 1
+      ? addresses.first.address
+      : await _chooseOne<String>(
+          context,
+          title: "Pay to ${contact.name}",
+          desktop: Util.isDesktop,
+          options: [
+            for (final a in addresses)
+              (
+                label: a.address,
+                detail: switch (a.coin) {
+                  final Pivx pivx =>
+                    pivx.isShieldAddress(a.address)
+                        ? "Shielded (${pivx.ticker})"
+                        : "Transparent (${pivx.ticker})",
+                  final coin => coin.prettyName,
+                },
+                value: a.address,
               ),
-            ),
-        ],
-      ),
-    ),
-  ),
+          ],
+        );
+  if (address == null) return;
+  // The wallet list handles it (HomeView, DesktopHomeView).
+  ref.read(pPendingPaymentLink.notifier).state = "pivx:$address";
+}
+
+Future<String?> _chooseWallet(
+  BuildContext context,
+  List<Wallet> wallets, {
+  required bool desktop,
+}) => _chooseOne<String>(
+  context,
+  title: "Pay from",
+  desktop: desktop,
+  options: [
+    for (final w in wallets)
+      (label: w.info.name, detail: null, value: w.walletId),
+  ],
 );
 
-Future<String?> _chooseWallet(BuildContext context, List<Wallet> wallets) =>
-    showModalBottomSheet<String>(
+/// A titled list to pick one option from: a dialog on desktop, a bottom
+/// sheet on mobile.
+Future<T?> _chooseOne<T>(
+  BuildContext context, {
+  required String title,
+  required bool desktop,
+  required List<({String label, String? detail, T value})> options,
+}) {
+  final colors = Theme.of(context).extension<StackColors>()!;
+  Widget option(
+    BuildContext context,
+    ({String label, String? detail, T value}) o,
+  ) => RoundedWhiteContainer(
+    borderColor: desktop ? colors.textFieldDefaultBG : null,
+    onPressed: () => Navigator.of(context).pop(o.value),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          o.label,
+          style: desktop
+              ? STextStyles.desktopTextExtraSmall(context)
+                    .copyWith(color: colors.textDark)
+              : STextStyles.titleBold12(context),
+        ),
+        if (o.detail != null)
+          Text(
+            o.detail!,
+            style: desktop
+                ? STextStyles.desktopTextExtraExtraSmall(context)
+                : STextStyles.itemSubtitle(context),
+          ),
+      ],
+    ),
+  );
+
+  if (desktop) {
+    return showDialog<T>(
       context: context,
-      backgroundColor: Theme.of(context).extension<StackColors>()!.popupBG,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) => SafeArea(
+      builder: (context) => DesktopDialog(
+        maxWidth: 450,
+        maxHeight: double.infinity,
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.only(left: 32, bottom: 32),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text("Pay from", style: STextStyles.pageTitleH2(context)),
-              const SizedBox(height: 16),
-              for (final w in wallets)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(title, style: STextStyles.desktopH3(context)),
+                  const DesktopDialogCloseButton(),
+                ],
+              ),
+              const SizedBox(height: 12),
+              for (final o in options)
                 Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: RoundedWhiteContainer(
-                    onPressed: () => Navigator.of(context).pop(w.walletId),
-                    child: Text(
-                      w.info.name,
-                      style: STextStyles.titleBold12(context),
-                    ),
-                  ),
+                  padding: const EdgeInsets.only(right: 32, bottom: 8),
+                  child: option(context, o),
                 ),
             ],
           ),
         ),
       ),
     );
+  }
+  return showModalBottomSheet<T>(
+    context: context,
+    backgroundColor: colors.popupBG,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (context) => SafeArea(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(title, style: STextStyles.pageTitleH2(context)),
+            const SizedBox(height: 16),
+            for (final o in options)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: option(context, o),
+              ),
+          ],
+        ),
+      ),
+    ),
+  );
+}

@@ -14,11 +14,9 @@ import 'package:flutter_svg/svg.dart';
 
 import '../../models/isar/models/contact_entry.dart';
 import '../../providers/global/address_book_service_provider.dart';
-import '../../providers/ui/address_book_providers/address_book_filter_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/constants.dart';
-import '../../utilities/shown_coins.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
@@ -32,7 +30,6 @@ import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_text_field.dart';
 import '../../widgets/textfield_icon_button.dart';
 import 'subviews/add_address_book_entry_view.dart';
-import 'subviews/address_book_filter_view.dart';
 
 /// The contacts, shared by all wallets. With [coin] (picking a recipient
 /// on the send screen) only contacts with an address of that coin.
@@ -55,20 +52,9 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
 
   String _searchTerm = "";
 
-  /// More than one coin to filter by (testnets shown).
-  late final bool _canFilter;
-
   @override
   void initState() {
     _searchController = TextEditingController();
-    ref.refresh(addressBookFilterProvider);
-
-    final coins = widget.coin == null
-        ? shownCoins(ref, withWalletCoins: true)
-        : [widget.coin!];
-    _canFilter = coins.length > 1;
-    ref.read(addressBookFilterProvider).addAll(coins, false);
-
     super.initState();
   }
 
@@ -82,13 +68,15 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
   void _addContact() =>
       Navigator.of(context).pushNamed(AddAddressBookEntryView.routeName);
 
-  /// Contacts with an address of a filtered coin, matching the search.
+  /// Contacts matching the search. Contacts are not tied to a wallet or
+  /// network; picking one for a payment ([AddressBookView.coin]) lists
+  /// those with an address on that network.
   List<ContactEntry> _shown(List<ContactEntry> contacts) {
-    final coins = ref.watch(addressBookFilterProvider.select((v) => v.coins));
     final service = ref.read(addressBookServiceProvider);
     return [
       for (final c in contacts)
-        if (c.addresses.any((a) => coins.contains(a.coin)) &&
+        if ((widget.coin == null ||
+                c.addresses.any((a) => a.coin == widget.coin)) &&
             service.matches(widget.filterTerm ?? _searchTerm, c))
           c,
     ];
@@ -147,14 +135,6 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
                 style: STextStyles.navBarTitle(context),
               ),
               actions: [
-                if (_canFilter && contacts.isNotEmpty)
-                  _appBarButton(
-                    key: const Key("addressBookFilterViewButton"),
-                    icon: Assets.svg.filter,
-                    onPressed: () =>
-                        Navigator.of(context)
-                            .pushNamed(AddressBookFilterView.routeName),
-                  ),
                 if (contacts.isNotEmpty)
                   _appBarButton(
                     key: const Key("addressBookAddNewContactViewButton"),

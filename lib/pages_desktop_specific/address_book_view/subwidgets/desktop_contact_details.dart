@@ -14,6 +14,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:isar_community/isar.dart';
 
 import '../../../models/isar/models/contact_entry.dart';
+import '../../../pages/home_view/payment_links.dart';
 import '../../../pages/address_book_views/subviews/add_new_contact_address_view.dart';
 import '../../../providers/db/main_db_provider.dart';
 import '../../../providers/global/address_book_service_provider.dart';
@@ -26,6 +27,7 @@ import '../../../widgets/custom_buttons/blue_text_button.dart';
 import '../../../widgets/desktop/desktop_dialog.dart';
 import '../../../widgets/desktop/secondary_button.dart';
 import '../../../widgets/loading_indicator.dart';
+import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/rounded_white_container.dart';
 import 'desktop_address_card.dart';
 import 'desktop_contact_options_menu_popup.dart';
@@ -246,6 +248,20 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
                           ],
                         ),
                       ),
+                      if (contact.addresses.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 20),
+                          child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: PrimaryButton(
+                              width: 260,
+                              buttonHeight: ButtonHeight.m,
+                              label: "Pay to ${contact.name}",
+                              onPressed: () =>
+                                  payContact(context, ref, contact),
+                            ),
+                          ),
+                        ),
                       Padding(
                         padding: const EdgeInsets.only(top: 20, bottom: 12),
                         child: Text(

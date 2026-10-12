@@ -25,6 +25,7 @@ import '../../../utilities/clipboard_interface.dart';
 import '../../../utilities/constants.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
+import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../widgets/background.dart';
 import '../../../widgets/conditional_parent.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -43,11 +44,15 @@ class AddAddressBookEntryView extends ConsumerStatefulWidget {
   const AddAddressBookEntryView({
     super.key,
     this.clipboard = const ClipboardWrapper(),
+    this.contactId,
   });
 
   static const String routeName = "/addAddressBookEntry";
 
   final ClipboardInterface clipboard;
+
+  /// Edit this contact (name, emoji and addresses) instead of adding one.
+  final String? contactId;
 
   @override
   ConsumerState<AddAddressBookEntryView> createState() =>
@@ -75,7 +80,27 @@ class _AddAddressBookEntryViewState
     nameFocusNode = FocusNode();
     scrollController = ScrollController();
 
-    _addForm();
+    final contactId = widget.contactId;
+    if (contactId == null) {
+      _addForm();
+    } else {
+      final contact = ref
+          .read(addressBookServiceProvider)
+          .getContactById(contactId);
+      nameController.text = contact.name;
+      _selectedEmoji = contact.emojiChar == null
+          ? null
+          : Emoji.byChar(contact.emojiChar!);
+      _isFavorite = contact.isFavorite;
+      for (final entry in contact.addresses) {
+        _addForm(address: entry.address, coin: entry.coin);
+      }
+      if (contact.addresses.isEmpty) _addForm();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(contactNameIsNotEmptyStateProvider.notifier).state =
+            contact.name.isNotEmpty;
+      });
+    }
     super.initState();
   }
 
@@ -97,13 +122,18 @@ class _AddAddressBookEntryViewState
     setState(() {});
   }
 
-  void _addForm() {
+  void _addForm({String? address, CryptoCurrency? coin}) {
     int id = 0;
     // ensure unique form id while allowing reuse of removed form ids
     while (_formIds.contains(id)) {
       id++;
     }
     _formIds.add(id);
+    if (address != null) {
+      ref.read(addressEntryDataProvider(id))
+        ..address = address
+        ..coin = coin;
+    }
 
     forms.add(
       NewContactAddressEntryForm(
@@ -143,7 +173,7 @@ class _AddAddressBookEntryViewState
                 },
               ),
               title: Text(
-                "New contact",
+                widget.contactId == null ? "New contact" : "Edit contact",
                 style: STextStyles.navBarTitle(context),
               ),
               actions: [
@@ -201,7 +231,9 @@ class _AddAddressBookEntryViewState
                     child: Row(
                       children: [
                         Text(
-                          "New contact",
+                          widget.contactId == null
+                              ? "New contact"
+                              : "Edit contact",
                           style: STextStyles.desktopH3(context),
                           textAlign: TextAlign.center,
                         ),
@@ -726,14 +758,19 @@ class _AddAddressBookEntryViewState
                                                   name: nameController.text,
                                                   addresses: entries,
                                                   isFavorite: _isFavorite,
-                                                  customId: const Uuid().v1(),
+                                                  customId:
+                                                      widget.contactId ??
+                                                      const Uuid().v1(),
                                                 );
 
-                                            if (await ref
-                                                .read(
-                                                  addressBookServiceProvider,
-                                                )
-                                                .addContact(contact)) {
+                                            final service = ref.read(
+                                              addressBookServiceProvider,
+                                            );
+                                            if (await (widget.contactId == null
+                                                ? service.addContact(contact)
+                                                : service.editContact(
+                                                    contact,
+                                                  ))) {
                                               if (mounted) {
                                                 Navigator.of(context).pop();
                                               }

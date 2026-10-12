@@ -13,7 +13,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../notifications/show_flush_bar.dart';
-import '../../../pages/address_book_views/subviews/edit_contact_name_emoji_view.dart';
+import '../../../pages/address_book_views/subviews/add_address_book_entry_view.dart';
 import '../../../providers/global/address_book_service_provider.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
@@ -43,41 +43,15 @@ class _DesktopContactOptionsMenuPopupState
     // pop context menu
     Navigator.of(context).pop();
 
+    // The new contact form, filled in: name, emoji and addresses.
     showDialog<dynamic>(
       context: context,
-      useSafeArea: true,
+      useSafeArea: false,
       barrierDismissible: true,
       builder: (_) => DesktopDialog(
-        maxWidth: 580,
-        maxHeight: 400,
-        child: Column(
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(left: 32),
-                  child: Text(
-                    "Edit contact",
-                    style: STextStyles.desktopH3(context),
-                  ),
-                ),
-                const DesktopDialogCloseButton(),
-              ],
-            ),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.only(
-                  top: 16,
-                  left: 32,
-                  right: 32,
-                  bottom: 32,
-                ),
-                child: EditContactNameEmojiView(contactId: widget.contactId),
-              ),
-            ),
-          ],
-        ),
+        maxHeight: 609,
+        maxWidth: 576,
+        child: AddAddressBookEntryView(contactId: widget.contactId),
       ),
     );
   }

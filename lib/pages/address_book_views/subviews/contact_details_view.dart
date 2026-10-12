@@ -31,11 +31,13 @@ import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/custom_buttons/blue_text_button.dart';
 import '../../../widgets/loading_indicator.dart';
 import '../../../widgets/rounded_container.dart';
+import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/stack_dialog.dart';
 import 'add_new_contact_address_view.dart';
 import 'edit_contact_address_view.dart';
-import 'edit_contact_name_emoji_view.dart';
+import '../../home_view/payment_links.dart';
+import 'add_address_book_entry_view.dart';
 import '../../wallet_view/transaction_views/tx_v2/transaction_v2_card.dart';
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../models/isar/models/blockchain_data/v2/input_v2.dart';
@@ -271,7 +273,7 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                         TextButton(
                           onPressed: () {
                             Navigator.of(context).pushNamed(
-                              EditContactNameEmojiView.routeName,
+                              AddAddressBookEntryView.routeName,
                               arguments: _contact.customId,
                             );
                           },
@@ -427,6 +429,13 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                         ],
                       ),
                     ),
+                    if (_contact.addresses.isNotEmpty) ...[
+                      const SizedBox(height: 24),
+                      PrimaryButton(
+                        label: "Pay to ${_contact.name}",
+                        onPressed: () => payContact(context, ref, _contact),
+                      ),
+                    ],
                     const SizedBox(height: 24),
                     Text(
                       "Transaction history",

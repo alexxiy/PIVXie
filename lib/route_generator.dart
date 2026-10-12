@@ -34,10 +34,8 @@ import 'pages/add_wallet_views/verify_recovery_phrase_view/verify_recovery_phras
 import 'pages/address_book_views/address_book_view.dart';
 import 'pages/address_book_views/subviews/add_address_book_entry_view.dart';
 import 'pages/address_book_views/subviews/add_new_contact_address_view.dart';
-import 'pages/address_book_views/subviews/address_book_filter_view.dart';
 import 'pages/address_book_views/subviews/contact_details_view.dart';
 import 'pages/address_book_views/subviews/edit_contact_address_view.dart';
-import 'pages/address_book_views/subviews/edit_contact_name_emoji_view.dart';
 import 'pages/coin_control/coin_control_view.dart';
 import 'pages/coin_control/utxo_details_view.dart';
 import 'pages/generic/single_field_edit_view.dart';
@@ -357,13 +355,6 @@ class RouteGenerator {
           settings: RouteSettings(name: settings.name),
         );
 
-      case AddressBookFilterView.routeName:
-        return getRoute(
-          shouldUseMaterialRoute: useMaterialPageRoute,
-          builder: (_) => const AddressBookFilterView(),
-          settings: RouteSettings(name: settings.name),
-        );
-
       case StackBackupView.routeName:
         return getRoute(
           shouldUseMaterialRoute: useMaterialPageRoute,
@@ -525,7 +516,8 @@ class RouteGenerator {
       case AddAddressBookEntryView.routeName:
         return getRoute(
           shouldUseMaterialRoute: useMaterialPageRoute,
-          builder: (_) => const AddAddressBookEntryView(),
+          builder: (_) =>
+              AddAddressBookEntryView(contactId: args is String ? args : null),
           settings: RouteSettings(name: settings.name),
         );
 
@@ -660,16 +652,6 @@ class RouteGenerator {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => AddNewContactAddressView(contactId: args),
-            settings: RouteSettings(name: settings.name),
-          );
-        }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
-
-      case EditContactNameEmojiView.routeName:
-        if (args is String) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => EditContactNameEmojiView(contactId: args),
             settings: RouteSettings(name: settings.name),
           );
         }

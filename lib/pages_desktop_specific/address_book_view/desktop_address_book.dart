@@ -12,18 +12,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
-import '../../app_config.dart';
 import '../../pages/address_book_views/subviews/add_address_book_entry_view.dart';
-import '../../pages/address_book_views/subviews/address_book_filter_view.dart';
 import '../../providers/global/address_book_service_provider.dart';
-import '../../providers/providers.dart';
-import '../../providers/ui/address_book_providers/address_book_filter_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
-import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../widgets/address_book_card.dart';
 import '../../widgets/desktop/desktop_app_bar.dart';
 import '../../widgets/desktop/desktop_dialog.dart';
@@ -56,21 +51,6 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
 
   String? currentContactId;
 
-  Future<void> selectCryptocurrency() async {
-    await showDialog<dynamic>(
-      context: context,
-      useSafeArea: false,
-      barrierDismissible: true,
-      builder: (context) {
-        return const DesktopDialog(
-          maxHeight: 609,
-          maxWidth: 576,
-          child: AddressBookFilterView(),
-        );
-      },
-    );
-  }
-
   Future<void> newContact() async {
     await showDialog<dynamic>(
       context: context,
@@ -91,29 +71,6 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
     _searchController = TextEditingController();
     _searchFocusNode = FocusNode();
 
-    ref.refresh(addressBookFilterProvider);
-
-    // if (widget.coin == null) {
-    final coins = AppConfig.coins.toList();
-
-    final bool showTestNet = ref
-        .read(prefsChangeNotifierProvider)
-        .showTestNetCoins;
-
-    if (showTestNet) {
-      ref.read(addressBookFilterProvider).addAll(coins, false);
-    } else {
-      ref
-          .read(addressBookFilterProvider)
-          .addAll(
-            coins.where((e) => e.network != CryptoCurrencyNetwork.test),
-            false,
-          );
-    }
-    // } else {
-    //   ref.read(addressBookFilterProvider).add(widget.coin!, false);
-    // }
-
     super.initState();
   }
 
@@ -132,46 +89,13 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
       addressBookServiceProvider.select((value) => value.contacts),
     );
 
+    // Contacts are not tied to a wallet or network: all of them, by
+    // the search.
+    final service = ref.read(addressBookServiceProvider);
     final allContacts = contacts
-        .where(
-          (element) =>
-              element.addresses.isEmpty ||
-              element.addresses
-                  .where(
-                    (e) => ref.watch(
-                      addressBookFilterProvider.select(
-                        (value) => value.coins.contains(e.coin),
-                      ),
-                    ),
-                  )
-                  .isNotEmpty,
-        )
-        .where(
-          (e) => ref.read(addressBookServiceProvider).matches(_searchTerm, e),
-        )
+        .where((e) => service.matches(_searchTerm, e))
         .toList();
-
-    final favorites = contacts
-        .where(
-          (element) =>
-              element.addresses.isEmpty ||
-              element.addresses
-                  .where(
-                    (e) => ref.watch(
-                      addressBookFilterProvider.select(
-                        (value) => value.coins.contains(e.coin),
-                      ),
-                    ),
-                  )
-                  .isNotEmpty,
-        )
-        .where(
-          (e) =>
-              e.isFavorite &&
-              ref.read(addressBookServiceProvider).matches(_searchTerm, e),
-        )
-        .where((element) => element.isFavorite)
-        .toList();
+    final favorites = allContacts.where((e) => e.isFavorite).toList();
 
     return DesktopScaffold(
       appBar: DesktopAppBar(
@@ -244,19 +168,6 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
           controlsRight: Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              SecondaryButton(
-                width: 184,
-                label: "Filter",
-                buttonHeight: ButtonHeight.l,
-                icon: SvgPicture.asset(
-                  Assets.svg.filter,
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .buttonTextSecondary,
-                ),
-                onPressed: selectCryptocurrency,
-              ),
-              const SizedBox(width: 20),
               PrimaryButton(
                 width: 184,
                 label: "Add new",
