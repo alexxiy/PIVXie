@@ -1,6 +1,6 @@
 # Building PIVXie
 
-These steps build the Android app on a Linux host. iOS needs a macOS host (see [iOS](#ios)). Desktop targets are still in the project but untested (see [Desktop](#desktop)).
+These steps build the Android app on a Linux host. iOS needs a macOS host (see [iOS](#ios)). For the Linux desktop app, see [Linux desktop](#linux-desktop).
 
 ## Requirements
 
@@ -128,11 +128,42 @@ flutter pub get
 flutter build ios --release
 ```
 
-## Desktop
+## Linux desktop
 
-The Linux, Windows and macOS targets come from Stack Wallet and still configure with `build_app.sh -p linux|windows|macos` (without `-i`, the script also builds the desktop native libraries). They are untested, and the shield library is only built for Android and iOS, so SHIELD is not available there.
+The Linux app is built on a Linux host with the same Flutter and Rust setup, plus these packages:
 
-Packaging files are in `flatpak/` (`org.pivx.pivxie`) and `appimage/pivxie/`. Both expect the Linux release bundle (`build/linux/x64/release/bundle`).
+- Ubuntu or Debian:
+  ```bash
+  sudo apt-get install clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libsecret-1-dev libjsoncpp-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libopencv-dev
+  ```
+- Fedora:
+  ```bash
+  sudo dnf install clang cmake ninja-build gtk3-devel xz-devel libsecret-devel jsoncpp-devel gstreamer1-devel gstreamer1-plugins-base-devel opencv-devel libstdc++-devel libstdc++-static
+  ```
+
+Then configure and build. `-s` links the system libsecret and jsoncpp, and `USE_SYSTEM_SECURE_STORAGE_DEPS=1` tells the Linux CMake files to bundle them:
+```bash
+export USE_SYSTEM_SECURE_STORAGE_DEPS=1
+cd scripts
+./build_app.sh -a pivxie -p linux -v 1.0.0 -b 1 -i -s
+cd ..
+flutter pub get
+flutter build linux --release
+```
+
+The app is in `build/linux/x64/release/bundle` (run `bundle/pivxie`). It keeps its data in `~/.pivxie`. SHIELD works on Linux: the Rust library is built by cargokit and bundled as `lib/libpivx_shield_ffi.so`.
+
+On Fedora (and other distributions that install libraries to `lib64`), coinlib's secp256k1 build puts the library where its install step doesn't look. Before the first build, run:
+```bash
+mkdir -p build/linux/x64/release/secp256k1
+ln -s lib64 build/linux/x64/release/secp256k1/lib
+```
+
+Packaging files are in `flatpak/` (`org.pivx.pivxie`) and `appimage/pivxie/`. Both start from the release bundle; `.github/workflows/build.yaml` shows the full steps.
+
+## Windows and macOS
+
+The SHIELD plugin has Windows and macOS build files (cargokit), and both targets configure with `build_app.sh -p windows` or `-p macos`, but these builds are untested.
 
 ## Troubleshooting
 

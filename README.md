@@ -22,7 +22,8 @@ PIVX logic follows [MyPIVXWallet](https://github.com/PIVX-Labs/MyPIVXWallet) and
 
 - **Android**: the main platform (targets Android 17, API 37).
 - **iOS**: builds on a macOS host.
-- **Desktop** (Linux, Windows, macOS): the project still has the desktop targets and packaging files (`flatpak/`, `appimage/`), but desktop builds are untested and the shield library is built for Android and iOS only.
+- **Linux**: builds and runs, SHIELD included. Packaged as a tarball, Flatpak (`flatpak/`) or AppImage (`appimage/`).
+- **Windows and macOS**: the build files are in place, SHIELD included, but these builds are untested.
 
 ## Building
 
