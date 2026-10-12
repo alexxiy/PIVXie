@@ -139,23 +139,8 @@ class AutoSWBService extends ChangeNotifier {
     for (final file in dir.listSync()) {
       final String fileName = file.uri.pathSegments.last;
       // check that its a swb auto backup file
-      if (fileName.startsWith("stackautobackup_") &&
-          fileName.endsWith(".swb")) {
-        // get date from filename
-        final int a = fileName.indexOf("_") + 1;
-        final int b = fileName.indexOf(".swb");
-        final dateString = fileName.substring(a, b);
-
-        // split date components
-        final d = dateString
-            .split("_")
-            .map((e) => int.parse(e))
-            .toList(growable: false);
-
-        // get date from components
-        final date = DateTime(d[0], d[1], d[2], d[3], d[4], d[5]);
-
-        // add date+file to list
+      final date = autoBackupDate(fileName);
+      if (date != null) {
         files.add(Tuple2(date, file));
       }
     }

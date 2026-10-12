@@ -30,8 +30,7 @@ abstract class StackFileSystem {
     _overrideDirSet = true;
   }
 
-  static bool get _createSubDirs =>
-      Util.isDesktop || AppConfig.appName == "Campfire";
+  static bool get _createSubDirs => Util.isDesktop;
 
   static Future<Directory> applicationRootDirectory() async {
     Directory appDirectory;

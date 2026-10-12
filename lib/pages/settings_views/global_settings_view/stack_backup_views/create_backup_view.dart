@@ -85,14 +85,7 @@ class _RestoreFromFileViewState extends ConsumerState<CreateBackupView> {
       final savedPath = await showLoading(
         whileFuture: () async {
           final DateTime now = DateTime.now();
-          final String fileToSavePath =
-              "$pathToSave/stackbackup"
-              "_${now.year}"
-              "_${now.month}"
-              "_${now.day}"
-              "_${now.hour}"
-              "_${now.minute}"
-              "_${now.second}.swb";
+          final String fileToSavePath = createBackupFilename(pathToSave, now);
 
           final backup = await SWB.createStackWalletJSON(
             secureStorage: ref.read(secureStoreProvider),
@@ -232,9 +225,9 @@ class _RestoreFromFileViewState extends ConsumerState<CreateBackupView> {
       builder: (child) {
         return Background(
           child: Scaffold(
-            backgroundColor: Theme.of(
-              context,
-            ).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(context)
+                .extension<StackColors>()!
+                .background,
             appBar: AppBar(
               leading: AppBarBackButton(
                 onPressed: () async {
@@ -286,9 +279,9 @@ class _RestoreFromFileViewState extends ConsumerState<CreateBackupView> {
                   "Choose file location",
                   style: STextStyles.desktopTextExtraExtraSmall(context)
                       .copyWith(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textDark3,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark3,
                       ),
                 ),
               ),
@@ -338,9 +331,9 @@ class _RestoreFromFileViewState extends ConsumerState<CreateBackupView> {
                               const SizedBox(width: 16),
                               SvgPicture.asset(
                                 Assets.svg.folder,
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.textDark3,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textDark3,
                                 width: 16,
                                 height: 16,
                               ),
@@ -374,9 +367,9 @@ class _RestoreFromFileViewState extends ConsumerState<CreateBackupView> {
                   "Create a passphrase",
                   style: STextStyles.desktopTextExtraExtraSmall(context)
                       .copyWith(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textDark3,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark3,
                       ),
                   textAlign: TextAlign.left,
                 ),
@@ -419,9 +412,9 @@ class _RestoreFromFileViewState extends ConsumerState<CreateBackupView> {
                                 hidePassword
                                     ? Assets.svg.eye
                                     : Assets.svg.eyeSlash,
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.textDark3,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textDark3,
                                 width: 16,
                                 height: 16,
                               ),
@@ -494,19 +487,19 @@ class _RestoreFromFileViewState extends ConsumerState<CreateBackupView> {
                   width: MediaQuery.of(context).size.width - 32 - 24,
                   height: 5,
                   fillColor: passwordStrength < 0.51
-                      ? Theme.of(
-                          context,
-                        ).extension<StackColors>()!.accentColorRed
+                      ? Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorRed
                       : passwordStrength < 1
-                      ? Theme.of(
-                          context,
-                        ).extension<StackColors>()!.accentColorYellow
-                      : Theme.of(
-                          context,
-                        ).extension<StackColors>()!.accentColorGreen,
-                  backgroundColor: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.buttonBackSecondary,
+                      ? Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorYellow
+                      : Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorGreen,
+                  backgroundColor: Theme.of(context)
+                      .extension<StackColors>()!
+                      .buttonBackSecondary,
                   percent: passwordStrength < 0.25 ? 0.03 : passwordStrength,
                 ),
               ),
@@ -549,9 +542,9 @@ class _RestoreFromFileViewState extends ConsumerState<CreateBackupView> {
                                 hidePassword
                                     ? Assets.svg.eye
                                     : Assets.svg.eyeSlash,
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.textDark3,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textDark3,
                                 width: 16,
                                 height: 16,
                               ),

@@ -71,11 +71,32 @@ String getErrorMessageFromSWBException(Exception e) {
   return errorMessage;
 }
 
-String createAutoBackupFilename(String dirPath, DateTime date) {
-  // this filename structure is important. DO NOT CHANGE
-  return "$dirPath/stackautobackup_"
-      "${date.year}_${date.month}_${date.day}_${date.hour}"
-      "_${date.minute}_${date.second}.swb";
+/// "2026-10-12_09-05-03": file names then sort by date.
+String _backupStamp(DateTime d) {
+  String two(int n) => n.toString().padLeft(2, "0");
+  return "${d.year}-${two(d.month)}-${two(d.day)}"
+      "_${two(d.hour)}-${two(d.minute)}-${two(d.second)}";
+}
+
+const _autoBackupPrefix = "${AppConfig.appName}-autobackup-";
+
+String createBackupFilename(String dirPath, DateTime date) =>
+    "$dirPath/${AppConfig.appName}-backup-${_backupStamp(date)}.swb";
+
+/// [autoBackupDate] reads the date back to rotate out old auto backups.
+String createAutoBackupFilename(String dirPath, DateTime date) =>
+    "$dirPath/$_autoBackupPrefix${_backupStamp(date)}.swb";
+
+/// The date of an auto backup file named by [createAutoBackupFilename],
+/// or null for any other file.
+DateTime? autoBackupDate(String fileName) {
+  final m = RegExp(
+    "^${RegExp.escape(_autoBackupPrefix)}"
+    r"(\d{4})-(\d\d)-(\d\d)_(\d\d)-(\d\d)-(\d\d)\.swb$",
+  ).firstMatch(fileName);
+  if (m == null) return null;
+  final d = [for (var i = 1; i <= 6; i++) int.parse(m.group(i)!)];
+  return DateTime(d[0], d[1], d[2], d[3], d[4], d[5]);
 }
 
 bool validateFail(
