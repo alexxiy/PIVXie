@@ -9,7 +9,6 @@ import '../../../../models/isar/models/isar_models.dart';
 import '../../../../providers/global/locale_provider.dart';
 import '../../../../providers/global/prefs_provider.dart';
 import '../../../../providers/global/price_provider.dart';
-import '../../../../providers/global/wallets_provider.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/amount/amount.dart';
 import '../../../../utilities/amount/amount_formatter.dart';
@@ -49,19 +48,13 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
     };
   }
 
+  // From the coin, not the wallet: the card can rebuild while its
+  // wallet is being deleted.
   String whatIsIt(CryptoCurrency coin, int currentHeight) =>
       _transaction.statusLabel(
         currentChainHeight: currentHeight,
-        minConfirms: ref
-            .read(pWallets)
-            .getWallet(walletId)
-            .cryptoCurrency
-            .minConfirms,
-        minCoinbaseConfirms: ref
-            .read(pWallets)
-            .getWallet(walletId)
-            .cryptoCurrency
-            .minCoinbaseConfirms,
+        minConfirms: coin.minConfirms,
+        minCoinbaseConfirms: coin.minCoinbaseConfirms,
       );
 
   @override

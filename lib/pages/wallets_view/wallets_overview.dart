@@ -8,6 +8,8 @@
  *
  */
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -116,8 +118,11 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
   /// Shown inside the home screen rather than as its own page.
   bool get _embedded => AppConfig.isSingleCoinApp || widget.allNetworks;
 
+  StreamSubscription<WalletsChangedEvent>? _walletsChanged;
+
   void updateWallets() {
     final walletsData = ref.read(pAllWalletsInfo).toList();
+    wallets.clear();
 
     walletsData.removeWhere(
       (e) => widget.allNetworks
@@ -144,22 +149,21 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
 
     updateWallets();
 
-    if (_embedded) {
-      GlobalEventBus.instance.on<WalletsChangedEvent>().listen((_) {
-        updateWallets();
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (mounted) {
-            setState(() {});
-          }
-        });
+    // Wallets added, deleted or restored from a backup.
+    _walletsChanged = GlobalEventBus.instance.on<WalletsChangedEvent>().listen((
+      _,
+    ) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) setState(updateWallets);
       });
-    }
+    });
 
     super.initState();
   }
 
   @override
   void dispose() {
+    _walletsChanged?.cancel();
     _searchController.dispose();
     searchFieldFocusNode.dispose();
     super.dispose();
@@ -167,6 +171,8 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(pAllWalletsInfo, (_, _) => setState(updateWallets));
+
     return ConditionalParent(
       condition: !isDesktop && !_embedded,
       builder: (child) => Background(

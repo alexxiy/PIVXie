@@ -58,9 +58,7 @@ class Wallets {
       );
     }
     _wallets[wallet.walletId] = wallet;
-    if (AppConfig.isSingleCoinApp) {
-      GlobalEventBus.instance.fire(WalletsChangedEvent());
-    }
+    GlobalEventBus.instance.fire(WalletsChangedEvent());
   }
 
   Future<void> deleteWallet(
@@ -93,9 +91,7 @@ class Wallets {
       await mainDB.isar.walletInfo.deleteByWalletId(walletId);
     });
 
-    if (AppConfig.isSingleCoinApp) {
-      GlobalEventBus.instance.fire(WalletsChangedEvent());
-    }
+    GlobalEventBus.instance.fire(WalletsChangedEvent());
   }
 
   Future<void> load(Prefs prefs, MainDB mainDB, bool isDuress) async {
@@ -307,6 +303,9 @@ class Wallets {
         // await walletsService.deleteWallet(walletInfo.name, false);
       }
     }
+
+    // Wallet lists show the restored wallets.
+    GlobalEventBus.instance.fire(WalletsChangedEvent());
 
     if (isDesktop) {
       if (walletInitFutures.isNotEmpty && walletsToInitLinearly.isNotEmpty) {
