@@ -146,7 +146,7 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
     {
       final categories = filter.pivxCategories;
       if (categories != null) {
-        if (!categories.contains(PivxTxCategory.of(tx))) return false;
+        if (!PivxTxCategory.allOf(tx).any(categories.contains)) return false;
       } else {
         if (!filter.sent && !filter.received) {
           return false;
@@ -235,7 +235,8 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
     contains |= tx.onChainNote?.toLowerCase().contains(keyword) ?? false;
 
     // PIVX type ("staking", "masternode", "shield", ...)
-    contains |= PivxTxCategory.of(tx).label.toLowerCase().contains(keyword);
+    contains |= PivxTxCategory.allOf(tx)
+        .any((c) => c.label.toLowerCase().contains(keyword));
 
     // amount: "1.2" finds 1.2, 1.25, 11.2, ...
     final number = keyword.replaceAll(",", ".");
@@ -966,9 +967,9 @@ class _DesktopTransactionCardRowState
                                 .textDark,
                           ),
                     ),
-                    if (_transaction.pivxAlsoMasternodeReward)
+                    if (_transaction.pivxAlsoLabel != null)
                       Text(
-                        "+ Masternode reward",
+                        "+ ${_transaction.pivxAlsoLabel}",
                         style: STextStyles.label(context),
                       ),
                   ],

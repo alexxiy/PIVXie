@@ -84,8 +84,9 @@ class _TransactionV2DetailsViewState
   late final Amount fee;
   late final String amountPrefix;
 
-  /// The masternode reward within a cold staking reward (same block).
-  Amount? _masternodePart;
+  /// The masternode reward (or proposal payment) within a cold staking
+  /// reward: the same block paid it.
+  Amount? _alsoPart;
   late final String unit;
   late final int minConfirms;
 
@@ -147,8 +148,8 @@ class _TransactionV2DetailsViewState
       _ => owned.where((e) => !e.addresses.any(change.contains)),
     };
     if (shown.isEmpty) shown = owned;
-    if (_transaction.pivxAlsoMasternodeReward) {
-      _masternodePart = Amount(
+    if (_transaction.pivxAlsoLabel != null) {
+      _alsoPart = Amount(
         rawValue: owned
             .where(
               (e) =>
@@ -383,7 +384,7 @@ class _TransactionV2DetailsViewState
                               ),
                               // PIVX: a cold stake whose block also paid our
                               // masternode: the two parts of the amount.
-                              if (_masternodePart != null) ...[
+                              if (_alsoPart != null) ...[
                                 isDesktop
                                     ? const _Divider()
                                     : const SizedBox(height: 12),
@@ -391,16 +392,16 @@ class _TransactionV2DetailsViewState
                                   label: "Cold staking reward",
                                   detail: ref
                                       .watch(pAmountFormatter(coin))
-                                      .format(amount - _masternodePart!),
+                                      .format(amount - _alsoPart!),
                                 ),
                                 isDesktop
                                     ? const _Divider()
                                     : const SizedBox(height: 12),
                                 _DetailItem(
-                                  label: "Masternode reward",
+                                  label: _transaction.pivxAlsoLabel!,
                                   detail: ref
                                       .watch(pAmountFormatter(coin))
-                                      .format(_masternodePart!),
+                                      .format(_alsoPart!),
                                 ),
                               ],
                               isDesktop

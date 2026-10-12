@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:paymint/models/transaction_filter.dart';
 import 'package:paymint/models/isar/models/blockchain_data/transaction.dart';
 import 'package:paymint/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:paymint/wallets/crypto_currency/crypto_currency.dart';
@@ -92,7 +93,44 @@ void main() {
     expect(tx.pivxKind, PivxTxKind.coldStakeReward);
     expect(tx.type, TransactionType.incoming);
     expect(amount(tx), BigInt.from(10 * _coin));
-    expect(tx.pivxAlsoMasternodeReward, isTrue);
+    expect(tx.pivxAlsoKind, PivxTxKind.masternodeReward);
+    expect(tx.pivxAlsoLabel, "Masternode reward");
+    expect(
+      PivxTxCategory.allOf(tx),
+      {PivxTxCategory.coldStakingReward, PivxTxCategory.masternodeReward},
+    );
+  });
+
+  test("a cold stake in the superblock that paid our proposal", () {
+    final delegated = 499997470;
+    final tx = parse(
+      _coinstake(
+        inputAddresses: [_staker, _owner],
+        inputValue: delegated,
+        payments: [
+          {
+            "value": "${delegated + 4 * _coin}",
+            "addresses": [_staker, _owner],
+            "hex": _p2cs,
+          },
+          {
+            "value": "${500 * _coin}",
+            "addresses": [_masternode],
+            "hex": _p2pkh,
+          },
+        ],
+      ),
+      {_owner, _masternode},
+    );
+    // A block pays the budget or a masternode, never both.
+    expect(tx.pivxKind, PivxTxKind.coldStakeReward);
+    expect(tx.pivxAlsoKind, PivxTxKind.budgetPayment);
+    expect(tx.pivxAlsoLabel, "Proposal payment");
+    expect(
+      PivxTxCategory.allOf(tx),
+      {PivxTxCategory.coldStakingReward, PivxTxCategory.proposalPayment},
+    );
+    expect(amount(tx), BigInt.from(504 * _coin));
   });
 
   test("someone else's stake pays our masternode or our proposal", () {
@@ -115,7 +153,8 @@ void main() {
 
     final reward = parse(paying(6 * _coin), {_masternode});
     expect(reward.pivxKind, PivxTxKind.masternodeReward);
-    expect(reward.pivxAlsoMasternodeReward, isFalse);
+    expect(reward.pivxAlsoKind, isNull);
+    expect(PivxTxCategory.allOf(reward), {PivxTxCategory.masternodeReward});
     expect(amount(reward), BigInt.from(6 * _coin));
 
     final budget = parse(paying(500 * _coin), {_masternode});

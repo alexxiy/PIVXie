@@ -31,6 +31,15 @@ enum PivxTxCategory {
 
   final String label;
 
+  /// The categories [tx] belongs to: its own, and that of a second kind
+  /// in the same block (a cold staking reward that also paid our
+  /// masternode shows under both).
+  static Set<PivxTxCategory> allOf(TransactionV2 tx) => {
+    of(tx),
+    if (tx.pivxAlsoKind == PivxTxKind.masternodeReward) masternodeReward,
+    if (tx.pivxAlsoKind == PivxTxKind.budgetPayment) proposalPayment,
+  };
+
   static PivxTxCategory of(TransactionV2 tx) {
     switch (tx.pivxKind) {
       case PivxTxKind.stakeReward:

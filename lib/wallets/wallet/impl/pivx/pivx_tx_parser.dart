@@ -163,9 +163,11 @@ Map<String, dynamic> pivxTxOtherData({
   BigInt? fee,
   String? memo,
   bool ownSend = false,
+  String? alsoKind,
 }) => {
   if (memo != null && memo.isNotEmpty) TxV2OdKeys.onChainNote: memo,
   if (c.kind != null) TxV2OdKeys.pivxKind: c.kind,
+  if (alsoKind != null) TxV2OdKeys.pivxAlsoKind: alsoKind,
   TxV2OdKeys.pivxAmount: Amount(
     rawValue: c.amount,
     fractionDigits: fractionDigits,
@@ -318,6 +320,11 @@ TransactionV2? parsePivxTx(
     masternodePayment: masternodePayment?.call(height > 0 ? height : null),
   );
   if (c == null) return null;
+  final alsoKind = pivxColdStakeAlsoKind(
+    c,
+    outputs,
+    masternodePayment: masternodePayment?.call(height > 0 ? height : null),
+  );
 
   // Text memos of the shield notes received or sent (the shielded memo).
   final memo = [
@@ -348,9 +355,33 @@ TransactionV2? parsePivxTx(
         changeAddresses: changeAddresses,
         fee: fee,
         memo: memo,
+        alsoKind: alsoKind,
       ),
     ),
   );
+}
+
+/// The second kind of a cold staking reward: what else its block paid us
+/// besides the delegated outputs. A block pays the budget or a masternode,
+/// never both: above the masternode payment it is our proposal.
+String? pivxColdStakeAlsoKind(
+  PivxTxClass c,
+  List<OutputV2> outputs, {
+  BigInt? masternodePayment,
+}) {
+  if (c.kind != PivxTxKind.coldStakeReward) return null;
+  final extra = outputs
+      .where(
+        (o) =>
+            o.walletOwns &&
+            o.scriptPubKeyHex.isNotEmpty &&
+            !pivxIsColdStakeScript(o.scriptPubKeyHex),
+      )
+      .fold(BigInt.zero, (p, o) => p + o.value);
+  if (extra == BigInt.zero) return null;
+  return masternodePayment != null && extra > masternodePayment
+      ? PivxTxKind.budgetPayment
+      : PivxTxKind.masternodeReward;
 }
 
 /// One output of a raw transaction: its value and script.

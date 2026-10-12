@@ -184,17 +184,20 @@ class TransactionV2 {
   String? get pivxKind =>
       _getFromOtherData(key: TxV2OdKeys.pivxKind) as String?;
 
-  /// A cold staking reward whose block also paid one of our masternodes:
-  /// an owned output besides the delegated (P2CS) ones.
+  /// A second kind in the same transaction: a cold staking reward whose
+  /// block also paid our masternode ([PivxTxKind.masternodeReward]) or our
+  /// proposal ([PivxTxKind.budgetPayment]).
   @ignore
-  bool get pivxAlsoMasternodeReward =>
-      pivxKind == PivxTxKind.coldStakeReward &&
-      outputs.any(
-        (o) =>
-            o.walletOwns &&
-            o.scriptPubKeyHex.isNotEmpty &&
-            !o.scriptPubKeyHex.startsWith("76a97b63"),
-      );
+  String? get pivxAlsoKind =>
+      _getFromOtherData(key: TxV2OdKeys.pivxAlsoKind) as String?;
+
+  /// Label of [pivxAlsoKind], e.g. "Masternode reward".
+  @ignore
+  String? get pivxAlsoLabel => switch (pivxAlsoKind) {
+    PivxTxKind.masternodeReward => "Masternode reward",
+    PivxTxKind.budgetPayment => "Proposal payment",
+    _ => null,
+  };
 
   /// PIVX change addresses among the outputs.
   @ignore
@@ -345,6 +348,10 @@ abstract final class TxV2OdKeys {
 
   /// PIVX transaction kind, see [PivxTxKind].
   static const pivxKind = "pivxKind";
+
+  /// PIVX: a second [PivxTxKind] in the same transaction, see
+  /// [TransactionV2.pivxAlsoKind].
+  static const pivxAlsoKind = "pivxAlsoKind";
 
   /// PIVX: amount to show instead of one derived from the outputs (the
   /// reward of a coinstake, the value delegated or shielded).

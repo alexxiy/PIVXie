@@ -202,12 +202,12 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
                         ],
                       ),
                       // PIVX: the same block also paid our masternode.
-                      if (_transaction.pivxAlsoMasternodeReward) ...[
+                      if (_transaction.pivxAlsoLabel != null) ...[
                         const SizedBox(height: 2),
                         Align(
                           alignment: Alignment.centerLeft,
                           child: Text(
-                            "+ Masternode reward",
+                            "+ ${_transaction.pivxAlsoLabel}",
                             style: STextStyles.label(context),
                           ),
                         ),

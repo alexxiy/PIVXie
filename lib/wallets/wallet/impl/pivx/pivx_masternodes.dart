@@ -387,7 +387,7 @@ extension PivxMasternodes on PivxWallet {
       // Our delegation may stake the very block that pays our masternode:
       // that coinstake shows as a cold staking reward.
       if (tx.pivxKind != PivxTxKind.masternodeReward &&
-          tx.pivxKind != PivxTxKind.coldStakeReward) {
+          tx.pivxAlsoKind != PivxTxKind.masternodeReward) {
         continue;
       }
       for (final o in tx.outputs) {
