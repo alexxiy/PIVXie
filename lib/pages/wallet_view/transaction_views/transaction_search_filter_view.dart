@@ -167,13 +167,68 @@ class _TransactionSearchViewState
     }
   }
 
-  /// One checkbox per PIVX transaction type.
+  /// One checkbox per PIVX transaction type, and "All" above them.
   Widget _pivxCategoryBox(bool isDesktop) {
+    final all = PivxTxCategory.values.length;
+    // Ticked when all are, a dash when some are.
+    final bool? allValue = _categories.length == all
+        ? true
+        : _categories.isEmpty
+        ? false
+        : null;
+    void toggleAll() => setState(() {
+      if (_categories.length == all) {
+        _categories.clear();
+      } else {
+        _categories.addAll(PivxTxCategory.values);
+      }
+    });
     return RoundedWhiteContainer(
       padding: EdgeInsets.all(isDesktop ? 0 : 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Padding(
+            padding: EdgeInsets.only(bottom: isDesktop ? 4 : 10),
+            child: GestureDetector(
+              onTap: toggleAll,
+              child: Container(
+                color: Colors.transparent,
+                child: Row(
+                  children: [
+                    SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: Checkbox(
+                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        tristate: true,
+                        value: allValue,
+                        onChanged: (_) => toggleAll(),
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Text(
+                      "All",
+                      style:
+                          (isDesktop
+                                  ? STextStyles.desktopTextSmall(context)
+                                  : STextStyles.itemSubtitle12(context))
+                              .copyWith(fontWeight: FontWeight.w600),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.only(bottom: isDesktop ? 4 : 10),
+            child: Divider(
+              height: 1,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .textFieldDefaultBG,
+            ),
+          ),
           for (final c in PivxTxCategory.values)
             Padding(
               padding: EdgeInsets.only(bottom: isDesktop ? 4 : 10),
