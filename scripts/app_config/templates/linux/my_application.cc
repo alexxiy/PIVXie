@@ -50,6 +50,10 @@ static void my_application_activate(GApplication* application) {
 
   g_autoptr(FlDartProject) project = fl_dart_project_new();
   fl_dart_project_set_dart_entrypoint_arguments(project, self->dart_entrypoint_arguments);
+  // Skia, not Impeller: Impeller's OpenGL renderer draws filled shapes
+  // without anti-aliasing on many Linux setups, so the SVG logos and icons
+  // came out jagged.
+  fl_dart_project_set_enable_impeller(project, FALSE);
 
   FlView* view = fl_view_new(project);
   GdkRGBA background_color;
