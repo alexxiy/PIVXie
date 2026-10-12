@@ -145,10 +145,8 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
         onException: (e) => ex = e,
       );
 
+      // showLoading has closed its progress dialog.
       if (mounted) {
-        // pop encryption progress dialog
-        Navigator.of(context).pop();
-
         if (savedPath != null) {
           ref.read(prefsChangeNotifierProvider).autoBackupLocation = pathToSave;
           ref.read(prefsChangeNotifierProvider).lastAutoBackup = now;

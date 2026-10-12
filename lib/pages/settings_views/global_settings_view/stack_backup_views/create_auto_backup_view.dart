@@ -136,12 +136,10 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
         onException: (e) => ex = e,
       );
 
+      // showLoading has closed its progress dialog.
       if (mounted) {
-        // pop encryption progress dialog
-        Navigator.of(context).pop();
-
         if (savedPath != null) {
-          ref.read(prefsChangeNotifierProvider).autoBackupLocation = savedPath;
+          ref.read(prefsChangeNotifierProvider).autoBackupLocation = pathToSave;
           ref.read(prefsChangeNotifierProvider).lastAutoBackup = now;
 
           ref.read(prefsChangeNotifierProvider).isAutoBackupEnabled = true;
@@ -158,9 +156,8 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
             passwordController.text = "";
             passwordRepeatController.text = "";
 
-            Navigator.of(
-              context,
-            ).popUntil(ModalRoute.withName(AutoBackupView.routeName));
+            Navigator.of(context)
+                .popUntil(ModalRoute.withName(AutoBackupView.routeName));
           }
         } else {
           await showDialog<dynamic>(
@@ -289,9 +286,9 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
                                       const SizedBox(width: 16),
                                       SvgPicture.asset(
                                         Assets.svg.folder,
-                                        color: Theme.of(
-                                          context,
-                                        ).extension<StackColors>()!.textDark3,
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .textDark3,
                                         width: 16,
                                         height: 16,
                                       ),
@@ -432,9 +429,9 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
                                     MediaQuery.of(context).size.width - 32 - 24,
                                 height: 5,
                                 fillColor: passwordStrength < 0.51
-                                    ? Theme.of(
-                                        context,
-                                      ).extension<StackColors>()!.accentColorRed
+                                    ? Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .accentColorRed
                                     : passwordStrength < 1
                                     ? Theme.of(context)
                                           .extension<StackColors>()!
@@ -442,9 +439,9 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
                                     : Theme.of(context)
                                           .extension<StackColors>()!
                                           .accentColorGreen,
-                                backgroundColor: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.buttonBackSecondary,
+                                backgroundColor: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .buttonBackSecondary,
                                 percent: passwordStrength < 0.25
                                     ? 0.03
                                     : passwordStrength,
@@ -522,9 +519,9 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
                               ),
                               Positioned.fill(
                                 child: RawMaterialButton(
-                                  splashColor: Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.highlight,
+                                  splashColor: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .highlight,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(
                                       Constants.size.circularBorderRadius,

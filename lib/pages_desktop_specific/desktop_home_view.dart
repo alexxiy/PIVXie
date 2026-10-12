@@ -95,9 +95,12 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
     }
   }
 
+  /// Kept for dispose(), where ref can no longer be used.
+  late final Prefs _prefs;
+
   late AutoLockInfo _autoLockInfo;
   void _prefsTimeoutListener() {
-    final prefs = ref.read(prefsChangeNotifierProvider);
+    final prefs = _prefs;
     if (mounted && prefs.autoLockInfo != _autoLockInfo) {
       _autoLockInfo = prefs.autoLockInfo;
       if (_autoLockInfo.enabled) {
@@ -131,7 +134,8 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
     );
     _idleMonitor?.attach();
 
-    ref.read(prefsChangeNotifierProvider).addListener(_prefsTimeoutListener);
+    _prefs = ref.read(prefsChangeNotifierProvider);
+    _prefs.addListener(_prefsTimeoutListener);
 
     // A link that came while the app was starting, or else the wallet
     // chosen in the startup preferences.
@@ -148,7 +152,7 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
 
   @override
   dispose() {
-    ref.read(prefsChangeNotifierProvider).removeListener(_prefsTimeoutListener);
+    _prefs.removeListener(_prefsTimeoutListener);
     _idleMonitor?.detach();
     super.dispose();
   }

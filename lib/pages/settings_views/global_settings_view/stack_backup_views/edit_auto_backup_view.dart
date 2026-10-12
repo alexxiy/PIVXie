@@ -147,10 +147,8 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
         onException: (e) => ex = e,
       );
 
+      // showLoading has closed its progress dialog.
       if (mounted) {
-        // pop encryption progress dialog
-        Navigator.of(context).pop();
-
         if (savedPath != null) {
           ref.read(prefsChangeNotifierProvider).autoBackupLocation = pathToSave;
           ref.read(prefsChangeNotifierProvider).lastAutoBackup = now;
@@ -169,6 +167,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
             passwordController.text = "";
             passwordRepeatController.text = "";
 
+            // On desktop the OK dialog closed this edit dialog too.
             if (!Util.isDesktop) {
               Navigator.of(context)
                   .popUntil(ModalRoute.withName(AutoBackupView.routeName));
