@@ -61,7 +61,6 @@ class _COIN_CONTROL {
 
   String get blocked => "${_path}frozen.svg";
   String get unBlocked => "${_path}unfrozen.svg";
-  String get gamePad => "${_path}gamepad.svg";
   String get selected => "${_path}selected.svg";
 }
 

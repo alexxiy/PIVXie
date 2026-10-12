@@ -215,11 +215,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
 
     final options = <(WalletFeature, Object, FutureOr<void> Function())>[
       if (showCoinControl)
-        (
-          WalletFeature.coinControl,
-          Assets.svg.coinControl.gamePad,
-          _onCoinControlPressed,
-        ),
+        (WalletFeature.coinControl, Icons.checklist_rtl, _onCoinControlPressed),
       if (wallet is PivxWallet && !isViewOnly)
         (
           WalletFeature.masternodes,

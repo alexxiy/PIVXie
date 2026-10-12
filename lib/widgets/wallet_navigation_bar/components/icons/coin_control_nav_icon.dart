@@ -9,19 +9,17 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+
 import '../../../../themes/stack_colors.dart';
-import '../../../../utilities/assets.dart';
 
 class CoinControlNavIcon extends StatelessWidget {
   const CoinControlNavIcon({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return SvgPicture.asset(
-      Assets.svg.coinControl.gamePad,
-      height: 20,
-      width: 20,
+    return Icon(
+      Icons.checklist_rtl,
+      size: 20,
       color: Theme.of(context).extension<StackColors>()!.bottomNavIconIcon,
     );
   }
