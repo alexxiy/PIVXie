@@ -22,6 +22,7 @@ import '../../../../models/isar/models/blockchain_data/utxo.dart';
 import '../../../../models/isar/models/contact_entry.dart';
 import '../../../../models/send_view_auto_fill_data.dart';
 import '../../../../pages/coin_control/coin_control_view.dart';
+import '../../../../pages/home_view/payment_links.dart';
 import '../../../../pages/send_view/confirm_transaction_view.dart';
 import '../../../../pages/send_view/sub_widgets/building_transaction_dialog.dart';
 import '../../../../pages/send_view/sub_widgets/pivx_change_address_sheet.dart';
@@ -799,6 +800,15 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
     onCryptoAmountChanged = _cryptoAmountChanged;
     cryptoAmountController.addListener(onCryptoAmountChanged);
+
+    // A pivx: payment link opened for this wallet.
+    final link = ref.read(pDesktopPaymentLink);
+    if (link != null && link.walletId == walletId) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(pDesktopPaymentLink.notifier).state = null;
+        if (mounted) _applyUri(link.data);
+      });
+    }
 
     if (_data != null) {
       final hasAmount = _data.amount != null;

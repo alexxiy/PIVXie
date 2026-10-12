@@ -79,41 +79,7 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
     }
   }
 
-  Future<void> _logout() async {
-    final wallet = ref.read(pWallets).getWallet(widget.walletId);
-    // if (_shouldDisableAutoSyncOnLogOut) {
-    //   // disable auto sync if it was enabled only when loading wallet
-    wallet.shouldAutoSync = false;
-    // }
-    ref.read(transactionFilterProvider.notifier).state = null;
-    if (ref.read(prefsChangeNotifierProvider).isAutoBackupEnabled &&
-        ref.read(prefsChangeNotifierProvider).backupFrequencyType ==
-            BackupFrequencyType.afterClosingAWallet) {
-      unawaited(ref.read(autoSWBServiceProvider).doBackup());
-    }
-
-    // Close the wallet according to syncing preferences.
-    switch (ref.read(prefsChangeNotifierProvider).syncType) {
-      case SyncingType.currentWalletOnly:
-        // Close the wallet.
-        unawaited(wallet.exit());
-      // unawaited so we don't lag the UI.
-      case SyncingType.selectedWalletsAtStartup:
-        // Close if this wallet is not in the list to be synced.
-        if (!ref
-            .read(prefsChangeNotifierProvider)
-            .walletIdsSyncOnStartup
-            .contains(widget.walletId)) {
-          unawaited(wallet.exit());
-          // unawaited so we don't lag the UI.
-        }
-      case SyncingType.allWalletsOnStartup:
-        // Do nothing.
-        break;
-    }
-
-    ref.read(currentWalletIdProvider.notifier).state = null;
-  }
+  Future<void> _logout() async => closeDesktopWallet(ref, widget.walletId);
 
   @override
   void initState() {
@@ -361,4 +327,42 @@ class DesktopWalletHeaderRow extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// Leave a wallet as its back button does: stop its auto sync and close
+/// it, or keep it syncing, per the syncing preferences.
+Future<void> closeDesktopWallet(WidgetRef ref, String walletId) async {
+  final wallet = ref.read(pWallets).getWallet(walletId);
+  // if (_shouldDisableAutoSyncOnLogOut) {
+  //   // disable auto sync if it was enabled only when loading wallet
+  wallet.shouldAutoSync = false;
+  // }
+  ref.read(transactionFilterProvider.notifier).state = null;
+  if (ref.read(prefsChangeNotifierProvider).isAutoBackupEnabled &&
+      ref.read(prefsChangeNotifierProvider).backupFrequencyType ==
+          BackupFrequencyType.afterClosingAWallet) {
+    unawaited(ref.read(autoSWBServiceProvider).doBackup());
+  }
+
+  // Close the wallet according to syncing preferences.
+  switch (ref.read(prefsChangeNotifierProvider).syncType) {
+    case SyncingType.currentWalletOnly:
+      // Close the wallet.
+      unawaited(wallet.exit());
+    // unawaited so we don't lag the UI.
+    case SyncingType.selectedWalletsAtStartup:
+      // Close if this wallet is not in the list to be synced.
+      if (!ref
+          .read(prefsChangeNotifierProvider)
+          .walletIdsSyncOnStartup
+          .contains(walletId)) {
+        unawaited(wallet.exit());
+        // unawaited so we don't lag the UI.
+      }
+    case SyncingType.allWalletsOnStartup:
+      // Do nothing.
+      break;
+  }
+
+  ref.read(currentWalletIdProvider.notifier).state = null;
 }

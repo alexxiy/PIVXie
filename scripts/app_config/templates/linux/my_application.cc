@@ -20,6 +20,14 @@ static void first_frame_cb(MyApplication* self, FlView *view)
 // Implements GApplication::activate.
 static void my_application_activate(GApplication* application) {
   MyApplication* self = MY_APPLICATION(application);
+
+  // Started again (e.g. to open a pivx: link): show the window we have.
+  GList* windows = gtk_application_get_windows(GTK_APPLICATION(application));
+  if (windows) {
+    gtk_window_present(GTK_WINDOW(windows->data));
+    return;
+  }
+
   GtkWindow* window =
       GTK_WINDOW(gtk_application_window_new(GTK_APPLICATION(application)));
 
@@ -67,6 +75,18 @@ static gboolean my_application_local_command_line(GApplication* application, gch
   // Strip out the first argument as it is the binary name.
   self->dart_entrypoint_arguments = g_strdupv(*arguments + 1);
 
+  // One instance, which gets the pivx: links of later starts, unless it
+  // is started on another data directory ("-d <dir>").
+  for (gchar** arg = *arguments + 1; *arg != nullptr; arg++) {
+    if (g_strcmp0(*arg, "-d") == 0) {
+      g_application_set_flags(
+          application,
+          static_cast<GApplicationFlags>(g_application_get_flags(application) |
+                                         G_APPLICATION_NON_UNIQUE));
+      break;
+    }
+  }
+
   g_autoptr(GError) error = nullptr;
   if (!g_application_register(application, nullptr, &error)) {
      g_warning("Failed to register: %s", error->message);
@@ -77,7 +97,9 @@ static gboolean my_application_local_command_line(GApplication* application, gch
   g_application_activate(application);
   *exit_status = 0;
 
-  return TRUE;
+  // Not handled here: the command line goes on to the first instance,
+  // where the app_links plugin reads the link from it.
+  return FALSE;
 }
 
 // Implements GApplication::startup.
@@ -124,6 +146,6 @@ MyApplication* my_application_new() {
 
   return MY_APPLICATION(g_object_new(my_application_get_type(),
                                      "application-id", APPLICATION_ID,
-                                     "flags", G_APPLICATION_NON_UNIQUE,
+                                     "flags", G_APPLICATION_HANDLES_COMMAND_LINE,
                                      nullptr));
 }

@@ -8,10 +8,12 @@
  *
  */
 
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../pages/home_view/payment_links.dart';
 import '../providers/desktop/current_desktop_menu_item.dart';
 import '../providers/global/active_wallet_provider.dart';
 import '../providers/global/auto_swb_service_provider.dart';
@@ -46,16 +48,40 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
   late final Navigator myStackViewNav;
   IdleMonitor? _idleMonitor;
 
+  /// The idle lock dialog is up: payment links wait for the unlock.
+  bool _locked = false;
+  bool _openingLink = false;
+
+  Future<void> _openPendingLink() async {
+    final nav = myStackViewNavKey.currentState as NavigatorState?;
+    if (_locked || _openingLink || !mounted || nav == null) return;
+    final link = ref.read(pPendingPaymentLink);
+    if (link == null) return;
+    ref.read(pPendingPaymentLink.notifier).state = null;
+    _openingLink = true;
+    try {
+      await openPaymentLinkDesktop(context, ref, nav, link);
+    } finally {
+      _openingLink = false;
+    }
+  }
+
   void _onIdle() async {
     final context = myStackViewNavKey.currentContext;
     if (context != null) {
-      await showDialog<void>(
-        barrierDismissible: false,
-        context: context,
-        useSafeArea: false,
-        builder: (context) =>
-            const Background(child: Center(child: DesktopUnlockAppDialog())),
-      );
+      _locked = true;
+      try {
+        await showDialog<void>(
+          barrierDismissible: false,
+          context: context,
+          useSafeArea: false,
+          builder: (context) =>
+              const Background(child: Center(child: DesktopUnlockAppDialog())),
+        );
+      } finally {
+        _locked = false;
+      }
+      unawaited(_openPendingLink());
     }
   }
 
@@ -97,9 +123,10 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
 
     ref.read(prefsChangeNotifierProvider).addListener(_prefsTimeoutListener);
 
-    // WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-    //   showOneTimeTorHasBeenAddedDialogIfRequired(context);
-    // });
+    // A link that came while the app was starting or locked.
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => unawaited(_openPendingLink()),
+    );
 
     super.initState();
   }
@@ -170,6 +197,10 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(pPendingPaymentLink, (_, next) {
+      if (next != null) unawaited(_openPendingLink());
+    });
+
     return Material(
       color: Theme.of(context).extension<StackColors>()!.background,
       child: Background(

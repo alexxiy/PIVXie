@@ -11,6 +11,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../pages/home_view/payment_links.dart';
 import '../../../../providers/global/wallets_provider.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../../../widgets/custom_tab_view.dart';
@@ -32,6 +33,9 @@ class _MyWalletState extends ConsumerState<MyWallet> {
 
   late final bool isViewOnly;
 
+  /// A new key per payment link: a fresh Send tab that fills itself in.
+  int _paymentLinks = 0;
+
   @override
   void initState() {
     final wallet = ref.read(pWallets).getWallet(widget.walletId);
@@ -46,6 +50,10 @@ class _MyWalletState extends ConsumerState<MyWallet> {
 
   @override
   Widget build(BuildContext context) {
+    ref.listen(pDesktopPaymentLink, (_, next) {
+      if (next?.walletId == widget.walletId) setState(() => _paymentLinks++);
+    });
+
     if (isViewOnly) {
       return ListView(
         primary: false,
@@ -67,6 +75,7 @@ class _MyWalletState extends ConsumerState<MyWallet> {
         RoundedWhiteContainer(
           padding: EdgeInsets.zero,
           child: CustomTabView(
+            key: ValueKey(_paymentLinks),
             titles: titles,
             children: [
               Padding(

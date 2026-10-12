@@ -161,9 +161,13 @@ ln -s lib64 build/linux/x64/release/secp256k1/lib
 
 Packaging files are in `flatpak/` (`org.pivx.pivxie`) and `appimage/pivxie/`. Both start from the release bundle; `.github/workflows/build.yaml` shows the full steps.
 
+`pivx:` payment links: the app runs as a single instance (unless started with `-d <dir>`), so starting it again with a link hands the link to the running window. The desktop entries of both packages register the `pivx` scheme. To open links with a plain bundle, install a desktop entry for it, e.g. `~/.local/share/applications/pivxie.desktop` with `Exec=/path/to/bundle/pivxie %u` and `MimeType=x-scheme-handler/pivx;`, then run `xdg-mime default pivxie.desktop x-scheme-handler/pivx`.
+
 ## Windows and macOS
 
 The SHIELD plugin has Windows and macOS build files (cargokit), and both targets configure with `build_app.sh -p windows` or `-p macos`, but these builds are untested.
+
+For `pivx:` links, the Windows app registers itself for the current user when it starts, unless another installed app (e.g. PIVX Core) already handles them. The macOS app declares the scheme in `macos/Runner/Info.plist`.
 
 ## Troubleshooting
 
