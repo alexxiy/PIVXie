@@ -1203,17 +1203,22 @@ class _PivxTxParts extends StatelessWidget {
     ];
     final outputs = [
       for (final o in transaction.outputs)
-        (
-          address: where(o.addresses, shield: o.scriptPubKeyHex.isEmpty),
-          value: o.value,
-          tag: !o.walletOwns
-              ? null
-              : pivxIsColdStakeScript(o.scriptPubKeyHex)
-              ? "Delegated"
-              : o.addresses.any(change.contains)
-              ? "Change"
-              : "Yours",
-        ),
+        // Skip the empty first output of a coinstake (staking rewards,
+        // proposal and masternode payouts): a marker, no address, 0 PIV.
+        if (!(o.scriptPubKeyHex.isEmpty &&
+            o.addresses.every((e) => e.isEmpty) &&
+            o.value == BigInt.zero))
+          (
+            address: where(o.addresses, shield: o.scriptPubKeyHex.isEmpty),
+            value: o.value,
+            tag: !o.walletOwns
+                ? null
+                : pivxIsColdStakeScript(o.scriptPubKeyHex)
+                ? "Delegated"
+                : o.addresses.any(change.contains)
+                ? "Change"
+                : "Yours",
+          ),
     ];
 
     return Column(
