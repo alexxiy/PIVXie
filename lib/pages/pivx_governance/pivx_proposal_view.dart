@@ -7,6 +7,7 @@ import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount_formatter.dart';
 import '../../utilities/block_explorers.dart';
 import '../../utilities/text_styles.dart';
+import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -38,6 +39,7 @@ class PivxProposalView extends ConsumerStatefulWidget {
 
 class _PivxProposalViewState extends ConsumerState<PivxProposalView> {
   late Future<Map<String, PivxMasternodeVote>> _votes;
+  late Future<List<PivxProposalPayout>> _payouts;
   bool _voted = false;
 
   PivxWallet get _wallet =>
@@ -47,6 +49,10 @@ class _PivxProposalViewState extends ConsumerState<PivxProposalView> {
   void initState() {
     super.initState();
     _votes = _wallet.masternodeVotes(widget.proposal);
+    _payouts = _wallet.proposalPayouts(
+      widget.proposal,
+      chainHeight: ref.read(pWalletChainHeight(widget.walletId)),
+    );
   }
 
   Future<void> _vote(PivxVote vote) async {
@@ -193,9 +199,29 @@ class _PivxProposalViewState extends ConsumerState<PivxProposalView> {
                             const SizedBox(height: 12),
                             Row(
                               children: [
-                                fact(
-                                  "Payments",
-                                  "${p.paymentsMade} of ${p.totalPayments} made",
+                                Expanded(
+                                  child: FutureBuilder<List<PivxProposalPayout>>(
+                                    future: _payouts,
+                                    builder: (context, snapshot) {
+                                      final payouts = snapshot.data;
+                                      final paid = payouts
+                                          ?.where(
+                                            (e) =>
+                                                e.state == PivxPayoutState.paid,
+                                          )
+                                          .length;
+                                      return Row(
+                                        children: [
+                                          fact(
+                                            "Paid",
+                                            paid == null
+                                                ? "…"
+                                                : "$paid of ${p.totalPayments}",
+                                          ),
+                                        ],
+                                      );
+                                    },
+                                  ),
                                 ),
                                 fact(
                                   "Superblocks",
@@ -246,6 +272,74 @@ class _PivxProposalViewState extends ConsumerState<PivxProposalView> {
                               const SizedBox(height: 4),
                               Text("${p.abstains} abstained", style: secondary),
                             ],
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      RoundedWhiteContainer(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text(
+                              "Payouts",
+                              style: STextStyles.w600_14(context),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              "One per superblock, if the proposal passes "
+                              "then. Checked on the blockchain.",
+                              style: secondary,
+                            ),
+                            const SizedBox(height: 4),
+                            FutureBuilder<List<PivxProposalPayout>>(
+                              future: _payouts,
+                              builder: (context, snapshot) {
+                                if (snapshot.hasError) {
+                                  return Text(
+                                    "Couldn't check the payouts",
+                                    style: secondary,
+                                  );
+                                }
+                                final payouts = snapshot.data;
+                                if (payouts == null) {
+                                  return const Padding(
+                                    padding: EdgeInsets.all(8),
+                                    child: Center(
+                                      child: CircularProgressIndicator(),
+                                    ),
+                                  );
+                                }
+                                final height = ref.watch(
+                                  pWalletChainHeight(widget.walletId),
+                                );
+                                return Column(
+                                  children: [
+                                    for (final payout in payouts)
+                                      PivxPayoutRow(
+                                        payout: payout,
+                                        amount: payout.amount == null
+                                            ? null
+                                            : fmt.format(payout.amount!),
+                                        chainHeight: height,
+                                        blockSeconds: wallet
+                                            .cryptoCurrency
+                                            .targetBlockTimeSeconds,
+                                        onOpen: payout.txid == null
+                                            ? null
+                                            : () => launchUrl(
+                                                getBlockExplorerTransactionUrlFor(
+                                                  coin: wallet.cryptoCurrency,
+                                                  txid: payout.txid!,
+                                                ),
+                                                mode: LaunchMode
+                                                    .externalApplication,
+                                              ),
+                                      ),
+                                  ],
+                                );
+                              },
+                            ),
                           ],
                         ),
                       ),

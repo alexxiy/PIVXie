@@ -481,6 +481,78 @@ String pivxBudgetVoteSignature({
   return base64Encode(signature);
 }
 
+/// Where one payout of a proposal stands.
+enum PivxPayoutState {
+  /// Its superblock is still ahead.
+  upcoming,
+
+  /// Its superblock has passed and the network is paying the budget,
+  /// one proposal per block.
+  paying,
+
+  /// Paid ([PivxProposalPayout.txid]).
+  paid,
+
+  /// The budget for its superblock was paid without it (not enough votes
+  /// at the time, budget used up, or no finalized budget).
+  notPaid,
+}
+
+/// One payout of a proposal: the superblock it is due at.
+class PivxProposalPayout {
+  const PivxProposalPayout({
+    required this.superblock,
+    required this.state,
+    this.txid,
+    this.height,
+    this.amount,
+  });
+
+  final int superblock;
+  final PivxPayoutState state;
+
+  /// The paying transaction (a coinstake) and its block, once paid.
+  final String? txid;
+  final int? height;
+  final Amount? amount;
+}
+
+/// The payout of [superblock] to [address] among the bridge's [txs] of
+/// that address after the superblock: a coinstake (or coinbase) output
+/// paying it. Null when none pays it.
+PivxProposalPayout? pivxPaidPayout(
+  List<Map<String, dynamic>> txs, {
+  required String address,
+  required int superblock,
+  required int fractionDigits,
+}) {
+  for (final tx in txs) {
+    if (tx["coinstake"] != true && tx["coinbase"] != true) continue;
+    final height = tx["blockHeight"] as int?;
+    if (height == null || height < superblock) continue;
+    for (final o in (tx["vout"] as List? ?? const [])) {
+      final out = o as Map;
+      if (((out["addresses"] as List?) ?? const []).contains(address)) {
+        return PivxProposalPayout(
+          superblock: superblock,
+          state: PivxPayoutState.paid,
+          txid: tx["txid"] as String,
+          height: height,
+          amount: Amount(
+            rawValue: BigInt.parse(out["value"] as String),
+            fractionDigits: fractionDigits,
+          ),
+        );
+      }
+    }
+  }
+  return null;
+}
+
+/// Settled payouts (paid or not paid) never change: by proposal hash and
+/// superblock.
+final _settledPayouts = <String, PivxProposalPayout>{};
+
 extension PivxGovernanceWallet on PivxWallet {
   bool get _mainnet => cryptoCurrency.network == CryptoCurrencyNetwork.main;
 
@@ -499,6 +571,67 @@ extension PivxGovernanceWallet on PivxWallet {
     rawValue: BigInt.from(_kBlockValueSats) * BigInt.from(budgetCycleBlocks),
     fractionDigits: cryptoCurrency.fractionDigits,
   );
+
+  /// Blocks after a superblock in which the budget is paid: one
+  /// proposal per block, from the superblock on (PIVX Core's
+  /// CFinalizedBudget::GetPayeeAndAmount).
+  int get budgetPayoutBlocks => _mainnet ? 100 : 50;
+
+  /// The payouts of [p], each checked on chain: a coinstake (or coinbase)
+  /// paying its address in the blocks after the superblock.
+  Future<List<PivxProposalPayout>> proposalPayouts(
+    PivxProposal p, {
+    required int chainHeight,
+  }) async {
+    final cycle = budgetCycleBlocks;
+    final window = budgetPayoutBlocks;
+    final payouts = <PivxProposalPayout>[];
+    for (var i = 0; i < p.totalPayments; i++) {
+      final superblock = p.blockStart + i * cycle;
+      final key = "${p.hash}:$superblock";
+      final settled = _settledPayouts[key];
+      if (settled != null) {
+        payouts.add(settled);
+        continue;
+      }
+      if (chainHeight < superblock) {
+        payouts.add(
+          PivxProposalPayout(
+            superblock: superblock,
+            state: PivxPayoutState.upcoming,
+          ),
+        );
+        continue;
+      }
+      final txs = await bridge.addressTxs(
+        p.paymentAddress,
+        from: superblock,
+        to: superblock + window - 1,
+      );
+      final paid = pivxPaidPayout(
+        txs,
+        address: p.paymentAddress,
+        superblock: superblock,
+        fractionDigits: cryptoCurrency.fractionDigits,
+      );
+      final PivxProposalPayout payout;
+      if (paid != null) {
+        payout = _settledPayouts[key] = paid;
+      } else if (chainHeight < superblock + window) {
+        payout = PivxProposalPayout(
+          superblock: superblock,
+          state: PivxPayoutState.paying,
+        );
+      } else {
+        payout = _settledPayouts[key] = PivxProposalPayout(
+          superblock: superblock,
+          state: PivxPayoutState.notPaid,
+        );
+      }
+      payouts.add(payout);
+    }
+    return payouts;
+  }
 
   static const _kPendingProposals = "pivxPendingProposals";
 

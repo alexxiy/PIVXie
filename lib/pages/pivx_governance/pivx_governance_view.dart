@@ -9,6 +9,7 @@ import '../../utilities/amount/amount_formatter.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
+import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -73,7 +74,15 @@ class _PivxGovernanceViewState extends ConsumerState<PivxGovernanceView> {
   /// This wallet's masternode votes, by proposal hash (filled in as they
   /// arrive).
   final _votes = <String, Map<String, PivxMasternodeVote>>{};
+
+  /// Where each proposal's payouts stand, by proposal hash (filled in as
+  /// they arrive).
+  final _payouts = <String, List<PivxProposalPayout>>{};
   int _generation = 0;
+
+  /// Our proposals waiting for their fee to confirm: the list follows
+  /// new blocks (their confirmations, then the submission).
+  bool _hasPending = false;
 
   _Tab _tab = _Tab.current;
   _Filter _filter = _Filter.all;
@@ -104,7 +113,11 @@ class _PivxGovernanceViewState extends ConsumerState<PivxGovernanceView> {
       }
       return wallet.loadGovernance();
     }();
-    _governance.then((g) => _loadVotes(g, generation), onError: (_) {});
+    _governance.then((g) {
+      _hasPending = g.pending.isNotEmpty;
+      _loadPayouts(g, generation);
+      _loadVotes(g, generation);
+    }, onError: (_) {});
     if (_past != null) _loadPast();
   }
 
@@ -133,6 +146,26 @@ class _PivxGovernanceViewState extends ConsumerState<PivxGovernanceView> {
         }
       } catch (e) {
         Logging.instance.w("PIVX: votes of ${p.name}: $e");
+      }
+    }
+  }
+
+  /// One proposal at a time: a request per payout due (settled ones are
+  /// cached).
+  Future<void> _loadPayouts(PivxGovernance g, int generation) async {
+    final wallet = _wallet;
+    for (final p in g.current) {
+      if (!mounted || generation != _generation) return;
+      try {
+        final payouts = await wallet.proposalPayouts(
+          p,
+          chainHeight: g.chainHeight,
+        );
+        if (mounted && generation == _generation) {
+          setState(() => _payouts[p.hash] = payouts);
+        }
+      } catch (e) {
+        Logging.instance.w("PIVX: payouts of ${p.name}: $e");
       }
     }
   }
@@ -172,6 +205,10 @@ class _PivxGovernanceViewState extends ConsumerState<PivxGovernanceView> {
 
   @override
   Widget build(BuildContext context) {
+    // A new block: follow our waiting proposals without a pull.
+    ref.listen(pWalletChainHeight(widget.walletId), (previous, next) {
+      if (_hasPending && previous != next) setState(_load);
+    });
     final colors = Theme.of(context).extension<StackColors>()!;
     final wallet = _wallet;
     final canCreate = !wallet.isViewOnly;
@@ -275,6 +312,7 @@ class _PivxGovernanceViewState extends ConsumerState<PivxGovernanceView> {
               proposal: p,
               governance: g,
               votes: _votes[p.hash],
+              payouts: _payouts[p.hash],
               onTap: () => _open(p, g),
             ),
           ],
@@ -539,6 +577,7 @@ class _ProposalCard extends ConsumerWidget {
     required this.proposal,
     required this.governance,
     required this.votes,
+    required this.payouts,
     required this.onTap,
   });
 
@@ -546,6 +585,9 @@ class _ProposalCard extends ConsumerWidget {
   final PivxProposal proposal;
   final PivxGovernance governance;
   final Map<String, PivxMasternodeVote>? votes;
+
+  /// Checked on chain; null until loaded.
+  final List<PivxProposalPayout>? payouts;
   final VoidCallback onTap;
 
   @override
@@ -559,6 +601,8 @@ class _ProposalCard extends ConsumerWidget {
         if (labels[e.key] != null) (label: labels[e.key]!, vote: e.value.vote),
     ];
     final startsLater = p.blockStart > governance.nextSuperblock;
+    int paid(List<PivxProposalPayout> payouts) =>
+        payouts.where((e) => e.state == PivxPayoutState.paid).length;
 
     return RoundedWhiteContainer(
       padding: const EdgeInsets.all(14),
@@ -592,6 +636,8 @@ class _ProposalCard extends ConsumerWidget {
                 TextSpan(
                   text: startsLater
                       ? " × ${p.totalPayments} · from block ${p.blockStart}"
+                      : payouts != null
+                      ? " · ${paid(payouts!)} of ${p.totalPayments} paid"
                       : " · ${p.remainingPayments} of ${p.totalPayments} "
                             "payment${p.totalPayments == 1 ? "" : "s"} left",
                   style: STextStyles.w500_12(context)
@@ -600,6 +646,14 @@ class _ProposalCard extends ConsumerWidget {
               ],
             ),
           ),
+          if (payouts != null) ...[
+            const SizedBox(height: 6),
+            PivxPayoutStatusLine(
+              payouts: payouts!,
+              chainHeight: governance.chainHeight,
+              blockSeconds: wallet.cryptoCurrency.targetBlockTimeSeconds,
+            ),
+          ],
           const SizedBox(height: 12),
           PivxVotesBar(
             yeas: p.yeas,

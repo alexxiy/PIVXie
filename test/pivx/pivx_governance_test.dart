@@ -69,4 +69,55 @@ void main() {
     expect((past[1].yeas, past[1].nays), (20, 30));
     expect(past[1].yesPercent, 40);
   });
+
+  test("a proposal payout is found in the superblock's coinstake", () {
+    // Regtest superblock 8064 paid the 10 PIV proposal "budgettest3".
+    const payee = "yDTMsQVS3ZAfweCPbtLXDHKuJZyejNyBVw";
+    final txs = [
+      {
+        "txid": "50767c9b60ed03de",
+        "blockHeight": 8064,
+        "coinstake": true,
+        "coinbase": false,
+        "vout": [
+          {"value": "0", "addresses": <String>[]},
+          {
+            "value": "2400000000",
+            "addresses": ["yECK47R6X9gXe6HoZ2k14G1gyxUtLRCe9p"],
+          },
+          {
+            "value": "1000000000",
+            "addresses": [payee],
+          },
+        ],
+      },
+    ];
+    final paid = pivxPaidPayout(
+      txs,
+      address: payee,
+      superblock: 8064,
+      fractionDigits: 8,
+    )!;
+    expect(paid.state, PivxPayoutState.paid);
+    expect(paid.txid, "50767c9b60ed03de");
+    expect(paid.height, 8064);
+    expect(paid.amount!.raw, BigInt.from(1000000000));
+
+    // A plain payment to the address is not a payout, nor is one before
+    // the superblock.
+    final plain = {...txs.first, "coinstake": false};
+    expect(
+      pivxPaidPayout(
+        [plain],
+        address: payee,
+        superblock: 8064,
+        fractionDigits: 8,
+      ),
+      isNull,
+    );
+    expect(
+      pivxPaidPayout(txs, address: payee, superblock: 8208, fractionDigits: 8),
+      isNull,
+    );
+  });
 }

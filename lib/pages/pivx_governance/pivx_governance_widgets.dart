@@ -8,6 +8,7 @@ import '../../utilities/assets.dart';
 import '../../utilities/text_styles.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
 import '../../widgets/stack_dialog.dart';
+import '../pivx_masternodes/pivx_masternodes_view.dart';
 
 /// Readable on light themes too (deepens light accents such as yellow).
 Color _readable(Color color, StackColors colors) {
@@ -314,5 +315,148 @@ Future<void> openPivxProposalUrl(BuildContext context, String url) async {
   );
   if (ok == true) {
     await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+}
+
+/// How long until block [height], e.g. "~2 h".
+String pivxTimeUntilBlock(int height, int chainHeight, int blockSeconds) =>
+    "~${pivxDuration((height - chainHeight).clamp(0, 1 << 30) * blockSeconds)}";
+
+/// One line on where a proposal's payouts stand, for its card: being
+/// paid, missed, the next one, or all made.
+class PivxPayoutStatusLine extends StatelessWidget {
+  const PivxPayoutStatusLine({
+    super.key,
+    required this.payouts,
+    required this.chainHeight,
+    required this.blockSeconds,
+  });
+
+  final List<PivxProposalPayout> payouts;
+  final int chainHeight;
+  final int blockSeconds;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<StackColors>()!;
+    PivxProposalPayout? first(PivxPayoutState state) =>
+        payouts.where((e) => e.state == state).firstOrNull;
+    final paying = first(PivxPayoutState.paying);
+    final next = first(PivxPayoutState.upcoming);
+    final settled = payouts.where(
+      (e) =>
+          e.state == PivxPayoutState.paid || e.state == PivxPayoutState.notPaid,
+    );
+    final last = settled.isEmpty ? null : settled.last;
+    String until(PivxProposalPayout p) =>
+        pivxTimeUntilBlock(p.superblock, chainHeight, blockSeconds);
+
+    final (String, IconData, Color)? line = paying != null
+        ? (
+            "Being paid now, from block ${paying.superblock}",
+            Icons.hourglass_top_rounded,
+            colors.accentColorBlue,
+          )
+        : last?.state == PivxPayoutState.notPaid
+        ? (
+            "Not paid at block ${last!.superblock}"
+                "${next == null ? "" : " · next payout in ${until(next)}"}",
+            Icons.error_outline_rounded,
+            _readable(colors.accentColorRed, colors),
+          )
+        : next != null
+        ? (
+            "Next payout at block ${next.superblock}, in ${until(next)}",
+            Icons.schedule_rounded,
+            colors.textSubtitle1,
+          )
+        : last != null
+        ? (
+            "All payouts made",
+            Icons.check_circle_outline_rounded,
+            _readable(colors.accentColorGreen, colors),
+          )
+        : null;
+    if (line == null) return const SizedBox.shrink();
+    return Row(
+      children: [
+        Icon(line.$2, size: 14, color: line.$3),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            line.$1,
+            style: STextStyles.w500_12(context).copyWith(color: line.$3),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// One payout in a proposal's details: its block and where it stands.
+/// A paid one opens its transaction.
+class PivxPayoutRow extends StatelessWidget {
+  const PivxPayoutRow({
+    super.key,
+    required this.payout,
+    required this.amount,
+    required this.chainHeight,
+    required this.blockSeconds,
+    this.onOpen,
+  });
+
+  final PivxProposalPayout payout;
+
+  /// The paid amount, formatted.
+  final String? amount;
+  final int chainHeight;
+  final int blockSeconds;
+  final VoidCallback? onOpen;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<StackColors>()!;
+    final p = payout;
+    final (text, color) = switch (p.state) {
+      PivxPayoutState.paid => (
+        "Paid${amount == null ? "" : " $amount"}",
+        _readable(colors.accentColorGreen, colors),
+      ),
+      PivxPayoutState.notPaid => (
+        "Not paid",
+        _readable(colors.accentColorRed, colors),
+      ),
+      PivxPayoutState.paying => ("Being paid", colors.accentColorBlue),
+      PivxPayoutState.upcoming => (
+        "In ${pivxTimeUntilBlock(p.superblock, chainHeight, blockSeconds)}",
+        colors.textSubtitle1,
+      ),
+    };
+    return InkWell(
+      onTap: onOpen,
+      borderRadius: BorderRadius.circular(6),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                "Block ${p.superblock}",
+                style: STextStyles.w500_14(context),
+              ),
+            ),
+            PivxPill(text: text, color: color),
+            if (onOpen != null) ...[
+              const SizedBox(width: 6),
+              Icon(
+                Icons.open_in_new_rounded,
+                size: 16,
+                color: colors.accentColorBlue,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
   }
 }

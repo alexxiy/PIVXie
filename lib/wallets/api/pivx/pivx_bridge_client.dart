@@ -225,6 +225,26 @@ class PivxBridgeClient {
     return json["blockHash"] as String;
   }
 
+  /// Transactions of [address] between blocks [from] and [to] (newest
+  /// first, at most [pageSize]).
+  Future<List<Map<String, dynamic>>> addressTxs(
+    String address, {
+    int? from,
+    int? to,
+    int pageSize = 1000,
+  }) async {
+    final json = await _getJson("/api/v2/address/$address", {
+      "details": "txs",
+      "pageSize": "$pageSize",
+      if (from != null) "from": "$from",
+      if (to != null) "to": "$to",
+    }) as Map;
+    return [
+      for (final t in (json["transactions"] as List?) ?? const [])
+        Map<String, dynamic>.from(t as Map),
+    ];
+  }
+
   /// One page of `/api/v2/xpub/{xpub}`.
   Future<Map<String, dynamic>> xpub(
     String xpub, {
