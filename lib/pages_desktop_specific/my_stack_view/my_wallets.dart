@@ -67,9 +67,12 @@ class _MyWalletsState extends ConsumerState<MyWallets> {
           ),
           const SizedBox(height: 20),
           Expanded(
-            child: AppConfig.isSingleCoinApp
+            // One list when every coin is a network of the same one (PIVX
+            // and its test network), as on mobile.
+            child: AppConfig.coins.map((e) => e.mainNetId).toSet().length == 1
                 ? WalletsOverview(
                     coin: AppConfig.coins.first,
+                    allNetworks: true,
                     navigatorState: Navigator.of(context),
                     overrideSimpleWalletCardPopPreviousValueWith: false,
                   )
