@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=PIVXie
+Comment=Non-custodial PIVX wallet
+Exec=pivxie
+Icon=pivxie
+Type=Application
+Categories=Office;Finance;
+Keywords=PIVX;wallet;crypto;staking;masternode;

@@ -1,11 +1,14 @@
-Stack Wallet is a fully open source cryptocurrency wallet. With an easy to use user interface and quick and speedy transactions, this wallet is ideal for anyone no matter how much they know about the cryptocurrency space. The app is actively maintained to provide new user friendly features.
+PIVXie is a non-custodial mobile wallet for PIVX. Your recovery phrase and keys never leave your phone, and nobody else can move your coins.
 
-Highlights include:
-- 10 Different cryptocurrencies
-- All private keys and seeds stay on device and are never shared.
-- Easy backup and restore feature to save all the information that's important to you.
-- Trading cryptocurrencies through our partners.
-- Custom address book
-- Favorite wallets with fast syncing
-- Custom Nodes.
-- Open source software.
+Highlights:
+- SHIELD private transactions: shield, unshield and send privately, with an optional encrypted memo.
+- Cold staking: delegate PIV to a staker and earn staking rewards while your coins stay in your wallet. Pick a staker from masternode.space or use your own node, and undelegate at any time.
+- Masternodes: set up a masternode from your wallet, start it, and follow its status and rewards.
+- Governance: browse budget proposals, vote with your masternodes, submit your own proposal, and see when budget payments arrive.
+- Clear history: staking rewards, masternode rewards and proposal payments are labelled, and you can filter by each type.
+- Coin control, an address book and pivx: payment links.
+- Encrypted backups of all your wallets and settings, plus automatic backups.
+- PIN and fingerprint lock.
+- Optional Tor for every connection.
+- Connect to your own pivx-bridge server if you prefer.
+- Open source (GPLv3), with no ads and no tracking.

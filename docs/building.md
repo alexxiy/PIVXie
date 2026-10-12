@@ -1,383 +1,140 @@
-# Building
+# Building PIVXie
 
-Here you will find instructions on how to install the necessary tools for building and running the app.
+These steps build the Android app on a Linux host. iOS needs a macOS host (see [iOS](#ios)). Desktop targets are still in the project but untested (see [Desktop](#desktop)).
 
-## Prerequisites
+## Requirements
 
-- The only OS supported for building Android and Linux desktop is Ubuntu 24.04.  Windows builds require using Ubuntu 24.04 on WSL2.  macOS builds for itself and iOS.  Advanced users may also be able to build on other Debian-based distributions like Linux Mint.
-- Android setup ([Android Studio](https://developer.android.com/studio) and subsequent dependencies)
-- 100 GB of storage
-- Install go: [https://go.dev/doc/install](https://go.dev/doc/install)
+- A Linux host. PIVXie is built on Fedora 44; Ubuntu 24.04 works too.
+- About 40 GB of free disk space (Flutter, the Android SDK, Gradle and Rust caches, and the build output).
+- [Flutter](https://docs.flutter.dev/install/manual) 3.47.7 or newer (Dart 3.13). Run `flutter doctor` to check the install.
+- JDK 17.
+- The Android SDK with the command-line tools, platform 37 (Android 17) and NDK 28.0.13004108. You can install them with Android Studio's SDK Manager or with `sdkmanager`:
+  ```bash
+  sdkmanager "platforms;android-37.0" "build-tools;36.0.0" "ndk;28.0.13004108" "cmake;3.22.1"
+  ```
+- [Rust](https://rustup.rs) (stable) with the Android targets. The SHIELD library (`crypto_plugins/flutter_libpivxshield`) is Rust and is compiled during `flutter build`:
+  ```bash
+  rustup target add aarch64-linux-android armv7-linux-androideabi x86_64-linux-android
+  ```
+- Docker or Podman, only for building `libsecp256k1` for the host tests.
 
-## Linux host
-
-The following instructions are for building and running on a Linux host.  Alternatively, see the [Mac](#mac-host) and/or [Windows](#windows-host) section.  This entire section (except for the Android Studio section) needs to be completed in WSL if building on a Windows host.
-
-### Flutter
-Install Flutter 3.38.5 by [following their guide](https://docs.flutter.dev/get-started/install/linux/desktop?tab=download#install-the-flutter-sdk).  Run `flutter doctor` in a terminal to confirm its installation.
-
-### Android Studio
-Install Android Studio.  Follow instructions here [https://developer.android.com/studio/install#linux](https://developer.android.com/studio/install#linux) or install via snap:
-```
-# setup android studio
-sudo apt install -y openjdk-11-jdk
-sudo snap install android-studio --classic
-```
-
-Use `Tools > SDK Manager` and navigate to `Languages & Frameworks > Android SDK > SDK tools` to install:
- - `SDK Tools > Android SDK command line tools`
- - `SDK Tools > CMake`
-and for Android builds,
- - `SDK Tools > Android SDK (API 35)`
- - `SDK Tools > NDK`
-
-Then in `File > Settings > Plugins`, install the **Flutter** and **Dart** plugins and restart the IDE.  In `File > Settings > Languages & Frameworks > Flutter > Editor`, enable auto format on save to match the project's code style.  If you have problems with the Dart SDK, make sure to run `flutter` in a terminal to download it (use `source ~/.bashrc` to update your environment variables if you're still using the same terminal from which you ran `setup.sh`).  Run `flutter doctor` to install any missing dependencies and review and agree to any license agreements.
-
-Make a Pixel 4 (API 30) x86_64 emulator with 2GB of storage space for emulation.
-
-The following *may* be needed for Android studio:
-```
-sudo apt-get install libc6:i386 libncurses5:i386 libstdc++6:i386 lib32z1 libbz2-1.0:i386
+Set the environment, for example in `~/.bashrc`:
+```bash
+export JAVA_HOME=/path/to/jdk17
+export ANDROID_HOME=/path/to/android-sdk
+export ANDROID_NDK_HOME=$ANDROID_HOME/ndk/28.0.13004108
+export PATH=/path/to/flutter/bin:$JAVA_HOME/bin:$ANDROID_HOME/platform-tools:$HOME/.cargo/bin:$PATH
 ```
 
-### Build dependencies
-Install basic dependencies
-```
-sudo apt-get install libssl-dev curl unzip automake build-essential file pkg-config git python3 libtool libtinfo6 cmake libgit2-dev clang libncurses5-dev libncursesw5-dev zlib1g-dev llvm lld g++ gcc gperf libopencv-dev python3-typogrify xsltproc valac gobject-introspection meson pipx libgcrypt20-dev libglib2.0-dev libsecret-1-dev
-pipx install meson==0.64.1 markdown==3.4.1 markupsafe==2.1.1 jinja2==3.1.2 pygments==2.13.0 toml==0.10.2 typogrify==2.0.7 tomli==2.0.1
+## Get the code
+
+The app lives on the `pivxie` branch:
+```bash
+git clone --branch pivxie <PIVXie repository URL> PIVXie
+cd PIVXie
 ```
 
-Install [Rust](https://www.rust-lang.org/tools/install) via [rustup.rs](https://rustup.rs), the required Rust toolchains, and `cargo-ndk` with command:
-```
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-source ~/.bashrc
-rustup install 1.89.0 1.85.1 1.81.0
-rustup default 1.89.0
-cargo install cargo-ndk
-```
+## Configure
 
-Android specific dependencies:
-```
-sudo apt-get install libc6-dev-i386
-rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android
-```
+The project is a white-label Stack Wallet tree. `scripts/build_app.sh` turns it into PIVXie: it writes `pubspec.yaml` from `scripts/app_config/templates/pubspec.template.yaml`, generates `lib/app_config.g.dart` and the PIVX plugin interfaces, creates the platform files (Android manifest, Gradle files, iOS `Info.plist`, and so on) from `scripts/app_config/templates/`, and generates the icons and splash screen.
 
-Linux desktop specific dependencies:
-```
-sudo apt-get install clang cmake lld ninja-build pkg-config libgtk-3-dev liblzma-dev meson python3-pip libgirepository1.0-dev valac xsltproc docbook-xsl
-pip3 install --upgrade meson==0.64.1 markdown==3.4.1 markupsafe==2.1.1 jinja2==3.1.2 pygments==2.13.0 toml==0.10.2 typogrify==2.0.7 tomli==2.0.1
-```
-
-### Flutter
-Install Flutter 3.38.5 by [following their guide](https://docs.flutter.dev/install/manual).
-
-Run `flutter doctor` in a terminal to confirm its installation.
-
-### Clone the repository and initialize submodules
-After installing the prerequisites listed above, download the code and init the submodules
-```
-git clone https://github.com/cypherstack/stack_wallet.git
-cd stack_wallet
-git submodule foreach 'git fetch --tags' && git submodule update --init --recursive
-```
-
-Build the secure storage dependencies in order to target Linux (not needed for Windows or other platforms):
-```
-cd scripts/linux
-./build_secure_storage_deps.sh
-// when finished go back to the root directory
-cd ../..
-```
-
-### Build secp256k1
-Coinlib requires a secp256k1 library to be built prior to running Stack Wallet.  It can be built from within the root `stack_wallet` folder on a...
- - Linux host for Linux targets:  `dart run coinlib:build_linux` (requires [Docker](https://docs.docker.com/engine/install/ubuntu/) or [`podman`](https://podman.io/docs/installation))
- - Linux host for Windows targets: `dart run coinlib:build_windows_crosscompile`
- - Windows host: `dart run coinlib:build_windows`
- - WSL2 host: `dart run coinlib:build_wsl`
- - macOS host: `dart run coinlib:build_macos`
-
-or by using `scripts/linux/build_secp256k1.sh` or `scripts/windows/build_secp256k1.bat`.
-
-### Run prebuild script
-
-Certain test wallet parameter and API key template files must be created in order to run Stack Wallet.  These can be created by script as in
-```
+```bash
 cd scripts
-./prebuild.sh
-// when finished go back to the root directory
+./build_app.sh -a pivxie -p android -v 1.0.0 -b 1 -i
 cd ..
 ```
-or manually by creating the files referenced in that script with the specified content.
 
-### Build plugins
-#### Build script: `build_app.sh`
-The `build_app.sh` script is used to build the Stack Wallet and its family of applications.  View the script's help message with `./build_app.sh -h` for more information on its usage.
+- `-a pivxie`: the app (the only one in this tree).
+- `-p`: the platform: `android`, `ios`, `linux`, `macos` or `windows`.
+- `-v` and `-b`: the version name and the build number. The script asks you to confirm them: never ship a lower build number than an installed version.
+- `-i`: skip the native plugin scripts. Android needs none: the shield library is built by Flutter.
 
-Options:
+Run the configure step again after you change a template, `configure_pivxie.sh` or the version. The generated platform files are not tracked in git.
 
- - `a <app>`: Specify the application ID (required).  Valid options are `stack_wallet` or `stack_duo`.
- - `b <build_number>`: Specify the build number in 123 (required).
- - `p <platform>`: Specify the platform to build for (required).  Valid options are `android`, `ios`, `macos`, `linux`, or `windows`.
- - `v <version>`: Specify the version of the application in 1.2.3 format (required).
- - `i`: Optional flag to skip building crypto plugins.  Useful for updating `pubspec.yaml` and white-labelling different apps with the same plugins.
+The app ID is `org.pivx.pivxie`. The app name, links and supported networks are in `scripts/app_config/configure_pivxie.sh`.
 
-For example,
-```
-./build_app.sh -a stack_wallet -p linux -v 2.1.0 -b 210
+## Build the APK
+
+```bash
+flutter pub get
+flutter build apk --release --target-platform android-arm64
 ```
 
-#### Building plugins for Android 
-> Warning: This will take a long time, please be patient
+The APK is written to `build/app/outputs/flutter-apk/app-release.apk`.
+
+Release builds are mainnet only. To include the PIVX testnet (and regtest), add `--dart-define=PIVX_TESTNET=true`. Debug builds always include it.
+
+### Signing
+
+Release builds are signed with the keystore described in `android/key.properties` (ignored by git):
+```properties
+storeFile=/path/to/release-keystore.jks
+storePassword=...
+keyAlias=...
+keyPassword=...
 ```
+
+Keep the release keystore out of the repository. For test builds you can point `key.properties` at a development keystore, but never publish an APK signed with it.
+
+### Run on a device
+
+```bash
+flutter run --dart-define=PIVX_TESTNET=true
+```
+
+The Android emulator works only with x86_64 images. A real phone is better for checking the UI and the shield sync speed. Debug builds are much slower at shield work than release builds.
+
+## Server
+
+PIVXie gets chain data from a [pivx-bridge](https://github.com/PIVX-Labs/pivx-bridge) server. The bridge must run with `ADDR_INDEX=true` for transaction history. You can add your own server in the app under the PIVX node settings, and set the default one in `lib/wallets/crypto_currency/coins/pivx.dart` (`defaultNode`).
+
+## Tests
+
+The host tests need `libsecp256k1` in `build/`:
+```bash
+dart run coinlib:build_linux
+```
+
+If `lib/app_config.g.dart` is missing (for example after `build_runner` deleted it), `scripts/ensure_test_app_config.sh` writes the PIVXie config again.
+
+General tests:
+```bash
+flutter test --concurrency=4 $(find test -name "*_test.dart" ! -path "test/pivx/*")
+```
+
+PIVX tests:
+```bash
+flutter test --concurrency=1 test/pivx/
+```
+
+Without extra settings, the regtest tests in `test/pivx/` are skipped. They need a PIVX Core regtest node and a pivx-bridge connected to it. They share one chain and mine blocks, so always run them with `--concurrency=1`. Set:
+
+| Variable | Value |
+| --- | --- |
+| `PIVX_BRIDGE` | The bridge URL, for example `http://127.0.0.1:3000` |
+| `PIVX_CLI` | The `pivx-cli` command for the regtest node, for example `pivx-cli -datadir=/srv/pivx-regtest` |
+| `PIVX_SHIELD_LIB` | The host build of the shield library: `cargo build --release` in `crypto_plugins/flutter_libpivxshield/rust`, then `target/release/libpivx_shield_ffi.so` |
+| `PIVX_PARAMS_DIR` | The folder with the Sapling parameters (`sapling-output.params`, `sapling-spend.params`) |
+| `PIVX_MN_KEY`, `PIVX_MN_SERVICE` | For the masternode start test: the key and `ip:port` of a regtest masternode server that is running |
+
+## iOS
+
+On a macOS host with Xcode, CocoaPods, Flutter and Rust (with the `aarch64-apple-ios` target):
+```bash
 cd scripts
-./build_app.sh -a stack_wallet -p android
-```
-
-#### Building plugins for Linux
-```
-cd scripts
-./build_app.sh -a stack_wallet -p linux
-```
-
-#### Building plugins and configure for Windows
-*This step is only necessary inside WSL2 for building on a Windows host.*
-
-Install dependencies like MXE:
-```
-cd scripts/windows
-./deps.sh
-```
-
-Upgrade the version of cmake >= 3.31.6, the default version of ubuntu 24.04 (3.28.1) will be too low to build libepiccash.
-You can use pip to install a specific version
-```
-sudo apt remove cmake
-pip install cmake==3.31.6
-```
-
-install go in WSL [https://go.dev/doc/install](https://go.dev/doc/install) (follow linux instructions) and ensure you have `mingw-w64` package installed to get the `x86_64-w64-mingw32-gcc` compiler.
-
-go version should be at least 1.24
-
-and use `scripts/build_app.sh` to build plugins: (see the [Build script section](#build-script-build_appsh) to understand the arguments)
-```
+./build_app.sh -a pivxie -p ios -v 1.0.0 -b 1 -i
 cd ..
-./build_app.sh -a stack_wallet -p windows -v 2.4.4 -b 301
-```
-
-### Running
-#### Android
-Plug in your android device or use the emulator available via Android Studio and then run the following commands:
-```
 flutter pub get
-flutter run android
+flutter build ios --release
 ```
 
-Note on Emulators: Only x86_64 emulators are supported, x86 emulators will not work.  You should [configure KVM](https://help.ubuntu.com/community/KVM/Installation) for much better performance.
+## Desktop
 
-#### Linux
-Run the following commands or launch via Android Studio:
-```
-flutter pub get
-flutter run linux
-```
+The Linux, Windows and macOS targets come from Stack Wallet and still configure with `build_app.sh -p linux|windows|macos` (without `-i`, the script also builds the desktop native libraries). They are untested, and the shield library is only built for Android and iOS, so SHIELD is not available there.
 
-## Mac host
+Packaging files are in `flatpak/` (`org.pivx.pivxie`) and `appimage/pivxie/`. Both expect the Linux release bundle (`build/linux/x64/release/bundle`).
 
-### Dependencies
-XCode, Homebrew and several homebrew packages, Rust, and Flutter are required for Mac development with the Flutter SDK.  Multiple IDEs may work, but Android Studio is recommended.
+## Troubleshooting
 
-Download and install Xcode at https://developer.apple.com/xcode/, register your device (Mac or iPhone), and enable developer mode for your device as applicable.  After installing XCode, make sure commandline tools are installed with `xcode-select --install`.
-
-Download and install [Homebrew](https://brew.sh/).  The following command can install it via script:
-```
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-```
-
-After installing Homebrew, install the following packages:
-```
-brew install autoconf automake boost berkeley-db ca-certificates cbindgen cmake cocoapods curl git libssh2 libsodium make openssl@1.1 openssl@3 perl pkg-config rustup-init unbound unzip xz zmq
-```
-
-The following brew formula *may* be needed:
-```
-brew install brotli cairo coreutils gdbm gettext glib gmp libevent libidn2 libnghttp2 libtool libunistring libx11 libxau libxcb libxdmcp libxext libxrender lzo m4 openldap pcre2 pixman procs rtmpdump tcl-tk xorgproto zstd
-```
-<!-- TODO: determine which of the above list are not needed at all. -->
-
-Download and install [Rust](https://www.rust-lang.org/tools/install).  [Rustup](https://rustup.rs/) is recommended for Rust setup.  Use `rustc` to confirm successful installation.  Install toolchains 1.81.0, 1.85.1, and 1.89.0 as well as `cbindgen` and `cargo-lipo` too.  You will also have to add the platform target(s) `aarch64-apple-ios` and/or `aarch64-apple-darwin`.  You can use the command(s):
-```
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-source ~/.bashrc 
-rustup install 1.89.0 1.85.1 1.81.0
-rustup default 1.89.0
-cargo install cargo-ndk
-cargo install cbindgen cargo-lipo
-rustup target add aarch64-apple-ios aarch64-apple-darwin
-```
-
-Optionally download [Android Studio](https://developer.android.com/studio) as an IDE and activate its Dart and Flutter plugins.  VS Code may work as an alternative, but this is not recommended.
-
-### Flutter
-Install 3.38.5 on your Mac host by [following their guide](https://docs.flutter.dev/install/manual).  Run `flutter doctor` in a terminal to confirm its installation.
-
-### Build plugins and configure
-#### Building plugins for iOS 
-```
-cd scripts
-./build_app.sh -a stack_wallet -p ios
-```
-
-#### Building plugins for macOS
-```
-cd scripts
-./build_app.sh -a stack_wallet -p macos
-```
-
-### Run prebuild script
-Certain test wallet parameter and API key template files must be created in order to run Stack Wallet.  These can be created by script as in
-```
-cd scripts
-./prebuild.sh
-// when finished go back to the root directory
-cd ..
-```
-or manually by creating the files referenced in that script with the specified content.
-
-### Running
-#### iOS
-Plug in your iOS device or use an emulato and then run the following commands:
-```
-flutter pub get
-flutter run ios
-```
-
-#### macOS
-Run the following commands or launch via Android Studio:
-```
-flutter pub get
-flutter run macos
-```
-
-## Windows host
-
-### Visual Studio
-Visual Studio 2022 is required for Windows development with the Flutter SDK.  Download it at https://learn.microsoft.com/en-us/visualstudio/releases/2022/release-history and install the "Desktop development with C++", "Linux development with C++", and "Visual C++ build tools" workloads.  You may also need the Windows 10, 11, and/or Universal SDK workloads depending on your Windows version.
-
-### Build plugins in WSL2
-Set up Ubuntu 24.04 in WSL2.  Follow the entire Linux host section in the WSL2 Ubuntu 24.04 host to get set up to build.  The Android Studio section may be skipped in WSL (it's only needed on the Windows host).
-
-Install the following libraries:
-```
-sudo apt-get install libgtk2.0-dev nasm mingw-w64
-```
-
-The WSL2 host may optionally be navigated to the `stack_wallet` repository on the Windows host in order to build the plugins in-place and skip the next section in which you copy the `dll`s from WSL2 to Windows.
-
-In this case, you need to enable "metadata" in your wsl setup to be able to modify files on your Windows filesystem.
-Add this content to your /etc/wsl.conf in WSL.
-```
-[automount]
-options = "metadata"
-```
-Then restart the wsl from Windows
-```
-wsl --shutdown
-wsl
-```
-
-https://stackoverflow.com/questions/46610256/chmod-wsl-bash-doesnt-work/50856772#50856772
-
-Then build windows `dll` libraries by running the following script on the WSL2 Ubuntu 24.04 host:
-
-- `stack_wallet/scripts/windows/build_all.sh`
-
-If the DLLs were built on the WSL filesystem instead of on Windows, copy the resulting `dll`s to their respective positions on the Windows host:
-
-- `stack_wallet/crypto_plugins/flutter_libepiccash/scripts/windows/build/libepic_cash_wallet.dll`
-
-<!-- TODO: script the copying or installation of libraries from WSL2 to the parent Windows host -->
-
-Frostdart will be built by the Windows host later.
-
-### Install Flutter on Windows host
-Install Flutter 3.38.5 on your Windows host (not in WSL2) by [following their guide](https://docs.flutter.dev/install/manual).  Run `flutter doctor` in PowerShell to confirm its installation.
-
-### Rust
-Install [Rust](https://www.rust-lang.org/tools/install) on the Windows host (not in WSL2).  Download the installer from [rustup.rs](https://rustup.rs), make sure it works on the commandline (you may need to open a new terminal), and install the following versions:
-```
-rustup install 1.89.0 1.85.1 1.81.0
-rustup default 1.89.0
-cargo install cargo-ndk
-```
-
-### Windows SDK and Developer Mode
-Install the Windows SDK: https://developer.microsoft.com/en-us/windows/downloads/windows-sdk/  You may need to install the [Windows 10 SDK](https://developer.microsoft.com/en-us/windows/downloads/sdk-archive/), which can be installed [by Visual Studio](https://stackoverflow.com/a/73923899) (`Tools > Get Tools and Features... > Modify > Individual Components > Windows 10 SDK`).
-
-Enable Developer Mode for symlink support,
-```
-start ms-settings:developers
-```
-
-Or enable it automatically from powershell:
-```
-PS C:\WINDOWS\system32> reg add "HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\AppModelUnlock" /t REG_DWORD /f /v "AllowDevelopmentWithoutDevLicense" /d "1"
-```
-
-
-Install NuGet:
-```
-winget install 9WZDNCRDMDM3 --accept-package-agreements # NuGet, can also use Microsoft.NuGet
-```
-
-Then restart your terminal and add a source to nuget:
-```
-nuget sources add -Name "nuget.org" -Source "https://api.nuget.org/v3/index.json" 
-```
-
-Install and CppWinRT / C++/WinRT SDKs version `2.0.210806.1` with the help of nuget:
-```
-nuget install Microsoft.Windows.CppWinRT --Version 2.0.210806.1
-```
-
-or [download the package](https://www.nuget.org/packages/Microsoft.Windows.CppWinRT/2.0.210806.1) and [manually install it](https://github.com/Baseflow/flutter-permission-handler/issues/1025#issuecomment-1518576722) by placing it in `flutter/bin` with [nuget.exe](https://dist.nuget.org/win-x86-commandline/latest/nuget.exe) and installing by running `nuget install Microsoft.Windows.CppWinRT -Version 2.0.210806.1` in the root `stack_wallet` folder. 
-<!-- TODO: script this NuGet and WinCppRT installation -->
-
-### Run prebuild script
-
-Certain test wallet parameter and API key template files must be created in order to run Stack Wallet on Windows.  These can be created by script using PowerShell on the Windows host as in
-```
-cd scripts
-powershell -ExecutionPolicy Bypass -File prebuild.ps1
-cd .. // When finished go back to the root directory.
-```
-
-
-or manually by creating the files referenced in that script with the specified content. 
-
-### Build frostdart
-
-In PowerShell on the Windows host, navigate to the `stack_wallet` folder:
-```
-cd crypto_plugins/frostdart/scripts/windows
-./build_all.bat
-cd .. // When finished go back to the root directory.
-```
-
-### Running
-
-Run the following commands:
-```
-flutter pub get
-dart run coinlib:build_windows
-flutter run -d windows
-```
-
-# Troubleshooting
-
-Run with `-v` or `--verbose` to see a more detailed error.  Certain exceptions (like missing a plugin library) may not report quality errors without `verbose`, especially on Windows.
-
-## Tor
-
-To test Tor usage, run Stack Wallet from Android Studio.  Click the Flutter DevTools icon in the Run tab (next to the Hot Reload and Hot Restart buttons) and navigate to the Network tab.  Connections using Tor will show as `GET InternetAddress('127.0.0.1', IPv4) 101 ws`.  Connections outside of Tor will show the destination address directly (although some Tor requests may also show the destination address directly, check the Headers take for *eg.* `{localPort: 59940, remoteAddress: 127.0.0.1, remotePort: 6725}`.  `localPort` should match your Tor port.
+- Run Flutter with `-v` for more detail when a build fails.
+- `dart run build_runner build` deletes `lib/app_config.g.dart`. Run `scripts/ensure_test_app_config.sh` or the configure step afterwards.

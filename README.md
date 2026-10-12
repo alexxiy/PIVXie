@@ -1,50 +1,37 @@
-[![codecov](https://codecov.io/gh/cypherstack/stack_wallet/branch/main/graph/badge.svg?token=PM1N56UTEW)](https://codecov.io/gh/cypherstack/stack_wallet)
+# PIVXie
 
-# Stack Wallet
-Stack Wallet is a fully open source cryptocurrency wallet. With an easy to use user interface and quick and speedy transactions, this wallet is ideal for anyone no matter how much they know about the cryptocurrency space. The app is actively maintained to provide new user friendly features.
+PIVXie is a non-custodial mobile wallet for [PIVX](https://pivx.org). Your recovery phrase and keys never leave your device. The app talks to the PIVX network through a [pivx-bridge](https://github.com/PIVX-Labs/pivx-bridge) server, and you can point it at your own.
 
-<a href="https://play.google.com/store/apps/details?id=com.cypherstack.stackwallet">
-<img width="250px" src="https://play.google.com/intl/en_us/badges/static/images/badges/en_badge_web_generic.png"></img>
-</a>
+Website: [pivxie.me](https://pivxie.me)
 
-## Feature List
+## Features
 
-Highlights include:
-- 23 Different cryptocurrencies:
-    - [Bitcoin](https://bitcoin.org/en/)
-    - Bitcoin Frost
-    - [Bitcoin Cash](https://bch.info/en/)
-    - [Banano](https://banano.cc/)
-    - [Cardano](https://cardano.org/)
-    - [Dash](https://www.dash.org/)
-    - [Dogecoin](https://dogecoin.com/)
-    - [Epic Cash](https://linktr.ee/epiccash)
-    - [MimbleWimbleCoin](https://mwc.mw)
-    - [Ethereum](https://ethereum.org/en/)
-    - [Ecash](https://e.cash/)
-    - [Fact0rn](https://www.fact0rn.io/)
-    - [Firo](https://firo.org/)
-    - [Litecoin](https://litecoin.org/)
-    - [Monero](https://www.getmonero.org/)
-    - [Nano](https://nano.org/)
-    - [Namecoin](https://www.namecoin.org/)
-    - [Particl](https://particl.io/)
-    - [Peercoin](https://www.peercoin.net/)
-    - [Salvium](https://salvium.io/)
-    - [Solana](https://solana.com/)
-    - [Stellar](https://stellar.org/)
-    - [Tezos](https://tezos.com/)
-    - [Wownero](https://wownero.org/)
-    - [Xelis](https://xelis.org/)
-- All private keys and seeds stay on device and are never shared.
-- Easy backup and restore feature to save all the information that's important to you.
-- Trading cryptocurrencies through our partners.
-- Custom address book
-- Favorite wallets with fast syncing
-- Custom Nodes.
-- Open source software.
-- No ads.
+- **SHIELD**: private Sapling transactions. Shield, unshield and send privately, with an optional encrypted memo.
+- **Cold staking**: delegate PIV to a staker and earn staking rewards while the coins stay in your wallet. Pick a staker from [masternode.space](https://masternode.space) or use your own node. Undelegate at any time.
+- **Masternodes**: set up a masternode from the wallet (send the collateral, generate or paste the masternode key), start it, and follow its status and rewards.
+- **Governance**: browse budget proposals, vote with your masternodes, submit your own proposal, and track budget payments.
+- **History**: staking rewards, masternode rewards, proposal payments, delegations and shield transactions are labelled, and you can filter by each type. Rewards show how many confirmations are left until they mature.
+- **Coin control**, an **address book** and **`pivx:` payment links**.
+- **Backups**: encrypted backups of all wallets and settings, plus automatic backups.
+- **Security**: PIN and fingerprint lock, and optional Tor for every connection.
+- Open source (GPLv3), with no ads and no tracking.
+
+PIVX logic follows [MyPIVXWallet](https://github.com/PIVX-Labs/MyPIVXWallet) and [PIVX Core](https://github.com/PIVX-Project/PIVX). The shield code is a Rust port of [pivx-shield](https://github.com/PIVX-Labs/pivx-shield) (`crypto_plugins/flutter_libpivxshield`).
+
+## Platforms
+
+- **Android**: the main platform (targets Android 17, API 37).
+- **iOS**: builds on a macOS host.
+- **Desktop** (Linux, Windows, macOS): the project still has the desktop targets and packaging files (`flatpak/`, `appimage/`), but desktop builds are untested and the shield library is built for Android and iOS only.
 
 ## Building
 
-You can look at the [build instructions](docs/building.md) for more details.
+See the [build instructions](docs/building.md).
+
+## Credits
+
+PIVXie is built on [Stack Wallet](https://github.com/cypherstack/stack_wallet) by Cypher Stack, which is licensed under GPLv3. Source files keep their original copyright notices.
+
+## License
+
+[GPLv3](LICENSE)

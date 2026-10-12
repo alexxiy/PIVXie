@@ -89,11 +89,11 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "com.cypherstack" "\0"
+            VALUE "CompanyName", "PIVXie" "\0"
             VALUE "FileDescription", "PlaceHolderName" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "PlaceHolderName" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2022 com.cypherstack. All rights reserved." "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 PIVXie developers. GPLv3." "\0"
             VALUE "OriginalFilename", "PlaceHolderName.exe" "\0"
             VALUE "ProductName", "PlaceHolderName" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"

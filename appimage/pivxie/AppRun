@@ -2,4 +2,4 @@
 SELF=$(readlink -f "$0")
 HERE=${SELF%/*}
 export LD_LIBRARY_PATH="${HERE}/lib:${LD_LIBRARY_PATH}"
-exec "${HERE}/campfire" "$@"
+exec "${HERE}/pivxie" "$@"

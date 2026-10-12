@@ -1,0 +1,44 @@
+# Flatpak manifest for the PIVXie Linux build.
+#
+# Put next to this file before building:
+#   bundle/            the Linux release bundle (build/linux/x64/release/bundle)
+#   org.pivx.pivxie.png  a 512x512 app icon (asset_sources/icon/pivxie/icon.png, resized)
+#
+#   flatpak-builder --user --install build-dir org.pivx.pivxie.yaml
+app-id: org.pivx.pivxie
+runtime: org.freedesktop.Platform
+runtime-version: '24.08'
+sdk: org.freedesktop.Sdk
+command: pivxie
+
+finish-args:
+  - --share=network
+  - --share=ipc
+  - --socket=fallback-x11
+  - --socket=wayland
+  - --device=dri
+  # Wallet data lives in ~/.pivxie.
+  - --filesystem=~/.pivxie:create
+  # Secure storage (libsecret).
+  - --talk-name=org.freedesktop.secrets
+
+modules:
+  - name: pivxie
+    buildsystem: simple
+    build-commands:
+      # Install the Flutter bundle under /app/lib/pivxie/ so the binary's
+      # $ORIGIN/lib and $ORIGIN/data lookups resolve.
+      - mkdir -p /app/lib/pivxie
+      - install -Dm755 bundle/pivxie /app/lib/pivxie/pivxie
+      - cp -r bundle/lib bundle/data /app/lib/pivxie/
+      # Wrapper so the Flatpak command resolves to the binary.
+      - install -Dm755 pivxie.sh /app/bin/pivxie
+      - install -Dm644 org.pivx.pivxie.desktop
+          /app/share/applications/org.pivx.pivxie.desktop
+      - install -Dm644 org.pivx.pivxie.metainfo.xml
+          /app/share/metainfo/org.pivx.pivxie.metainfo.xml
+      - install -Dm644 org.pivx.pivxie.png
+          /app/share/icons/hicolor/512x512/apps/org.pivx.pivxie.png
+    sources:
+      - type: dir
+        path: .
