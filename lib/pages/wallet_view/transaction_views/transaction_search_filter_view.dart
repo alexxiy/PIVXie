@@ -109,12 +109,16 @@ class _TransactionSearchViewState
   @override
   Widget build(BuildContext context) {
     if (Util.isDesktop) {
+      // Fits the window (maxHeight null) and scrolls, so Cancel and Save
+      // stay reachable on short screens.
       return DesktopDialog(
         maxWidth: 576,
-        maxHeight: double.infinity,
-        child: Padding(
-          padding: const EdgeInsets.only(left: 32, bottom: 32),
-          child: _buildContent(context),
+        maxHeight: null,
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.only(left: 32, bottom: 32),
+            child: _buildContent(context),
+          ),
         ),
       );
     } else {
