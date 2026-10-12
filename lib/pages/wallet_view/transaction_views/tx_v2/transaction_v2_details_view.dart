@@ -83,6 +83,9 @@ class _TransactionV2DetailsViewState
   late final Amount amount;
   late final Amount fee;
   late final String amountPrefix;
+
+  /// The masternode reward within a cold staking reward (same block).
+  Amount? _masternodePart;
   late final String unit;
   late final int minConfirms;
 
@@ -144,6 +147,18 @@ class _TransactionV2DetailsViewState
       _ => owned.where((e) => !e.addresses.any(change.contains)),
     };
     if (shown.isEmpty) shown = owned;
+    if (_transaction.pivxAlsoMasternodeReward) {
+      _masternodePart = Amount(
+        rawValue: owned
+            .where(
+              (e) =>
+                  e.scriptPubKeyHex.isNotEmpty &&
+                  !pivxIsColdStakeScript(e.scriptPubKeyHex),
+            )
+            .fold(BigInt.zero, (p, e) => p + e.value),
+        fractionDigits: fractionDigits,
+      );
+    }
     data = [
       for (final e in shown)
         (
@@ -366,6 +381,28 @@ class _TransactionV2DetailsViewState
                                   ],
                                 ),
                               ),
+                              // PIVX: a cold stake whose block also paid our
+                              // masternode: the two parts of the amount.
+                              if (_masternodePart != null) ...[
+                                isDesktop
+                                    ? const _Divider()
+                                    : const SizedBox(height: 12),
+                                _DetailItem(
+                                  label: "Cold staking reward",
+                                  detail: ref
+                                      .watch(pAmountFormatter(coin))
+                                      .format(amount - _masternodePart!),
+                                ),
+                                isDesktop
+                                    ? const _Divider()
+                                    : const SizedBox(height: 12),
+                                _DetailItem(
+                                  label: "Masternode reward",
+                                  detail: ref
+                                      .watch(pAmountFormatter(coin))
+                                      .format(_masternodePart!),
+                                ),
+                              ],
                               isDesktop
                                   ? const _Divider()
                                   : const SizedBox(height: 12),
