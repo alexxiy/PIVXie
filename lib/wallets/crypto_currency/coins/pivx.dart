@@ -362,7 +362,7 @@ class Pivx extends Bip39HDCurrency {
   Uri defaultBlockExplorer(String txid) {
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        return Uri.parse("https://explorer.pivxla.bz/tx/$txid");
+        return Uri.parse("https://explorer.pivx.org/#/tx/$txid");
       case CryptoCurrencyNetwork.test:
         return Uri.parse("https://testnet.rockdev.org/tx/$txid");
       default:
