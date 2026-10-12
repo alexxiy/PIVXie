@@ -132,7 +132,7 @@ class _FiroBalanceSelectionSheetState
                               // Row(
                               //   children: [
                               Text(
-                                "Private balance",
+                                "Shielded balance",
                                 style: STextStyles.titleBold12(context),
                                 textAlign: TextAlign.left,
                               ),
@@ -212,7 +212,7 @@ class _FiroBalanceSelectionSheetState
                               // Row(
                               //   children: [
                               Text(
-                                "Public balance",
+                                "Transparent balance",
                                 style: STextStyles.titleBold12(context),
                                 textAlign: TextAlign.left,
                               ),

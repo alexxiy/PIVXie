@@ -34,6 +34,7 @@ import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/models/tx_data.dart';
+import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
 import '../../widgets/background.dart';
 import '../../widgets/conditional_parent.dart';
@@ -404,9 +405,14 @@ class _ConfirmTransactionViewState
                       ],
                     ),
                   ),
-                  if (widget.txData.fee != null && widget.txData.vSize != null)
+                  // PIVX has no fee market: the fee above says it all.
+                  if (coin is! Pivx &&
+                      widget.txData.fee != null &&
+                      widget.txData.vSize != null)
                     const SizedBox(height: 12),
-                  if (widget.txData.fee != null && widget.txData.vSize != null)
+                  if (coin is! Pivx &&
+                      widget.txData.fee != null &&
+                      widget.txData.vSize != null)
                     RoundedWhiteContainer(
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -751,6 +757,7 @@ class _ConfirmTransactionViewState
                 ),
               ),
             if (isDesktop &&
+                coin is! Pivx &&
                 widget.txData.fee != null &&
                 widget.txData.vSize != null)
               Padding(
@@ -761,6 +768,7 @@ class _ConfirmTransactionViewState
                 ),
               ),
             if (isDesktop &&
+                coin is! Pivx &&
                 widget.txData.fee != null &&
                 widget.txData.vSize != null)
               Padding(

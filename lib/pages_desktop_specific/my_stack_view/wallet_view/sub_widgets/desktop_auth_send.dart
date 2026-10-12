@@ -104,7 +104,7 @@ class _DesktopAuthSendState extends ConsumerState<DesktopAuthSend> {
         Text("Confirm transaction", style: STextStyles.desktopH3(context)),
         const SizedBox(height: 16),
         Text(
-          "Enter your wallet password to send ${widget.tokenTicker?.toUpperCase() ?? widget.coin.ticker.toUpperCase()}",
+          "Enter your wallet password to send ${widget.tokenTicker ?? widget.coin.ticker}",
           style: STextStyles.desktopTextMedium(context).copyWith(
             color: Theme.of(context).extension<StackColors>()!.textDark3,
           ),
@@ -153,9 +153,9 @@ class _DesktopAuthSendState extends ConsumerState<DesktopAuthSend> {
                               hidePassword
                                   ? Assets.svg.eye
                                   : Assets.svg.eyeSlash,
-                              color: Theme.of(
-                                context,
-                              ).extension<StackColors>()!.textDark3,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textDark3,
                               width: 24,
                               height: 24,
                             ),

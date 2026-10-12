@@ -25,7 +25,6 @@ import '../../../utilities/amount/amount.dart';
 import '../../../utilities/amount/amount_formatter.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/enums/wallet_balance_toggle_state.dart';
-import '../../../utilities/extensions/extensions.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import 'wallet_balance_toggle_sheet.dart';
@@ -97,7 +96,8 @@ class WalletSummaryInfo extends ConsumerWidget {
       balanceToShow = balance.total + privateBalance.total;
     } else {
       title =
-          "${_showAvailable ? "Available" : "Full"} ${type.name.capitalize()} balance";
+          "${_showAvailable ? "Available" : "Full"} "
+          "${type == BalanceType.private ? "shielded" : "transparent"} balance";
       final selected = type == BalanceType.private ? privateBalance : balance;
       balanceToShow = _showAvailable ? selected.spendable : selected.total;
     }

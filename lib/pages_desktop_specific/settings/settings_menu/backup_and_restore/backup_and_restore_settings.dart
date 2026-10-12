@@ -381,7 +381,7 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                                           ),
                                           TextSpan(
                                             text:
-                                                "\n\nAuto backup is a custom ${AppConfig.appName} feature that offers a convenient backup of your data."
+                                                "\n\nAuto backup is a custom ${AppConfig.appName} feature that offers a convenient backup of your data. "
                                                 "To ensure maximum security, we recommend using a unique password that you haven't used anywhere "
                                                 "else on the internet before. Your password is not stored.",
                                             style:

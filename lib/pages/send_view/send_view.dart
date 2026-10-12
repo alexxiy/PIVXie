@@ -38,7 +38,6 @@ import '../../utilities/barcode_scanner_interface.dart';
 import '../../utilities/clipboard_interface.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/enums/fee_rate_type_enum.dart';
-import '../../utilities/extensions/extensions.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/prefs.dart';
 import '../../utilities/text_styles.dart';
@@ -990,7 +989,9 @@ class _SendViewState extends ConsumerState<SendView> {
                                         //   height: 2,
                                         // ),
                                         Text(
-                                          "${balType.name.capitalize()} balance",
+                                          balType == BalanceType.private
+                                              ? "Shielded balance"
+                                              : "Transparent balance",
                                           style: STextStyles.label(context)
                                               .copyWith(fontSize: 10),
                                         ),
@@ -1314,7 +1315,12 @@ class _SendViewState extends ConsumerState<SendView> {
                                         Row(
                                           children: [
                                             Text(
-                                              "${ref.watch(publicPrivateBalanceStateProvider).name.capitalize()} balance",
+                                              ref.watch(
+                                                        publicPrivateBalanceStateProvider,
+                                                      ) ==
+                                                      BalanceType.private
+                                                  ? "Shielded balance"
+                                                  : "Transparent balance",
                                               style: STextStyles.itemSubtitle12(
                                                 context,
                                               ),
