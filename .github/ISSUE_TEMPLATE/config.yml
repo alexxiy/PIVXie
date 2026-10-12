@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: PIVX Discord
+    url: https://discord.pivx.org/
+    about: Questions and help with your wallet
+  - name: PIVX on Telegram
+    url: https://t.me/PIVX_official
+    about: Questions and help with your wallet
+  - name: Email support
+    url: mailto:support@pivxie.me
+    about: Contact the PIVXie team

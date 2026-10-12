@@ -1,64 +1,84 @@
-name: 🐞 Bug Report
-description: File a new bug report
+name: 🐞 Bug report
+description: Report something in PIVXie that doesn't work as it should
 title: 'Bug: <title>'
 labels: [Bug]
 body:
   - type: markdown
     attributes:
-      value: ':stop_sign: _For support questions, please visit the [Discord](https://discord.gg/mRPZuXx3At), [Telegram](https://t.me/stackwallet) or [Reddit](https://www.reddit.com/r/stackwallet/) instead._'
+      value: |
+        :stop_sign: _For questions and help with your wallet, ask the PIVX community on [Discord](https://discord.pivx.org/), [Telegram](https://t.me/PIVX_official) or [Reddit](https://www.reddit.com/r/pivx/), or email support@pivxie.me._
+
+        :warning: **Never share your recovery phrase, private keys, PIN or backup password**, here or anywhere else. Nobody from PIVXie will ever ask for them.
   - type: checkboxes
     attributes:
       label: 'Is there an existing issue for this?'
-      description: 'Please [search :mag: the issues](https://github.com/cypherstack/stack_wallet/issues) to check if this bug has already been reported.'
+      description: 'Please search the existing issues first to check whether this bug has already been reported.'
       options:
       - label: 'I have searched the existing issues'
         required: true
   - type: textarea
     attributes:
-      label: 'Current Behavior'
-      description: 'Describe the problem you are experiencing.  **Please do not paste your logs here.**  Screenshots are welcome.'
+      label: 'What happened'
+      description: 'Describe the problem. Screenshots are welcome, but hide your balances and addresses if you prefer. **Please don''t paste logs here.**'
     validations:
       required: true
   - type: textarea
     attributes:
-      label: 'Expected Behavior'
-      description: 'Describe what you expect to happen instead.'
+      label: 'What you expected'
+      description: 'Describe what should have happened instead.'
     validations:
       required: true
   - type: textarea
     attributes:
-      label: 'Reproduce Steps'
-      description: |
-        Please provide a the _smallest, complete steps_ that Stack Wallet's maintainers can run to reproduce the issue ([read more about what this entails](https://stackoverflow.com/help/minimal-reproducible-example)).  Failing this, any sort of reproduction steps are better than nothing!
+      label: 'Steps to reproduce'
+      description: 'The shortest list of steps that shows the problem. Any steps are better than none.'
+      placeholder: |
+        1. Open ...
+        2. Tap ...
+        3. See ...
+    validations:
+      required: true
+  - type: dropdown
+    attributes:
+      label: 'Area'
+      description: 'Which part of the app is it about?'
+      options:
+        - Sending or receiving
+        - SHIELD (private transactions)
+        - Cold staking
+        - Masternodes
+        - Governance (proposals and votes)
+        - Transaction history
+        - Sync or connection to the server
+        - Backup and restore
+        - PIN, fingerprint or app lock
+        - Something else
     validations:
       required: true
   - type: textarea
     attributes:
       label: 'Environment'
-      description: 'Please provide the following information about your environment.'
+      description: 'The app version is in Settings > About.'
       value: |
-          - Operating system and version:
-          - Device platform and version:
-          - Real device or emulator/simulator:
+          - PIVXie version:
+          - Network (mainnet or testnet):
+          - Device and OS version (e.g. Galaxy S26 Ultra, Android 17):
+          - Server (default or your own pivx-bridge):
     validations:
       required: true
   - type: input
     attributes:
       label: 'Logs'
       description: |
-        Create a [Gist](https://gist.github.com) which contains your _full_ Stack Wallet logs and link it here.
-      
-        :warning: _Remember to redact or remove any sensitive information!_
-      placeholder: 'https://gist.github.com/...' 
+        Get the logs in Settings > Advanced > Logging (Save logs to a file, or Share logs), upload them to a [Gist](https://gist.github.com) and link it here.
+
+        :warning: _Logs can contain addresses and transaction IDs. Check them and remove anything you don't want to share._
+      placeholder: 'https://gist.github.com/...'
     validations:
       required: false
   - type: textarea
     attributes:
-      label: 'Further Information'
-      description: |
-        Links? References? Anything that will give us more context about the issue you are encountering!    
+      label: 'Anything else'
+      description: 'Links, transaction IDs, or anything else that gives us more context.'
     validations:
       required: false
-  - type: markdown
-    attributes:
-      value: ':stop_sign: _For support questions, please visit the [Discord](https://discord.gg/mRPZuXx3At), [Telegram](https://t.me/stackwallet) or [Reddit](https://www.reddit.com/r/stackwallet/) instead._'

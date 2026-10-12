@@ -1,78 +1,45 @@
 name: Test
-on: [pull_request]
+
+on:
+  pull_request:
+  push:
+    branches: [pivxie]
+  workflow_dispatch:
+
 jobs:
   test:
     runs-on: ubuntu-24.04
-    permissions:
-      contents: read
-      packages: read
-    container:
-      image: ghcr.io/${{ github.repository_owner }}/stackwallet-ci:test
-      credentials:
-        username: ${{ github.actor }}
-        password: ${{ github.token }}
     steps:
-      - name: Prepare repository
-        uses: actions/checkout@v6
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-          submodules: recursive
 
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.47.7
+          channel: stable
+          cache: true
+
+      # Writes pubspec.yaml, lib/app_config.g.dart and the PIVX plugin
+      # interfaces. -i: no native plugin builds, -s: system libsecret.
       - name: Configure app
         run: |
           cd scripts
-          echo "yes" | ./build_app.sh -v "0.0.1" -b "1" -p "linux" -a "stack_wallet" -d -s
+          echo "yes" | ./build_app.sh -a pivxie -p linux -v 0.0.1 -b 1 -i -s
 
       - name: Get dependencies
         run: flutter pub get
 
-      - name: Create git_versions.dart stubs
+      - name: Build libsecp256k1 for the host tests
         run: |
-          mkdir -p crypto_plugins/flutter_libepiccash/lib
-          mkdir -p crypto_plugins/flutter_libmwc/lib
-
-          cat > crypto_plugins/flutter_libepiccash/lib/git_versions.dart << 'EOF'
-          String getPluginVersion() => "stub-for-tests";
-          EOF
-
-          cat > crypto_plugins/flutter_libmwc/lib/git_versions.dart << 'EOF'
-          String getPluginVersion() => "stub-for-tests";
-          EOF
-
-      - name: Decode secrets
-        env:
-          CHANGE_NOW: ${{ secrets.CHANGE_NOW }}
-        run: |
-          if [ -n "$CHANGE_NOW" ]; then
-            echo "$CHANGE_NOW" | base64 --decode > lib/external_api_keys.dart
-          else
-            cat > lib/external_api_keys.dart << 'EOF'
-          const String kChangeNowApiKey = "";
-          const String kSimpleSwapApiKey = "";
-          const String kNanswapApiKey = "";
-          const String kNanoSwapRpcApiKey = "";
-          const String kWizSwapApiKey = "";
-          const kShopInBitAccessKey = "";
-          const kShopInBitPartnerSecret = "";
-          const kCakePayApiToken = "";
-          const kExolixApiKey = "";
-          EOF
-          fi
-
-      - name: Ensure app config for tests
-        run: bash scripts/ensure_test_app_config.sh
-
-      - name: Create test stubs
-        run: bash prebuild.sh
-        working-directory: scripts
+          cd scripts/linux
+          ./build_secp256k1.sh
+          test -s ../../build/libsecp256k1.so
 
       - name: Check formatting of changed files
+        if: github.event_name == 'pull_request'
         run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            BASE=$(git merge-base ${{ github.event.pull_request.base.sha }} HEAD)
-          else
-            BASE=${{ github.event.before }}
-          fi
+          BASE=$(git merge-base ${{ github.event.pull_request.base.sha }} HEAD)
           FILES=$(git diff --name-only --diff-filter=ACM "$BASE"..HEAD -- '*.dart')
           if [ -z "$FILES" ]; then
             echo "No Dart files changed."
@@ -81,17 +48,12 @@ jobs:
           echo "Checking formatting of $(echo "$FILES" | wc -l) file(s):"
           echo "$FILES"
           dart format --output=none --set-exit-if-changed $FILES
-#      - name: Analyze
-#        run: flutter analyze
+
       - name: Test
         run: |
-          bash scripts/ensure_test_app_config.sh
-          test -s lib/app_config.g.dart
-          grep -Fq "part of 'app_config.dart';" lib/app_config.g.dart
-          flutter test --coverage
-      - name: Upload to code coverage
-        uses: codecov/codecov-action@v1.2.2
-        if: success() || failure()
-        with:
-          token: ${{secrets.CODECOV_TOKEN}}
-          file: coverage/lcov.info
+          flutter test --concurrency=4 $(find test -name "*_test.dart" ! -path "test/pivx/*")
+
+      # The regtest tests skip themselves here: they need a PIVX Core
+      # regtest node and a pivx-bridge (see docs/building.md).
+      - name: Test PIVX
+        run: flutter test --concurrency=1 test/pivx/

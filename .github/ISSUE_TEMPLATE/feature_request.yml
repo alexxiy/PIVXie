@@ -1,37 +1,29 @@
-name: Feature request
-description: Suggest an idea for this project
-title: 'FR: <title>'
+name: 💡 Feature request
+description: Suggest an idea for PIVXie
+title: 'Feature: <title>'
 labels: [Feature Request]
 body:
   - type: textarea
     attributes:
-      label: 'Is Problem'
-      description: 'Is your feature request related to a problem? Please describe.'
-      value: |
-        A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+      label: 'Problem'
+      description: 'Is your idea about a problem? Describe it, e.g. "It''s hard to ... when ...".'
     validations:
       required: false
   - type: textarea
     attributes:
-      label: 'Solution'
-      description: 'Describe the solution you'd like.'
-      value: |
-        A clear and concise description of what you want to happen.
+      label: 'Your idea'
+      description: 'Describe what you would like PIVXie to do.'
     validations:
       required: true
   - type: textarea
     attributes:
       label: 'Alternatives'
-      description: 'Describe alternatives you've considered.'
-      value: |
-        A clear and concise description of any alternative solutions or features you've considered.
+      description: 'Other ways to solve it that you have thought about, if any.'
     validations:
-      required: true
+      required: false
   - type: textarea
     attributes:
-      label: 'Context'
-      description: 'Additional context.'
-      value: |
-        Add any other context or screenshots about the feature request here.
+      label: 'Anything else'
+      description: 'Screenshots, mockups, or how other PIVX wallets (such as MyPIVXWallet) handle it.'
     validations:
       required: false
