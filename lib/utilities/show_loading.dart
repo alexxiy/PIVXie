@@ -28,6 +28,7 @@ Future<T?> showLoading<T>({
   required BuildContext context,
   required String message,
   String? subMessage,
+  // Unused: the overlay is always on the root navigator.
   bool rootNavigator = false,
   bool opaqueBG = false,
   void Function(Exception)? onException,
@@ -39,16 +40,21 @@ Future<T?> showLoading<T>({
         !(whileFuture == null && whileFutureAlt == null),
   );
 
+  // The overlay goes on the root navigator (as showDialog does by
+  // default) and is closed there: on desktop the caller usually sits in a
+  // nested navigator, whose top route is the page, not this overlay.
   unawaited(
     showDialog<void>(
       context: context,
+      useRootNavigator: true,
       barrierDismissible: false,
       builder: (_) => WillPopScope(
         onWillPop: () async => false,
         child: Container(
-          color: Theme.of(
-            context,
-          ).extension<StackColors>()!.overlay.withOpacity(opaqueBG ? 1.0 : 0.6),
+          color: Theme.of(context)
+              .extension<StackColors>()!
+              .overlay
+              .withOpacity(opaqueBG ? 1.0 : 0.6),
           child: CustomLoadingOverlay(
             message: message,
             subMessage: subMessage,
@@ -77,7 +83,7 @@ Future<T?> showLoading<T>({
   }
 
   if (context.mounted) {
-    Navigator.of(context, rootNavigator: rootNavigator).pop();
+    Navigator.of(context, rootNavigator: true).pop();
     if (ex != null) {
       onException?.call(ex);
     }
