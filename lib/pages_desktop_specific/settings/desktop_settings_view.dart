@@ -40,53 +40,46 @@ class DesktopSettingsView extends ConsumerStatefulWidget {
 class _DesktopSettingsViewState extends ConsumerState<DesktopSettingsView> {
   @override
   Widget build(BuildContext context) {
-    final List<Widget> contentViews = [
-      const Navigator(
-        key: Key("settingsBackupRestoreDesktopKey"),
-        onGenerateRoute: RouteGenerator.generateRoute,
-        initialRoute: BackupRestoreSettings.routeName,
-      ), //b+r
-      const Navigator(
-        key: Key("settingsSecurityDesktopKey"),
-        onGenerateRoute: RouteGenerator.generateRoute,
-        initialRoute: SecuritySettings.routeName,
-      ), //security
-      const Navigator(
-        key: Key("settingsCurrencyDesktopKey"),
-        onGenerateRoute: RouteGenerator.generateRoute,
-        initialRoute: CurrencySettings.routeName,
-      ), //currency
-      const Navigator(
-        key: Key("settingsLanguageDesktopKey"),
-        onGenerateRoute: RouteGenerator.generateRoute,
-        initialRoute: LanguageOptionSettings.routeName,
+    final page = DesktopSettingsPage
+        .values[ref.watch(selectedSettingsMenuItemStateProvider)];
+    final (key, route) = switch (page) {
+      DesktopSettingsPage.backupRestore => (
+        "settingsBackupRestoreDesktopKey",
+        BackupRestoreSettings.routeName,
       ),
-      const Navigator(
-        key: Key("settingsTorDesktopKey"),
-        onGenerateRoute: RouteGenerator.generateRoute,
-        initialRoute: TorSettings.routeName,
-      ), //tor
-      const Navigator(
-        key: Key("settingsNodesDesktopKey"),
-        onGenerateRoute: RouteGenerator.generateRoute,
-        initialRoute: NodesSettings.routeName,
-      ), //nodes
-      const Navigator(
-        key: Key("settingsStartupDesktopKey"),
-        onGenerateRoute: RouteGenerator.generateRoute,
-        initialRoute: StartupSettings.routeName,
-      ), //startup
-      const Navigator(
-        key: Key("settingsSyncingPreferencesDesktopKey"),
-        onGenerateRoute: RouteGenerator.generateRoute,
-        initialRoute: SyncingPreferencesSettings.routeName,
-      ), //syncing prefs
-      const Navigator(
-        key: Key("settingsAdvancedDesktopKey"),
-        onGenerateRoute: RouteGenerator.generateRoute,
-        initialRoute: AdvancedSettings.routeName,
-      ), //advanced
-    ];
+      DesktopSettingsPage.security => (
+        "settingsSecurityDesktopKey",
+        SecuritySettings.routeName,
+      ),
+      DesktopSettingsPage.currency => (
+        "settingsCurrencyDesktopKey",
+        CurrencySettings.routeName,
+      ),
+      DesktopSettingsPage.tor => (
+        "settingsTorDesktopKey",
+        TorSettings.routeName,
+      ),
+      DesktopSettingsPage.nodes => (
+        "settingsNodesDesktopKey",
+        NodesSettings.routeName,
+      ),
+      DesktopSettingsPage.startup => (
+        "settingsStartupDesktopKey",
+        StartupSettings.routeName,
+      ),
+      DesktopSettingsPage.appearance => (
+        "settingsLanguageDesktopKey",
+        LanguageOptionSettings.routeName,
+      ),
+      DesktopSettingsPage.syncing => (
+        "settingsSyncingPreferencesDesktopKey",
+        SyncingPreferencesSettings.routeName,
+      ),
+      DesktopSettingsPage.advanced => (
+        "settingsAdvancedDesktopKey",
+        AdvancedSettings.routeName,
+      ),
+    };
     return DesktopScaffold(
       background: Theme.of(context).extension<StackColors>()!.background,
       appBar: const DesktopAppBar(
@@ -105,8 +98,11 @@ class _DesktopSettingsViewState extends ConsumerState<DesktopSettingsView> {
             ),
           ),
           Expanded(
-            child:
-                contentViews[ref.watch(selectedSettingsMenuItemStateProvider)],
+            child: Navigator(
+              key: Key(key),
+              onGenerateRoute: RouteGenerator.generateRoute,
+              initialRoute: route,
+            ),
           ),
         ],
       ),

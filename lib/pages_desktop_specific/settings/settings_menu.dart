@@ -17,6 +17,23 @@ import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import 'settings_menu_item.dart';
 
+/// The desktop settings pages, in menu order. The selected one is
+/// [selectedSettingsMenuItemStateProvider] (its index).
+enum DesktopSettingsPage {
+  backupRestore("Backup and restore"),
+  security("Security"),
+  currency("Currency"),
+  tor("Tor settings"),
+  nodes("Manage nodes"),
+  startup("Startup"),
+  appearance("Appearance"),
+  syncing("Syncing preferences"),
+  advanced("Advanced");
+
+  const DesktopSettingsPage(this.label);
+  final String label;
+}
+
 final selectedSettingsMenuItemStateProvider = StateProvider<int>((_) => 0);
 
 class SettingsMenu extends ConsumerStatefulWidget {
@@ -31,17 +48,7 @@ class _SettingsMenuState extends ConsumerState<SettingsMenu> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    final List<String> labels = [
-      "Backup and restore",
-      "Security",
-      "Currency",
-      "Appearance",
-      "Tor settings",
-      "Nodes",
-      "Startup",
-      "Syncing preferences",
-      "Advanced",
-    ];
+    final labels = [for (final page in DesktopSettingsPage.values) page.label];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

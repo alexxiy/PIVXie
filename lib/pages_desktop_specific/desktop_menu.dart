@@ -24,13 +24,7 @@ import '../widgets/desktop/living_stack_icon.dart';
 import 'desktop_menu_item.dart';
 import 'settings/settings_menu.dart';
 
-enum DesktopMenuItemId {
-  myStack,
-  addressBook,
-  settings,
-  support,
-  about,
-}
+enum DesktopMenuItemId { myStack, addressBook, settings, support, about }
 
 class DesktopMenu extends ConsumerStatefulWidget {
   const DesktopMenu({
@@ -149,11 +143,10 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                     ref.read(currentDesktopMenuItemProvider.notifier).state =
                         DesktopMenuItemId.settings;
                     ref
-                            .read(
-                              selectedSettingsMenuItemStateProvider.notifier,
-                            )
-                            .state =
-                        4;
+                        .read(selectedSettingsMenuItemStateProvider.notifier)
+                        .state = DesktopSettingsPage
+                        .tor
+                        .index;
                   },
                 ),
               ),

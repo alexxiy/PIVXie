@@ -21,7 +21,7 @@ class DesktopAutolockTimeoutSettingsDialog extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.all(32),
                 child: Text(
-                  "Auto lock timeout",
+                  "Auto lock settings",
                   style: STextStyles.desktopH3(context),
                   textAlign: TextAlign.center,
                 ),

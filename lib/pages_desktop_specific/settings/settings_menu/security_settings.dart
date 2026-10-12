@@ -135,484 +135,502 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.only(right: 30),
-          child: RoundedWhiteContainer(
-            radiusMultiplier: 2,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: SvgPicture.asset(
-                    Assets.svg.circleLock,
-                    width: 48,
-                    height: 48,
+    // Scrolls on short windows (two cards, the password form opens).
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(right: 30),
+            child: RoundedWhiteContainer(
+              radiusMultiplier: 2,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: SvgPicture.asset(
+                      Assets.svg.circleLock,
+                      width: 48,
+                      height: 48,
+                    ),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(10),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Change Password",
-                        style: STextStyles.desktopTextSmall(context),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        "Protect your ${AppConfig.appName} with a strong password. ${AppConfig.appName} does not store "
-                        "your password, and is therefore NOT able to restore it. Keep your password safe and secure.",
-                        style: STextStyles.desktopTextExtraExtraSmall(context),
-                      ),
-                      const SizedBox(height: 20),
-                      changePassword
-                          ? SizedBox(
-                            width: 512,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "Current password",
-                                  style: STextStyles.desktopTextExtraExtraSmall(
-                                    context,
-                                  ).copyWith(
-                                    color:
-                                        Theme.of(
-                                          context,
-                                        ).extension<StackColors>()!.textDark3,
-                                  ),
-                                  textAlign: TextAlign.left,
-                                ),
-                                const SizedBox(height: 10),
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(
-                                    Constants.size.circularBorderRadius,
-                                  ),
-                                  child: TextField(
-                                    key: const Key(
-                                      "desktopSecurityRestoreFromFilePasswordFieldKey",
+                  Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Change Password",
+                          style: STextStyles.desktopTextSmall(context),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          "Protect your ${AppConfig.appName} with a strong password. ${AppConfig.appName} does not store "
+                          "your password, and is therefore NOT able to restore it. Keep your password safe and secure.",
+                          style: STextStyles.desktopTextExtraExtraSmall(
+                            context,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        changePassword
+                            ? SizedBox(
+                                width: 512,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "Current password",
+                                      style:
+                                          STextStyles.desktopTextExtraExtraSmall(
+                                            context,
+                                          ).copyWith(
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .textDark3,
+                                          ),
+                                      textAlign: TextAlign.left,
                                     ),
-                                    focusNode: passwordCurrentFocusNode,
-                                    controller: passwordCurrentController,
-                                    style: STextStyles.field(context),
-                                    obscureText: hidePassword,
-                                    enableSuggestions: false,
-                                    autocorrect: false,
-                                    decoration: standardInputDecoration(
-                                      "Enter current password",
-                                      passwordCurrentFocusNode,
-                                      context,
-                                    ).copyWith(
-                                      labelStyle: STextStyles.fieldLabel(
-                                        context,
+                                    const SizedBox(height: 10),
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(
+                                        Constants.size.circularBorderRadius,
                                       ),
-                                      suffixIcon: UnconstrainedBox(
-                                        child: Row(
-                                          children: [
-                                            const SizedBox(width: 16),
-                                            GestureDetector(
-                                              key: const Key(
-                                                "desktopSecurityRestoreFromFilePasswordFieldShowPasswordButtonKey",
-                                              ),
-                                              onTap: () async {
-                                                setState(() {
-                                                  hidePassword = !hidePassword;
-                                                });
-                                              },
-                                              child: SvgPicture.asset(
-                                                hidePassword
-                                                    ? Assets.svg.eye
-                                                    : Assets.svg.eyeSlash,
-                                                color:
-                                                    Theme.of(context)
-                                                        .extension<
-                                                          StackColors
-                                                        >()!
-                                                        .textDark3,
-                                                width: 16,
-                                                height: 16,
+                                      child: TextField(
+                                        key: const Key(
+                                          "desktopSecurityRestoreFromFilePasswordFieldKey",
+                                        ),
+                                        focusNode: passwordCurrentFocusNode,
+                                        controller: passwordCurrentController,
+                                        style: STextStyles.field(context),
+                                        obscureText: hidePassword,
+                                        enableSuggestions: false,
+                                        autocorrect: false,
+                                        decoration:
+                                            standardInputDecoration(
+                                              "Enter current password",
+                                              passwordCurrentFocusNode,
+                                              context,
+                                            ).copyWith(
+                                              labelStyle:
+                                                  STextStyles.fieldLabel(
+                                                    context,
+                                                  ),
+                                              suffixIcon: UnconstrainedBox(
+                                                child: Row(
+                                                  children: [
+                                                    const SizedBox(width: 16),
+                                                    GestureDetector(
+                                                      key: const Key(
+                                                        "desktopSecurityRestoreFromFilePasswordFieldShowPasswordButtonKey",
+                                                      ),
+                                                      onTap: () async {
+                                                        setState(() {
+                                                          hidePassword =
+                                                              !hidePassword;
+                                                        });
+                                                      },
+                                                      child: SvgPicture.asset(
+                                                        hidePassword
+                                                            ? Assets.svg.eye
+                                                            : Assets
+                                                                  .svg
+                                                                  .eyeSlash,
+                                                        color: Theme.of(context)
+                                                            .extension<
+                                                              StackColors
+                                                            >()!
+                                                            .textDark3,
+                                                        width: 16,
+                                                        height: 16,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 12),
+                                                  ],
+                                                ),
                                               ),
                                             ),
-                                            const SizedBox(width: 12),
-                                          ],
+                                        onChanged: (newValue) {
+                                          setState(() {});
+                                        },
+                                      ),
+                                    ),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      "New password",
+                                      style:
+                                          STextStyles.desktopTextExtraExtraSmall(
+                                            context,
+                                          ).copyWith(
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .textDark3,
+                                          ),
+                                      textAlign: TextAlign.left,
+                                    ),
+                                    const SizedBox(height: 10),
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(
+                                        Constants.size.circularBorderRadius,
+                                      ),
+                                      child: TextField(
+                                        key: const Key(
+                                          "desktopSecurityCreateNewPasswordFieldKey1",
                                         ),
-                                      ),
-                                    ),
-                                    onChanged: (newValue) {
-                                      setState(() {});
-                                    },
-                                  ),
-                                ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  "New password",
-                                  style: STextStyles.desktopTextExtraExtraSmall(
-                                    context,
-                                  ).copyWith(
-                                    color:
-                                        Theme.of(
-                                          context,
-                                        ).extension<StackColors>()!.textDark3,
-                                  ),
-                                  textAlign: TextAlign.left,
-                                ),
-                                const SizedBox(height: 10),
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(
-                                    Constants.size.circularBorderRadius,
-                                  ),
-                                  child: TextField(
-                                    key: const Key(
-                                      "desktopSecurityCreateNewPasswordFieldKey1",
-                                    ),
-                                    focusNode: passwordFocusNode,
-                                    controller: passwordController,
-                                    style: STextStyles.field(context),
-                                    obscureText: hidePassword,
-                                    enableSuggestions: false,
-                                    autocorrect: false,
-                                    decoration: standardInputDecoration(
-                                      "Enter new password",
-                                      passwordFocusNode,
-                                      context,
-                                    ).copyWith(
-                                      labelStyle: STextStyles.fieldLabel(
-                                        context,
-                                      ),
-                                      suffixIcon: UnconstrainedBox(
-                                        child: Row(
-                                          children: [
-                                            const SizedBox(width: 16),
-                                            GestureDetector(
-                                              key: const Key(
-                                                "desktopSecurityCreateNewPasswordButtonKey1",
-                                              ),
-                                              onTap: () async {
-                                                setState(() {
-                                                  hidePassword = !hidePassword;
-                                                });
-                                              },
-                                              child: SvgPicture.asset(
-                                                hidePassword
-                                                    ? Assets.svg.eye
-                                                    : Assets.svg.eyeSlash,
-                                                color:
-                                                    Theme.of(context)
-                                                        .extension<
-                                                          StackColors
-                                                        >()!
-                                                        .textDark3,
-                                                width: 16,
-                                                height: 16,
+                                        focusNode: passwordFocusNode,
+                                        controller: passwordController,
+                                        style: STextStyles.field(context),
+                                        obscureText: hidePassword,
+                                        enableSuggestions: false,
+                                        autocorrect: false,
+                                        decoration:
+                                            standardInputDecoration(
+                                              "Enter new password",
+                                              passwordFocusNode,
+                                              context,
+                                            ).copyWith(
+                                              labelStyle:
+                                                  STextStyles.fieldLabel(
+                                                    context,
+                                                  ),
+                                              suffixIcon: UnconstrainedBox(
+                                                child: Row(
+                                                  children: [
+                                                    const SizedBox(width: 16),
+                                                    GestureDetector(
+                                                      key: const Key(
+                                                        "desktopSecurityCreateNewPasswordButtonKey1",
+                                                      ),
+                                                      onTap: () async {
+                                                        setState(() {
+                                                          hidePassword =
+                                                              !hidePassword;
+                                                        });
+                                                      },
+                                                      child: SvgPicture.asset(
+                                                        hidePassword
+                                                            ? Assets.svg.eye
+                                                            : Assets
+                                                                  .svg
+                                                                  .eyeSlash,
+                                                        color: Theme.of(context)
+                                                            .extension<
+                                                              StackColors
+                                                            >()!
+                                                            .textDark3,
+                                                        width: 16,
+                                                        height: 16,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 12),
+                                                  ],
+                                                ),
                                               ),
                                             ),
-                                            const SizedBox(width: 12),
-                                          ],
-                                        ),
+                                        onChanged: (newValue) {
+                                          if (newValue.isEmpty) {
+                                            setState(() {
+                                              passwordFeedback = "";
+                                            });
+                                            return;
+                                          }
+                                          final result = zxcvbn.evaluate(
+                                            newValue,
+                                          );
+                                          String suggestionsAndTips = "";
+                                          for (final sug
+                                              in result.feedback.suggestions!
+                                                  .toSet()) {
+                                            suggestionsAndTips += "$sug\n";
+                                          }
+                                          suggestionsAndTips +=
+                                              result.feedback.warning!;
+                                          String feedback =
+                                              // "Password Strength: ${((result.score! / 4.0) * 100).toInt()}%\n"
+                                              suggestionsAndTips;
+
+                                          passwordStrength = result.score! / 4;
+
+                                          // hack fix to format back string returned from zxcvbn
+                                          if (feedback.contains(
+                                            "phrasesNo need",
+                                          )) {
+                                            feedback = feedback.replaceFirst(
+                                              "phrasesNo need",
+                                              "phrases\nNo need",
+                                            );
+                                          }
+
+                                          if (feedback.endsWith("\n")) {
+                                            feedback = feedback.substring(
+                                              0,
+                                              feedback.length - 2,
+                                            );
+                                          }
+
+                                          setState(() {
+                                            passwordFeedback = feedback;
+                                          });
+                                        },
                                       ),
                                     ),
-                                    onChanged: (newValue) {
-                                      if (newValue.isEmpty) {
-                                        setState(() {
-                                          passwordFeedback = "";
-                                        });
-                                        return;
-                                      }
-                                      final result = zxcvbn.evaluate(newValue);
-                                      String suggestionsAndTips = "";
-                                      for (final sug
-                                          in result.feedback.suggestions!
-                                              .toSet()) {
-                                        suggestionsAndTips += "$sug\n";
-                                      }
-                                      suggestionsAndTips +=
-                                          result.feedback.warning!;
-                                      String feedback =
-                                          // "Password Strength: ${((result.score! / 4.0) * 100).toInt()}%\n"
-                                          suggestionsAndTips;
-
-                                      passwordStrength = result.score! / 4;
-
-                                      // hack fix to format back string returned from zxcvbn
-                                      if (feedback.contains("phrasesNo need")) {
-                                        feedback = feedback.replaceFirst(
-                                          "phrasesNo need",
-                                          "phrases\nNo need",
-                                        );
-                                      }
-
-                                      if (feedback.endsWith("\n")) {
-                                        feedback = feedback.substring(
-                                          0,
-                                          feedback.length - 2,
-                                        );
-                                      }
-
-                                      setState(() {
-                                        passwordFeedback = feedback;
-                                      });
-                                    },
-                                  ),
-                                ),
-                                if (passwordFocusNode.hasFocus ||
-                                    passwordRepeatFocusNode.hasFocus ||
-                                    passwordController.text.isNotEmpty)
-                                  Padding(
-                                    padding: EdgeInsets.only(
-                                      left: 12,
-                                      right: 12,
-                                      top: passwordFeedback.isNotEmpty ? 4 : 0,
-                                    ),
-                                    child:
-                                        passwordFeedback.isNotEmpty
+                                    if (passwordFocusNode.hasFocus ||
+                                        passwordRepeatFocusNode.hasFocus ||
+                                        passwordController.text.isNotEmpty)
+                                      Padding(
+                                        padding: EdgeInsets.only(
+                                          left: 12,
+                                          right: 12,
+                                          top: passwordFeedback.isNotEmpty
+                                              ? 4
+                                              : 0,
+                                        ),
+                                        child: passwordFeedback.isNotEmpty
                                             ? Text(
-                                              passwordFeedback,
-                                              style: STextStyles.infoSmall(
-                                                context,
-                                              ),
-                                            )
+                                                passwordFeedback,
+                                                style: STextStyles.infoSmall(
+                                                  context,
+                                                ),
+                                              )
                                             : null,
-                                  ),
-                                if (passwordFocusNode.hasFocus ||
-                                    passwordRepeatFocusNode.hasFocus ||
-                                    passwordController.text.isNotEmpty)
-                                  Padding(
-                                    padding: const EdgeInsets.only(
-                                      left: 12,
-                                      right: 12,
-                                      top: 10,
-                                    ),
-                                    child: ProgressBar(
-                                      key: const Key(
-                                        "desktopSecurityCreateStackBackUpProgressBar",
                                       ),
-                                      width: 450,
-                                      height: 5,
-                                      fillColor:
-                                          passwordStrength < 0.51
+                                    if (passwordFocusNode.hasFocus ||
+                                        passwordRepeatFocusNode.hasFocus ||
+                                        passwordController.text.isNotEmpty)
+                                      Padding(
+                                        padding: const EdgeInsets.only(
+                                          left: 12,
+                                          right: 12,
+                                          top: 10,
+                                        ),
+                                        child: ProgressBar(
+                                          key: const Key(
+                                            "desktopSecurityCreateStackBackUpProgressBar",
+                                          ),
+                                          width: 450,
+                                          height: 5,
+                                          fillColor: passwordStrength < 0.51
                                               ? Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .accentColorRed
+                                                    .extension<StackColors>()!
+                                                    .accentColorRed
                                               : passwordStrength < 1
                                               ? Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .accentColorYellow
+                                                    .extension<StackColors>()!
+                                                    .accentColorYellow
                                               : Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .accentColorGreen,
-                                      backgroundColor:
-                                          Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .accentColorGreen,
+                                          backgroundColor: Theme.of(context)
                                               .extension<StackColors>()!
                                               .buttonBackSecondary,
-                                      percent:
-                                          passwordStrength < 0.25
+                                          percent: passwordStrength < 0.25
                                               ? 0.03
                                               : passwordStrength,
-                                    ),
-                                  ),
-                                const SizedBox(height: 16),
-                                Text(
-                                  "Confirm new password",
-                                  style: STextStyles.desktopTextExtraExtraSmall(
-                                    context,
-                                  ).copyWith(
-                                    color:
-                                        Theme.of(
-                                          context,
-                                        ).extension<StackColors>()!.textDark3,
-                                  ),
-                                  textAlign: TextAlign.left,
-                                ),
-                                const SizedBox(height: 10),
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(
-                                    Constants.size.circularBorderRadius,
-                                  ),
-                                  child: TextField(
-                                    key: const Key(
-                                      "desktopSecurityCreateNewPasswordFieldKey2",
-                                    ),
-                                    focusNode: passwordRepeatFocusNode,
-                                    controller: passwordRepeatController,
-                                    style: STextStyles.field(context),
-                                    obscureText: hidePassword,
-                                    enableSuggestions: false,
-                                    autocorrect: false,
-                                    decoration: standardInputDecoration(
-                                      "Confirm new password",
-                                      passwordRepeatFocusNode,
-                                      context,
-                                    ).copyWith(
-                                      labelStyle: STextStyles.fieldLabel(
-                                        context,
-                                      ),
-                                      suffixIcon: UnconstrainedBox(
-                                        child: Row(
-                                          children: [
-                                            const SizedBox(width: 16),
-                                            GestureDetector(
-                                              key: const Key(
-                                                "desktopSecurityCreateNewPasswordButtonKey2",
-                                              ),
-                                              onTap: () async {
-                                                setState(() {
-                                                  hidePassword = !hidePassword;
-                                                });
-                                              },
-                                              child: SvgPicture.asset(
-                                                hidePassword
-                                                    ? Assets.svg.eye
-                                                    : Assets.svg.eyeSlash,
-                                                color:
-                                                    Theme.of(context)
-                                                        .extension<
-                                                          StackColors
-                                                        >()!
-                                                        .textDark3,
-                                                width: 16,
-                                                height: 16,
-                                              ),
-                                            ),
-                                            const SizedBox(width: 12),
-                                          ],
                                         ),
                                       ),
+                                    const SizedBox(height: 16),
+                                    Text(
+                                      "Confirm new password",
+                                      style:
+                                          STextStyles.desktopTextExtraExtraSmall(
+                                            context,
+                                          ).copyWith(
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .textDark3,
+                                          ),
+                                      textAlign: TextAlign.left,
                                     ),
-                                    onChanged: (newValue) {
-                                      setState(() {});
-                                    },
-                                  ),
-                                ),
-                                const SizedBox(height: 20),
-                                PrimaryButton(
-                                  width: 160,
-                                  buttonHeight: ButtonHeight.l,
-                                  enabled: shouldEnableSave,
-                                  label: "Save changes",
-                                  onPressed: () async {
-                                    if (_changePWLock) {
-                                      return;
-                                    }
-                                    _changePWLock = true;
+                                    const SizedBox(height: 10),
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(
+                                        Constants.size.circularBorderRadius,
+                                      ),
+                                      child: TextField(
+                                        key: const Key(
+                                          "desktopSecurityCreateNewPasswordFieldKey2",
+                                        ),
+                                        focusNode: passwordRepeatFocusNode,
+                                        controller: passwordRepeatController,
+                                        style: STextStyles.field(context),
+                                        obscureText: hidePassword,
+                                        enableSuggestions: false,
+                                        autocorrect: false,
+                                        decoration:
+                                            standardInputDecoration(
+                                              "Confirm new password",
+                                              passwordRepeatFocusNode,
+                                              context,
+                                            ).copyWith(
+                                              labelStyle:
+                                                  STextStyles.fieldLabel(
+                                                    context,
+                                                  ),
+                                              suffixIcon: UnconstrainedBox(
+                                                child: Row(
+                                                  children: [
+                                                    const SizedBox(width: 16),
+                                                    GestureDetector(
+                                                      key: const Key(
+                                                        "desktopSecurityCreateNewPasswordButtonKey2",
+                                                      ),
+                                                      onTap: () async {
+                                                        setState(() {
+                                                          hidePassword =
+                                                              !hidePassword;
+                                                        });
+                                                      },
+                                                      child: SvgPicture.asset(
+                                                        hidePassword
+                                                            ? Assets.svg.eye
+                                                            : Assets
+                                                                  .svg
+                                                                  .eyeSlash,
+                                                        color: Theme.of(context)
+                                                            .extension<
+                                                              StackColors
+                                                            >()!
+                                                            .textDark3,
+                                                        width: 16,
+                                                        height: 16,
+                                                      ),
+                                                    ),
+                                                    const SizedBox(width: 12),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                        onChanged: (newValue) {
+                                          setState(() {});
+                                        },
+                                      ),
+                                    ),
+                                    const SizedBox(height: 20),
+                                    PrimaryButton(
+                                      width: 160,
+                                      buttonHeight: ButtonHeight.l,
+                                      enabled: shouldEnableSave,
+                                      label: "Save changes",
+                                      onPressed: () async {
+                                        if (_changePWLock) {
+                                          return;
+                                        }
+                                        _changePWLock = true;
 
-                                    try {
-                                      final (didChangePW, type, message) =
-                                          (await showLoading(
+                                        try {
+                                          final (
+                                            didChangePW,
+                                            type,
+                                            message,
+                                          ) = (await showLoading(
                                             whileFuture: _attemptChangePW(),
                                             context: context,
                                             message: "Updating...",
                                             rootNavigator: true,
                                           ))!;
 
-                                      if (mounted) {
-                                        unawaited(
-                                          showFloatingFlushBar(
-                                            type: type,
-                                            message: message,
-                                            context: context,
-                                          ),
-                                        );
-                                      }
+                                          if (mounted) {
+                                            unawaited(
+                                              showFloatingFlushBar(
+                                                type: type,
+                                                message: message,
+                                                context: context,
+                                              ),
+                                            );
+                                          }
 
-                                      if (didChangePW == true) {
-                                        setState(() {
-                                          changePassword = false;
-                                        });
-                                      }
-                                    } finally {
-                                      _changePWLock = false;
-                                    }
-                                  },
-                                ),
-                              ],
-                            ),
-                          )
-                          : PrimaryButton(
-                            width: 210,
-                            buttonHeight: ButtonHeight.m,
-                            enabled: true,
-                            label: "Set up new password",
-                            onPressed: () {
-                              setState(() {
-                                changePassword = true;
-                              });
-                            },
-                          ),
-
-                      const Padding(
-                        padding: EdgeInsets.all(10.0),
-                        child: Divider(thickness: 0.5),
-                      ),
-
-                      Consumer(
-                        builder: (_, ref, __) {
-                          final autoLockInfo = ref.watch(
-                            prefsChangeNotifierProvider.select(
-                              (value) => value.autoLockInfo,
-                            ),
-                          );
-                          return Padding(
-                            padding: const EdgeInsets.all(10),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      "Auto lock timeout",
-                                      style: STextStyles.desktopTextExtraSmall(
-                                        context,
-                                      ).copyWith(
-                                        color:
-                                            Theme.of(context)
-                                                .extension<StackColors>()!
-                                                .textDark,
-                                      ),
-                                      textAlign: TextAlign.left,
-                                    ),
-                                    Text(
-                                      autoLockInfo.enabled
-                                          ? "${autoLockInfo.minutes} minutes"
-                                          : "Disabled",
-                                      style:
-                                          STextStyles.desktopTextExtraExtraSmall(
-                                            context,
-                                          ),
+                                          if (didChangePW == true) {
+                                            setState(() {
+                                              changePassword = false;
+                                            });
+                                          }
+                                        } finally {
+                                          _changePWLock = false;
+                                        }
+                                      },
                                     ),
                                   ],
                                 ),
-                                PrimaryButton(
-                                  buttonHeight: ButtonHeight.xs,
-                                  label: "Edit",
-                                  width: 101,
-                                  onPressed: () async {
-                                    await showDialog<dynamic>(
-                                      context: context,
-                                      useSafeArea: false,
-                                      barrierDismissible: true,
-                                      builder: (context) {
-                                        return const DesktopAutolockTimeoutSettingsDialog();
-                                      },
-                                    );
-                                  },
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-                    ],
+                              )
+                            : PrimaryButton(
+                                width: 210,
+                                buttonHeight: ButtonHeight.m,
+                                enabled: true,
+                                label: "Set up new password",
+                                onPressed: () {
+                                  setState(() {
+                                    changePassword = true;
+                                  });
+                                },
+                              ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-        ),
-      ],
+          const SizedBox(height: 20),
+          Padding(
+            padding: const EdgeInsets.only(right: 30),
+            child: RoundedWhiteContainer(
+              radiusMultiplier: 2,
+              child: Consumer(
+                builder: (_, ref, __) {
+                  final autoLockInfo = ref.watch(
+                    prefsChangeNotifierProvider.select(
+                      (value) => value.autoLockInfo,
+                    ),
+                  );
+                  return Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Auto lock settings",
+                              style: STextStyles.desktopTextSmall(context),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              autoLockInfo.enabled
+                                  ? "Locks ${AppConfig.appName} after "
+                                        "${autoLockInfo.minutes} "
+                                        "${autoLockInfo.minutes == 1 ? "minute" : "minutes"}"
+                                        " of inactivity"
+                                  : "Off",
+                              style: STextStyles.desktopTextExtraExtraSmall(
+                                context,
+                              ),
+                            ),
+                          ],
+                        ),
+                        PrimaryButton(
+                          buttonHeight: ButtonHeight.xs,
+                          label: "Edit",
+                          width: 101,
+                          onPressed: () async {
+                            await showDialog<dynamic>(
+                              context: context,
+                              useSafeArea: false,
+                              barrierDismissible: true,
+                              builder: (context) {
+                                return const DesktopAutolockTimeoutSettingsDialog();
+                              },
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

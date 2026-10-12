@@ -13,10 +13,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../../../app_config.dart';
+import '../../../../pages/settings_views/global_settings_view/advanced_views/manage_coin_units/edit_coin_units_view.dart';
 import '../../../../pages/settings_views/global_settings_view/advanced_views/manage_coin_units/manage_coin_units_view.dart';
 import '../../../../providers/global/prefs_provider.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
+import '../../../../utilities/shown_coins.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../widgets/custom_buttons/draggable_switch_button.dart';
 import '../../../../widgets/desktop/primary_button.dart';
@@ -233,7 +235,7 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          "Block explorers",
+                          "Change block explorer",
                           style: STextStyles.desktopTextExtraSmall(context)
                               .copyWith(
                                 color: Theme.of(context)
@@ -251,8 +253,17 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                               context: context,
                               useSafeArea: false,
                               barrierDismissible: true,
+                              // One network: its explorer straight away.
                               builder: (context) {
-                                return const DesktopManageBlockExplorersDialog();
+                                final coins = shownCoins(
+                                  ref,
+                                  withWalletCoins: true,
+                                );
+                                return coins.length == 1
+                                    ? DesktopEditBlockExplorerDialog(
+                                        coin: coins.first,
+                                      )
+                                    : const DesktopManageBlockExplorersDialog();
                               },
                             );
                           },
@@ -288,8 +299,15 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                               context: context,
                               useSafeArea: false,
                               barrierDismissible: true,
+                              // One network: its units straight away.
                               builder: (context) {
-                                return const ManageCoinUnitsView();
+                                final coins = shownCoins(
+                                  ref,
+                                  withWalletCoins: true,
+                                );
+                                return coins.length == 1
+                                    ? EditCoinUnitsView(coin: coins.first)
+                                    : const ManageCoinUnitsView();
                               },
                             );
                           },

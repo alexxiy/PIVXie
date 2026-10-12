@@ -13,18 +13,23 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:tuple/tuple.dart';
 
 import '../../../app_config.dart';
+import '../../../pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import '../../../pages/settings_views/global_settings_view/manage_nodes_views/coin_nodes_view.dart';
+import '../../../pages/settings_views/sub_widgets/nodes_list.dart';
 import '../../../providers/providers.dart';
 import '../../../route_generator.dart';
 import '../../../themes/coin_icon_provider.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/constants.dart';
+import '../../../utilities/shown_coins.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../widgets/custom_buttons/blue_text_button.dart';
 import '../../../widgets/icon_widgets/x_icon.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/stack_text_field.dart';
@@ -98,6 +103,11 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
         ? _coins
         : _coins.where((e) => e.network == CryptoCurrencyNetwork.main).toList();
 
+    // One network (PIVX mainnet only): its nodes straight away, as on
+    // mobile.
+    final shown = shownCoins(ref, withWalletCoins: true);
+    if (shown.length == 1) return _singleCoinNodes(shown.first);
+
     coins = _search(filter, coins);
 
     return Row(
@@ -126,7 +136,7 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        "Nodes",
+                        "Manage nodes",
                         style: STextStyles.desktopTextSmall(context),
                       ),
                       const SizedBox(height: 16),
@@ -308,6 +318,56 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _singleCoinNodes(CryptoCurrency coin) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 30),
+      child: RoundedWhiteContainer(
+        radiusMultiplier: 2,
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            SvgPicture.asset(Assets.svg.circleNode, width: 48, height: 48),
+            const SizedBox(height: 16),
+            Text("Manage nodes", style: STextStyles.desktopTextSmall(context)),
+            const SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "${coin.prettyName} nodes",
+                  style: STextStyles.desktopTextExtraExtraSmall(context),
+                ),
+                CustomTextButton(
+                  text: "Add new node",
+                  onTap: () => Navigator.of(context).pushNamed(
+                    AddEditNodeView.routeName,
+                    arguments: Tuple4(
+                      AddEditNodeViewType.add,
+                      coin,
+                      null,
+                      NodesSettings.routeName,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Flexible(
+              child: SingleChildScrollView(
+                child: NodesList(
+                  coin: coin,
+                  popBackToRoute: NodesSettings.routeName,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -21,6 +21,7 @@ import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/block_explorers.dart';
 import '../../../../utilities/constants.dart';
+import '../../../../utilities/shown_coins.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
@@ -30,21 +31,14 @@ import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/rounded_white_container.dart';
 
 class DesktopManageBlockExplorersDialog extends ConsumerWidget {
-  const DesktopManageBlockExplorersDialog({
-    super.key,
-  });
+  const DesktopManageBlockExplorersDialog({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final bool showTestNet = ref.watch(
+    ref.watch(
       prefsChangeNotifierProvider.select((value) => value.showTestNetCoins),
     );
-
-    final coins = AppConfig.coins
-        .where(
-          (e) => showTestNet || e.network == CryptoCurrencyNetwork.main,
-        )
-        .toList();
+    final coins = shownCoins(ref, withWalletCoins: true);
 
     return DesktopDialog(
       maxHeight: 850,
@@ -67,16 +61,10 @@ class DesktopManageBlockExplorersDialog extends ConsumerWidget {
           ),
           Expanded(
             child: Padding(
-              padding: const EdgeInsets.only(
-                left: 32,
-                right: 32,
-                bottom: 32,
-              ),
+              padding: const EdgeInsets.only(left: 32, right: 32, bottom: 32),
               child: ListView.separated(
                 itemCount: coins.length,
-                separatorBuilder: (_, __) => const SizedBox(
-                  height: 12,
-                ),
+                separatorBuilder: (_, __) => const SizedBox(height: 12),
                 itemBuilder: (_, index) {
                   final coin = coins[index];
 
@@ -91,24 +79,18 @@ class DesktopManageBlockExplorersDialog extends ConsumerWidget {
                     child: Row(
                       children: [
                         SvgPicture.file(
-                          File(
-                            ref.watch(coinIconProvider(coin)),
-                          ),
+                          File(ref.watch(coinIconProvider(coin))),
                           width: 24,
                           height: 24,
                         ),
-                        const SizedBox(
-                          width: 12,
-                        ),
+                        const SizedBox(width: 12),
                         Expanded(
                           child: Text(
                             "${coin.prettyName} block explorer",
                             style: STextStyles.desktopTextSmall(context),
                           ),
                         ),
-                        const SizedBox(
-                          width: 12,
-                        ),
+                        const SizedBox(width: 12),
                         SvgPicture.asset(
                           Assets.svg.chevronRight,
                           width: 20,
@@ -122,9 +104,7 @@ class DesktopManageBlockExplorersDialog extends ConsumerWidget {
                         useSafeArea: false,
                         barrierDismissible: true,
                         builder: (context) {
-                          return _DesktopEditBlockExplorerDialog(
-                            coin: coin,
-                          );
+                          return DesktopEditBlockExplorerDialog(coin: coin);
                         },
                       );
                     },
@@ -139,27 +119,28 @@ class DesktopManageBlockExplorersDialog extends ConsumerWidget {
   }
 }
 
-class _DesktopEditBlockExplorerDialog extends ConsumerStatefulWidget {
-  const _DesktopEditBlockExplorerDialog({super.key, required this.coin});
+class DesktopEditBlockExplorerDialog extends ConsumerStatefulWidget {
+  const DesktopEditBlockExplorerDialog({super.key, required this.coin});
 
   final CryptoCurrency coin;
 
   @override
-  ConsumerState<_DesktopEditBlockExplorerDialog> createState() =>
-      _DesktopEditBlockExplorerDialogState();
+  ConsumerState<DesktopEditBlockExplorerDialog> createState() =>
+      DesktopEditBlockExplorerDialogState();
 }
 
-class _DesktopEditBlockExplorerDialogState
-    extends ConsumerState<_DesktopEditBlockExplorerDialog> {
+class DesktopEditBlockExplorerDialogState
+    extends ConsumerState<DesktopEditBlockExplorerDialog> {
   late final TextEditingController _textEditingController;
   late final FocusNode _focusNode;
 
   @override
   void initState() {
     _textEditingController = TextEditingController(
-      text: getBlockExplorerTransactionUrlFor(coin: widget.coin, txid: "[TXID]")
-          .toString()
-          .replaceAll("%5BTXID%5D", "[TXID]"),
+      text: getBlockExplorerTransactionUrlFor(
+        coin: widget.coin,
+        txid: "[TXID]",
+      ).toString().replaceAll("%5BTXID%5D", "[TXID]"),
     );
     _focusNode = FocusNode();
     super.initState();
@@ -194,11 +175,7 @@ class _DesktopEditBlockExplorerDialogState
             ],
           ),
           Padding(
-            padding: const EdgeInsets.only(
-              left: 32,
-              right: 32,
-              bottom: 32,
-            ),
+            padding: const EdgeInsets.only(left: 32, right: 32, bottom: 32),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -215,12 +192,11 @@ class _DesktopEditBlockExplorerDialogState
                     style: STextStyles.field(context),
                   ),
                 ),
-                const SizedBox(
-                  height: 16,
-                ),
+                const SizedBox(height: 16),
                 RoundedWhiteContainer(
-                  borderColor:
-                      Theme.of(context).extension<StackColors>()!.textSubtitle6,
+                  borderColor: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textSubtitle6,
                   child: Text(
                     "Edit your block explorer above. Keep in mind that"
                     " every block explorer has a slightly different URL scheme."
@@ -232,9 +208,7 @@ class _DesktopEditBlockExplorerDialogState
                     style: STextStyles.desktopTextExtraExtraSmall(context),
                   ),
                 ),
-                const SizedBox(
-                  height: 16,
-                ),
+                const SizedBox(height: 16),
                 Row(
                   children: [
                     Expanded(
@@ -244,21 +218,18 @@ class _DesktopEditBlockExplorerDialogState
                         onPressed: Navigator.of(context).pop,
                       ),
                     ),
-                    const SizedBox(
-                      width: 16,
-                    ),
+                    const SizedBox(width: 16),
                     Expanded(
                       child: PrimaryButton(
                         label: "Save",
                         buttonHeight: ButtonHeight.l,
                         onPressed: () async {
-                          _textEditingController.text =
-                              _textEditingController.text.trim();
+                          _textEditingController.text = _textEditingController
+                              .text
+                              .trim();
                           await setBlockExplorerForCoin(
                             coin: widget.coin,
-                            url: Uri.parse(
-                              _textEditingController.text,
-                            ),
+                            url: Uri.parse(_textEditingController.text),
                           );
 
                           if (mounted) {
