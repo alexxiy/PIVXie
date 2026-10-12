@@ -7,6 +7,7 @@ import '../../../models/isar/models/isar_models.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/constants.dart';
 import '../../../utilities/text_styles.dart';
+import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/rounded_white_container.dart';
@@ -121,9 +122,8 @@ class _PivxChangeAddressSheetState
                 const SizedBox(height: 2),
                 Text(
                   subtitle,
-                  style: STextStyles.w500_12(
-                    context,
-                  ).copyWith(color: colors.textSubtitle1),
+                  style: STextStyles.w500_12(context)
+                      .copyWith(color: colors.textSubtitle1),
                 ),
               ],
             ],
@@ -136,6 +136,8 @@ class _PivxChangeAddressSheetState
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<StackColors>()!;
+    // On desktop it sits in a dialog: no drag handle, all corners round.
+    final isDesktop = Util.isDesktop;
     return Padding(
       padding: EdgeInsets.only(
         bottom: MediaQuery.of(context).viewInsets.bottom,
@@ -146,27 +148,37 @@ class _PivxChangeAddressSheetState
         ),
         decoration: BoxDecoration(
           color: colors.popupBG,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          borderRadius: isDesktop
+              ? BorderRadius.circular(20)
+              : const BorderRadius.vertical(top: Radius.circular(20)),
         ),
-        padding: const EdgeInsets.fromLTRB(16, 10, 16, 16),
+        padding: isDesktop
+            ? const EdgeInsets.all(32)
+            : const EdgeInsets.fromLTRB(16, 10, 16, 16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Center(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: colors.textFieldDefaultBG,
-                  borderRadius: BorderRadius.circular(
-                    Constants.size.circularBorderRadius,
+            if (!isDesktop)
+              Center(
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: colors.textFieldDefaultBG,
+                    borderRadius: BorderRadius.circular(
+                      Constants.size.circularBorderRadius,
+                    ),
                   ),
+                  width: 60,
+                  height: 4,
                 ),
-                width: 60,
-                height: 4,
               ),
+            if (!isDesktop) const SizedBox(height: 24),
+            Text(
+              "Change address",
+              style: isDesktop
+                  ? STextStyles.desktopH3(context)
+                  : STextStyles.pageTitleH2(context),
             ),
-            const SizedBox(height: 24),
-            Text("Change address", style: STextStyles.pageTitleH2(context)),
             const SizedBox(height: 16),
             Flexible(
               child: ListView(

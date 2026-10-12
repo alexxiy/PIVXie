@@ -11,8 +11,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../pages/wallet_view/sub_widgets/wallet_balance_toggle_sheet.dart';
 import '../../../../pages/wallet_view/sub_widgets/wallet_refresh_button.dart';
 import '../../../../providers/providers.dart';
+import '../../../../providers/wallet/public_private_balance_state_provider.dart';
 import '../../../../providers/wallet/wallet_balance_toggle_state_provider.dart';
 import '../../../../services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import '../../../../themes/stack_colors.dart';
@@ -21,6 +23,8 @@ import '../../../../utilities/amount/amount_formatter.dart';
 import '../../../../utilities/enums/wallet_balance_toggle_state.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../../wallets/wallet/impl/pivx_wallet.dart';
+import '../../../../widgets/desktop/desktop_dialog.dart';
 import 'desktop_balance_toggle_button.dart';
 
 class DesktopWalletSummary extends ConsumerStatefulWidget {
@@ -73,7 +77,27 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
         WalletBalanceToggleState.available;
 
     final balance = ref.watch(pWalletBalance(walletId));
-    final balanceToShow = _showAvailable ? balance.spendable : balance.total;
+    Amount balanceToShow = _showAvailable ? balance.spendable : balance.total;
+
+    // PIVX has a transparent and a shield balance: the same choice as on
+    // mobile (total, or one of them available or in full).
+    final wallet = ref.watch(pWallets).getWallet(walletId);
+    final pivxShield = wallet is PivxWallet && wallet.supportsShield;
+    String? title;
+    if (pivxShield) {
+      final type = ref.watch(publicPrivateBalanceStateProvider);
+      final privateBalance = ref.watch(pWalletBalanceSecondary(walletId));
+      if (ref.watch(showTotalBalanceProvider)) {
+        title = "Total balance";
+        balanceToShow = balance.total + privateBalance.total;
+      } else {
+        title =
+            "${_showAvailable ? "Available" : "Full"} "
+            "${type == BalanceType.private ? "shielded" : "transparent"} balance";
+        final selected = type == BalanceType.private ? privateBalance : balance;
+        balanceToShow = _showAvailable ? selected.spendable : selected.total;
+      }
+    }
 
     return Consumer(
       builder: (context, ref, __) {
@@ -83,6 +107,11 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                if (title != null)
+                  Text(
+                    title,
+                    style: STextStyles.desktopTextExtraExtraSmall(context),
+                  ),
                 FittedBox(
                   fit: BoxFit.scaleDown,
                   child: SelectableText(
@@ -108,7 +137,19 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
             ),
 
             const SizedBox(width: 8),
-            const DesktopBalanceToggleButton(),
+            if (pivxShield)
+              DesktopBalanceChoiceButton(
+                onPressed: () => showDialog<void>(
+                  context: context,
+                  builder: (_) => DesktopDialog(
+                    maxWidth: 480,
+                    maxHeight: double.infinity,
+                    child: WalletBalanceToggleSheet(walletId: walletId),
+                  ),
+                ),
+              )
+            else
+              const DesktopBalanceToggleButton(),
           ],
         );
       },

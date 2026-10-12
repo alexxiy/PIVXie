@@ -19,6 +19,7 @@ import '../../../utilities/amount/amount_formatter.dart';
 import '../../../utilities/constants.dart';
 import '../../../utilities/enums/wallet_balance_toggle_state.dart';
 import '../../../utilities/text_styles.dart';
+import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
 
@@ -55,44 +56,49 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
       _bal = _BalanceType.total;
     }
 
+    // On desktop it sits in a dialog: no drag handle, all corners round.
+    final isDesktop = Util.isDesktop;
+
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).extension<StackColors>()!.popupBG,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: isDesktop
+            ? BorderRadius.circular(20)
+            : const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       child: LimitedBox(
         maxHeight: maxHeight,
         child: Padding(
-          padding: const EdgeInsets.only(
-            left: 16,
-            right: 16,
-            top: 10,
-            bottom: 0,
-          ),
+          padding: isDesktop
+              ? const EdgeInsets.fromLTRB(24, 24, 24, 0)
+              : const EdgeInsets.only(left: 16, right: 16, top: 10, bottom: 0),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Center(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .textFieldDefaultBG,
-                    borderRadius: BorderRadius.circular(
-                      Constants.size.circularBorderRadius,
+              if (!isDesktop)
+                Center(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textFieldDefaultBG,
+                      borderRadius: BorderRadius.circular(
+                        Constants.size.circularBorderRadius,
+                      ),
                     ),
+                    width: 60,
+                    height: 4,
                   ),
-                  width: 60,
-                  height: 4,
                 ),
-              ),
-              const SizedBox(height: 36),
+              if (!isDesktop) const SizedBox(height: 36),
               Padding(
                 padding: const EdgeInsets.only(left: 8.0),
                 child: Text(
                   "Wallet balance",
-                  style: STextStyles.pageTitleH2(context),
+                  style: isDesktop
+                      ? STextStyles.desktopH3(context)
+                      : STextStyles.pageTitleH2(context),
                   textAlign: TextAlign.left,
                 ),
               ),
@@ -114,7 +120,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
               ),
               const SizedBox(height: 12),
               BalanceSelector(
-                title: "Available public balance",
+                title: "Available transparent balance",
                 coin: coin,
                 balance: balance.spendable,
                 onPressed: () {
@@ -138,7 +144,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
               ),
               const SizedBox(height: 12),
               BalanceSelector(
-                title: "Full public balance",
+                title: "Full transparent balance",
                 coin: coin,
                 balance: balance.total,
                 onPressed: () {
@@ -162,7 +168,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
               ),
               const SizedBox(height: 12),
               BalanceSelector(
-                title: "Available Private balance",
+                title: "Available shielded balance",
                 coin: coin,
                 balance: balancePrivate.spendable,
                 onPressed: () {
@@ -186,7 +192,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
               ),
               const SizedBox(height: 12),
               BalanceSelector(
-                title: "Full Private balance",
+                title: "Full shielded balance",
                 coin: coin,
                 balance: balancePrivate.total,
                 onPressed: () {

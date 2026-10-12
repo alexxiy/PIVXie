@@ -14,14 +14,22 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:tuple/tuple.dart';
 
 import '../../../../models/keys/view_only_wallet_data.dart';
+import '../../../../notifications/show_flush_bar.dart';
+import '../../../../pages/coin_control/coin_control_view.dart';
 import '../../../../providers/providers.dart';
 import '../../../../themes/stack_colors.dart';
+import '../../../../utilities/amount/amount.dart';
 import '../../../../utilities/assets.dart';
+import '../../../../utilities/show_loading.dart';
+import '../../../../utilities/text_styles.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/multi_address_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
+import '../../../../widgets/desktop/desktop_dialog.dart';
+import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/static_overflow_row/static_overflow_row.dart';
@@ -45,6 +53,10 @@ enum WalletFeature {
   governance(
     "Governance",
     "Budget proposals: follow them and vote with your masternodes",
+  ),
+  privatize(
+    "Privatize funds",
+    "Move your whole transparent balance to your shield balance",
   ),
 
   // special cases
@@ -86,9 +98,105 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
       Navigator.of(context).pushNamed(route, arguments: widget.walletId);
 
   void _onCoinControlPressed() {
+    // PIVX: the coin control that also covers shield notes.
+    if (ref.read(pWallets).getWallet(widget.walletId) is PivxWallet) {
+      Navigator.of(context).pushNamed(
+        CoinControlView.routeName,
+        arguments: Tuple2(widget.walletId, CoinControlViewType.manage),
+      );
+      return;
+    }
     Navigator.of(
       context,
     ).pushNamed(DesktopCoinControlView.routeName, arguments: widget.walletId);
+  }
+
+  /// PIVX: shield the whole transparent balance, after a confirmation.
+  Future<void> _onPrivatizePressed() async {
+    final wallet = ref.read(pWallets).getWallet(widget.walletId);
+    if (wallet is! PivxWallet) return;
+    if (wallet.info.cachedBalance.spendable <= Amount.zero) {
+      unawaited(
+        showFloatingFlushBar(
+          type: FlushBarType.info,
+          message: "No funds available to privatize!",
+          context: context,
+        ),
+      );
+      return;
+    }
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => DesktopDialog(
+        maxWidth: 450,
+        maxHeight: double.infinity,
+        child: Padding(
+          padding: const EdgeInsets.only(left: 32, bottom: 32),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text("Attention!", style: STextStyles.desktopH3(context)),
+                  const DesktopDialogCloseButton(),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Padding(
+                padding: const EdgeInsets.only(right: 32),
+                child: Text(
+                  "You're about to privatize all of your public funds.",
+                  style: STextStyles.desktopTextExtraExtraSmall(context)
+                      .copyWith(fontSize: 18),
+                ),
+              ),
+              const SizedBox(height: 40),
+              Padding(
+                padding: const EdgeInsets.only(right: 32),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: SecondaryButton(
+                        buttonHeight: ButtonHeight.l,
+                        label: "Cancel",
+                        onPressed: () => Navigator.of(context).pop(false),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: PrimaryButton(
+                        buttonHeight: ButtonHeight.l,
+                        label: "Continue",
+                        onPressed: () => Navigator.of(context).pop(true),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+    Exception? error;
+    await showLoading<void>(
+      whileFuture: wallet.shieldAllTransparent(),
+      context: context,
+      message: "Anonymizing balance",
+      onException: (e) => error = e,
+    );
+    if (!mounted) return;
+    unawaited(
+      showFloatingFlushBar(
+        type: error == null ? FlushBarType.success : FlushBarType.warning,
+        message: error == null
+            ? "Privatize transaction submitted"
+            : "Privatize all failed: $error",
+        context: context,
+      ),
+    );
   }
 
   @override
@@ -130,6 +238,8 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
           Icons.how_to_vote_rounded,
           () => _push(PivxGovernanceView.routeName),
         ),
+      if (wallet is PivxWallet && wallet.supportsShield && !isViewOnly)
+        (WalletFeature.privatize, Icons.shield_rounded, _onPrivatizePressed),
     ];
 
     final canGen =

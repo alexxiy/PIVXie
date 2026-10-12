@@ -9,20 +9,26 @@
  */
 
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:tuple/tuple.dart';
 
+import '../../../../models/balance.dart';
 import '../../../../models/isar/models/blockchain_data/utxo.dart';
 import '../../../../models/isar/models/contact_entry.dart';
 import '../../../../models/send_view_auto_fill_data.dart';
+import '../../../../pages/coin_control/coin_control_view.dart';
 import '../../../../pages/send_view/confirm_transaction_view.dart';
 import '../../../../pages/send_view/sub_widgets/building_transaction_dialog.dart';
+import '../../../../pages/send_view/sub_widgets/pivx_change_address_sheet.dart';
 import '../../../../pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
 import '../../../../providers/providers.dart';
 import '../../../../providers/ui/preview_tx_button_state_provider.dart';
+import '../../../../providers/wallet/public_private_balance_state_provider.dart';
 import '../../../../providers/wallet/desktop_fee_providers.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/address_utils.dart';
@@ -41,6 +47,7 @@ import '../../../../wallets/crypto_currency/coins/pivx.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/models/tx_data.dart';
+import '../../../../wallets/wallet/impl/pivx_wallet.dart';
 import '../../../../widgets/custom_buttons/blue_text_button.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/pivx_memo_field.dart';
@@ -86,6 +93,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   late TextEditingController baseAmountController;
   late TextEditingController memoController;
   late TextEditingController nonceController;
+  late TextEditingController noteController;
 
   late final SendViewAutoFillData? _data;
 
@@ -94,8 +102,36 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   final _baseFocus = FocusNode();
   final _memoFocus = FocusNode();
   final _nonceFocusNode = FocusNode();
+  final _noteFocus = FocusNode();
 
-  String? _note;
+  /// PIVX: the fee comes out of the amount instead of on top of it.
+  bool _pivxSubtractFee = false;
+
+  /// PIVX: change of sends from the transparent balance (null: automatic).
+  String? _pivxChangeAddress;
+
+  /// PIVX: change of sends from the shield balance (null: automatic).
+  String? _pivxShieldChangeAddress;
+
+  /// PIVX wallet with a shield balance to send from.
+  bool get _pivxShield {
+    final wallet = ref.read(pWallets).getWallet(walletId);
+    return wallet is PivxWallet && wallet.supportsShield;
+  }
+
+  /// Spending the shield balance (shield notes) rather than transparent
+  /// outputs.
+  bool get _fromShield =>
+      _pivxShield &&
+      ref.read(publicPrivateBalanceStateProvider) == BalanceType.private;
+
+  Amount get _spendable => _fromShield
+      ? ref.read(pWalletBalanceSecondary(walletId)).spendable
+      : ref.read(pWalletBalance(walletId)).spendable;
+
+  /// Chosen change address for the current balance (null: automatic).
+  String? get _pivxChange =>
+      _fromShield ? _pivxShieldChangeAddress : _pivxChangeAddress;
 
   Amount? _cachedAmountToSend;
   String? _address;
@@ -137,7 +173,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     final wallet = ref.read(pWallets).getWallet(walletId);
 
     final Amount amount = ref.read(pSendAmount)!;
-    final Amount availableBalance = wallet.info.cachedBalance.spendable;
+    final Amount availableBalance = _spendable;
 
     final coinControlEnabled = ref
         .read(prefsChangeNotifierProvider)
@@ -254,6 +290,18 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
       TxData txData;
 
+      // PIVX send settings: the balance spent, fee subtraction and the
+      // change address.
+      final fromShield = _fromShield;
+      final pivxOtherData = <String, dynamic>{
+        if (fromShield) kPivxFromShield: true,
+        if (coin is Pivx && _pivxSubtractFee) kPivxSubtractFee: true,
+        if (!fromShield && _pivxChangeAddress != null)
+          kPivxChangeAddress: _pivxChangeAddress,
+        if (fromShield && _pivxShieldChangeAddress != null)
+          kPivxChangeAddress: _pivxShieldChangeAddress,
+      };
+
       final Future<TxData> txDataFuture = wallet.prepareSend(
         txData: TxData(
           recipients: [
@@ -272,6 +320,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           utxos: (coinControlEnabled && ref.read(pDesktopUseUTXOs).isNotEmpty)
               ? ref.read(pDesktopUseUTXOs)
               : null,
+          otherData: pivxOtherData.isEmpty ? null : jsonEncode(pivxOtherData),
         ),
       );
 
@@ -280,7 +329,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       txData = results.first as TxData;
 
       if (!wasCancelled && mounted) {
-        txData = txData.copyWith(note: _note ?? "");
+        txData = txData.copyWith(note: noteController.text.trim());
         // pop building dialog
         Navigator.of(context, rootNavigator: true).pop();
 
@@ -376,6 +425,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     baseAmountController.text = "";
     memoController.text = "";
     nonceController.text = "";
+    noteController.text = "";
     _address = "";
     _addressToggleFlag = false;
     setState(() {});
@@ -485,9 +535,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
       // autofill notes field.
       if (paymentData.message != null) {
-        _note = paymentData.message;
+        noteController.text = paymentData.message!;
       } else if (paymentData.label != null) {
-        _note = paymentData.label;
+        noteController.text = paymentData.label!;
       }
 
       // autofill amount field
@@ -633,12 +683,17 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   );
 
   Future<void> _sendAllTapped(bool showCoinControl) async {
+    // PIVX never takes the fee out of the amount silently: sending
+    // everything ticks "Subtract fee from amount" where the user sees it.
+    if (coin is Pivx && !_pivxSubtractFee) {
+      setState(() => _pivxSubtractFee = true);
+    }
     final Amount amount;
 
     if (showCoinControl && ref.read(desktopUseUTXOs).isNotEmpty) {
       amount = _selectedUtxosAmount(ref.read(desktopUseUTXOs));
     } else {
-      amount = ref.read(pWalletBalance(walletId)).spendable;
+      amount = _spendable;
     }
 
     cryptoAmountController.text = ref
@@ -647,6 +702,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
   }
 
   void _showDesktopCoinControl() async {
+    if (coin is Pivx) return _showPivxCoinControl();
     final amount = ref.read(pSendAmount);
     await showDialog<void>(
       context: context,
@@ -655,6 +711,70 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         amountToSend: amount,
       ),
     );
+  }
+
+  /// PIVX coin control: transparent outputs or shield notes (whichever
+  /// balance is spent), with the summary of what the send needs.
+  Future<void> _showPivxCoinControl() async {
+    final fromShield = _fromShield;
+    final sendAmount = ref.read(pSendAmount);
+    Amount? amount = sendAmount;
+    if (amount != null && amount != _spendable && !_pivxSubtractFee) {
+      final wallet = ref.read(pWallets).getWallet(walletId);
+      if (wallet is PivxWallet) {
+        amount += await wallet.estimateShieldFee(
+          amount: amount,
+          fromShield: fromShield,
+          toShield: _sendsToShield,
+        );
+      }
+    }
+    if (!mounted) return;
+    final result = await Navigator.of(context).pushNamed(
+      CoinControlView.routeName,
+      arguments: Tuple5(
+        walletId,
+        CoinControlViewType.use,
+        amount,
+        ref.read(desktopUseUTXOs),
+        (
+          shieldNotes: fromShield,
+          sendAmount: sendAmount,
+          toShield: _sendsToShield,
+          subtractFee: _pivxSubtractFee,
+        ),
+      ),
+    );
+    if (result is Set<UTXO> && mounted) {
+      ref.read(desktopUseUTXOs.notifier).state = result;
+    }
+  }
+
+  Future<void> _pickPivxChangeAddress() async {
+    final fromShield = _fromShield;
+    final picked = await showDialog<String>(
+      context: context,
+      builder: (context) => DesktopDialog(
+        maxWidth: 580,
+        maxHeight: 640,
+        child: PivxChangeAddressSheet(
+          walletId: walletId,
+          coin: coin as Pivx,
+          current: _pivxChange,
+          shield: fromShield,
+        ),
+      ),
+    );
+    if (picked != null && mounted) {
+      final value = picked.isEmpty ? null : picked;
+      setState(() {
+        if (fromShield) {
+          _pivxShieldChangeAddress = value;
+        } else {
+          _pivxChangeAddress = value;
+        }
+      });
+    }
   }
 
   @override
@@ -675,6 +795,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     baseAmountController = TextEditingController();
     memoController = TextEditingController();
     nonceController = TextEditingController();
+    noteController = TextEditingController();
 
     onCryptoAmountChanged = _cryptoAmountChanged;
     cryptoAmountController.addListener(onCryptoAmountChanged);
@@ -737,13 +858,52 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     baseAmountController.dispose();
     memoController.dispose();
     nonceController.dispose();
+    noteController.dispose();
 
     _addressFocusNode.dispose();
     _cryptoFocus.dispose();
     _baseFocus.dispose();
     _memoFocus.dispose();
     _nonceFocusNode.dispose();
+    _noteFocus.dispose();
     super.dispose();
+  }
+
+  /// One of the PIVX balances to send from, with what it can spend.
+  Widget _balanceChoice({
+    required String title,
+    required Balance balance,
+    required bool selected,
+    required VoidCallback onTap,
+  }) {
+    final colors = Theme.of(context).extension<StackColors>()!;
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      child: GestureDetector(
+        onTap: onTap,
+        child: RoundedContainer(
+          color: selected ? colors.textFieldDefaultBG : Colors.transparent,
+          borderColor: selected
+              ? colors.accentColorBlue
+              : colors.textFieldDefaultBG,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: STextStyles.desktopTextExtraExtraSmall(context),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                ref.watch(pAmountFormatter(coin)).format(balance.spendable),
+                style: STextStyles.desktopTextExtraSmall(context)
+                    .copyWith(color: colors.textDark),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   @override
@@ -757,9 +917,58 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       prefsChangeNotifierProvider.select((value) => value.enableCoinControl),
     );
 
+    // The chosen coins belong to one balance.
+    ref.listen(publicPrivateBalanceStateProvider, (_, __) {
+      ref.read(desktopUseUTXOs.notifier).state = {};
+    });
+    final pivxShield = _pivxShield;
+    final fromShield =
+        pivxShield &&
+        ref.watch(publicPrivateBalanceStateProvider) == BalanceType.private;
+    final labelStyle = STextStyles.desktopTextExtraSmall(context).copyWith(
+      color: Theme.of(context)
+          .extension<StackColors>()!
+          .textFieldActiveSearchIconRight,
+    );
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        if (pivxShield) ...[
+          const SizedBox(height: 4),
+          Text("Send from", style: labelStyle),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Expanded(
+                child: _balanceChoice(
+                  title: "Shielded balance",
+                  balance: ref.watch(pWalletBalanceSecondary(walletId)),
+                  selected: fromShield,
+                  onTap: () =>
+                      ref
+                              .read(publicPrivateBalanceStateProvider.notifier)
+                              .state =
+                          BalanceType.private,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: _balanceChoice(
+                  title: "Transparent balance",
+                  balance: ref.watch(pWalletBalance(walletId)),
+                  selected: !fromShield,
+                  onTap: () =>
+                      ref
+                              .read(publicPrivateBalanceStateProvider.notifier)
+                              .state =
+                          BalanceType.public,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+        ],
         const SizedBox(height: 4),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -924,6 +1133,57 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               ],
             ),
           ),
+        if (coin is Pivx) ...[
+          const SizedBox(height: 10),
+          GestureDetector(
+            onTap: () => setState(() => _pivxSubtractFee = !_pivxSubtractFee),
+            child: Container(
+              color: Colors.transparent,
+              child: Row(
+                children: [
+                  SizedBox(
+                    width: 20,
+                    height: 26,
+                    child: Checkbox(
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      value: _pivxSubtractFee,
+                      onChanged: (v) =>
+                          setState(() => _pivxSubtractFee = v ?? false),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    "Subtract fee from amount",
+                    style: STextStyles.desktopTextExtraExtraSmall(context),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          RoundedContainer(
+            color: Colors.transparent,
+            borderColor: Theme.of(context)
+                .extension<StackColors>()!
+                .textFieldDefaultBG,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "Change address",
+                  style: STextStyles.desktopTextExtraExtraSmall(context),
+                ),
+                CustomTextButton(
+                  text: _pivxChange == null
+                      ? "Automatic"
+                      : "${_pivxChange!.substring(0, 6)}…"
+                            "${_pivxChange!.substring(_pivxChange!.length - 6)}",
+                  onTap: _pickPivxChangeAddress,
+                ),
+              ],
+            ),
+          ),
+        ],
         const SizedBox(height: 20),
         Text(
           "Send to",
@@ -1154,7 +1414,51 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           PivxMemoField(controller: memoController, focusNode: _memoFocus),
         ],
         const SizedBox(height: 20),
-        DesktopSendFeeForm(walletId: walletId),
+        Text("Note (optional)", style: labelStyle),
+        const SizedBox(height: 10),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(
+            Constants.size.circularBorderRadius,
+          ),
+          child: TextField(
+            key: const Key("desktopSendNoteFieldKey"),
+            controller: noteController,
+            focusNode: _noteFocus,
+            minLines: 1,
+            maxLines: 3,
+            autocorrect: false,
+            enableSuggestions: false,
+            style: STextStyles.desktopTextExtraSmall(context).copyWith(
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .textFieldActiveText,
+              height: 1.8,
+            ),
+            onChanged: (_) => setState(() {}),
+            decoration:
+                standardInputDecoration(
+                  "Just for you: kept in your history, never sent",
+                  _noteFocus,
+                  context,
+                  desktopMed: true,
+                ).copyWith(
+                  contentPadding: const EdgeInsets.only(
+                    left: 16,
+                    top: 11,
+                    bottom: 12,
+                    right: 5,
+                  ),
+                ),
+          ),
+        ),
+        const SizedBox(height: 20),
+        DesktopSendFeeForm(
+          walletId: walletId,
+          fromShield: fromShield,
+          toShield: _sendsToShield,
+          subtractFee: _pivxSubtractFee,
+          selected: ref.watch(desktopUseUTXOs),
+        ),
         const SizedBox(height: 36),
         PrimaryButton(
           buttonHeight: ButtonHeight.l,

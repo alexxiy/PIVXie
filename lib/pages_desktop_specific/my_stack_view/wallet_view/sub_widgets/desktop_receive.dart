@@ -30,10 +30,12 @@ import '../../../../utilities/assets.dart';
 import '../../../../utilities/clipboard_interface.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/enums/derive_path_type_enum.dart';
+import '../../../../utilities/show_loading.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../../wallets/wallet/impl/pivx_wallet.dart';
 import '../../../../wallets/wallet/intermediate/bip39_hd_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/multi_address_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
@@ -65,6 +67,9 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
   late final String walletId;
   late final ClipboardInterface clipboard;
   late final bool showMultiType;
+
+  /// PIVX wallet with shield addresses (listed first: private by default).
+  late final bool _supportsPivxShield;
 
   int _currentIndex = 0;
 
@@ -132,6 +137,23 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
     }
   }
 
+  Future<void> generateNewPivxShieldAddress() async {
+    final wallet = ref.read(pWallets).getWallet(walletId) as PivxWallet;
+    final address = await showLoading<String>(
+      whileFuture: wallet.generateNewShieldAddress(),
+      context: context,
+      message: "Generating address",
+    );
+    if (mounted && address != null) {
+      setState(() => _addressMap[AddressType.pivxShield] = address);
+    }
+  }
+
+  String _addressTypeLabel(AddressType type) =>
+      _supportsPivxShield && type == AddressType.p2pkh
+      ? "Transparent address"
+      : "${type.readableName} address";
+
   StreamSubscription<Address?> _sub(AddressType type) {
     return ref
         .read(mainDBProvider)
@@ -164,26 +186,44 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
     coin = ref.read(pWalletInfo(walletId)).coin;
     clipboard = widget.clipboard;
     final wallet = ref.read(pWallets).getWallet(walletId);
+    _supportsPivxShield = wallet is PivxWallet && wallet.supportsShield;
     if (wallet is ViewOnlyOptionInterface && wallet.isViewOnly) {
       showMultiType = false;
     } else {
       showMultiType =
-          wallet is Bip39HDWallet && wallet.supportedAddressTypes.length > 1;
+          _supportsPivxShield ||
+          (wallet is Bip39HDWallet && wallet.supportedAddressTypes.length > 1);
     }
 
     _walletAddressTypes.add(wallet.info.mainAddressType);
 
     if (showMultiType) {
-      _walletAddressTypes.addAll(
-        (wallet as Bip39HDWallet).supportedAddressTypes.where(
-          (e) => e != wallet.info.mainAddressType,
-        ),
-      );
+      if (_supportsPivxShield) {
+        _walletAddressTypes.insert(0, AddressType.pivxShield);
+      } else {
+        _walletAddressTypes.addAll(
+          (wallet as Bip39HDWallet).supportedAddressTypes.where(
+            (e) => e != wallet.info.mainAddressType,
+          ),
+        );
+      }
     }
 
-    _addressMap[_walletAddressTypes[_currentIndex]] = ref.read(
-      pWalletReceivingAddress(walletId),
-    );
+    if (_supportsPivxShield) {
+      _addressMap[wallet.info.mainAddressType] = ref.read(
+        pWalletReceivingAddress(walletId),
+      );
+      _addressMap[AddressType.pivxShield] = "[Loading shield address]";
+      (wallet as PivxWallet).getCurrentShieldAddress().then((a) {
+        if (mounted && a != null) {
+          setState(() => _addressMap[AddressType.pivxShield] = a);
+        }
+      });
+    } else {
+      _addressMap[_walletAddressTypes[_currentIndex]] = ref.read(
+        pWalletReceivingAddress(walletId),
+      );
+    }
 
     if (showMultiType) {
       for (final type in _walletAddressTypes) {
@@ -223,7 +263,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
         wallet.viewOnlyType == ViewOnlyWalletType.addressOnly) {
       canGen = false;
     } else {
-      canGen = wallet is MultiAddressInterface;
+      canGen = wallet is MultiAddressInterface || _supportsPivxShield;
     }
 
     return Column(
@@ -244,7 +284,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                       DropdownItem(
                         value: i,
                         child: Text(
-                          "${_walletAddressTypes[i].readableName} address",
+                          _addressTypeLabel(_walletAddressTypes[i]),
                           style: STextStyles.w500_14(context),
                         ),
                       ),
@@ -331,7 +371,11 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                       Row(
                         children: [
                           Text(
-                            "Your ${coin.ticker} address",
+                            _supportsPivxShield &&
+                                    _walletAddressTypes[_currentIndex] ==
+                                        AddressType.pivxShield
+                                ? "Your ${coin.ticker} shield address"
+                                : "Your ${coin.ticker} address",
                             style: STextStyles.itemSubtitle(context),
                           ),
                           const Spacer(),
@@ -382,7 +426,11 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
         if (canGen)
           SecondaryButton(
             buttonHeight: ButtonHeight.l,
-            onPressed: generateNewAddress,
+            onPressed:
+                _supportsPivxShield &&
+                    _walletAddressTypes[_currentIndex] == AddressType.pivxShield
+                ? generateNewPivxShieldAddress
+                : generateNewAddress,
             label: "Generate new address",
           ),
         const SizedBox(height: 20),

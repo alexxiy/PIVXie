@@ -121,3 +121,39 @@ class DesktopPrivateBalanceToggleButton extends ConsumerWidget {
     );
   }
 }
+
+/// PIVX: opens the balance choice (total, or the shielded or transparent
+/// balance, available or in full), as the balance tap does on mobile.
+class DesktopBalanceChoiceButton extends StatelessWidget {
+  const DesktopBalanceChoiceButton({super.key, required this.onPressed});
+
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 22,
+      width: 80,
+      child: MaterialButton(
+        color: Theme.of(context).extension<StackColors>()!.buttonBackSecondary,
+        splashColor: Theme.of(context).extension<StackColors>()!.highlight,
+        onPressed: onPressed,
+        elevation: 0,
+        highlightElevation: 0,
+        hoverElevation: 0,
+        padding: EdgeInsets.zero,
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(
+            Constants.size.circularBorderRadius,
+          ),
+        ),
+        child: Center(
+          child: FittedBox(
+            child: Text("BALANCE", style: STextStyles.w500_10(context)),
+          ),
+        ),
+      ),
+    );
+  }
+}
