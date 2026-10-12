@@ -459,8 +459,8 @@ class _PivxCreateProposalViewState
                             _funding.coins.isNotEmpty
                                 ? "Selected coins"
                                 : _funding.fromShield
-                                ? "Private balance"
-                                : "Public balance",
+                                ? "Shielded balance"
+                                : "Transparent balance",
                             fmt.format(balance),
                           ),
                           const SizedBox(height: 6),

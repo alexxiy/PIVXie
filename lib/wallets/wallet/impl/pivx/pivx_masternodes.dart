@@ -309,12 +309,12 @@ extension PivxMasternodes on PivxWallet {
   }
 
   /// Build the collateral payment: exactly [masternodeCollateral] to
-  /// [address] (a wallet address), from [utxos] when the user picked the
-  /// coins. Confirm with [confirmSend], then call [addMasternode] with
-  /// [collateralVout].
+  /// [address] (a wallet address), paid as [funding] says (the shield or
+  /// the transparent balance, picked coins, change address). Confirm with
+  /// [confirmSend], then call [addMasternode] with [collateralVout].
   Future<TxData> prepareMasternodeCollateral({
     required String address,
-    Set<UTXO>? utxos,
+    PivxFunding funding = kPivxAutoFunding,
     String note = "Create masternode",
   }) => prepareSend(
     txData: TxData(
@@ -329,9 +329,8 @@ extension PivxMasternodes on PivxWallet {
           addressType: AddressType.p2pkh,
         ),
       ],
-      utxos: utxos == null || utxos.isEmpty
-          ? null
-          : {for (final u in utxos) StandardInput(u)},
+      utxos: pivxFundingInputs(funding),
+      otherData: jsonEncode(pivxFundingOtherData(funding)),
     ),
   );
 

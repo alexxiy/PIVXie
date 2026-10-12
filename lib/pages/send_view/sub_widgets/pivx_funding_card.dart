@@ -97,9 +97,8 @@ class PivxFundingCard extends ConsumerWidget {
     final fmt = ref.watch(pAmountFormatter(coin));
     final public = ref.watch(pWalletBalance(walletId)).spendable;
     final private = ref.watch(pWalletBalanceSecondary(walletId)).spendable;
-    final secondary = STextStyles.w500_12(
-      context,
-    ).copyWith(color: colors.textSubtitle1);
+    final secondary = STextStyles.w500_12(context)
+        .copyWith(color: colors.textSubtitle1);
     final coinsTotal = Amount(
       rawValue: funding.coins.fold(
         BigInt.zero,
@@ -177,10 +176,10 @@ class PivxFundingCard extends ConsumerWidget {
           const SizedBox(height: 8),
           Row(
             children: [
-              source("Public balance", false, public),
+              source("Transparent balance", false, public),
               if (shieldPossible) ...[
                 const SizedBox(width: 8),
-                source("Private balance", true, private),
+                source("Shielded balance", true, private),
               ],
             ],
           ),
@@ -292,9 +291,8 @@ class PivxOwnAddressField extends ConsumerWidget {
                           const SizedBox(height: 2),
                           MiddleEllipsisText(
                             address,
-                            style: STextStyles.w500_12(
-                              context,
-                            ).copyWith(color: colors.textSubtitle1),
+                            style: STextStyles.w500_12(context)
+                                .copyWith(color: colors.textSubtitle1),
                           ),
                         ],
                       ),
@@ -364,9 +362,8 @@ class _OwnAddressSheetState extends State<_OwnAddressSheet> {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<StackColors>()!;
-    final secondary = STextStyles.w500_12(
-      context,
-    ).copyWith(color: colors.textSubtitle1);
+    final secondary = STextStyles.w500_12(context)
+        .copyWith(color: colors.textSubtitle1);
     return Container(
       decoration: BoxDecoration(
         color: colors.popupBG,
@@ -393,9 +390,8 @@ class _OwnAddressSheetState extends State<_OwnAddressSheet> {
                     Expanded(
                       child: Text(
                         "Create a new address",
-                        style: STextStyles.w600_14(
-                          context,
-                        ).copyWith(color: colors.accentColorBlue),
+                        style: STextStyles.w600_14(context)
+                            .copyWith(color: colors.accentColorBlue),
                       ),
                     ),
                     if (_creating)

@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar_community/isar.dart';
-import 'package:tuple/tuple.dart';
 
 import '../../db/isar/main_db.dart';
 import '../../models/isar/models/isar_models.dart';
@@ -11,8 +10,6 @@ import '../../notifications/show_flush_bar.dart';
 import '../../providers/global/wallets_provider.dart';
 import '../../route_generator.dart';
 import '../../themes/stack_colors.dart';
-import '../../utilities/amount/amount.dart';
-import '../../utilities/amount/amount_formatter.dart';
 import '../../utilities/text_styles.dart';
 import '../../wallets/models/tx_data.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
@@ -22,9 +19,9 @@ import '../../widgets/custom_buttons/blue_text_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_text_field.dart';
-import '../coin_control/coin_control_view.dart';
 import '../send_view/confirm_transaction_view.dart';
 import '../send_view/sub_widgets/building_transaction_dialog.dart';
+import '../send_view/sub_widgets/pivx_funding_card.dart';
 import 'pivx_masternodes_view.dart';
 import '../../widgets/desktop/desktop_page_column.dart';
 
@@ -75,7 +72,8 @@ class _PivxCreateMasternodeViewState
   UTXO? _output;
 
   /// Coins to pay the collateral with; empty: chosen automatically.
-  Set<UTXO> _coins = {};
+  /// Which balance (shield or transparent) and coins pay the collateral.
+  PivxFunding _funding = kPivxAutoFunding;
 
   PivxWallet get _wallet =>
       ref.read(pWallets).getWallet(widget.walletId) as PivxWallet;
@@ -224,7 +222,7 @@ class _PivxCreateMasternodeViewState
       build: () async {
         final txData = await wallet.prepareMasternodeCollateral(
           address: address,
-          utxos: _coins,
+          funding: _funding,
           note: "Create masternode $label",
         );
         return (txData, wallet.collateralVout(txData, address));
@@ -308,62 +306,6 @@ class _PivxCreateMasternodeViewState
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Future<void> _chooseCoins() async {
-    final wallet = _wallet;
-    final result = await Navigator.of(context).pushNamed(
-      CoinControlView.routeName,
-      arguments: Tuple5(
-        widget.walletId,
-        CoinControlViewType.use,
-        wallet.masternodeCollateral,
-        _coins,
-        (
-          shieldNotes: false,
-          sendAmount: wallet.masternodeCollateral,
-          toShield: false,
-          subtractFee: false,
-        ),
-      ),
-    );
-    if (result is Set<UTXO> && mounted) setState(() => _coins = result);
-  }
-
-  Widget _coinControl() {
-    final colors = Theme.of(context).extension<StackColors>()!;
-    final fmt = ref.watch(pAmountFormatter(_wallet.cryptoCurrency));
-    final sum = _coins.fold(BigInt.zero, (p, u) => p + BigInt.from(u.value));
-    return RoundedWhiteContainer(
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text("Coins to spend", style: STextStyles.w600_14(context)),
-                const SizedBox(height: 2),
-                Text(
-                  _coins.isEmpty
-                      ? "Chosen automatically"
-                      : "${_coins.length} selected · "
-                            "${fmt.format(Amount(rawValue: sum, fractionDigits: _wallet.cryptoCurrency.fractionDigits))}",
-                  style: STextStyles.w500_12(context)
-                      .copyWith(color: colors.textSubtitle1),
-                ),
-              ],
-            ),
-          ),
-          if (_coins.isNotEmpty)
-            CustomTextButton(
-              text: "Reset",
-              onTap: () => setState(() => _coins = {}),
-            ),
-          const SizedBox(width: 12),
-          CustomTextButton(text: "Choose", onTap: _chooseCoins),
-        ],
       ),
     );
   }
@@ -622,7 +564,12 @@ class _PivxCreateMasternodeViewState
               ],
               if (_collateral != _Collateral.existingOutput) ...[
                 const SizedBox(height: 4),
-                _coinControl(),
+                PivxFundingCard(
+                  walletId: widget.walletId,
+                  funding: _funding,
+                  amount: _wallet.masternodeCollateral,
+                  onChanged: (f) => setState(() => _funding = f),
+                ),
               ],
               const SizedBox(height: 12),
               Row(
