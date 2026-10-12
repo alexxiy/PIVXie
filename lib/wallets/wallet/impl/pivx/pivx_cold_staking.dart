@@ -392,17 +392,22 @@ extension PivxColdStakingWallet on PivxWallet {
     );
   }
 
-  /// Cold staking rewards received so far, per owner address: each
-  /// stake spends one delegated output and pays the stake plus the reward
-  /// back to the same owner. Includes rewards of coins since withdrawn.
-  Future<Map<String, BigInt>> coldStakeRewardsByOwner() async {
+  /// Cold staking rewards received so far, per owner address, and how
+  /// many stakes paid them: each stake spends one delegated output and
+  /// pays the stake plus the reward back to the same owner, so earlier
+  /// rewards become part of the delegation. Includes rewards of coins
+  /// since withdrawn.
+  Future<Map<String, ({BigInt amount, int stakes})>>
+  coldStakeRewardsByOwner() async {
     final txs = await mainDB.isar.transactionV2s
         .where()
         .walletIdEqualTo(walletId)
         .findAll();
     final byOwner = <String, BigInt>{};
+    final stakes = <String, int>{};
     for (final tx in txs) {
       if (tx.pivxKind != PivxTxKind.coldStakeReward) continue;
+      final owners = <String>{};
       // The staked delegated output comes back with the reward to the
       // same script. Other payments in the block (our masternode's) are
       // not cold staking rewards. P2CS inputs and outputs list the
@@ -410,6 +415,7 @@ extension PivxColdStakingWallet on PivxWallet {
       void add(List<String> addresses, BigInt value) {
         if (addresses.isEmpty) return;
         final owner = addresses.last;
+        owners.add(owner);
         byOwner[owner] = (byOwner[owner] ?? BigInt.zero) + value;
       }
 
@@ -421,7 +427,13 @@ extension PivxColdStakingWallet on PivxWallet {
       for (final i in tx.inputs) {
         if (i.walletOwns) add(i.addresses, -i.value);
       }
+      for (final owner in owners) {
+        stakes[owner] = (stakes[owner] ?? 0) + 1;
+      }
     }
-    return byOwner;
+    return {
+      for (final e in byOwner.entries)
+        e.key: (amount: e.value, stakes: stakes[e.key] ?? 0),
+    };
   }
 }

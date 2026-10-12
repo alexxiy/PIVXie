@@ -48,7 +48,7 @@ class _PivxColdStakingViewState extends ConsumerState<PivxColdStakingView> {
   List<PivxDelegation>? _delegations;
 
   /// Rewards received so far, per owner address.
-  Future<Map<String, BigInt>>? _rewards;
+  Future<Map<String, ({BigInt amount, int stakes})>>? _rewards;
 
   /// The reward part of outputs a stake created, by "txid:vout".
   Map<String, BigInt> _shares = const {};
@@ -87,6 +87,17 @@ class _PivxColdStakingViewState extends ConsumerState<PivxColdStakingView> {
   Future<void> _delegate() =>
       Navigator.of(context)
           .pushNamed(PivxDelegateView.routeName, arguments: widget.walletId);
+
+  /// "36 tPIV from 9 stakes".
+  String _rewardsFrom(({BigInt amount, int stakes}) r, AmountFormatter fmt) =>
+      "${fmt.format(Amount(rawValue: r.amount, fractionDigits: _wallet.cryptoCurrency.fractionDigits))}"
+      " from ${r.stakes} ${r.stakes == 1 ? "stake" : "stakes"}";
+
+  String _rewardsSoFar(
+    Iterable<({BigInt amount, int stakes})> perOwner,
+    AmountFormatter fmt,
+  ) =>
+      "Rewards so far: ${_rewardsFrom((amount: perOwner.fold(BigInt.zero, (p, r) => p + r.amount), stakes: perOwner.fold(0, (p, r) => p + r.stakes)), fmt)}";
 
   /// The reward part of [d] (an output a stake created), formatted.
   String? _rewardText(PivxDelegation d, AmountFormatter fmt) {
@@ -213,7 +224,8 @@ class _PivxColdStakingViewState extends ConsumerState<PivxColdStakingView> {
             ),
             subtitle: _rewardText(d, fmt) == null
                 ? _status(d, height)
-                : "Includes a ${_rewardText(d, fmt)} cold staking reward · "
+                : "Includes ${_rewardText(d, fmt)} from its latest stake; "
+                      "earlier rewards are part of the amount · "
                       "${_status(d, height)}",
             children: [
               PivxCopyRow(title: "Staker", value: d.staker),
@@ -326,11 +338,16 @@ class _PivxColdStakingViewState extends ConsumerState<PivxColdStakingView> {
                                     style: STextStyles.pageTitleH2(context),
                                   ),
                                   const SizedBox(height: 4),
-                                  FutureBuilder<Map<String, BigInt>>(
+                                  FutureBuilder<
+                                    Map<String, ({BigInt amount, int stakes})>
+                                  >(
                                     future: _rewards,
                                     builder: (context, snap) => Text(
                                       snap.hasData
-                                          ? "Rewards so far: ${fmt.format(Amount(rawValue: snap.data!.values.fold(BigInt.zero, (p, v) => p + v), fractionDigits: coin.fractionDigits))}"
+                                          ? _rewardsSoFar(
+                                              snap.data!.values,
+                                              fmt,
+                                            )
                                           : " ",
                                       style: STextStyles.w500_12(context)
                                           .copyWith(
@@ -362,7 +379,9 @@ class _PivxColdStakingViewState extends ConsumerState<PivxColdStakingView> {
                             for (final owner in {
                               for (final d in delegations) d.owner,
                             }) ...[
-                              FutureBuilder<Map<String, BigInt>>(
+                              FutureBuilder<
+                                Map<String, ({BigInt amount, int stakes})>
+                              >(
                                 future: _rewards,
                                 builder: (context, snap) => _OwnerHeader(
                                   walletId: widget.walletId,
@@ -381,12 +400,7 @@ class _PivxColdStakingViewState extends ConsumerState<PivxColdStakingView> {
                                   ),
                                   rewards: snap.data?[owner] == null
                                       ? null
-                                      : fmt.format(
-                                          Amount(
-                                            rawValue: snap.data![owner]!,
-                                            fractionDigits: coin.fractionDigits,
-                                          ),
-                                        ),
+                                      : _rewardsFrom(snap.data![owner]!, fmt),
                                 ),
                               ),
                               const SizedBox(height: 8),
@@ -535,7 +549,9 @@ class _DelegationRow extends StatelessWidget {
                         if (delegation.isReward) ...[
                           const SizedBox(width: 8),
                           PivxPill(
-                            text: reward == null ? "Reward" : "+$reward reward",
+                            text: reward == null
+                                ? "Reward"
+                                : "+$reward latest stake",
                             color: colors.accentColorGreen,
                           ),
                         ],
@@ -656,7 +672,7 @@ class _OwnerHeader extends StatelessWidget {
         footer: Text(
           rewards == null
               ? "$delegated delegated"
-              : "$delegated delegated · $rewards rewards",
+              : "$delegated delegated · rewards: $rewards",
           style: secondary,
         ),
       ),

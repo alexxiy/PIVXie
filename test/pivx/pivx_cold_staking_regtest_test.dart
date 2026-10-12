@@ -190,9 +190,14 @@ void main() {
       if (await unspent()) {
         final own = (jsonDecode(await _cli(["listunspent", "0"])) as List)
             .cast<Map<String, dynamic>>();
-        final locked = jsonEncode([
-          for (final u in own) {"txid": u["txid"], "vout": u["vout"]},
-        ]);
+        // In batches: the node's coins outgrow one command line.
+        final locked = [
+          for (var i = 0; i < own.length; i += 200)
+            jsonEncode([
+              for (final u in own.skip(i).take(200))
+                {"txid": u["txid"], "vout": u["vout"]},
+            ]),
+        ];
         // Delegations of earlier runs can't be locked: take their owners
         // off the whitelist instead.
         final cold = (jsonDecode(await _cli(["listcoldutxos"])) as List)
@@ -202,7 +207,9 @@ void main() {
             if (u["whitelisted"] == "true" && u["coin-owner"] != "$owner")
               u["coin-owner"] as String,
         };
-        await _cli(["lockunspent", "false", "true", locked]);
+        for (final batch in locked) {
+          await _cli(["lockunspent", "false", "true", batch]);
+        }
         for (final o in owners) {
           await _cli(["delegatorremove", o]);
         }
@@ -217,7 +224,9 @@ void main() {
             }
           }
         } finally {
-          await _cli(["lockunspent", "true", "true", locked]);
+          for (final batch in locked) {
+            await _cli(["lockunspent", "true", "true", batch]);
+          }
           for (final o in owners) {
             await _cli(["delegatoradd", o]);
           }
