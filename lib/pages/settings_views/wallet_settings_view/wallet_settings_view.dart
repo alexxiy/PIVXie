@@ -34,6 +34,7 @@ import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../pinpad_views/lock_screen_view.dart';
 import '../sub_widgets/settings_list_button.dart';
+import 'sign_message_view.dart';
 import 'wallet_backup_views/wallet_backup_view.dart';
 import 'wallet_network_settings_view/wallet_network_settings_view.dart';
 import 'wallet_settings_wallet_settings/wallet_settings_wallet_settings_view.dart';
@@ -253,6 +254,16 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                   );
                 },
               ),
+            const SizedBox(height: 8),
+            SettingsListButton(
+              iconAssetName: Assets.svg.pencil,
+              iconSize: 16,
+              title: "Sign / verify message",
+              onPressed: () => Navigator.of(context).pushNamed(
+                SignMessageView.routeName,
+                arguments: walletId,
+              ),
+            ),
             const SizedBox(height: 8),
             SettingsListButton(
               iconAssetName: Assets.svg.downloadFolder,

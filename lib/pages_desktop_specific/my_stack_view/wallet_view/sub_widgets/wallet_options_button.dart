@@ -20,15 +20,19 @@ import '../../../../utilities/assets.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../addresses/desktop_wallet_addresses_view.dart';
+import '../../../../pages/settings_views/wallet_settings_view/sign_message_view.dart';
 import 'desktop_delete_wallet_dialog.dart';
 import 'wallet_keys_button.dart';
 
 enum _WalletOptions {
+  signMessage,
   walletKeys,
   deleteWallet;
 
   String get prettyName {
     switch (this) {
+      case _WalletOptions.signMessage:
+        return "Sign message";
       case _WalletOptions.walletKeys:
         return "Wallet keys";
       case _WalletOptions.deleteWallet:
@@ -96,6 +100,8 @@ class WalletOptionsButton extends ConsumerWidget {
           barrierColor: Colors.transparent,
           builder: (context) {
             return WalletOptionsPopupMenu(
+              onSignMessagePressed: () =>
+                  Navigator.of(context).pop(_WalletOptions.signMessage),
               onDeletePressed: () async {
                 Navigator.of(context).pop(_WalletOptions.deleteWallet);
               },
@@ -109,6 +115,9 @@ class WalletOptionsButton extends ConsumerWidget {
 
         if (context.mounted && func != null) {
           switch (func) {
+            case _WalletOptions.signMessage:
+              unawaited(showSignMessageDialog(context, walletId));
+              break;
             case _WalletOptions.walletKeys:
               unawaited(showWalletKeys(context, walletId));
               break;
@@ -163,11 +172,13 @@ class WalletOptionsButton extends ConsumerWidget {
 class WalletOptionsPopupMenu extends ConsumerWidget {
   const WalletOptionsPopupMenu({
     super.key,
+    required this.onSignMessagePressed,
     required this.onDeletePressed,
     required this.onWalletKeysPressed,
     required this.walletId,
   });
 
+  final VoidCallback onSignMessagePressed;
   final VoidCallback onDeletePressed;
 
   /// Null: no Wallet keys item.
@@ -197,74 +208,24 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  _MenuItem(
+                    icon: Assets.svg.pencil,
+                    label: _WalletOptions.signMessage.prettyName,
+                    onPressed: onSignMessagePressed,
+                  ),
                   if (onWalletKeysPressed != null) ...[
-                    TransparentButton(
-                      onPressed: onWalletKeysPressed,
-                      child: Padding(
-                        padding: const EdgeInsets.all(8),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            SvgPicture.asset(
-                              Assets.svg.key,
-                              width: 20,
-                              height: 20,
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textFieldActiveSearchIconLeft,
-                            ),
-                            const SizedBox(width: 14),
-                            Expanded(
-                              child: Text(
-                                _WalletOptions.walletKeys.prettyName,
-                                style:
-                                    STextStyles.desktopTextExtraExtraSmall(
-                                      context,
-                                    ).copyWith(
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .textDark,
-                                    ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
                     const SizedBox(height: 8),
-                  ],
-                  TransparentButton(
-                    onPressed: onDeletePressed,
-                    child: Padding(
-                      padding: const EdgeInsets.all(8),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          SvgPicture.asset(
-                            Assets.svg.trash,
-                            width: 20,
-                            height: 20,
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textFieldActiveSearchIconLeft,
-                          ),
-                          const SizedBox(width: 14),
-                          Expanded(
-                            child: Text(
-                              _WalletOptions.deleteWallet.prettyName,
-                              style:
-                                  STextStyles.desktopTextExtraExtraSmall(
-                                    context,
-                                  ).copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .textDark,
-                                  ),
-                            ),
-                          ),
-                        ],
-                      ),
+                    _MenuItem(
+                      icon: Assets.svg.key,
+                      label: _WalletOptions.walletKeys.prettyName,
+                      onPressed: onWalletKeysPressed!,
                     ),
+                  ],
+                  const SizedBox(height: 8),
+                  _MenuItem(
+                    icon: Assets.svg.trash,
+                    label: _WalletOptions.deleteWallet.prettyName,
+                    onPressed: onDeletePressed,
                   ),
                 ],
               ),
@@ -272,6 +233,47 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class _MenuItem extends StatelessWidget {
+  const _MenuItem({
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+  });
+
+  final String icon;
+  final String label;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<StackColors>()!;
+    return TransparentButton(
+      onPressed: onPressed,
+      child: Padding(
+        padding: const EdgeInsets.all(8),
+        child: Row(
+          children: [
+            SvgPicture.asset(
+              icon,
+              width: 20,
+              height: 20,
+              color: colors.textFieldActiveSearchIconLeft,
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Text(
+                label,
+                style: STextStyles.desktopTextExtraExtraSmall(context)
+                    .copyWith(color: colors.textDark),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
