@@ -48,7 +48,9 @@ Map<String, dynamic> pivxFundingOtherData(PivxFunding funding) => {
 
 /// [TxData.utxos] for [funding]: null lets the wallet choose.
 Set<StandardInput>? pivxFundingInputs(PivxFunding funding) =>
-    funding.coins.isEmpty ? null : {for (final u in funding.coins) StandardInput(u)};
+    funding.coins.isEmpty
+    ? null
+    : {for (final u in funding.coins) StandardInput(u)};
 
 bool _otherDataFlag(TxData txData, String key) =>
     txData.otherData != null &&
@@ -223,16 +225,27 @@ extension _PivxShield on PivxWallet {
       void progress(int height) =>
           _syncProgress(0.1 + 0.85 * (height - scannedFrom) / span);
 
+      // The next batch downloads while the previous one is scanned (in a
+      // background isolate); batches are still scanned one after another.
       var batch = <PivxShieldBlock>[];
-      await for (final block in parsePivxShieldStream(
-        bridge.shieldData(state.lastProcessedBlock + 1),
-      )) {
-        progress(block.height);
-        batch.add(block);
-        if (batch.length >= _kShieldBatchBlocks) {
-          await _processShieldBlocks(state, batch, walletTxids);
-          batch = [];
+      Future<void>? scanning;
+      try {
+        await for (final block in parsePivxShieldStream(
+          bridge.shieldData(state.lastProcessedBlock + 1),
+        )) {
+          progress(block.height);
+          batch.add(block);
+          if (batch.length >= _kShieldBatchBlocks) {
+            await scanning;
+            scanning = _processShieldBlocks(state, batch, walletTxids)
+              // Errors surface at the next await, not as uncaught.
+              ..ignore();
+            batch = [];
+          }
         }
+      } finally {
+        // Never leave a scan running past this point, even on errors.
+        await scanning;
       }
       if (batch.isNotEmpty) {
         await _processShieldBlocks(state, batch, walletTxids);

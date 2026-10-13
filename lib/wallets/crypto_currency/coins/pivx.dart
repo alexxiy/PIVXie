@@ -17,7 +17,7 @@ import '../intermediate/bip39_hd_currency.dart';
 /// seeds, 10 sat/byte fees).
 ///
 /// Network data comes from a pivx-bridge instance (shield stream + RPC
-/// proxy + Blockbook-compatible `/api/v2` address index), configured as
+/// proxy + transparent address index), configured as
 /// this coin's node: `host` is the full base URL, e.g.
 /// `https://rpc.example.org/mainnet`.
 ///

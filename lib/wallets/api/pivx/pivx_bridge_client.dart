@@ -35,8 +35,8 @@ class PivxBridgeException implements Exception {
 /// HTTP client for a pivx-bridge instance.
 ///
 /// Uses the bridge's RPC routes (`/getblockcount`, ...) and its
-/// Blockbook-compatible transparent index (`/api/v2/...`). Amounts in
-/// `/api/v2` responses are satoshi strings.
+/// transparent address index (`/xpub`, `/utxo`, ...). Index answers follow
+/// Blockbook's format: amounts are satoshi strings.
 class PivxBridgeClient {
   PivxBridgeClient({required this.baseUri, this.useTor = false});
 
@@ -76,10 +76,19 @@ class PivxBridgeClient {
   /// Checks the bridge is reachable, serves the address index and runs
   /// on a chain matching [coin]. Returns null on success, else a reason.
   Future<String?> verifyFor(Pivx coin) async {
-    final status = await this.status();
+    final Map<String, dynamic> status;
+    try {
+      status = await this.status();
+    } on PivxBridgeException catch (e) {
+      // Without the index, `/status` falls through to the RPC proxy.
+      if (e.statusCode == 403 || e.statusCode == 404) {
+        return "This bridge has no address index (ADDR_INDEX)";
+      }
+      rethrow;
+    }
     final chain = (status["backend"] as Map?)?["chain"] as String?;
     final expectMain = coin.network == CryptoCurrencyNetwork.main;
-    if (chain == null) return "Bridge has no address index (/api/v2)";
+    if (chain == null) return "This bridge has no address index (ADDR_INDEX)";
     try {
       await getBlockCount();
     } catch (e) {
@@ -211,17 +220,17 @@ class PivxBridgeClient {
   }
 
   // ---------------------------------------------------------------------------
-  // /api/v2 (transparent address index)
+  // Transparent address index
   // ---------------------------------------------------------------------------
 
-  /// `/api/v2/api` — index status. `blockbook.inSync` tells whether the
-  /// bridge has caught up with its node.
+  /// `/status` — index status. `index.inSync` tells whether the bridge
+  /// has caught up with its node.
   Future<Map<String, dynamic>> status() async {
-    return Map<String, dynamic>.from(await _getJson("/api/v2/api") as Map);
+    return Map<String, dynamic>.from(await _getJson("/status") as Map);
   }
 
   Future<String> blockHash(int height) async {
-    final json = await _getJson("/api/v2/block-index/$height") as Map;
+    final json = await _getJson("/block-index/$height") as Map;
     return json["blockHash"] as String;
   }
 
@@ -233,7 +242,7 @@ class PivxBridgeClient {
     int? to,
     int pageSize = 1000,
   }) async {
-    final json = await _getJson("/api/v2/address/$address", {
+    final json = await _getJson("/address/$address", {
       "details": "txs",
       "pageSize": "$pageSize",
       if (from != null) "from": "$from",
@@ -245,7 +254,7 @@ class PivxBridgeClient {
     ];
   }
 
-  /// One page of `/api/v2/xpub/{xpub}`.
+  /// One page of `/xpub/{xpub}`.
   Future<Map<String, dynamic>> xpub(
     String xpub, {
     String details = "txs",
@@ -256,7 +265,7 @@ class PivxBridgeClient {
     int? gap,
   }) async {
     return Map<String, dynamic>.from(
-      await _getJson("/api/v2/xpub/$xpub", {
+      await _getJson("/xpub/$xpub", {
         "details": details,
         "tokens": tokens,
         "page": "$page",
@@ -299,14 +308,14 @@ class PivxBridgeClient {
     String addressOrXpub, {
     int? gap,
   }) async {
-    final json = await _getJson("/api/v2/utxo/$addressOrXpub", {
+    final json = await _getJson("/utxo/$addressOrXpub", {
       if (gap != null) "gap": "$gap",
     }) as List;
     return json.map((e) => Map<String, dynamic>.from(e as Map)).toList();
   }
 
   Future<Map<String, dynamic>> tx(String txid) async {
-    return Map<String, dynamic>.from(await _getJson("/api/v2/tx/$txid") as Map);
+    return Map<String, dynamic>.from(await _getJson("/tx/$txid") as Map);
   }
 
   /// Raw hex of a transaction.
@@ -322,7 +331,7 @@ class PivxBridgeClient {
   Future<String> sendTx(String rawTxHex) async {
     final response = await _send(
       "POST",
-      _uri("/api/v2/sendtx/"),
+      _uri("/sendtx"),
       headers: {"Content-Type": "text/plain"},
       body: rawTxHex,
     );
@@ -336,7 +345,7 @@ class PivxBridgeClient {
     return json["result"] as String;
   }
 
-  /// Long-poll `POST /api/v2/watch` (bridge extension). Answers when a
+  /// Long-poll `POST /watch`. Answers when a
   /// block other than [height]/[hash] is indexed, when a mempool tx
   /// touching one of [addresses] arrives after [mempoolSeq], or after
   /// [timeoutSeconds].
@@ -349,7 +358,7 @@ class PivxBridgeClient {
   }) async {
     final response = await _send(
       "POST",
-      _uri("/api/v2/watch"),
+      _uri("/watch"),
       headers: {"Content-Type": "application/json"},
       body: jsonEncode({
         "height": height,

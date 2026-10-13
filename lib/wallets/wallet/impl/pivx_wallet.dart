@@ -50,9 +50,9 @@ part 'pivx/pivx_wallet_shield.dart';
 
 /// PIVX transparent wallet backed by pivx-bridge.
 ///
-/// Sync works on the BIP44 account xpub like MyPIVXWallet: one
-/// `/api/v2/xpub` query returns the account's history and used
-/// addresses, `/api/v2/utxo` its spendable outputs.
+/// Sync works on the BIP44 account xpub like MyPIVXWallet: one `/xpub`
+/// query returns the account's history and used addresses, `/utxo` its
+/// spendable outputs.
 ///
 /// The shield (Sapling) balance is kept as the wallet's secondary
 /// balance; see `pivx/pivx_wallet_shield.dart`.
@@ -289,7 +289,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
       final chain = (status["backend"] as Map?)?["chain"] as String?;
       if (chain != null) _bridgeChain = chain;
       if (status["backend"] == null) return false;
-      // The bridge answers /api/v2 from its own index even when its node
+      // The bridge answers `/status` from its own index even when its node
       // is down; syncing needs the node.
       await bridge.getBlockCount();
       return true;
@@ -311,7 +311,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
   // ===========================================================================
   // Live updates
   //
-  // While auto sync is on, a long-poll on the bridge's `/api/v2/watch`
+  // While auto sync is on, a long-poll on the bridge's `/watch`
   // refreshes the wallet as soon as a block is indexed or a mempool tx
   // touches one of our transparent addresses. The base class's 150 s
   // timer stays as a fallback.
@@ -319,7 +319,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
   int _watchGeneration = 0;
   bool _watching = false;
 
-  /// The bridge has no `/api/v2/watch`: don't ask again until the node
+  /// The bridge has no `/watch`: don't ask again until the node
   /// changes.
   bool _noWatch = false;
 
@@ -384,9 +384,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
           failures = 0;
         } on PivxBridgeException catch (e) {
           if (e.statusCode == 404 || e.statusCode == 405) {
-            Logging.instance.w(
-              "PIVX: bridge has no /api/v2/watch; polling only",
-            );
+            Logging.instance.w("PIVX: bridge has no /watch; polling only");
             _noWatch = true;
             return;
           }
@@ -945,6 +943,24 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
   bool isShieldAddress(String address) =>
       libPivxShield.isAvailable &&
       libPivxShield.isValidAddress(address, isTestnet: _isTestnet);
+
+  /// A wallet made in the app has no history before now: remember the tip
+  /// as its birthday. The shield scan starts there, and so do a rescan and
+  /// a restore from a backup (instead of the shield launch).
+  Future<void> recordBirthday() async {
+    if (info.restoreHeight > 0) return;
+    try {
+      final tip = await bridge.getBlockCount();
+      if (tip > 0) {
+        await info.updateRestoreHeight(
+          newRestoreHeight: tip,
+          isar: mainDB.isar,
+        );
+      }
+    } catch (e) {
+      Logging.instance.w("PIVX: wallet birthday not recorded: $e");
+    }
+  }
 
   /// Height the shield scan has reached.
   Future<int?> get shieldSyncedHeight async =>
