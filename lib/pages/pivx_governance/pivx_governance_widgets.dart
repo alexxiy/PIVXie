@@ -101,6 +101,8 @@ class PivxVotesBar extends StatelessWidget {
             child: total == 0
                 ? ColoredBox(color: colors.textFieldDefaultBG)
                 : Row(
+                    // Childless ColoredBoxes take the smallest height.
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       if (yeas > 0)
                         Expanded(

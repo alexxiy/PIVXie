@@ -40,6 +40,8 @@ class PivxProposalView extends ConsumerStatefulWidget {
 class _PivxProposalViewState extends ConsumerState<PivxProposalView> {
   late Future<Map<String, PivxMasternodeVote>> _votes;
   late Future<List<PivxProposalPayout>> _payouts;
+  late PivxProposal _proposal = widget.proposal;
+  late PivxGovernance _governance = widget.governance;
   bool _voted = false;
 
   PivxWallet get _wallet =>
@@ -72,14 +74,34 @@ class _PivxProposalViewState extends ConsumerState<PivxProposalView> {
       ),
       builder: (_) => _VoteSheet(
         wallet: _wallet,
-        proposal: widget.proposal,
+        proposal: _proposal,
         vote: vote,
         current: current,
       ),
     );
     if (done == true && mounted) {
       _voted = true;
-      setState(() => _votes = _wallet.masternodeVotes(widget.proposal));
+      setState(() => _votes = _wallet.masternodeVotes(_proposal));
+      await _reloadTally();
+    }
+  }
+
+  /// The vote counts as the network has them now (Core counts a relayed
+  /// vote right away).
+  Future<void> _reloadTally() async {
+    try {
+      final governance = await _wallet.loadGovernance();
+      final proposal = [
+        ...governance.current,
+        ...governance.future,
+      ].where((p) => p.hash == _proposal.hash).firstOrNull;
+      if (proposal == null || !mounted) return;
+      setState(() {
+        _governance = governance;
+        _proposal = proposal;
+      });
+    } catch (_) {
+      // The list refreshes when this page closes.
     }
   }
 
@@ -88,8 +110,8 @@ class _PivxProposalViewState extends ConsumerState<PivxProposalView> {
     final colors = Theme.of(context).extension<StackColors>()!;
     final wallet = _wallet;
     final fmt = ref.watch(pAmountFormatter(wallet.cryptoCurrency));
-    final p = widget.proposal;
-    final g = widget.governance;
+    final p = _proposal;
+    final g = _governance;
     final masternodes = wallet.masternodes;
     final secondary = STextStyles.w500_12(context)
         .copyWith(color: colors.textSubtitle1);
