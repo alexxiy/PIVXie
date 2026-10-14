@@ -22,10 +22,12 @@ import 'package:tuple/tuple.dart';
 import '../../models/input.dart';
 import '../../models/isar/models/isar_models.dart';
 import '../../models/send_view_auto_fill_data.dart';
+import '../../providers/global/address_book_service_provider.dart';
 import '../../providers/providers.dart';
 import '../../providers/ui/preview_tx_button_state_provider.dart';
 import '../../providers/wallet/public_private_balance_state_provider.dart';
 import '../../route_generator.dart';
+import '../../services/pivx_name/pivx_name_resolver.dart';
 import '../../themes/coin_icon_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/address_utils.dart';
@@ -65,6 +67,7 @@ import '../coin_control/coin_control_view.dart';
 import 'confirm_transaction_view.dart';
 import 'sub_widgets/building_transaction_dialog.dart';
 import 'sub_widgets/pivx_change_address_sheet.dart';
+import 'sub_widgets/pivx_name_lookup.dart';
 import 'sub_widgets/dual_balance_selection_sheet.dart';
 
 class SendView extends ConsumerStatefulWidget {
@@ -443,9 +446,15 @@ class _SendViewState extends ConsumerState<SendView> {
 
   void _setValidAddressProviders(String? address) {
     final wallet = ref.read(pWallets).getWallet(walletId);
-    ref.read(pValidSendToAddress.notifier).state = wallet.cryptoCurrency
-        .validateAddress(address ?? "");
+    ref.read(pValidSendToAddress.notifier).state =
+        wallet.cryptoCurrency.validateAddress(address ?? "") ||
+        pivxNameFor(coin, address) != null;
   }
+
+  /// PIVX.name names always point to shield addresses.
+  bool get _sendsToShield =>
+      (coin as Pivx).isShieldAddress(_address ?? "") ||
+      pivxNameFor(coin, _address) != null;
 
   late Future<String> _calculateFeesFuture;
 
@@ -455,7 +464,7 @@ class _SendViewState extends ConsumerState<SendView> {
     final wallet = ref.read(pWallets).getWallet(walletId) as PivxWallet;
     final fromShield =
         ref.read(publicPrivateBalanceStateProvider) == BalanceType.private;
-    final toShield = wallet.isShieldAddress(_address ?? "");
+    final toShield = _sendsToShield;
 
     final Amount fee;
     if (fromShield || toShield) {
@@ -489,7 +498,21 @@ class _SendViewState extends ConsumerState<SendView> {
     return cachedFees[amount]!;
   }
 
+  /// A Preview tap while one is running is ignored: two would build two
+  /// transactions.
+  bool _previewing = false;
+
   Future<void> _previewTransaction() async {
+    if (_previewing) return;
+    _previewing = true;
+    try {
+      await _preview();
+    } finally {
+      _previewing = false;
+    }
+  }
+
+  Future<void> _preview() async {
     // wait for keyboard to disappear
     FocusScope.of(context).unfocus();
     await Future<void>.delayed(const Duration(milliseconds: 100));
@@ -560,6 +583,23 @@ class _SendViewState extends ConsumerState<SendView> {
       }
     }
 
+    // A PIVX.name name: look it up and check it first. The transaction
+    // pays the address that was proven, never the name's text.
+    var recipient = _address!;
+    PivxNameVerified? pivxName;
+    final name = pivxNameFor(coin, _address);
+    if (name != null) {
+      if (!mounted) return;
+      pivxName = await lookUpPivxNameForSend(
+        context: context,
+        coin: coin,
+        name: name,
+        contacts: ref.read(addressBookServiceProvider).contacts,
+      );
+      if (pivxName == null || !mounted) return;
+      recipient = pivxName.address;
+    }
+
     try {
       bool wasCancelled = false;
 
@@ -588,7 +628,7 @@ class _SendViewState extends ConsumerState<SendView> {
       final Future<TxData> txDataFuture;
 
       final memo =
-          (coin as Pivx).isShieldAddress(_address ?? "") &&
+          (coin as Pivx).isShieldAddress(recipient) &&
               memoController.text.isNotEmpty
           ? memoController.text
           : null;
@@ -607,10 +647,10 @@ class _SendViewState extends ConsumerState<SendView> {
         txData: TxData(
           recipients: [
             TxRecipient(
-              address: _address!,
+              address: recipient,
               amount: amount,
               isChange: false,
-              addressType: wallet.cryptoCurrency.getAddressType(_address!)!,
+              addressType: wallet.cryptoCurrency.getAddressType(recipient)!,
             ),
           ],
           memo: memo,
@@ -642,6 +682,7 @@ class _SendViewState extends ConsumerState<SendView> {
               builder: (_) => ConfirmTransactionView(
                 txData: txData,
                 walletId: walletId,
+                pivxName: pivxName,
                 onSuccess: () {
                   if (mounted) {
                     clearSendForm();
@@ -1138,7 +1179,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                 style: STextStyles.field(context),
                                 decoration:
                                     standardInputDecoration(
-                                      "Enter ${coin.ticker} address",
+                                      recipientHint(coin),
                                       _addressFocusNode,
                                       context,
                                     ).copyWith(
@@ -1235,7 +1276,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                     ref.watch(pValidSendToAddress)) {
                                   error = null;
                                 } else {
-                                  error = "Invalid address";
+                                  error = recipientInputError(coin, _address!);
                                 }
 
                                 if (error == null || error.isEmpty) {
@@ -1713,11 +1754,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                                             pSendAmount,
                                                           ),
                                                           toShield:
-                                                              (coin as Pivx)
-                                                                  .isShieldAddress(
-                                                                    _address ??
-                                                                        "",
-                                                                  ),
+                                                              _sendsToShield,
                                                           subtractFee:
                                                               _pivxSubtractFee,
                                                         ),
@@ -1749,9 +1786,7 @@ class _SendViewState extends ConsumerState<SendView> {
                             // PIVX: the shielded memo travels encrypted
                             // with the payment; only shield recipients
                             // can receive one.
-                            if ((coin as Pivx).isShieldAddress(
-                              _address ?? "",
-                            )) ...[
+                            if (_sendsToShield) ...[
                               Text(
                                 "Shielded memo (optional)",
                                 style: STextStyles.smallMed12(context),

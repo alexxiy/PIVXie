@@ -24,6 +24,7 @@ import '../../pages_desktop_specific/my_stack_view/wallet_view/desktop_wallet_vi
 import '../../pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_auth_send.dart';
 import '../../providers/providers.dart';
 import '../../route_generator.dart';
+import '../../services/pivx_name/pivx_name_resolver.dart';
 import '../../themes/stack_colors.dart';
 import '../../themes/theme_providers.dart';
 import '../../utilities/amount/amount.dart';
@@ -60,6 +61,7 @@ class ConfirmTransactionView extends ConsumerStatefulWidget {
     required this.onSuccess,
     this.routeOnSuccessName,
     this.onSuccessInsteadOfRouteOnSuccess,
+    this.pivxName,
   });
 
   static const String routeName = "/confirmTransactionView";
@@ -70,6 +72,10 @@ class ConfirmTransactionView extends ConsumerStatefulWidget {
   final VoidCallback? onSuccessInsteadOfRouteOnSuccess;
   final VoidCallback onSuccess;
 
+  /// The PIVX.name name being paid, with the address it was proven to point
+  /// to when the transaction was built. Checked again before sending.
+  final PivxNameVerified? pivxName;
+
   @override
   ConsumerState<ConfirmTransactionView> createState() =>
       _ConfirmTransactionViewState();
@@ -79,6 +85,7 @@ class _ConfirmTransactionViewState
     extends ConsumerState<ConfirmTransactionView> {
   /// The first recipient; a proposal fee (OP_RETURN) reads as what it is.
   String get _recipientText {
+    if (widget.pivxName != null) return widget.pivxName!.name;
     final address = widget.txData.recipients?.firstOrNull?.address ?? "";
     if (widget.txData.otherData?.contains(kPivxColdStakeOwner) ?? false) {
       return "Cold staking with staker $address";
@@ -86,6 +93,64 @@ class _ConfirmTransactionViewState
     return address.startsWith(kPivxOpReturnPrefix)
         ? "Proposal fee, burnt (proposal ${address.substring(kPivxOpReturnPrefix.length, kPivxOpReturnPrefix.length + 16)}…)"
         : address;
+  }
+
+  /// Under the recipient when paying a PIVX.name name.
+  Widget _pivxNameDetails(BuildContext context, TextStyle style) {
+    final colors = Theme.of(context).extension<StackColors>()!;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 4),
+        SelectableText(
+          widget.pivxName!.address,
+          style: style.copyWith(color: colors.textSubtitle1),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          "Checked against the PIVX.name registry on BNB Smart Chain",
+          style: style.copyWith(color: colors.textSubtitle2, fontSize: 12),
+        ),
+      ],
+    );
+  }
+
+  /// Right before sending, the name must still point to the address the
+  /// transaction pays, under the registry's current state: the screen may
+  /// have been open for a while, and a name can change hands.
+  Future<void> _recheckPivxName(PivxNameVerified checked) async {
+    final name = checked.name;
+    final resolver = PivxNameResolver.forCoin(
+      ref.read(pWallets).getWallet(walletId).info.coin,
+    );
+    final recipients = widget.txData.recipients ?? const [];
+    if (resolver == null ||
+        recipients.length != 1 ||
+        recipients.first.address != checked.address) {
+      throw _NotSent("This payment doesn't match the address $name points to.");
+    }
+    final PivxNameLookup now;
+    try {
+      now = await resolver.lookup(name);
+    } on PivxNameException catch (e) {
+      throw _NotSent("Couldn't check $name again before sending. $e");
+    }
+    switch (now) {
+      case PivxNameVerified(:final address) when address == checked.address:
+        return;
+      case PivxNameVerified():
+        throw _NotSent(
+          "$name now points to a different address than the one shown. Go "
+          "back and preview the payment again to see the new address.",
+        );
+      case PivxNameIndexerBehind():
+        throw _NotSent(
+          "PIVX.name is processing a registry update, so $name can't be "
+          "checked right now. Try again in a few minutes.",
+        );
+      case PivxNameNotRegistered():
+        throw _NotSent("$name is no longer registered on PIVX.name.");
+    }
   }
 
   late final String walletId;
@@ -133,9 +198,14 @@ class _ConfirmTransactionViewState
     final List<String> txids = [];
     final Future<TxData> txDataFuture;
 
-    final note = noteController.text;
+    // Paying a name without a note: keep the name, so the history shows who
+    // was paid.
+    final note = noteController.text.isEmpty && widget.pivxName != null
+        ? widget.pivxName!.name
+        : noteController.text;
 
     try {
+      if (widget.pivxName != null) await _recheckPivxName(widget.pivxName!);
       txDataFuture = wallet.confirmSend(txData: widget.txData);
       final results = await Future.wait([txDataFuture, time]);
       final confirmedTx = results.first as TxData;
@@ -170,7 +240,9 @@ class _ConfirmTransactionViewState
         }
       }
     } catch (e, s) {
-      const message = "Broadcast transaction failed";
+      final message = e is _NotSent
+          ? "Not sent"
+          : "Broadcast transaction failed";
       Logging.instance.e(message, error: e, stackTrace: s);
       // pop sending dialog
       if (context.mounted) {
@@ -369,6 +441,11 @@ class _ConfirmTransactionViewState
                           _recipientText,
                           style: STextStyles.itemSubtitle12(context),
                         ),
+                        if (widget.pivxName != null)
+                          _pivxNameDetails(
+                            context,
+                            STextStyles.itemSubtitle12(context),
+                          ),
                       ],
                     ),
                   ),
@@ -614,6 +691,11 @@ class _ConfirmTransactionViewState
                                         .textDark,
                                   ),
                             ),
+                            if (widget.pivxName != null)
+                              _pivxNameDetails(
+                                context,
+                                STextStyles.desktopTextExtraExtraSmall(context),
+                              ),
                           ],
                         ),
                       ),
@@ -934,4 +1016,14 @@ class _ConfirmTransactionViewState
       ),
     );
   }
+}
+
+/// Stopped before sending, with the reason to show.
+class _NotSent implements Exception {
+  _NotSent(this.message);
+
+  final String message;
+
+  @override
+  String toString() => message;
 }

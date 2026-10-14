@@ -26,11 +26,14 @@ import '../../../../pages/home_view/payment_links.dart';
 import '../../../../pages/send_view/confirm_transaction_view.dart';
 import '../../../../pages/send_view/sub_widgets/building_transaction_dialog.dart';
 import '../../../../pages/send_view/sub_widgets/pivx_change_address_sheet.dart';
+import '../../../../pages/send_view/sub_widgets/pivx_name_lookup.dart';
 import '../../../../pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
+import '../../../../providers/global/address_book_service_provider.dart';
 import '../../../../providers/providers.dart';
 import '../../../../providers/ui/preview_tx_button_state_provider.dart';
 import '../../../../providers/wallet/public_private_balance_state_provider.dart';
 import '../../../../providers/wallet/desktop_fee_providers.dart';
+import '../../../../services/pivx_name/pivx_name_resolver.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/address_utils.dart';
 import '../../../../utilities/amount/amount.dart';
@@ -170,7 +173,21 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     }
   }
 
+  /// A Preview click while one is running is ignored: two would build two
+  /// transactions.
+  bool _previewing = false;
+
   Future<void> previewSend() async {
+    if (_previewing) return;
+    _previewing = true;
+    try {
+      await _preview();
+    } finally {
+      _previewing = false;
+    }
+  }
+
+  Future<void> _preview() async {
     final wallet = ref.read(pWallets).getWallet(walletId);
 
     final Amount amount = ref.read(pSendAmount)!;
@@ -257,6 +274,23 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       }
     }
 
+    // A PIVX.name name: look it up and check it first. The transaction
+    // pays the address that was proven, never the name's text.
+    var recipient = _address!;
+    PivxNameVerified? pivxName;
+    final name = pivxNameFor(coin, _address);
+    if (name != null) {
+      if (!mounted) return;
+      pivxName = await lookUpPivxNameForSend(
+        context: context,
+        coin: coin,
+        name: name,
+        contacts: ref.read(addressBookServiceProvider).contacts,
+      );
+      if (pivxName == null || !mounted) return;
+      recipient = pivxName.address;
+    }
+
     try {
       bool wasCancelled = false;
 
@@ -307,10 +341,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         txData: TxData(
           recipients: [
             TxRecipient(
-              address: _address!,
+              address: recipient,
               amount: amount,
               isChange: false,
-              addressType: wallet.cryptoCurrency.getAddressType(_address!)!,
+              addressType: wallet.cryptoCurrency.getAddressType(recipient)!,
             ),
           ],
           // PIVX: only a shield recipient gets the (encrypted) memo.
@@ -343,6 +377,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               child: ConfirmTransactionView(
                 txData: txData,
                 walletId: walletId,
+                pivxName: pivxName,
                 onSuccess: clearSendForm,
                 routeOnSuccessName: DesktopHomeView.routeName,
               ),
@@ -515,12 +550,16 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
 
   void _setValidAddressProviders(String? address) {
     final wallet = ref.read(pWallets).getWallet(walletId);
-    ref.read(pValidSendToAddress.notifier).state = wallet.cryptoCurrency
-        .validateAddress(address ?? "");
+    ref.read(pValidSendToAddress.notifier).state =
+        wallet.cryptoCurrency.validateAddress(address ?? "") ||
+        pivxNameFor(coin, address) != null;
   }
 
+  /// PIVX.name names always point to shield addresses.
   bool get _sendsToShield =>
-      coin is Pivx && (coin as Pivx).isShieldAddress(_address ?? "");
+      coin is Pivx &&
+      ((coin as Pivx).isShieldAddress(_address ?? "") ||
+          pivxNameFor(coin, _address) != null);
 
   void _applyUri(PaymentUriData paymentData) {
     try {
@@ -1260,7 +1299,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             ),
             decoration:
                 standardInputDecoration(
-                  "Enter ${coin.ticker} address",
+                  recipientHint(coin),
                   _addressFocusNode,
                   context,
                   desktopMed: true,
@@ -1385,7 +1424,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 ref.watch(pValidSendToAddress)) {
               error = null;
             } else {
-              error = "Invalid address";
+              error = recipientInputError(coin, _address!);
             }
 
             if (error == null || error.isEmpty) {
