@@ -2,6 +2,8 @@
 
 #include <flutter_linux/flutter_linux.h>
 
+#include <cstring>
+
 #include "flutter/generated_plugin_registrant.h"
 
 struct _MyApplication {
@@ -10,6 +12,103 @@ struct _MyApplication {
 };
 
 G_DEFINE_TYPE(MyApplication, my_application, GTK_TYPE_APPLICATION)
+
+// The app icon in the bundle (data/icon.png), or null.
+static gchar* bundled_icon_path() {
+  g_autofree gchar* exe = g_file_read_link("/proc/self/exe", nullptr);
+  if (exe == nullptr) return nullptr;
+  g_autofree gchar* dir = g_path_get_dirname(exe);
+  gchar* icon = g_build_filename(dir, "data", "icon.png", nullptr);
+  if (!g_file_test(icon, G_FILE_TEST_IS_REGULAR)) {
+    g_free(icon);
+    return nullptr;
+  }
+  return icon;
+}
+
+// Writes [contents] to [path] unless it already holds them.
+static void write_if_changed(const gchar* path, const gchar* contents,
+                             gsize length) {
+  g_autofree gchar* old = nullptr;
+  gsize old_length = 0;
+  if (g_file_get_contents(path, &old, &old_length, nullptr) &&
+      old_length == length && memcmp(old, contents, length) == 0) {
+    return;
+  }
+  g_autofree gchar* dir = g_path_get_dirname(path);
+  g_mkdir_with_parents(dir, 0755);
+  g_autoptr(GError) error = nullptr;
+  if (!g_file_set_contents(path, contents, length, &error)) {
+    g_warning("Can't write %s: %s", path, error->message);
+  }
+}
+
+// Wayland desktops show a window's icon from the .desktop file named
+// after its app ID, so without one (an unpacked tarball) the taskbar shows
+// a generic icon. Add one for this bundle to the user's applications,
+// unless an install (system, Flatpak) or the user already has one.
+static void ensure_desktop_entry() {
+  if (g_getenv("FLATPAK_ID") != nullptr || g_getenv("SNAP") != nullptr) {
+    return;
+  }
+  g_autofree gchar* bundled_icon = bundled_icon_path();
+  if (bundled_icon == nullptr) return;
+  // An AppImage runs from a new mount each time: point at the image.
+  const gchar* appimage = g_getenv("APPIMAGE");
+  g_autofree gchar* exe =
+      appimage != nullptr ? g_strdup(appimage)
+                          : g_file_read_link("/proc/self/exe", nullptr);
+  if (exe == nullptr) return;
+
+  const gchar* file_name = APPLICATION_ID ".desktop";
+  for (const gchar* const* dir = g_get_system_data_dirs(); *dir != nullptr;
+       dir++) {
+    g_autofree gchar* other =
+        g_build_filename(*dir, "applications", file_name, nullptr);
+    if (g_file_test(other, G_FILE_TEST_EXISTS)) return;
+  }
+  g_autofree gchar* path = g_build_filename(
+      g_get_user_data_dir(), "applications", file_name, nullptr);
+  const gchar* group = G_KEY_FILE_DESKTOP_GROUP;
+  const gchar* ours = "X-Added-By-App";
+  g_autoptr(GKeyFile) existing = g_key_file_new();
+  if (g_key_file_load_from_file(existing, path, G_KEY_FILE_NONE, nullptr) &&
+      !g_key_file_get_boolean(existing, group, ours, nullptr)) {
+    return;
+  }
+
+  // A copy of the icon, so the entry keeps it while the bundle moves.
+  g_autofree gchar* icon = g_build_filename(
+      g_get_user_data_dir(), "icons", APPLICATION_ID ".png", nullptr);
+  g_autofree gchar* icon_data = nullptr;
+  gsize icon_length = 0;
+  if (!g_file_get_contents(bundled_icon, &icon_data, &icon_length, nullptr)) {
+    return;
+  }
+  write_if_changed(icon, icon_data, icon_length);
+
+  // Exec quoting (Desktop Entry spec): double quotes, with " ` $ \ escaped.
+  GString* exec = g_string_new("\"");
+  for (const gchar* c = exe; *c != '\0'; c++) {
+    if (strchr("\"`$\\", *c) != nullptr) g_string_append_c(exec, '\\');
+    g_string_append_c(exec, *c);
+  }
+  g_string_append_c(exec, '"');
+  g_autofree gchar* exec_line = g_string_free(exec, FALSE);
+
+  g_autoptr(GKeyFile) entry = g_key_file_new();
+  g_key_file_set_string(entry, group, "Type", "Application");
+  g_key_file_set_string(entry, group, "Name", "PlaceHolderName");
+  g_key_file_set_string(entry, group, "Exec", exec_line);
+  g_key_file_set_string(entry, group, "Icon", icon);
+  g_key_file_set_boolean(entry, group, "Terminal", FALSE);
+  g_key_file_set_string(entry, group, "Categories", "Office;Finance;");
+  g_key_file_set_string(entry, group, "StartupWMClass", APPLICATION_ID);
+  g_key_file_set_boolean(entry, group, ours, TRUE);
+  gsize length = 0;
+  g_autofree gchar* data = g_key_file_to_data(entry, &length, nullptr);
+  write_if_changed(path, data, length);
+}
 
 // Called when first Flutter frame received.
 static void first_frame_cb(MyApplication* self, FlView *view)
@@ -44,6 +143,9 @@ static void my_application_activate(GApplication* application) {
   } else {
     gtk_window_set_title(window, "PlaceHolderName");
   }
+
+  g_autofree gchar* icon = bundled_icon_path();
+  if (icon != nullptr) gtk_window_set_icon_from_file(window, icon, nullptr);
 
   gtk_window_set_default_size(window, 1220, 500);
   gtk_widget_show(GTK_WIDGET(window));
@@ -111,6 +213,7 @@ static void my_application_startup(GApplication* application) {
   //MyApplication* self = MY_APPLICATION(object);
 
   // Perform any actions required at application startup.
+  ensure_desktop_entry();
 
   G_APPLICATION_CLASS(my_application_parent_class)->startup(application);
 }

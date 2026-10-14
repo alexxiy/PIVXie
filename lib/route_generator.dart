@@ -16,7 +16,6 @@ import 'package:tuple/tuple.dart';
 import 'app_config.dart';
 import 'models/add_wallet_list_entity/add_wallet_list_entity.dart';
 import 'models/isar/models/blockchain_data/v2/transaction_v2.dart';
-import 'models/isar/models/contact_entry.dart';
 import 'models/isar/models/isar_models.dart';
 import 'models/keys/key_data_interface.dart';
 import 'models/keys/view_only_wallet_data.dart';
@@ -35,7 +34,6 @@ import 'pages/address_book_views/address_book_view.dart';
 import 'pages/address_book_views/subviews/add_address_book_entry_view.dart';
 import 'pages/address_book_views/subviews/add_new_contact_address_view.dart';
 import 'pages/address_book_views/subviews/contact_details_view.dart';
-import 'pages/address_book_views/subviews/edit_contact_address_view.dart';
 import 'pages/coin_control/coin_control_view.dart';
 import 'pages/coin_control/utxo_details_view.dart';
 import 'pages/generic/single_field_edit_view.dart';
@@ -653,19 +651,6 @@ class RouteGenerator {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => AddNewContactAddressView(contactId: args),
-            settings: RouteSettings(name: settings.name),
-          );
-        }
-        return _routeError("${settings.name} invalid args: ${args.toString()}");
-
-      case EditContactAddressView.routeName:
-        if (args is Tuple2<String, ContactAddressEntry>) {
-          return getRoute(
-            shouldUseMaterialRoute: useMaterialPageRoute,
-            builder: (_) => EditContactAddressView(
-              contactId: args.item1,
-              addressEntry: args.item2,
-            ),
             settings: RouteSettings(name: settings.name),
           );
         }

@@ -240,7 +240,6 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
                                     padding: const EdgeInsets.all(18),
                                     child: DesktopAddressCard(
                                       entry: contact.addressesSorted[i],
-                                      contactId: contact.customId,
                                     ),
                                   ),
                                 ],

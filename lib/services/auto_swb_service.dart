@@ -78,7 +78,16 @@ class AutoSWBService extends ChangeNotifier {
       final adkVersionString = await secureStorageInterface.read(
         key: "auto_adk_version_string",
       );
-      final int adkVersion = int.parse(adkVersionString!);
+      if (adkString == null || adkVersionString == null) {
+        // E.g. turned on by an older restore, which doesn't bring the key:
+        // turn it off, so it can be set up again in the settings.
+        Logging.instance.w("AutoSWBService: no auto backup key, turned off");
+        Prefs.instance.isAutoBackupEnabled = false;
+        _status = AutoSWBStatus.error;
+        notifyListeners();
+        return;
+      }
+      final int adkVersion = int.parse(adkVersionString);
 
       final DateTime now = DateTime.now();
       final String fileToSave = createAutoBackupFilename(
@@ -87,7 +96,7 @@ class AutoSWBService extends ChangeNotifier {
       );
 
       final content = await SWB.encryptStackWalletWithADK(
-        adkString!,
+        adkString,
         jsonString,
         adkVersion,
       );

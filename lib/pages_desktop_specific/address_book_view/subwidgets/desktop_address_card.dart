@@ -17,16 +17,12 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../models/isar/models/contact_entry.dart';
 import '../../../notifications/show_flush_bar.dart';
-import '../../../pages/address_book_views/subviews/edit_contact_address_view.dart';
-import '../../../providers/ui/address_book_providers/address_entry_data_provider.dart';
 import '../../../themes/coin_icon_provider.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/clipboard_interface.dart';
 import '../../../utilities/text_styles.dart';
-import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/custom_buttons/blue_text_button.dart';
-import '../../../widgets/desktop/desktop_dialog.dart';
 import '../../../utilities/contact_address_title.dart';
 import '../../../widgets/middle_ellipsis_text.dart';
 
@@ -34,12 +30,10 @@ class DesktopAddressCard extends ConsumerWidget {
   const DesktopAddressCard({
     super.key,
     required this.entry,
-    required this.contactId,
     this.clipboard = const ClipboardWrapper(),
   });
 
   final ContactAddressEntry entry;
-  final String contactId;
   final ClipboardInterface clipboard;
 
   @override
@@ -70,72 +64,17 @@ class DesktopAddressCard extends ConsumerWidget {
                 style: STextStyles.desktopTextExtraExtraSmall(context),
               ),
               const SizedBox(height: 8),
-              Row(
-                children: [
-                  CustomTextButton(
-                    text: "Copy",
-                    onTap: () {
-                      clipboard.setData(ClipboardData(text: entry.address));
-                      showFloatingFlushBar(
-                        type: FlushBarType.info,
-                        message: "Copied to clipboard",
-                        iconAsset: Assets.svg.copy,
-                        context: context,
-                      );
-                    },
-                  ),
-                  const SizedBox(width: 16),
-                  Consumer(
-                    builder: (context, ref, child) {
-                      return CustomTextButton(
-                        text: "Edit",
-                        onTap: () async {
-                          ref.refresh(addressEntryDataProviderFamilyRefresher);
-                          ref.read(addressEntryDataProvider(0)).address =
-                              entry.address;
-                          ref.read(addressEntryDataProvider(0)).coin =
-                              entry.coin;
-
-                          await showDialog<void>(
-                            context: context,
-                            builder: (context) => DesktopDialog(
-                              maxWidth: 580,
-                              maxHeight: 566,
-                              child: Column(
-                                children: [
-                                  Row(
-                                    children: [
-                                      const SizedBox(width: 8),
-                                      const AppBarBackButton(isCompact: true),
-                                      Text(
-                                        "Edit address",
-                                        style: STextStyles.desktopH3(context),
-                                      ),
-                                    ],
-                                  ),
-                                  Expanded(
-                                    child: Padding(
-                                      padding: const EdgeInsets.only(
-                                        top: 20,
-                                        left: 32,
-                                        right: 32,
-                                        bottom: 32,
-                                      ),
-                                      child: EditContactAddressView(
-                                        contactId: contactId,
-                                        addressEntry: entry,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  ),
-                ],
+              CustomTextButton(
+                text: "Copy",
+                onTap: () {
+                  clipboard.setData(ClipboardData(text: entry.address));
+                  showFloatingFlushBar(
+                    type: FlushBarType.info,
+                    message: "Copied to clipboard",
+                    iconAsset: Assets.svg.copy,
+                    context: context,
+                  );
+                },
               ),
             ],
           ),

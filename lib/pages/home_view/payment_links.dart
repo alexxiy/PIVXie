@@ -5,9 +5,11 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
+import 'package:tuple/tuple.dart';
 
 import '../../app_config.dart';
 import '../../models/isar/models/contact_entry.dart';
+import '../../models/send_view_auto_fill_data.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../pages_desktop_specific/desktop_menu.dart';
 import '../../pages_desktop_specific/my_stack_view/my_stack_view.dart';
@@ -17,6 +19,7 @@ import '../../providers/global/active_wallet_provider.dart';
 import '../../providers/providers.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/address_utils.dart';
+import '../../utilities/contact_address_title.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/show_loading.dart';
 import '../../utilities/show_node_tor_settings_mismatch.dart';
@@ -163,7 +166,7 @@ Future<void> openPaymentLink(
 
 /// Desktop: open the Send tab of a wallet for [link], filled in as if the
 /// link was pasted there. [context] is the desktop home's, [nav] the
-/// navigator of My PIVXie.
+/// navigator of My Wallets.
 Future<void> openPaymentLinkDesktop(
   BuildContext context,
   WidgetRef ref,
@@ -214,17 +217,29 @@ Future<void> openPaymentLinkDesktop(
 }
 
 /// Pay a contact: one of its addresses (asked when it has several) opens
-/// the send screen of a wallet that can pay it, as a pivx: link would.
+/// the send screen of a wallet that can pay it. On mobile with a wallet
+/// open, that's its send screen on top, as the contact's send button
+/// does; otherwise as a pivx: link would.
 Future<void> payContact(
   BuildContext context,
   WidgetRef ref,
   ContactEntry contact,
 ) async {
-  final addresses = contact.addressesSorted;
+  final active = Util.isDesktop ? null : ref.read(currentWalletIdProvider);
+  final activeWallet = active == null
+      ? null
+      : ref.read(pWallets).getWallet(active);
+  final payFromActive =
+      activeWallet != null &&
+      !(activeWallet is ViewOnlyOptionInterface && activeWallet.isViewOnly);
+  final addresses = [
+    for (final a in contact.addressesSorted)
+      if (!payFromActive || a.coin == activeWallet.info.coin) a,
+  ];
   if (addresses.isEmpty) return;
-  final address = addresses.length == 1
-      ? addresses.first.address
-      : await _chooseOne<String>(
+  final entry = addresses.length == 1
+      ? addresses.first
+      : await _chooseOne<ContactAddressEntry>(
           context,
           title: "Pay to ${contact.name}",
           desktop: Util.isDesktop,
@@ -239,13 +254,29 @@ Future<void> payContact(
                         : "Transparent (${pivx.ticker})",
                   final coin => coin.prettyName,
                 },
-                value: a.address,
+                value: a,
               ),
           ],
         );
-  if (address == null) return;
+  if (entry == null || !context.mounted) return;
+  if (payFromActive) {
+    unawaited(
+      Navigator.of(context).pushNamed(
+        SendView.routeName,
+        arguments: Tuple3(
+          activeWallet.walletId,
+          activeWallet.info.coin,
+          SendViewAutoFillData(
+            address: entry.address,
+            contactLabel: "${contact.name} (${entry.kind})",
+          ),
+        ),
+      ),
+    );
+    return;
+  }
   // The wallet list handles it (HomeView, DesktopHomeView).
-  ref.read(pPendingPaymentLink.notifier).state = "pivx:$address";
+  ref.read(pPendingPaymentLink.notifier).state = "pivx:${entry.address}";
 }
 
 Future<String?> _chooseWallet(

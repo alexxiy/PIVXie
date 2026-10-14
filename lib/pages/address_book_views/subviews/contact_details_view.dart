@@ -15,7 +15,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar_community/isar.dart';
-import 'package:tuple/tuple.dart';
 
 import '../../../notifications/show_flush_bar.dart';
 import '../../../providers/db/main_db_provider.dart';
@@ -35,7 +34,6 @@ import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/stack_dialog.dart';
 import 'add_new_contact_address_view.dart';
-import 'edit_contact_address_view.dart';
 import '../../home_view/payment_links.dart';
 import 'add_address_book_entry_view.dart';
 import '../../wallet_view/transaction_views/tx_v2/transaction_v2_card.dart';
@@ -363,38 +361,6 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                                       ],
                                     ),
                                   ),
-                                  GestureDetector(
-                                    onTap: () {
-                                      ref
-                                              .read(addressEntryDataProvider(0))
-                                              .address =
-                                          e.address;
-                                      ref
-                                              .read(addressEntryDataProvider(0))
-                                              .coin =
-                                          e.coin;
-
-                                      Navigator.of(context).pushNamed(
-                                        EditContactAddressView.routeName,
-                                        arguments: Tuple2(_contact.customId, e),
-                                      );
-                                    },
-                                    child: RoundedContainer(
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .textFieldDefaultBG,
-                                      padding: const EdgeInsets.all(6),
-                                      child: SvgPicture.asset(
-                                        Assets.svg.pencil,
-                                        width: 14,
-                                        height: 14,
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .accentColorDark,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 4),
                                   GestureDetector(
                                     onTap: () {
                                       clipboard.setData(

@@ -59,7 +59,7 @@ class WalletKeysDesktopPopup extends ConsumerWidget {
               Padding(
                 padding: const EdgeInsets.only(left: 32),
                 child: Text(
-                  "Wallet keys",
+                  keyData != null ? "Wallet keys" : "Wallet seed",
                   style: STextStyles.desktopH3(context),
                 ),
               ),

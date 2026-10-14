@@ -58,7 +58,7 @@ class WalletBackupView extends ConsumerWidget {
               Navigator.of(context).pop();
             },
           ),
-          title: Text("Wallet backup", style: STextStyles.navBarTitle(context)),
+          title: Text("Wallet seed", style: STextStyles.navBarTitle(context)),
         ),
         body: SafeArea(
           child: Padding(
@@ -110,11 +110,11 @@ class _Mnemonic extends ConsumerWidget {
           child: Padding(
             padding: const EdgeInsets.all(12),
             child: Text(
-              "Please write down your backup key. Keep it safe and never share "
-              "it with anyone. Your backup key is the only way you can access"
-              " your funds if you forget your PIN, lose your phone, etc.\n\n"
-              "${AppConfig.appName} does not keep nor is able to restore your"
-              " backup key. Only you have access to your wallet.",
+              "Write down your recovery phrase and keep it safe. Never share "
+              "it with anyone. It's the only way to get to your funds if you "
+              "forget your PIN, lose your phone, and so on.\n\n"
+              "${AppConfig.appName} doesn't keep a copy and can't restore it "
+              "for you. Only you have access to your wallet.",
               style: STextStyles.label(context),
             ),
           ),

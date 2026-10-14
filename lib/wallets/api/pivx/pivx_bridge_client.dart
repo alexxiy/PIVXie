@@ -82,7 +82,8 @@ class PivxBridgeClient {
     } on PivxBridgeException catch (e) {
       // Without the index, `/status` falls through to the RPC proxy.
       if (e.statusCode == 403 || e.statusCode == 404) {
-        return "This bridge has no address index (ADDR_INDEX)";
+        return "This bridge has no address index: it's older than "
+            "pivx-bridge 0.5, or runs without ADDR_INDEX";
       }
       rethrow;
     }
@@ -189,6 +190,16 @@ class PivxBridgeClient {
 
   Future<String> _getText(String path, [Map<String, String>? query]) async {
     final response = await _send("GET", _uri(path, query));
+    if (response.code == 404 && response.body.trim().isEmpty) {
+      // No such route: a bridge older than 0.5 (index under /api/v2), or
+      // one without the address index.
+      final route = path.split("/").firstWhere((e) => e.isNotEmpty);
+      throw PivxBridgeException(
+        "This bridge has no /$route: it's older than pivx-bridge 0.5, or "
+        "runs without the address index (ADDR_INDEX)",
+        statusCode: 404,
+      );
+    }
     if (response.code != 200) {
       throw PivxBridgeException(
         _errorMessage(response.body),

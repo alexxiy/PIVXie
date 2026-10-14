@@ -25,3 +25,10 @@ mixin ViewOnlyOptionInterface<T extends ViewOnlyOptionCurrencyInterface>
     );
   }
 }
+
+/// What menus and titles call the wallet's secret: a view-only wallet has
+/// keys, every other one a seed.
+String walletSecretTitle(Wallet wallet) =>
+    wallet is ViewOnlyOptionInterface && wallet.isViewOnly
+    ? "Wallet keys"
+    : "Wallet seed";

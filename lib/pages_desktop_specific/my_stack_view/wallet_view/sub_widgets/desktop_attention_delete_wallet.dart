@@ -45,10 +45,10 @@ class DesktopAttentionDeleteWallet extends ConsumerStatefulWidget {
 class _DesktopAttentionDeleteWallet
     extends ConsumerState<DesktopAttentionDeleteWallet> {
   static const _deleteWarning =
-      "You are going to permanently delete your wallet.\n\nIf you delete your"
-      " wallet, the only way you can have access to your funds is by using your"
-      " backup key.\n\n${AppConfig.appName} does not keep nor is able to "
-      "restore your backup key or your wallet.\n\nPLEASE SAVE YOUR BACKUP KEY.";
+      "You're about to permanently delete this wallet.\n\nAfter that, the "
+      "only way to get to your funds is your recovery phrase.\n\n"
+      "${AppConfig.appName} doesn't keep a copy of it and can't restore your "
+      "wallet.\n\nSAVE YOUR RECOVERY PHRASE FIRST.";
 
   @override
   Widget build(BuildContext context) {
@@ -74,18 +74,18 @@ class _DesktopAttentionDeleteWallet
                 Text("Attention!", style: STextStyles.desktopH2(context)),
                 const SizedBox(height: 16),
                 RoundedContainer(
-                  color: Theme.of(
-                    context,
-                  ).extension<StackColors>()!.snackBarBackError,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .snackBarBackError,
                   child: Padding(
                     padding: const EdgeInsets.all(10.0),
                     child: Text(
                       _deleteWarning,
                       style: STextStyles.desktopTextExtraExtraSmall(context)
                           .copyWith(
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.snackBarTextError,
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .snackBarTextError,
                           ),
                     ),
                   ),
@@ -106,7 +106,8 @@ class _DesktopAttentionDeleteWallet
                     PrimaryButton(
                       width: 250,
                       buttonHeight: ButtonHeight.xl,
-                      label: "View Backup Key",
+                      label:
+                          "View ${walletSecretTitle(ref.read(pWallets).getWallet(widget.walletId)).toLowerCase()}",
                       onPressed: () async {
                         try {
                           final wallet = ref

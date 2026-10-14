@@ -62,11 +62,11 @@ class DeleteWalletWarningView extends ConsumerWidget {
                       .extension<StackColors>()!
                       .warningBackground,
                   child: Text(
-                    "You are going to permanently delete your wallet.\n\n"
-                    "If you delete your wallet, the only way you can have access"
-                    " to your funds is by using your backup key.\n\n"
-                    "${AppConfig.appName} does not keep nor is able to restore "
-                    "your backup key or your wallet.\n\nPLEASE SAVE YOUR BACKUP KEY.",
+                    "You're about to permanently delete this wallet.\n\n"
+                    "After that, the only way to get to your funds is your "
+                    "recovery phrase.\n\n"
+                    "${AppConfig.appName} doesn't keep a copy of it and can't "
+                    "restore your wallet.\n\nSAVE YOUR RECOVERY PHRASE FIRST.",
                     style: STextStyles.baseXS(context).copyWith(
                       color: Theme.of(context)
                           .extension<StackColors>()!
@@ -128,7 +128,7 @@ class DeleteWalletWarningView extends ConsumerWidget {
                     }
                   },
                   child: Text(
-                    "View Backup Key",
+                    "View ${walletSecretTitle(ref.read(pWallets).getWallet(walletId)).toLowerCase()}",
                     style: STextStyles.button(context),
                   ),
                 ),

@@ -9,43 +9,36 @@
  */
 
 import 'package:flutter/material.dart';
-import '../../app_config.dart';
+
 import '../desktop_home_view.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/text_styles.dart';
 
 class ExitToMyStackButton extends StatelessWidget {
-  const ExitToMyStackButton({
-    super.key,
-    this.onPressed,
-  });
+  const ExitToMyStackButton({super.key, this.onPressed});
 
   final VoidCallback? onPressed;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(
-        right: 24,
-      ),
+      padding: const EdgeInsets.only(right: 24),
       child: SizedBox(
         height: 56,
         child: TextButton(
           style: Theme.of(context)
               .extension<StackColors>()!
               .getSmallSecondaryEnabledButtonStyle(context),
-          onPressed: onPressed ??
+          onPressed:
+              onPressed ??
               () {
-                Navigator.of(context).popUntil(
-                  ModalRoute.withName(DesktopHomeView.routeName),
-                );
+                Navigator.of(context)
+                    .popUntil(ModalRoute.withName(DesktopHomeView.routeName));
               },
           child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 30,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 30),
             child: Text(
-              "Exit to My ${AppConfig.prefix}",
+              "Exit to My Wallets",
               style: STextStyles.desktopButtonSmallSecondaryEnabled(context),
             ),
           ),

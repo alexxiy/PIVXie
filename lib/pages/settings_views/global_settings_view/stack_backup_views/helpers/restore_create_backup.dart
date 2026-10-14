@@ -33,7 +33,6 @@ import '../../../../../notifications/show_flush_bar.dart';
 import '../../../../../services/address_book_service.dart';
 import '../../../../../services/node_service.dart';
 import '../../../../../services/wallets.dart';
-import '../../../../../utilities/enums/backup_frequency_type.dart';
 import '../../../../../utilities/enums/stack_restoring_status.dart';
 import '../../../../../utilities/enums/sync_type_enum.dart';
 import '../../../../../utilities/flutter_secure_storage_interface.dart';
@@ -927,15 +926,9 @@ abstract class SWB {
     if (prefs['externalCalls'] is bool) {
       _prefs.externalCalls = prefs['externalCalls'] as bool;
     }
-    _prefs.isAutoBackupEnabled = prefs['isAutoBackupEnabled'] as bool;
-    _prefs.autoBackupLocation = prefs['autoBackupLocation'] as String?;
-    _prefs.backupFrequencyType = BackupFrequencyType.values.firstWhere(
-      (e) => e.name == (prefs['backupFrequencyType'] as String?),
-      orElse: () => BackupFrequencyType.everyAppStart,
-    );
-    _prefs.lastAutoBackup = DateTime.tryParse(
-      prefs['lastAutoBackup'] as String? ?? "",
-    );
+    // Auto backup stays as set up on this device: its folder and key are
+    // local (the key isn't in the file), so turning it on from a backup
+    // left it without a key.
   }
 
   static Future<void> _restoreAddressBook(

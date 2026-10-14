@@ -370,7 +370,7 @@ Future<void> closeDesktopWallet(WidgetRef ref, String walletId) async {
   ref.read(currentWalletIdProvider.notifier).state = null;
 }
 
-/// Open a wallet from My PIVXie ([nav]) as its card does: check the node
+/// Open a wallet from My Wallets ([nav]) as its card does: check the node
 /// and Tor settings, load it, then show it. [beforePush] runs just before.
 Future<void> openDesktopWallet(
   BuildContext context,

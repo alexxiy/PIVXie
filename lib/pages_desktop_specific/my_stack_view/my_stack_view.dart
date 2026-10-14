@@ -11,7 +11,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../app_config.dart';
 import '../../pages/settings_views/global_settings_view/hidden_settings.dart';
 import '../../pages/wallets_view/sub_widgets/empty_wallets.dart';
 import '../../utilities/text_styles.dart';
@@ -102,29 +101,18 @@ class _DesktopMyStackTitleState extends ConsumerState<DesktopMyStackTitle> {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        const SizedBox(
-          width: 24,
-        ),
+        const SizedBox(width: 24),
         GestureDetector(
           onTap: _hiddenOptions,
           child: RotateIcon(
-            icon: const SizedBox(
-              width: 32,
-              height: 32,
-              child: AppIcon(),
-            ),
+            icon: const SizedBox(width: 32, height: 32, child: AppIcon()),
             curve: Curves.easeInOutCubic,
             rotationPercent: 1.0,
             controller: _rotateIconController,
           ),
         ),
-        const SizedBox(
-          width: 12,
-        ),
-        Text(
-          "My ${AppConfig.prefix}",
-          style: STextStyles.desktopH3(context),
-        ),
+        const SizedBox(width: 12),
+        Text("My Wallets", style: STextStyles.desktopH3(context)),
       ],
     );
   }

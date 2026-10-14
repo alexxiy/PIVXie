@@ -14,11 +14,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../../../providers/global/wallets_provider.dart';
 import '../../../../route_generator.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/text_styles.dart';
+import '../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../../addresses/desktop_wallet_addresses_view.dart';
 import '../../../../pages/settings_views/wallet_settings_view/sign_message_view.dart';
 import 'desktop_delete_wallet_dialog.dart';
@@ -34,7 +36,7 @@ enum _WalletOptions {
       case _WalletOptions.signMessage:
         return "Sign message";
       case _WalletOptions.walletKeys:
-        return "Wallet keys";
+        return "Wallet seed";
       case _WalletOptions.deleteWallet:
         return "Delete wallet";
     }
@@ -181,7 +183,7 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
   final VoidCallback onSignMessagePressed;
   final VoidCallback onDeletePressed;
 
-  /// Null: no Wallet keys item.
+  /// Null: no Wallet seed (or keys) item.
   final VoidCallback? onWalletKeysPressed;
   final String walletId;
 
@@ -217,7 +219,9 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
                     const SizedBox(height: 8),
                     _MenuItem(
                       icon: Assets.svg.key,
-                      label: _WalletOptions.walletKeys.prettyName,
+                      label: walletSecretTitle(
+                        ref.read(pWallets).getWallet(walletId),
+                      ),
                       onPressed: onWalletKeysPressed!,
                     ),
                   ],

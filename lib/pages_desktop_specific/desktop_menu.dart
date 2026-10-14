@@ -170,7 +170,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                               key: const ValueKey('myStack'),
                               duration: duration,
                               icon: const DesktopMyStackIcon(),
-                              label: "My ${AppConfig.prefix}",
+                              label: "My Wallets",
                               value: DesktopMenuItemId.myStack,
                               onChanged: updateSelectedMenuItem,
                               controller: controllers[0],

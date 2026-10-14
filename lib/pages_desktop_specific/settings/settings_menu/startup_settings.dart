@@ -105,7 +105,7 @@ class StartupSettings extends ConsumerWidget {
                             children: [
                               option(
                                 value: null,
-                                title: "My ${AppConfig.prefix}",
+                                title: "My Wallets",
                                 subtitle: "The list of your wallets",
                               ),
                               for (final w in wallets)

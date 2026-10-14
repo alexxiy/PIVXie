@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_svg/svg.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../../db/isar/main_db.dart';
@@ -8,13 +9,18 @@ import '../../../providers/global/wallets_provider.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/amount/amount.dart';
 import '../../../utilities/amount/amount_formatter.dart';
+import '../../../utilities/assets.dart';
+import '../../../utilities/constants.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../wallets/wallet/impl/pivx_wallet.dart';
 import '../../../widgets/custom_buttons/blue_text_button.dart';
+import '../../../widgets/icon_widgets/x_icon.dart';
 import '../../../widgets/middle_ellipsis_text.dart';
 import '../../../widgets/rounded_white_container.dart';
+import '../../../widgets/stack_text_field.dart';
+import '../../../widgets/textfield_icon_button.dart';
 import '../../coin_control/coin_control_view.dart';
 import 'pivx_change_address_sheet.dart';
 
@@ -348,6 +354,37 @@ class _OwnAddressSheet extends StatefulWidget {
 
 class _OwnAddressSheetState extends State<_OwnAddressSheet> {
   bool _creating = false;
+  final _search = TextEditingController();
+  final _searchFocus = FocusNode();
+
+  /// Label (or kind and index) of each address, looked up once.
+  late final Map<String, String> _titles = {
+    for (final a in widget.addresses)
+      a.value: pivxAddressTitle(widget.walletId, a.value),
+  };
+
+  @override
+  void dispose() {
+    _search.dispose();
+    _searchFocus.dispose();
+    super.dispose();
+  }
+
+  /// The addresses whose value, label (or title) or tag contains the
+  /// search text, ignoring case.
+  List<Address> get _shown {
+    final term = _search.text.trim().toLowerCase();
+    if (term.isEmpty) return widget.addresses;
+    return [
+      for (final a in widget.addresses)
+        if ([
+          a.value,
+          _titles[a.value]!,
+          ?widget.tags[a.value],
+        ].any((e) => e.toLowerCase().contains(term)))
+          a,
+    ];
+  }
 
   Future<void> _new() async {
     setState(() => _creating = true);
@@ -364,7 +401,14 @@ class _OwnAddressSheetState extends State<_OwnAddressSheet> {
     final colors = Theme.of(context).extension<StackColors>()!;
     final secondary = STextStyles.w500_12(context)
         .copyWith(color: colors.textSubtitle1);
+    final shown = _shown;
+    final keyboard = MediaQuery.viewInsetsOf(context).bottom;
     return Container(
+      // A long list keeps its height while the search narrows it.
+      height: widget.addresses.length > 6
+          ? (MediaQuery.sizeOf(context).height - keyboard) * 0.85
+          : null,
+      margin: EdgeInsets.only(bottom: keyboard),
       decoration: BoxDecoration(
         color: colors.popupBG,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
@@ -406,11 +450,60 @@ class _OwnAddressSheetState extends State<_OwnAddressSheet> {
             ),
           ),
           const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(
+              Constants.size.circularBorderRadius,
+            ),
+            child: TextField(
+              controller: _search,
+              focusNode: _searchFocus,
+              autocorrect: false,
+              enableSuggestions: false,
+              onChanged: (_) => setState(() {}),
+              style: STextStyles.field(context),
+              decoration:
+                  standardInputDecoration(
+                    "Search by address or label",
+                    _searchFocus,
+                    context,
+                  ).copyWith(
+                    prefixIcon: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 16,
+                      ),
+                      child: SvgPicture.asset(
+                        Assets.svg.search,
+                        width: 16,
+                        height: 16,
+                      ),
+                    ),
+                    suffixIcon: _search.text.isEmpty
+                        ? null
+                        : UnconstrainedBox(
+                            child: TextFieldIconButton(
+                              child: const XIcon(),
+                              onTap: () => setState(_search.clear),
+                            ),
+                          ),
+                  ),
+            ),
+          ),
+          const SizedBox(height: 8),
+          if (shown.isEmpty)
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              child: Text(
+                "No addresses match",
+                textAlign: TextAlign.center,
+                style: secondary,
+              ),
+            ),
           Flexible(
             child: ListView(
               shrinkWrap: true,
               children: [
-                for (final a in widget.addresses)
+                for (final a in shown)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 8),
                     child: GestureDetector(
@@ -424,7 +517,7 @@ class _OwnAddressSheetState extends State<_OwnAddressSheet> {
                           children: [
                             Text(
                               [
-                                pivxAddressTitle(widget.walletId, a.value),
+                                _titles[a.value]!,
                                 ?widget.tags[a.value],
                               ].join(" · "),
                               style: STextStyles.w600_14(context),

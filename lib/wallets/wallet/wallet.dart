@@ -503,9 +503,10 @@ abstract class Wallet<T extends CryptoCurrency> {
       if (!reportsSyncProgress) _fireRefreshPercentChange(0.6);
       final utxosRefreshFuture = updateUTXOs();
       if (!reportsSyncProgress) _fireRefreshPercentChange(0.65);
-      await utxosRefreshFuture;
+      // Wait for both: awaiting one at a time left the other's error
+      // unhandled when the first failed.
+      await Future.wait([utxosRefreshFuture, fetchFuture]);
       if (!reportsSyncProgress) _fireRefreshPercentChange(0.70);
-      await fetchFuture;
 
       _fireRefreshPercentChange(0.80);
 

@@ -249,7 +249,7 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                   return SettingsListButton(
                     iconAssetName: Assets.svg.lock,
                     iconSize: 16,
-                    title: "Wallet backup",
+                    title: walletSecretTitle(wallet),
                     onPressed: _walletBackupPressed,
                   );
                 },
@@ -259,10 +259,8 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
               iconAssetName: Assets.svg.pencil,
               iconSize: 16,
               title: "Sign / verify message",
-              onPressed: () => Navigator.of(context).pushNamed(
-                SignMessageView.routeName,
-                arguments: walletId,
-              ),
+              onPressed: () => Navigator.of(context)
+                  .pushNamed(SignMessageView.routeName, arguments: walletId),
             ),
             const SizedBox(height: 8),
             SettingsListButton(

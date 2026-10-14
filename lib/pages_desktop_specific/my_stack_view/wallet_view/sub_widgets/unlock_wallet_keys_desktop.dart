@@ -148,7 +148,10 @@ class _UnlockWalletKeysDesktopState
           const SizedBox(height: 12),
           SvgPicture.asset(Assets.svg.keys, width: 100, height: 58),
           const SizedBox(height: 55),
-          Text("Wallet keys", style: STextStyles.desktopH2(context)),
+          Text(
+            walletSecretTitle(ref.read(pWallets).getWallet(widget.walletId)),
+            style: STextStyles.desktopH2(context),
+          ),
           const SizedBox(height: 16),
           Text(
             "Enter your password",
