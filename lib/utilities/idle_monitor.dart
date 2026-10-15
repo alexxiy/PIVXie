@@ -45,11 +45,16 @@ class IdleMonitor with WidgetsBindingObserver {
     _cancelTimer();
   }
 
+  /// When the user last touched or typed, by the clock: timers stand
+  /// still while the phone sleeps, the clock doesn't.
+  DateTime _lastActivity = DateTime.now();
+
   void _onUserActivity() {
     _resetTimer();
   }
 
   void _resetTimer() {
+    _lastActivity = DateTime.now();
     _cancelTimer();
     _idleTimer = Timer(timeout, onIdle);
   }
@@ -59,15 +64,17 @@ class IdleMonitor with WidgetsBindingObserver {
     _idleTimer = null;
   }
 
-  // @override
-  // void didChangeAppLifecycleState(AppLifecycleState state) {
-  //   if (!_isAttached) return;
-  //   if (state == AppLifecycleState.paused ||
-  //       state == AppLifecycleState.inactive ||
-  //       state == AppLifecycleState.detached) {
-  //     _cancelTimer();
-  //   } else if (state == AppLifecycleState.resumed) {
-  //     _resetTimer();
-  //   }
-  // }
+  /// Back from the background: lock if the time away (asleep included)
+  /// reached the timeout.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (!_isAttached || state != AppLifecycleState.resumed) return;
+    final idle = DateTime.now().difference(_lastActivity);
+    _cancelTimer();
+    if (idle >= timeout) {
+      onIdle();
+    } else {
+      _idleTimer = Timer(timeout - idle, onIdle);
+    }
+  }
 }

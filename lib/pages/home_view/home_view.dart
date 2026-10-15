@@ -85,7 +85,8 @@ class _HomeViewState extends ConsumerState<HomeView> {
 
   void _onIdle() async {
     final context = _key.currentContext;
-    if (context != null) {
+    // Already locked: the timer runs on behind the lock screen.
+    if (context != null && !_locked) {
       _locked = true;
       await Navigator.push(
         context,

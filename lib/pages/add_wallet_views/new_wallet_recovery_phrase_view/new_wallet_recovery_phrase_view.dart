@@ -91,7 +91,7 @@ class _NewWalletRecoveryPhraseViewState
 
   Future<void> _copy() async {
     final words = _mnemonic;
-    await _clipboardInterface.setData(ClipboardData(text: words.join(" ")));
+    await _clipboardInterface.setSecret(words.join(" "));
     unawaited(
       showFloatingFlushBar(
         type: FlushBarType.info,

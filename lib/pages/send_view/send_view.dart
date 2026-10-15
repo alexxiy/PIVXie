@@ -420,29 +420,8 @@ class _SendViewState extends ConsumerState<SendView> {
     });
   }
 
+  /// The fee last shown, for coin control's "amount needed".
   late Amount _currentFee;
-
-  void _setCurrentFee(String fee, bool shouldSetState) {
-    fee = fee.trim();
-
-    if (fee.startsWith("~")) {
-      fee = fee.substring(1);
-    }
-    if (fee.contains(" ")) {
-      fee = fee.split(" ").first;
-    }
-
-    final value = fee.contains(",")
-        ? Decimal.parse(fee.replaceFirst(",", "."))
-              .toAmount(fractionDigits: coin.fractionDigits)
-        : Decimal.parse(fee).toAmount(fractionDigits: coin.fractionDigits);
-
-    if (shouldSetState) {
-      setState(() => _currentFee = value);
-    } else {
-      _currentFee = value;
-    }
-  }
 
   void _setValidAddressProviders(String? address) {
     final wallet = ref.read(pWallets).getWallet(walletId);
@@ -458,7 +437,7 @@ class _SendViewState extends ConsumerState<SendView> {
 
   late Future<String> _calculateFeesFuture;
 
-  Map<Amount, String> cachedFees = {};
+  Map<Amount, Amount> cachedFees = {};
 
   Future<String> calculateFees(Amount amount) async {
     final wallet = ref.read(pWallets).getWallet(walletId) as PivxWallet;
@@ -479,23 +458,18 @@ class _SendViewState extends ConsumerState<SendView> {
             : selectedUTXOs.map((e) => e.utxo).toSet(),
         subtractFee: _pivxSubtractFee,
       );
-      return ref
-          .read(pAmountFormatter(coin))
-          .format(fee, withUnitName: true, indicatePrecisionLoss: false);
+    } else {
+      // PIVX has no fee market: every transparent send pays the relay
+      // minimum (fast = average = slow).
+      fee = cachedFees[amount] ??= await wallet.estimateFeeFor(
+        amount,
+        (await wallet.fees).medium,
+      );
     }
-
-    if (cachedFees[amount] != null) {
-      return cachedFees[amount]!;
-    }
-
-    // PIVX has no fee market: every transparent send pays the relay
-    // minimum (fast = average = slow).
-    final feeRate = (await wallet.fees).medium;
-    fee = await wallet.estimateFeeFor(amount, feeRate);
-    cachedFees[amount] = ref
+    _currentFee = fee;
+    return ref
         .read(pAmountFormatter(coin))
         .format(fee, withUnitName: true, indicatePrecisionLoss: false);
-    return cachedFees[amount]!;
   }
 
   /// A Preview tap while one is running is ignored: two would build two
@@ -1157,7 +1131,10 @@ class _SendViewState extends ConsumerState<SendView> {
                                       trimmed,
                                       logging: Logging.instance,
                                     );
-                                    if (parsed != null) {
+                                    // Only a payment link for this coin (as when scanned).
+                                    if (parsed != null &&
+                                        parsed.coin?.uriScheme ==
+                                            coin.uriScheme) {
                                       _applyUri(parsed);
                                     } else {
                                       _setAddress(newValue);
@@ -1873,7 +1850,6 @@ class _SendViewState extends ConsumerState<SendView> {
                                   if (snapshot.connectionState ==
                                           ConnectionState.done &&
                                       snapshot.hasData) {
-                                    _setCurrentFee(snapshot.data!, false);
                                     return Text(
                                       "~${snapshot.data!}",
                                       style: STextStyles.itemSubtitle12(

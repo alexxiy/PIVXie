@@ -536,12 +536,13 @@ class PivxProposalPayout {
 
 /// The payout of [superblock] to [address] among the bridge's [txs] of
 /// that address after the superblock: a coinstake (or coinbase) output
-/// paying it. Null when none pays it.
+/// paying it exactly the [monthlyPayment] (a stake or masternode reward
+/// to the same address is something else). Null when none pays it.
 PivxProposalPayout? pivxPaidPayout(
   List<Map<String, dynamic>> txs, {
   required String address,
   required int superblock,
-  required int fractionDigits,
+  required Amount monthlyPayment,
 }) {
   for (final tx in txs) {
     if (tx["coinstake"] != true && tx["coinbase"] != true) continue;
@@ -549,16 +550,15 @@ PivxProposalPayout? pivxPaidPayout(
     if (height == null || height < superblock) continue;
     for (final o in (tx["vout"] as List? ?? const [])) {
       final out = o as Map;
-      if (((out["addresses"] as List?) ?? const []).contains(address)) {
+      if (((out["addresses"] as List?) ?? const []).contains(address) &&
+          BigInt.tryParse(out["value"] as String? ?? "") ==
+              monthlyPayment.raw) {
         return PivxProposalPayout(
           superblock: superblock,
           state: PivxPayoutState.paid,
           txid: tx["txid"] as String,
           height: height,
-          amount: Amount(
-            rawValue: BigInt.parse(out["value"] as String),
-            fractionDigits: fractionDigits,
-          ),
+          amount: monthlyPayment,
         );
       }
     }
@@ -569,6 +569,10 @@ PivxProposalPayout? pivxPaidPayout(
 /// Settled payouts (paid or not paid) never change: by proposal hash and
 /// superblock.
 final _settledPayouts = <String, PivxProposalPayout>{};
+
+/// Per wallet: the [PivxGovernanceWallet.submitPendingProposals] running,
+/// which a sync finishing meanwhile joins instead of submitting again.
+final _submittingProposals = <String, Future<void>>{};
 
 extension PivxGovernanceWallet on PivxWallet {
   bool get _mainnet => cryptoCurrency.network == CryptoCurrencyNetwork.main;
@@ -629,15 +633,19 @@ extension PivxGovernanceWallet on PivxWallet {
         txs,
         address: p.paymentAddress,
         superblock: superblock,
-        fractionDigits: cryptoCurrency.fractionDigits,
+        monthlyPayment: p.monthlyPayment,
       );
       final PivxProposalPayout payout;
       if (paid != null) {
         payout = _settledPayouts[key] = paid;
       } else if (chainHeight < superblock + window) {
+        // Still in the payout blocks: only a proposal in the budget is
+        // being paid (not cached: a payout may still come).
         payout = PivxProposalPayout(
           superblock: superblock,
-          state: PivxPayoutState.paying,
+          state: p.status == PivxProposalStatus.passing
+              ? PivxPayoutState.paying
+              : PivxPayoutState.notPaid,
         );
       } else {
         payout = _settledPayouts[key] = PivxProposalPayout(
@@ -653,18 +661,26 @@ extension PivxGovernanceWallet on PivxWallet {
   static const _kPendingProposals = "pivxPendingProposals";
 
   /// This wallet's proposals waiting to be submitted (or that failed).
-  List<PivxPendingProposal> get pendingProposals => [
-    for (final e in (info.otherData[_kPendingProposals] as List?) ?? const [])
+  List<PivxPendingProposal> get pendingProposals => _pendingIn(info.otherData);
+
+  static List<PivxPendingProposal> _pendingIn(Map<String, dynamic> data) => [
+    for (final e in (data[_kPendingProposals] as List?) ?? const [])
       PivxPendingProposal.fromJson(Map<String, dynamic>.from(e as Map)),
   ];
 
-  Future<void> _savePending(List<PivxPendingProposal> list) =>
-      info.updateOtherData(
-        newEntries: {
-          _kPendingProposals: [for (final p in list) p.toJson()],
-        },
-        isar: mainDB.isar,
-      );
+  /// Rewrite the pending list from the one stored at the time of writing,
+  /// so changes made meanwhile (a proposal added while others are being
+  /// submitted) are kept.
+  Future<void> _updatePending(
+    List<PivxPendingProposal> Function(List<PivxPendingProposal> stored) change,
+  ) => info.updateOtherDataWith(
+    isar: mainDB.isar,
+    change: (stored) => {
+      _kPendingProposals: [
+        for (final p in change(_pendingIn(stored))) p.toJson(),
+      ],
+    },
+  );
 
   /// Proposals with their status, and the budget, from the bridge's node.
   Future<PivxGovernance> loadGovernance() async {
@@ -953,24 +969,26 @@ extension PivxGovernanceWallet on PivxWallet {
   Future<void> addPendingProposal(
     PivxPendingProposal proposal,
     String feeTxid,
-  ) => _savePending([
-    ...pendingProposals.where((p) => p.hash != proposal.hash),
-    PivxPendingProposal(
-      name: proposal.name,
-      url: proposal.url,
-      payments: proposal.payments,
-      blockStart: proposal.blockStart,
-      paymentAddress: proposal.paymentAddress,
-      amountSats: proposal.amountSats,
-      hash: proposal.hash,
-      feeTxid: feeTxid,
-      createdAt: proposal.createdAt,
-    ),
-  ]);
+  ) => _updatePending(
+    (stored) => [
+      ...stored.where((p) => p.hash != proposal.hash),
+      PivxPendingProposal(
+        name: proposal.name,
+        url: proposal.url,
+        payments: proposal.payments,
+        blockStart: proposal.blockStart,
+        paymentAddress: proposal.paymentAddress,
+        amountSats: proposal.amountSats,
+        hash: proposal.hash,
+        feeTxid: feeTxid,
+        createdAt: proposal.createdAt,
+      ),
+    ],
+  );
 
   /// Forget a pending proposal (after it failed).
   Future<void> removePendingProposal(String hash) =>
-      _savePending([...pendingProposals.where((p) => p.hash != hash)]);
+      _updatePending((stored) => [...stored.where((p) => p.hash != hash)]);
 
   /// After sending [proposal]'s fee failed: forget the proposal when the
   /// network doesn't have its fee transaction. Kept when it may have it
@@ -1000,28 +1018,37 @@ extension PivxGovernanceWallet on PivxWallet {
   /// after every sync. A proposal the network already knows is done; one
   /// whose start superblock passed before it could be submitted failed
   /// (its fee is spent).
-  Future<void> submitPendingProposals() async {
+  Future<void> submitPendingProposals() =>
+      _submittingProposals[walletId] ??= _submitPendingProposals().whenComplete(
+        // Not `=> remove(...)`: that returns this very future, which
+        // whenComplete would then wait for, forever.
+        () {
+          _submittingProposals.remove(walletId);
+        },
+      );
+
+  Future<void> _submitPendingProposals() async {
     final pending = pendingProposals;
     if (pending.isEmpty) return;
     final known = {for (final p in await bridge.budgetInfo()) p["Hash"]};
     final height = await chainHeight;
-    final kept = <PivxPendingProposal>[];
+    // By hash: proposals done with, and failures to record.
+    final done = <String>{};
+    final failed = <String, PivxPendingProposal>{};
     for (final p in pending) {
-      if (known.contains(p.hash)) continue;
-      if (p.error != null) {
-        kept.add(p);
+      if (known.contains(p.hash)) {
+        done.add(p.hash);
         continue;
       }
+      if (p.error != null) continue;
       final confs = await feeConfirmationsOf(p);
       if (confs == null || confs < proposalFeeConfirmations) {
-        kept.add(
-          height >= p.blockStart
-              ? p.withError(
-                  "Its start (block ${p.blockStart}) passed before the fee "
-                  "was confirmed",
-                )
-              : p,
-        );
+        if (height >= p.blockStart) {
+          failed[p.hash] = p.withError(
+            "Its start (block ${p.blockStart}) passed before the fee was "
+            "confirmed",
+          );
+        }
         continue;
       }
       try {
@@ -1042,17 +1069,23 @@ extension PivxGovernanceWallet on PivxWallet {
             "PIVX: proposal ${p.name} submitted as $hash, expected ${p.hash}",
           );
         }
+        done.add(p.hash);
       } catch (e) {
         Logging.instance.w("PIVX: submitting proposal ${p.name} failed: $e");
         final message = e.toString();
-        kept.add(
-          height >= p.blockStart || message.contains("invalid budget proposal")
-              ? p.withError(message.replaceFirst("Exception: ", ""))
-              : p,
-        );
+        if (height >= p.blockStart ||
+            message.contains("invalid budget proposal")) {
+          failed[p.hash] = p.withError(message.replaceFirst("Exception: ", ""));
+        }
       }
     }
-    await _savePending(kept);
+    if (done.isEmpty && failed.isEmpty) return;
+    await _updatePending(
+      (stored) => [
+        for (final p in stored)
+          if (!done.contains(p.hash)) failed[p.hash] ?? p,
+      ],
+    );
   }
 
   /// The current votes of this wallet's masternodes on [proposal], by

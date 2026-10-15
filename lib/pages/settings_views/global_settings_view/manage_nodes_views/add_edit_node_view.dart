@@ -119,7 +119,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                           children: [
                             const Spacer(),
                             Text(
-                              "Would you like to save this node anyways?",
+                              "Save this node anyway?",
                               style: STextStyles.desktopTextMedium(context),
                             ),
                             const Spacer(flex: 2),
@@ -161,7 +161,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
               )
             : StackDialog(
                 title: "Server currently unreachable",
-                message: "Would you like to save this node anyways?",
+                message: "Save this node anyway?",
                 leftButton: TextButton(
                   onPressed: () async {
                     Navigator.of(context).pop(false);

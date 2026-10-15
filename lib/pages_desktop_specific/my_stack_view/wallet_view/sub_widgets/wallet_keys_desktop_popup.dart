@@ -24,6 +24,7 @@ import '../../../../utilities/address_utils.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/clipboard_interface.dart';
 import '../../../../utilities/text_styles.dart';
+import '../../../../widgets/mnemonic_passphrase_note.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../../widgets/desktop/primary_button.dart';
@@ -79,8 +80,8 @@ class WalletKeysDesktopPopup extends ConsumerWidget {
                           data: keyData as ViewOnlyWalletData,
                         ),
                       )
-                    : _Mnemonic(words: words)
-              : _Mnemonic(words: words),
+                    : _Mnemonic(words: words, walletId: walletId)
+              : _Mnemonic(words: words, walletId: walletId),
           const SizedBox(height: 32),
         ],
       ),
@@ -92,10 +93,12 @@ class _Mnemonic extends StatelessWidget {
   const _Mnemonic({
     super.key,
     required this.words,
+    required this.walletId,
     this.clipboardInterface = const ClipboardWrapper(),
   });
 
   final List<String> words;
+  final String walletId;
   final ClipboardInterface clipboardInterface;
 
   @override
@@ -108,9 +111,9 @@ class _Mnemonic extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32),
             child: Text(
-              "Please write down your recovery phrase in the correct order and "
-              "save it to keep your funds secure. You will also be asked to"
-              " verify the words on the next screen.",
+              "Write down your recovery phrase in the right order and keep it "
+              "safe. It's the only way to get to your funds if this computer "
+              "is lost or you forget your password.",
               style: STextStyles.desktopTextExtraExtraSmall(context),
               textAlign: TextAlign.center,
             ),
@@ -127,6 +130,10 @@ class _Mnemonic extends StatelessWidget {
                 .buttonBackSecondary,
           ),
         ),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 32),
+          child: MnemonicPassphraseNote(walletId: walletId),
+        ),
         const SizedBox(height: 24),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -136,9 +143,7 @@ class _Mnemonic extends StatelessWidget {
                 child: SecondaryButton(
                   label: "Copy",
                   onPressed: () async {
-                    await clipboardInterface.setData(
-                      ClipboardData(text: words.join(" ")),
-                    );
+                    await clipboardInterface.setSecret(words.join(" "));
                     if (context.mounted) {
                       unawaited(
                         showFloatingFlushBar(

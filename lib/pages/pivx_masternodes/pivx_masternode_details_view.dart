@@ -8,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../providers/global/wallets_provider.dart';
 import '../../themes/stack_colors.dart';
+import '../../utilities/clipboard_interface.dart';
 import '../../utilities/show_loading.dart';
 import '../../utilities/text_styles.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
@@ -158,8 +159,9 @@ class _PivxMasternodeDetailsViewState
     );
   }
 
+  /// Copies [text], which holds the masternode key.
   Future<void> _copy(String text, [String what = "Copied to clipboard"]) async {
-    await Clipboard.setData(ClipboardData(text: text));
+    await const ClipboardWrapper().setSecret(text);
     if (mounted) {
       unawaited(
         showFloatingFlushBar(
@@ -218,7 +220,7 @@ class _PivxMasternodeDetailsViewState
             ),
           if (!secret || _showKey) ...[
             const SizedBox(width: 8),
-            IconCopyButton(data: value),
+            IconCopyButton(data: value, secret: secret),
           ],
         ],
       ),
@@ -242,7 +244,7 @@ class _PivxMasternodeDetailsViewState
           ),
           const SizedBox(width: 8),
           if (_showKey)
-            IconCopyButton(data: code(key))
+            IconCopyButton(data: code(key), secret: true)
           else
             CustomTextButton(text: "Show", onTap: _revealKey),
         ],

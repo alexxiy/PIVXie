@@ -27,7 +27,6 @@ import '../../utilities/address_utils.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/clipboard_interface.dart';
 import '../../utilities/constants.dart';
-import '../../utilities/enums/derive_path_type_enum.dart';
 import '../../utilities/show_loading.dart';
 import '../../utilities/text_styles.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
@@ -40,7 +39,6 @@ import '../../widgets/background.dart';
 import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/custom_buttons/blue_text_button.dart';
-import '../../widgets/custom_loading_overlay.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/qr.dart';
@@ -79,64 +77,24 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
 
   Future<void> generateNewAddress() async {
     final wallet = ref.read(pWallets).getWallet(walletId);
-
-    if (wallet is MultiAddressInterface) {
-      bool shouldPop = false;
+    if (wallet is! PivxWallet) return;
+    final address = await showLoading<String?>(
+      whileFuture: wallet.generateNewTransparentAddress(),
+      context: context,
+      message: "Generating address",
+    );
+    if (!mounted) return;
+    if (address == null) {
       unawaited(
-        showDialog(
+        showFloatingFlushBar(
+          type: FlushBarType.info,
+          message: pivxAddressGapMessage,
           context: context,
-          builder: (_) {
-            return WillPopScope(
-              onWillPop: () async => shouldPop,
-              child: Container(
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .overlay
-                    .withOpacity(0.5),
-                child: const CustomLoadingOverlay(
-                  message: "Generating address",
-                  eventBus: null,
-                ),
-              ),
-            );
-          },
         ),
       );
-
-      final Address? address;
-      if (wallet is Bip39HDWallet) {
-        final DerivePathType type = DerivePathType.values.firstWhere(
-          (e) => e.getAddressType() == _walletAddressTypes[_currentIndex],
-        );
-        address = await wallet.generateNextReceivingAddress(
-          derivePathType: type,
-        );
-        final isar = ref.read(mainDBProvider).isar;
-        await isar.writeTxn(() async {
-          await isar.addresses.put(address!);
-        });
-        final info = ref.read(pWalletInfo(walletId));
-        await info.updateReceivingAddress(
-          newAddress: address.value,
-          isar: isar,
-        );
-      } else {
-        await wallet.generateNewReceivingAddress();
-        address = null;
-      }
-
-      shouldPop = true;
-
-      if (mounted) {
-        Navigator.of(context)
-            .popUntil(ModalRoute.withName(ReceiveView.routeName));
-
-        setState(() {
-          _addressMap[_walletAddressTypes[_currentIndex]] =
-              address?.value ?? ref.read(pWalletReceivingAddress(walletId));
-        });
-      }
+      return;
     }
+    setState(() => _addressMap[_walletAddressTypes[_currentIndex]] = address);
   }
 
   Future<void> generateNewPivxShieldAddress() async {

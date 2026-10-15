@@ -1070,20 +1070,10 @@ class _ConfirmTransactionViewState
                       ),
                     );
 
-                    if (context.mounted) {
-                      if (unlocked == true) {
-                        unawaited(_attemptSend(context));
-                      } else {
-                        unawaited(
-                          showFloatingFlushBar(
-                            type: FlushBarType.warning,
-                            message: Util.isDesktop
-                                ? "Invalid passphrase"
-                                : "Invalid PIN",
-                            context: context,
-                          ),
-                        );
-                      }
+                    // Null: the user went back. (A wrong PIN keeps the
+                    // lock screen open.)
+                    if (context.mounted && unlocked == true) {
+                      unawaited(_attemptSend(context));
                     }
                   }
                 },

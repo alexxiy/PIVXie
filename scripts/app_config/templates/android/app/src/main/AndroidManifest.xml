@@ -35,9 +35,7 @@
                 android:label="PlaceHolderName"
                 android:priority="1">
                 <action android:name="android.intent.action.VIEW"/>
-                <category android:name="android.intent.category.BROWSABLE"/>
                 <category android:name="android.intent.category.DEFAULT"/>
-                <data android:scheme="http" />
                 <data android:scheme="content" />
                 <data android:host="*" />
                 <data android:mimeType="*/*" />
@@ -50,12 +48,6 @@
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data android:scheme="pivx"/>
-            </intent-filter>
-            <intent-filter>
-                <data android:scheme="file" />
-                <data android:mimeType="*/*" />
-                <data android:pathPattern=".*\\.swb" />
-                <data android:host="*" />
             </intent-filter>
 
         </activity>

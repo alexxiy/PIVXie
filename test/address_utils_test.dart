@@ -132,4 +132,46 @@ void main() {
       "pivx:$firoAddress?amount=10.0123&message=Some+kind+of+message%21",
     );
   });
+
+  test("text that '%' is part of survives", () {
+    final result = AddressUtils.parsePaymentUri(
+      "pivx:$firoAddress?amount=1&message=100%25%20sure&label=a%2520b",
+    )!;
+    expect(result.amount, "1");
+    expect(result.message, "100% sure");
+    expect(result.label, "a%20b");
+  });
+
+  test("an amount that isn't a plain number is left out", () {
+    for (final amount in ["1e3", "1,5", "-1", "1.2.3", "abc"]) {
+      expect(
+        AddressUtils.parsePaymentUri("pivx:$firoAddress?amount=$amount")!
+            .amount,
+        isNull,
+        reason: amount,
+      );
+    }
+    expect(
+      AddressUtils.parsePaymentUri("pivx:$firoAddress?amount=.5")!.amount,
+      ".5",
+    );
+  });
+
+  test("seed QR codes: JSON, or the words on their own", () {
+    const words =
+        "abandon abandon abandon abandon abandon abandon abandon abandon "
+        "abandon abandon abandon about";
+    expect(
+      AddressUtils.decodeQRSeedData(
+        AddressUtils.encodeQRSeedData(words.split(" ")),
+      )["mnemonic"],
+      words.split(" "),
+    );
+    expect(
+      AddressUtils.decodeQRSeedData("  ${words.toUpperCase()}\n")["mnemonic"],
+      words.split(" "),
+    );
+    expect(AddressUtils.decodeQRSeedData("pivx:$firoAddress"), isEmpty);
+    expect(AddressUtils.decodeQRSeedData("too few words here"), isEmpty);
+  });
 }

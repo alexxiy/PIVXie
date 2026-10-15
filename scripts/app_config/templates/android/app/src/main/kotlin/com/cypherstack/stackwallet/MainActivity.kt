@@ -7,9 +7,8 @@ import android.os.Bundle
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugins.GeneratedPluginRegistrant
-import java.io.File
+import java.io.ByteArrayOutputStream
 import java.io.InputStream
-import 	java.nio.charset.Charset
 import android.os.Build
 import android.view.ViewTreeObserver
 import android.view.WindowManager
@@ -38,9 +37,6 @@ class MainActivity: FlutterFragmentActivity() {
         openPath = null
     }
 
-    fun readFileDirectlyAsText(fileName: String): String
-            = File(fileName).readText(Charsets.UTF_8)
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         handleOpenFile(intent)
@@ -51,19 +47,34 @@ class MainActivity: FlutterFragmentActivity() {
         handleOpenFile(intent)
     }
 
-    fun InputStream.readTextAndClose(charset: Charset = Charsets.UTF_8): String {
-        return this.bufferedReader(charset).use { it.readText() }
-    }
-
-    // An opened backup file. Other links (pivx: payments) are app_links'.
+    // An opened backup file: a content: link, as file managers and
+    // pickers send (never a file: path, which could name the app's own
+    // files). Other links (pivx: payments) are app_links'.
     private fun handleOpenFile(intent: Intent?) {
         val uri = intent?.data ?: return
-        if (uri.scheme != "content" && uri.scheme != "file") return
-        try {
-            val inputStream = this.contentResolver.openInputStream(uri) ?: return
-            openPath = inputStream.readTextAndClose()
+        if (uri.scheme != "content") return
+        openPath = try {
+            contentResolver.openInputStream(uri)?.use { it.readTextUpTo(MAX_BACKUP_BYTES) }
         } catch (e: Exception) {
-            openPath = null
+            null
         }
+    }
+
+    /** The stream as UTF-8 text; null when it's longer than [max] bytes. */
+    private fun InputStream.readTextUpTo(max: Int): String? {
+        val out = ByteArrayOutputStream()
+        val buffer = ByteArray(64 * 1024)
+        while (true) {
+            val n = read(buffer)
+            if (n < 0) break
+            out.write(buffer, 0, n)
+            if (out.size() > max) return null
+        }
+        return out.toString(Charsets.UTF_8.name())
+    }
+
+    companion object {
+        /** Far more than any backup file. */
+        private const val MAX_BACKUP_BYTES = 16 * 1024 * 1024
     }
 }

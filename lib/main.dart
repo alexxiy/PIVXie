@@ -122,6 +122,16 @@ void main(List<String> args) async {
   // node model adapter
   DB.instance.hive.registerAdapter(NodeModelAdapter());
 
+  if (Platform.isLinux || Platform.isMacOS) {
+    // History, addresses and shield notes: for this user's eyes only.
+    try {
+      await Process.run("chmod", [
+        "700",
+        (await StackFileSystem.applicationRootDirectory()).path,
+      ]);
+    } catch (_) {}
+  }
+
   DB.instance.hive.init(
     (await StackFileSystem.applicationHiveDirectory()).path,
   );
@@ -190,18 +200,14 @@ void main(List<String> args) async {
     UiStallWatch.start();
   }
 
-  if (AppConfig.hasFeature(AppFeature.tor)) {
-    // TODO:
-    // This should be moved to happen during the loading animation instead of
-    // showing a blank screen for 4-10 seconds.
-    // Some refactoring will need to be done here to make sure we don't make any
-    // network calls before starting up tor
-    if (Prefs.instance.useTor) {
-      TorService.sharedInstance.init(
-        torDataDirPath: (await StackFileSystem.applicationTorDirectory()).path,
-      );
-      await TorService.sharedInstance.start();
-    }
+  if (AppConfig.hasFeature(AppFeature.tor) && Prefs.instance.useTor) {
+    TorService.sharedInstance.init(
+      torDataDirPath: (await StackFileSystem.applicationTorDirectory()).path,
+    );
+    // In the background: where Tor can't be reached the app must still
+    // open (to turn Tor off, or to read the recovery phrase). Until Tor is
+    // connected, network calls fail instead of going around it.
+    unawaited(TorService.sharedInstance.start().catchError((_) {})); // logged
   }
   await StackFileSystem.initThemesDir();
 
@@ -607,10 +613,6 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
 
     // call reset to clear cached value
     await resetOpenPath();
-
-    Logging.instance.d(
-      "This is the .swb content from intent: ${ref.read(openedFromSWBFileStringStateProvider)}",
-    );
   }
 
   /// should only be called on android currently

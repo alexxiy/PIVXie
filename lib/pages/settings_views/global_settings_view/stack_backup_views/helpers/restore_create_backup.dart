@@ -23,6 +23,7 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 import '../../../../../app_config.dart';
 import '../../../../../db/hive/db.dart';
 import '../../../../../db/isar/main_db.dart';
+import '../../../../../models/isar/models/address_label.dart';
 import '../../../../../models/isar/models/contact_entry.dart';
 import '../../../../../models/isar/models/transaction_note.dart';
 import '../../../../../models/keys/view_only_wallet_data.dart';
@@ -324,6 +325,16 @@ abstract class SWB {
 
         backupWallet['notes'] = notes;
 
+        // Address labels: the user's, and masternode collateral ones.
+        backupWallet['addressLabels'] = {
+          for (final l
+              in await MainDB.instance.isar.addressLabels
+                  .where()
+                  .walletIdEqualTo(wallet.walletId)
+                  .findAll())
+            if (l.value.isNotEmpty) l.addressString: l.value,
+        };
+
         backupWallets.add(backupWallet);
       }
       backupJson['wallets'] = backupWallets;
@@ -453,6 +464,26 @@ abstract class SWB {
         await MainDB.instance.isar.writeTxn(() async {
           await MainDB.instance.isar.transactionNotes.putAll(notes);
         });
+      }
+
+      for (final e in Map<String, dynamic>.from(
+        walletbackup["addressLabels"] as Map? ?? const {},
+      ).entries) {
+        final value = e.value;
+        if (value is! String || value.isEmpty) continue;
+        final existing = MainDB.instance.getAddressLabelSync(
+          info.walletId,
+          e.key,
+        );
+        await MainDB.instance.updateAddressLabel(
+          existing?.copyWith(label: value) ??
+              AddressLabel(
+                walletId: info.walletId,
+                addressString: e.key,
+                value: value,
+                tags: null,
+              ),
+        );
       }
 
       if (_shouldCancelRestore) {
@@ -864,13 +895,19 @@ abstract class SWB {
               host: nodeData['host'] as String,
               port: nodeData['port'] as int,
               name: nodeData['name'] as String,
-              useSSL: nodeData['useSSL'] == "false" ? false : true,
-              enabled: nodeData['enabled'] == "false" ? false : true,
+              useSSL: _nodeFlag(nodeData['useSSL'], or: true),
+              enabled: _nodeFlag(nodeData['enabled'], or: true),
               coinName: nodeData['coinName'] as String,
               loginName: nodeData['loginName'] as String?,
               isFailover: nodeData['isFailover'] as bool,
               isDown: nodeData['isDown'] as bool,
               trusted: nodeData['trusted'] as bool?,
+              torEnabled: _nodeFlag(nodeData['torEnabled'], or: true),
+              clearnetEnabled: _nodeFlag(
+                nodeData['clearEnabled'] ?? nodeData['plainEnabled'],
+                or: true,
+              ),
+              forceNoTor: _nodeFlag(nodeData['forceNoTor'], or: false),
               isPrimary: nodeData["isPrimary"] as bool? ?? false,
             ),
             nodeData['password'] as String?,
@@ -884,19 +921,13 @@ abstract class SWB {
 
     await nodeService.updateDefaults();
 
-    // finally remove any added wallets
-    final allWalletIds =
-        (await MainDB.instance.isar.walletInfo
-                .where()
-                .walletIdProperty()
-                .findAll())
-            .toSet();
-    final walletIdsToDelete = allWalletIds.difference(revertToState.walletIds);
-    await MainDB.instance.isar.writeTxn(() async {
-      await MainDB.instance.isar.walletInfo.deleteAllByWalletId(
-        walletIdsToDelete.toList(),
-      );
-    });
+    // finally remove any added wallets, with their keys and data
+    for (final info
+        in await MainDB.instance.isar.walletInfo.where().findAll()) {
+      if (!revertToState.walletIds.contains(info.walletId)) {
+        await Wallets.sharedInstance.deleteWallet(info, secureStorageInterface);
+      }
+    }
 
     _cancelCompleter!.complete();
     _shouldCancelRestore = false;
@@ -987,14 +1018,19 @@ abstract class SWB {
             port: node['port'] as int,
             name: node['name'] as String,
             id: id,
-            useSSL: node['useSSL'] == "false" ? false : true,
-            enabled: node['enabled'] == "false" ? false : true,
+            useSSL: _nodeFlag(node['useSSL'], or: true),
+            enabled: _nodeFlag(node['enabled'], or: true),
             coinName: node['coinName'] as String,
             loginName: node['loginName'] as String?,
             isFailover: node['isFailover'] as bool,
             isDown: node['isDown'] as bool,
-            torEnabled: node['torEnabled'] as bool? ?? true,
-            clearnetEnabled: node['plainEnabled'] as bool? ?? true,
+            trusted: node['trusted'] as bool?,
+            torEnabled: _nodeFlag(node['torEnabled'], or: true),
+            clearnetEnabled: _nodeFlag(
+              node['clearEnabled'] ?? node['plainEnabled'],
+              or: true,
+            ),
+            forceNoTor: _nodeFlag(node['forceNoTor'], or: false),
             isPrimary:
                 node["isPrimary"] as bool? ?? primaryIds?.contains(id) ?? false,
           ),
@@ -1007,3 +1043,11 @@ abstract class SWB {
     await nodeService.updateDefaults();
   }
 }
+
+/// A node setting from a backup: a bool ([NodeModel.toMap]), or "true" /
+/// "false" as older backups wrote some of them.
+bool _nodeFlag(Object? value, {required bool or}) => switch (value) {
+  final bool b => b,
+  final String s => s != "false",
+  _ => or,
+};

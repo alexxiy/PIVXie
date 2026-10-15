@@ -1275,7 +1275,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                   trimmed,
                   logging: Logging.instance,
                 );
-                if (parsed != null) {
+                // Only a payment link for this coin (as when scanned).
+                if (parsed != null &&
+                    parsed.coin?.uriScheme == coin.uriScheme) {
                   _applyUri(parsed);
                 } else {
                   _setAddress(newValue);

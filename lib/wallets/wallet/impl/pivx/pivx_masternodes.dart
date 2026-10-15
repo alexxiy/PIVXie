@@ -125,10 +125,25 @@ extension PivxMasternodes on PivxWallet {
       ? kPivxMasternodePortMain
       : kPivxMasternodePortTest;
 
-  List<PivxMasternode> get masternodes => [
-    for (final e in (info.otherData[_kMasternodesKey] as List?) ?? const [])
+  List<PivxMasternode> get masternodes => _masternodesIn(info.otherData);
+
+  static List<PivxMasternode> _masternodesIn(Map<String, dynamic> data) => [
+    for (final e in (data[_kMasternodesKey] as List?) ?? const [])
       PivxMasternode.fromJson(Map<String, dynamic>.from(e as Map)),
   ];
+
+  /// Rewrite the masternode list from the one stored at the time of
+  /// writing, so a change made meanwhile isn't lost.
+  Future<void> _updateMasternodes(
+    List<PivxMasternode> Function(List<PivxMasternode> stored) change,
+  ) => info.updateOtherDataWith(
+    isar: mainDB.isar,
+    change: (stored) => {
+      _kMasternodesKey: [
+        for (final m in change(_masternodesIn(stored))) m.toJson(),
+      ],
+    },
+  );
 
   /// The first free alias "MN1", "MN2", ...
   String nextMasternodeAlias() {
@@ -251,15 +266,8 @@ extension PivxMasternodes on PivxWallet {
       key: _masternodeKeyName(mn.id),
       value: masternodeKey.trim(),
     );
-    await info.updateOtherData(
-      newEntries: {
-        _kMasternodesKey: [
-          for (final m in masternodes)
-            if (m.id != mn.id) m.toJson(),
-          mn.toJson(),
-        ],
-      },
-      isar: mainDB.isar,
+    await _updateMasternodes(
+      (stored) => [...stored.where((m) => m.id != mn.id), mn],
     );
     final newLabel = addressLabel?.trim() ?? "";
     if (newLabel.isNotEmpty) {
@@ -280,14 +288,8 @@ extension PivxMasternodes on PivxWallet {
 
   /// Forget a masternode; its collateral becomes spendable again.
   Future<void> removeMasternode(PivxMasternode mn) async {
-    await info.updateOtherData(
-      newEntries: {
-        _kMasternodesKey: [
-          for (final m in masternodes)
-            if (m.id != mn.id) m.toJson(),
-        ],
-      },
-      isar: mainDB.isar,
+    await _updateMasternodes(
+      (stored) => [...stored.where((m) => m.id != mn.id)],
     );
     await secureStorageInterface.delete(key: _masternodeKeyName(mn.id));
     await _freezeCollateral(mn, frozen: false);
@@ -437,13 +439,8 @@ extension PivxMasternodes on PivxWallet {
   String _confService(PivxMasternode mn) =>
       mn.service ?? "YOUR_VPS_IP:$masternodePort";
 
-  Future<void> _saveMasternode(PivxMasternode mn) => info.updateOtherData(
-    newEntries: {
-      _kMasternodesKey: [
-        for (final m in masternodes) m.id == mn.id ? mn.toJson() : m.toJson(),
-      ],
-    },
-    isar: mainDB.isar,
+  Future<void> _saveMasternode(PivxMasternode mn) => _updateMasternodes(
+    (stored) => [for (final m in stored) m.id == mn.id ? mn : m],
   );
 
   /// Parse a server address, `1.2.3.4:51472`, `[2001:db8::1]:51472` or a

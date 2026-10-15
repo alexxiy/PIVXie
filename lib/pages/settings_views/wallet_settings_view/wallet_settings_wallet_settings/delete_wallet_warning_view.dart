@@ -16,6 +16,7 @@ import '../../../../models/keys/view_only_wallet_data.dart';
 import '../../../../providers/providers.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/text_styles.dart';
+import '../../../../wallets/wallet/impl/pivx_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../../../widgets/background.dart';
@@ -33,6 +34,7 @@ class DeleteWalletWarningView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final extra = pivxDeleteWarning(ref.read(pWallets).getWallet(walletId));
     return Background(
       child: Scaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
@@ -66,7 +68,9 @@ class DeleteWalletWarningView extends ConsumerWidget {
                     "After that, the only way to get to your funds is your "
                     "recovery phrase.\n\n"
                     "${AppConfig.appName} doesn't keep a copy of it and can't "
-                    "restore your wallet.\n\nSAVE YOUR RECOVERY PHRASE FIRST.",
+                    "restore your wallet.\n\n"
+                    "${extra == null ? "" : "$extra\n\n"}"
+                    "SAVE YOUR RECOVERY PHRASE FIRST.",
                     style: STextStyles.baseXS(context).copyWith(
                       color: Theme.of(context)
                           .extension<StackColors>()!

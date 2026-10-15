@@ -149,9 +149,7 @@ class _DeleteWalletRecoveryPhraseViewState
                         .topNavIconPrimary,
                   ),
                   onPressed: () async {
-                    await _clipboardInterface.setData(
-                      ClipboardData(text: _mnemonic.join(" ")),
-                    );
+                    await _clipboardInterface.setSecret(_mnemonic.join(" "));
                     if (context.mounted) {
                       unawaited(
                         showFloatingFlushBar(

@@ -593,9 +593,12 @@ class PivxBridgeClient {
   }
 
   /// Download [url] into [file], reporting `(received, total)`.
+  /// Download [url] to [file]; more than [maxBytes] is refused (a server
+  /// that never stops sending would fill the disk).
   static Future<void> downloadToFile(
     Uri url,
     File file, {
+    required int maxBytes,
     ({InternetAddress host, int port})? proxy,
     void Function(int received, int? total)? onProgress,
   }) async {
@@ -611,14 +614,23 @@ class PivxBridgeClient {
         );
       }
       final total = response.contentLength > 0 ? response.contentLength : null;
+      if (total != null && total > maxBytes) {
+        throw PivxBridgeException("download too large: $url");
+      }
       final sink = tmp.openWrite();
       int received = 0;
-      await for (final chunk in response.timeout(_timeout)) {
-        sink.add(chunk);
-        received += chunk.length;
-        onProgress?.call(received, total);
+      try {
+        await for (final chunk in response.timeout(_timeout)) {
+          received += chunk.length;
+          if (received > maxBytes) {
+            throw PivxBridgeException("download too large: $url");
+          }
+          sink.add(chunk);
+          onProgress?.call(received, total);
+        }
+      } finally {
+        await sink.close();
       }
-      await sink.close();
       await tmp.rename(file.path);
     } finally {
       client.close(force: true);

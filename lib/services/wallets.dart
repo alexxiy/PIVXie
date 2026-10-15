@@ -21,6 +21,7 @@ import '../utilities/logger.dart';
 import '../utilities/prefs.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 import '../wallets/isar/models/wallet_info.dart';
+import '../wallets/isar/models/wallet_info_meta.dart';
 import '../wallets/wallet/impl/pivx/pivx_shield_state.dart';
 import '../wallets/wallet/impl/pivx_wallet.dart';
 import '../wallets/wallet/wallet.dart';
@@ -74,6 +75,13 @@ class Wallets {
 
     await _deleteSecrets(info, secureStorage);
 
+    final syncIds = Prefs.instance.walletIdsSyncOnStartup;
+    if (syncIds.contains(walletId)) {
+      Prefs.instance.walletIdsSyncOnStartup = [
+        ...syncIds.where((id) => id != walletId),
+      ];
+    }
+
     // delete wallet data in main db
     await MainDB.instance.deleteWalletBlockchainData(walletId);
     await MainDB.instance.deleteAddressLabels(walletId);
@@ -89,6 +97,7 @@ class Wallets {
 
     await mainDB.isar.writeTxn(() async {
       await mainDB.isar.walletInfo.deleteByWalletId(walletId);
+      await mainDB.isar.walletInfoMeta.deleteByWalletId(walletId);
     });
 
     GlobalEventBus.instance.fire(WalletsChangedEvent());
@@ -109,13 +118,14 @@ class Wallets {
     for (final walletId in DB.instance.values<String>(
       boxName: DB.boxNameWalletsToDeleteOnStart,
     )) {
-      await mainDB.isar.writeTxn(
-        () async => await mainDB.isar.walletInfo
-            .where()
-            .walletIdEqualTo(walletId)
-            .deleteAll(),
-      );
-      // A sync still running at deletion may have saved it again.
+      // A sync still running at deletion may have saved some of it again.
+      await mainDB.deleteWalletBlockchainData(walletId);
+      await mainDB.deleteAddressLabels(walletId);
+      await mainDB.deleteTransactionNotes(walletId);
+      await mainDB.isar.writeTxn(() async {
+        await mainDB.isar.walletInfo.deleteByWalletId(walletId);
+        await mainDB.isar.walletInfoMeta.deleteByWalletId(walletId);
+      });
       await PivxShieldState.delete(walletId);
     }
     // clear list
@@ -336,9 +346,10 @@ class Wallets {
   Future<void> _deleteWallet(WalletInfo info) async {
     await _deleteSecrets(info, nodeService.secureStorageInterface);
     await mainDB.deleteWalletBlockchainData(info.walletId);
-    await mainDB.isar.writeTxn(
-      () async => await mainDB.isar.walletInfo.deleteByWalletId(info.walletId),
-    );
+    await mainDB.isar.writeTxn(() async {
+      await mainDB.isar.walletInfo.deleteByWalletId(info.walletId);
+      await mainDB.isar.walletInfoMeta.deleteByWalletId(info.walletId);
+    });
   }
 
   /// Keys in secure storage and the PIVX data kept outside the database.

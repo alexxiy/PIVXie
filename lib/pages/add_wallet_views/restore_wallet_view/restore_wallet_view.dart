@@ -39,6 +39,7 @@ import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../wallets/isar/models/wallet_info.dart';
+import '../../../wallets/wallet/impl/pivx_wallet.dart';
 import '../../../wallets/wallet/intermediate/external_wallet.dart';
 import '../../../wallets/wallet/wallet.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -290,6 +291,9 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
         );
 
         bool isRestoring = true;
+        Wallet? wallet;
+        final wallets = ref.read(pWallets);
+        final secureStore = ref.read(secureStoreProvider);
         // show restoring in progress
 
         if (mounted) {
@@ -303,12 +307,12 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                   walletId: info.walletId,
                   onCancel: () async {
                     isRestoring = false;
+                    final restoring = wallet;
+                    if (restoring is PivxWallet) restoring.cancelRecover();
 
                     if (mounted) setState(() => _hideSeedWords = false);
 
-                    await ref
-                        .read(pWallets)
-                        .deleteWallet(info, ref.read(secureStoreProvider));
+                    await wallets.deleteWallet(info, secureStore);
                   },
                 );
               },
@@ -328,7 +332,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
         }
 
         try {
-          final wallet = await Wallet.create(
+          wallet = await Wallet.create(
             walletInfo: info,
             mainDB: ref.read(mainDBProvider),
             secureStorageInterface: ref.read(secureStoreProvider),
@@ -340,6 +344,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
 
           await wallet.init();
           await wallet.recover(isRescan: false);
+          if (!isRestoring) throw Exception("Restore cancelled");
 
           if (wallet is ExternalWallet) {
             await wallet.exit();
@@ -390,6 +395,14 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
         } catch (e) {
           if (!Platform.isLinux && !isDesktop) {
             await WakelockPlus.disable();
+          }
+
+          if (!isRestoring) {
+            // Cancelled: the scan may have saved data after the wallet was
+            // deleted.
+            await wallet?.exit();
+            await wallets.deleteWallet(info, secureStore);
+            return;
           }
 
           // if (e is HiveError &&

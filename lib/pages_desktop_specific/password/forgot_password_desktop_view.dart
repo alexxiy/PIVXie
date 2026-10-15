@@ -74,9 +74,10 @@ class _ForgotPasswordDesktopViewState
                 SizedBox(
                   width: 400,
                   child: Text(
-                    "${AppConfig.appName} does not store your password. "
-                    "Create new wallet or use a ${AppConfig.prefix} "
-                    "backup file to restore your wallet.",
+                    "${AppConfig.appName} doesn't keep your password, so it "
+                    "can't be recovered. Start over with a new password, or "
+                    "restore your wallets from a ${AppConfig.prefix} backup "
+                    "file.",
                     textAlign: TextAlign.center,
                     style: STextStyles.desktopTextSmall(context).copyWith(
                       color: Theme.of(context)

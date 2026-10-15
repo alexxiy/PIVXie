@@ -25,6 +25,7 @@ import '../../../../utilities/clipboard_interface.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../../widgets/mnemonic_passphrase_note.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/desktop/primary_button.dart';
@@ -127,16 +128,19 @@ class _Mnemonic extends ConsumerWidget {
         const SizedBox(height: 8),
         Expanded(
           child: SingleChildScrollView(
-            child: MnemonicTable(words: mnemonic, isDesktop: false),
+            child: Column(
+              children: [
+                MnemonicTable(words: mnemonic, isDesktop: false),
+                MnemonicPassphraseNote(walletId: walletId),
+              ],
+            ),
           ),
         ),
         const SizedBox(height: 12),
         SecondaryButton(
           label: "Copy",
           onPressed: () async {
-            await clipboardInterface.setData(
-              ClipboardData(text: mnemonic.join(" ")),
-            );
+            await clipboardInterface.setSecret(mnemonic.join(" "));
             if (context.mounted) {
               unawaited(
                 showFloatingFlushBar(

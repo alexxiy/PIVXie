@@ -5,13 +5,17 @@ import 'package:flutter/services.dart';
 
 import '../notifications/show_flush_bar.dart';
 import '../themes/stack_colors.dart';
+import '../utilities/clipboard_interface.dart';
 import 'icon_widgets/copy_icon.dart';
 import 'icon_widgets/pencil_icon.dart';
 
 class IconCopyButton extends StatelessWidget {
-  const IconCopyButton({super.key, required this.data});
+  const IconCopyButton({super.key, required this.data, this.secret = false});
 
   final String data;
+
+  /// Cleared from the clipboard again after a minute (see [setSecret]).
+  final bool secret;
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +30,11 @@ class IconCopyButton extends StatelessWidget {
         hoverElevation: 0,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
         onPressed: () async {
-          await Clipboard.setData(ClipboardData(text: data));
+          if (secret) {
+            await const ClipboardWrapper().setSecret(data);
+          } else {
+            await Clipboard.setData(ClipboardData(text: data));
+          }
           if (context.mounted) {
             unawaited(
               showFloatingFlushBar(

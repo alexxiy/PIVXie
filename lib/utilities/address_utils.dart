@@ -87,7 +87,9 @@ class AddressUtils {
     return result;
   }
 
-  /// Helper method to parse and normalize query parameters.
+  /// Helper method to parse and normalize query parameters. The values are
+  /// already decoded by [Uri.queryParameters]: decoding them again would
+  /// turn "%2520" into a space and reject text holding '%'.
   static Map<String, String> _parseQueryParameters(Map<String, String> params) {
     final Map<String, String> result = {};
     params.forEach((key, value) {
@@ -96,45 +98,30 @@ class AddressUtils {
         switch (lowerKey) {
           case 'amount':
           case 'tx_amount':
-            result['amount'] = _normalizeAmount(value);
+            // A plain decimal number. Anything else ("1e3", "1,5") is left
+            // out rather than guessed at.
+            final amount = value.trim();
+            if (RegExp(r"^(\d+\.?\d*|\.\d+)$").hasMatch(amount)) {
+              result['amount'] = amount;
+            }
             break;
           case 'label':
           case 'recipient_name':
-            result['label'] = Uri.decodeComponent(value);
+            result['label'] = value;
             break;
           case 'message':
           case 'tx_description':
-            result['message'] = Uri.decodeComponent(value);
-            break;
-          case 'tx_payment_id':
-            result['tx_payment_id'] = Uri.decodeComponent(value);
-            break;
-          case 'memo':
-            // Already decoded by Uri.queryParameters; free text may hold
-            // '%', which a second decode would reject.
-            result['memo'] = value;
+            result['message'] = value;
             break;
           default:
-            result[lowerKey] = Uri.decodeComponent(value);
+            result[lowerKey] = value;
         }
       } else {
         // Include unrecognized parameters as-is.
-        result[key] = Uri.decodeComponent(value);
+        result[key] = value;
       }
     });
     return result;
-  }
-
-  /// Normalizes amount value to a standard format.
-  static String _normalizeAmount(String amount) {
-    // Remove any non-numeric characters except for '.'
-    final sanitized = amount.replaceAll(RegExp(r'[^\d.]'), '');
-    // Ensure only one decimal point
-    final parts = sanitized.split('.');
-    if (parts.length > 2) {
-      return '${parts[0]}.${parts.sublist(1).join()}';
-    }
-    return sanitized;
   }
 
   /// Centralized method to handle various cryptocurrency URIs and return a common object.
@@ -221,17 +208,18 @@ class AddressUtils {
 
   /// returns empty if bad data
   static Map<String, dynamic> decodeQRSeedData(String data) {
-    Map<String, dynamic> result = {};
     try {
-      result = Map<String, dynamic>.from(jsonDecode(data) as Map);
-    } catch (e, s) {
-      Logging.instance.d(
-        "Exception caught in parseQRSeedData($data)",
-        error: e,
-        stackTrace: s,
-      );
+      return Map<String, dynamic>.from(jsonDecode(data) as Map);
+    } catch (_) {
+      // The words on their own, as most wallets put them in a QR code.
+      // (Never logged: the text may be a recovery phrase.)
+      final words = data.trim().toLowerCase().split(RegExp(r"\s+"));
+      if (words.length >= 12 &&
+          words.every((w) => RegExp(r"^[a-z]+$").hasMatch(w))) {
+        return {"mnemonic": words};
+      }
+      return {};
     }
-    return result;
   }
 
   /// encode mnemonic words to qrcode formatted string

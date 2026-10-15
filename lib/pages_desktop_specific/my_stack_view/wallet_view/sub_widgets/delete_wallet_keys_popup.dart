@@ -114,9 +114,7 @@ class _DeleteWalletKeysPopup extends ConsumerState<DeleteWalletKeysPopup> {
             child: RawMaterialButton(
               hoverColor: Colors.transparent,
               onPressed: () async {
-                await _clipboardInterface.setData(
-                  ClipboardData(text: _words.join(" ")),
-                );
+                await _clipboardInterface.setSecret(_words.join(" "));
                 if (context.mounted) {
                   unawaited(
                     showFloatingFlushBar(

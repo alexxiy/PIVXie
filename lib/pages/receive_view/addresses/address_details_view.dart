@@ -8,7 +8,6 @@
  *
  */
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar_community/isar.dart';
@@ -340,16 +339,15 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                   detail: address.subType.prettyName,
                   button: Container(),
                 ),
-                if (kDebugMode) const _Div(height: 12),
-                if (kDebugMode)
-                  DetailItem(
-                    title: "frost secure (kDebugMode)",
-                    detail: address.zSafeFrost.toString(),
-                    button: Container(),
-                  ),
-                if (wallet is Bip39HDWallet && !wallet.isViewOnly)
+                // Shield addresses have a spending key for the whole
+                // shield balance, not one per address.
+                if (wallet is Bip39HDWallet &&
+                    !wallet.isViewOnly &&
+                    address.type != AddressType.pivxShield)
                   const _Div(height: 12),
-                if (wallet is Bip39HDWallet && !wallet.isViewOnly)
+                if (wallet is Bip39HDWallet &&
+                    !wallet.isViewOnly &&
+                    address.type != AddressType.pivxShield)
                   AddressPrivateKey(
                     walletId: widget.walletId,
                     address: address,

@@ -57,9 +57,7 @@ class RecoverPhraseView extends StatelessWidget {
                 shadows: const [],
                 icon: SvgPicture.asset(Assets.svg.copy, width: 20, height: 20),
                 onPressed: () async {
-                  await clipboardInterface.setData(
-                    ClipboardData(text: mnemonic.join(" ")),
-                  );
+                  await clipboardInterface.setSecret(mnemonic.join(" "));
                   unawaited(
                     showFloatingFlushBar(
                       type: FlushBarType.info,

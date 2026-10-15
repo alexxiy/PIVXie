@@ -482,25 +482,29 @@ class _RestoreFromFileViewState extends ConsumerState<CreateBackupView> {
                 passwordController.text.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(left: 12, right: 12, top: 10),
-                child: ProgressBar(
-                  key: const Key("createStackBackUpProgressBar"),
-                  width: MediaQuery.of(context).size.width - 32 - 24,
-                  height: 5,
-                  fillColor: passwordStrength < 0.51
-                      ? Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorRed
-                      : passwordStrength < 1
-                      ? Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorYellow
-                      : Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorGreen,
-                  backgroundColor: Theme.of(context)
-                      .extension<StackColors>()!
-                      .buttonBackSecondary,
-                  percent: passwordStrength < 0.25 ? 0.03 : passwordStrength,
+                // As wide as the field above (on desktop the form is
+                // narrower than the window).
+                child: LayoutBuilder(
+                  builder: (context, constraints) => ProgressBar(
+                    key: const Key("createStackBackUpProgressBar"),
+                    width: constraints.maxWidth,
+                    height: 5,
+                    fillColor: passwordStrength < 0.51
+                        ? Theme.of(context)
+                              .extension<StackColors>()!
+                              .accentColorRed
+                        : passwordStrength < 1
+                        ? Theme.of(context)
+                              .extension<StackColors>()!
+                              .accentColorYellow
+                        : Theme.of(context)
+                              .extension<StackColors>()!
+                              .accentColorGreen,
+                    backgroundColor: Theme.of(context)
+                        .extension<StackColors>()!
+                        .buttonBackSecondary,
+                    percent: passwordStrength < 0.25 ? 0.03 : passwordStrength,
+                  ),
                 ),
               ),
             const SizedBox(height: 10),

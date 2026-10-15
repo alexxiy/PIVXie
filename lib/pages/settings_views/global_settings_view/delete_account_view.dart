@@ -8,10 +8,19 @@
  *
  */
 
-import 'package:flutter/material.dart';
+import 'dart:async';
 
-import '../../../db/hive/db.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../app_config.dart';
+import '../../../notifications/show_flush_bar.dart';
+import '../../../providers/global/node_service_provider.dart';
+import '../../../providers/global/secure_store_provider.dart';
+import '../../../providers/global/wallets_provider.dart';
 import '../../../themes/stack_colors.dart';
+import '../../../utilities/app_data_wipe.dart';
+import '../../../utilities/show_loading.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -22,26 +31,24 @@ import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/stack_dialog.dart';
 import '../../intro_view.dart';
 
-class DeleteAccountView extends StatefulWidget {
+class DeleteAccountView extends ConsumerStatefulWidget {
   const DeleteAccountView({super.key});
 
   static const String routeName = "/deleteAccountView";
 
   @override
-  State<DeleteAccountView> createState() => _DeleteAccountViewState();
+  ConsumerState<DeleteAccountView> createState() => _DeleteAccountViewState();
 }
 
-class _DeleteAccountViewState extends State<DeleteAccountView> {
+class _DeleteAccountViewState extends ConsumerState<DeleteAccountView> {
   final isDesktop = Util.isDesktop;
 
   Future<void> onConfirmDeleteAccount() async {
-    // TODO delete everything then pop to intro view
-
     await showDialog<void>(
       barrierDismissible: true,
       context: context,
       builder: (_) => StackDialog(
-        title: "Are you sure you want to delete all Wallets?",
+        title: "Delete all wallets and settings?",
         leftButton: TextButton(
           style: Theme.of(context)
               .extension<StackColors>()!
@@ -52,8 +59,9 @@ class _DeleteAccountViewState extends State<DeleteAccountView> {
           child: Text(
             "Cancel",
             style: STextStyles.button(context).copyWith(
-              color:
-                  Theme.of(context).extension<StackColors>()!.accentColorDark,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .accentColorDark,
             ),
           ),
         ),
@@ -62,19 +70,36 @@ class _DeleteAccountViewState extends State<DeleteAccountView> {
               .extension<StackColors>()!
               .getPrimaryEnabledButtonStyle(context),
           onPressed: () async {
-            await DB.instance.deleteEverything();
+            final deleted = await showLoading(
+              whileFuture: AppDataWipe.wipeInApp(
+                wallets: ref.read(pWallets),
+                secureStorage: ref.read(secureStoreProvider),
+                nodeService: ref.read(nodeServiceChangeNotifierProvider),
+              ).then((_) => true),
+              context: context,
+              message: "Deleting everything",
+            );
+            if (deleted != true) {
+              if (mounted) {
+                Navigator.of(context).pop();
+                unawaited(
+                  showFloatingFlushBar(
+                    type: FlushBarType.warning,
+                    message: "Some of it couldn't be deleted. Try again.",
+                    context: context,
+                  ),
+                );
+              }
+              return;
+            }
 
             if (mounted) {
-              await Navigator.of(context).pushNamedAndRemoveUntil(
-                IntroView.routeName,
-                (route) => false,
-              );
+              await Navigator.of(
+                context,
+              ).pushNamedAndRemoveUntil(IntroView.routeName, (route) => false);
             }
           },
-          child: Text(
-            "Delete",
-            style: STextStyles.button(context),
-          ),
+          child: Text("Delete", style: STextStyles.button(context)),
         ),
       ),
     );
@@ -111,15 +136,17 @@ class _DeleteAccountViewState extends State<DeleteAccountView> {
           children: [
             RoundedWhiteContainer(
               child: Text(
-                "There is no account to delete, but Apple requires that we have a way to 'delete accounts' in the app and will reject our app updates if we don't, so here it is. Clicking this will delete all app data (not from our servers, because we never had it in the first place).\n\nWhen you click confirm, all app data will be deleted, including wallets and preferences, and you will be taken back to the very first onboarding screen. BE SURE TO BACKUP ALL SEEDS!!\n\nAre you sure you want to delete your \"account\"?",
+                "${AppConfig.appName} has no account: everything stays on "
+                "this phone. Deleting it removes all of it: every wallet with "
+                "its keys, the address book, your PIN and your settings. "
+                "Nothing is kept on any server.\n\n"
+                "Make sure you have the recovery phrase of every wallet "
+                "first: without it, its funds are lost.",
                 style: STextStyles.smallMed12(context),
               ),
             ),
             const Spacer(),
-            PrimaryButton(
-              label: "Confirm",
-              onPressed: onConfirmDeleteAccount,
-            ),
+            PrimaryButton(label: "Confirm", onPressed: onConfirmDeleteAccount),
           ],
         ),
       ),

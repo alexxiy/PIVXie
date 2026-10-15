@@ -84,6 +84,13 @@ class Prefs extends ChangeNotifier {
     }
   }
 
+  /// Read every preference again, after the stored ones were deleted.
+  Future<void> reload() async {
+    _initialized = false;
+    await init();
+    notifyListeners();
+  }
+
   // last timestamp user unlocked wallet
 
   int _lastUnlockedTimeout = 60;

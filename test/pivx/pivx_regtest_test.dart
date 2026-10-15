@@ -237,27 +237,35 @@ void main() {
     "watch long-poll wakes on our mempool tx and on blocks only",
     () async {
       final mine = addressAt(0, 5);
-      final height = await bridge.getBlockCount();
-      // Establish the mempool sequence.
-      final base = await bridge.watch(height: height, timeoutSeconds: 1);
-      expect(base.changed, isFalse);
+      late int height;
+      late PivxBridgeWatch r;
+      late String paid;
+      // The VM's miner (a block a minute) may wake the watch first: then
+      // the round is tried again.
+      for (var round = 1; ; round++) {
+        height = await bridge.getBlockCount();
+        // Establish the mempool sequence.
+        final base = await bridge.watch(height: height, timeoutSeconds: 1);
+        expect(base.changed, isFalse);
 
-      // An unrelated tx does not wake us; a payment to our address does.
-      final watched = bridge.watch(
-        height: height,
-        mempoolSeq: base.mempoolSeq,
-        addresses: [mine],
-        timeoutSeconds: 30,
-      );
-      await Future<void>.delayed(const Duration(seconds: 1));
-      await _cli([
-        "sendtoaddress",
-        await _cli(["getnewaddress"]),
-        "1",
-      ]);
-      await Future<void>.delayed(const Duration(seconds: 3));
-      final paid = await _cli(["sendtoaddress", mine, "1"]);
-      final r = await watched;
+        // An unrelated tx does not wake us; a payment to our address does.
+        final watched = bridge.watch(
+          height: height,
+          mempoolSeq: base.mempoolSeq,
+          addresses: [mine],
+          timeoutSeconds: 30,
+        );
+        await Future<void>.delayed(const Duration(seconds: 1));
+        await _cli([
+          "sendtoaddress",
+          await _cli(["getnewaddress"]),
+          "1",
+        ]);
+        await Future<void>.delayed(const Duration(seconds: 3));
+        paid = await _cli(["sendtoaddress", mine, "1"]);
+        r = await watched;
+        if (!r.newBlock || round == 3) break;
+      }
       expect(r.changed, isTrue);
       expect(r.newBlock, isFalse);
       expect(r.txids, [paid]);
@@ -273,7 +281,7 @@ void main() {
       await _cli(["generate", "1"]);
       final b = await next;
       expect(b.newBlock, isTrue);
-      expect(b.height, height + 1);
+      expect(b.height, greaterThan(height));
 
       // A sequence the bridge never issued asks for a full resync.
       final reset = await bridge.watch(

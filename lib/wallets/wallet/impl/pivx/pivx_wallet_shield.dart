@@ -294,6 +294,9 @@ extension _PivxShield on PivxWallet {
         await for (final block in parsePivxShieldStream(
           bridge.shieldData(state.lastProcessedBlock + 1),
         )) {
+          if (_recovering && _recoverCancelled) {
+            throw Exception("Restore cancelled");
+          }
           progress(block.height);
           batch.add(block);
           if (batch.length >= _kShieldBatchBlocks) {
@@ -593,9 +596,10 @@ extension _PivxShield on PivxWallet {
         ? TorService.sharedInstance.getProxyInfo()
         : null;
     final sources = [bridge.baseUri.toString(), "https://pivxla.bz"];
-    for (final (file, name, weight, base) in [
-      (output, "sapling-output.params", 0.07, 0.0),
-      (spend, "sapling-spend.params", 0.93, 0.07),
+    // Sizes of the files whose hashes the prover checks.
+    for (final (file, name, size, weight, base) in [
+      (output, "sapling-output.params", 3592860, 0.07, 0.0),
+      (spend, "sapling-spend.params", 47958396, 0.93, 0.07),
     ]) {
       if (file.existsSync()) continue;
       Object? lastError;
@@ -604,10 +608,9 @@ extension _PivxShield on PivxWallet {
           await PivxBridgeClient.downloadToFile(
             Uri.parse("$src/$name"),
             file,
+            maxBytes: size,
             proxy: proxy,
-            onProgress: (r, t) {
-              if (t != null) onProgress(base + weight * r / t);
-            },
+            onProgress: (r, _) => onProgress(base + weight * r / size),
           );
           lastError = null;
           break;

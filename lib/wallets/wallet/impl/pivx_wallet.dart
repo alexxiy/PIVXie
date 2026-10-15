@@ -38,6 +38,7 @@ import '../../crypto_currency/crypto_currency.dart';
 import '../../models/tx_data.dart';
 import '../../models/tx_recipient.dart';
 import '../intermediate/bip39_hd_wallet.dart';
+import '../wallet.dart';
 import '../wallet_mixin_interfaces/coin_control_interface.dart';
 import 'pivx/pivx_shield_state.dart';
 import 'pivx/pivx_shield_stream.dart';
@@ -228,6 +229,45 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     return min(1000, max(_kBridgeGap, max(r, c) + 1));
   }
 
+  /// Highest receiving index the bridge has reported as used.
+  static const _kLastUsedReceive = "pivxLastUsedReceive";
+
+  int get _lastUsedReceive => info.otherData[_kLastUsedReceive] as int? ?? -1;
+
+  /// The receiving address after the newest one handed out, or null when
+  /// it would be more than [_kBridgeGap] past the last used one: a wallet
+  /// restored from the recovery phrase (here or in MPW) stops looking
+  /// there, and wouldn't see payments to it. Change addresses don't count,
+  /// they have their own chain.
+  Future<Address?> _nextReceivingAddress() async {
+    final current = await getCurrentReceivingAddress();
+    final index = (current?.derivationIndex ?? -1) + 1;
+    if (index > _lastUsedReceive + _kBridgeGap) return null;
+    return await _deriveAddress(chain: 0, index: index);
+  }
+
+  @override
+  Future<Address> generateNextReceivingAddress({
+    required DerivePathType derivePathType,
+  }) async {
+    final address = await _nextReceivingAddress();
+    if (address == null) throw Exception(pivxAddressGapMessage);
+    return address;
+  }
+
+  /// Makes the next receiving address current and returns it; null when
+  /// the last [_kBridgeGap] are all unused (see [_nextReceivingAddress]).
+  Future<String?> generateNewTransparentAddress() async {
+    final address = await _nextReceivingAddress();
+    if (address == null) return null;
+    await mainDB.updateOrPutAddresses([address]);
+    await info.updateReceivingAddress(
+      newAddress: address.value,
+      isar: mainDB.isar,
+    );
+    return address.value;
+  }
+
   /// Store the bridge's used addresses (`tokens`) and make sure the
   /// current receiving/change addresses are fresh ones.
   Future<void> _syncAddresses(List<dynamic>? tokens) async {
@@ -244,6 +284,12 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     }
     final maxReceive = used.maxReceive;
     final maxChange = used.maxChange;
+    if (maxReceive > _lastUsedReceive) {
+      await info.updateOtherData(
+        newEntries: {_kLastUsedReceive: maxReceive},
+        isar: mainDB.isar,
+      );
+    }
 
     // Next unused receiving address.
     final (storedReceive, storedChange) = await _highestStoredIndices();
@@ -287,6 +333,8 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     }
   }
 
+  /// The next request goes to the (new) node. Callers refresh the wallets
+  /// that should sync; the others stay as they are.
   @override
   Future<void> updateNode() async {
     _client?.close();
@@ -294,7 +342,6 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     _clientKey = null;
     _stopWatching();
     _noWatch = false;
-    await refresh();
   }
 
   // ===========================================================================
@@ -846,6 +893,10 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     final txs = await _storedTxs(list.map((u) => u["txid"] as String));
 
     final collaterals = _masternodeCollaterals;
+    final stored = {
+      for (final s in await mainDB.getUTXOs(walletId).findAll())
+        pivxOutpointKey(s.txid, s.vout),
+    };
     final utxos = <UTXO>[];
     for (final u in list) {
       final txid = u["txid"] as String;
@@ -858,6 +909,11 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
       String? otherData;
       final tx = txs[txid];
       final script = await _outputScript(txid, vout, tx);
+      if (script == null && !stored.contains(pivxOutpointKey(txid, vout))) {
+        // A new coin that may be delegated, which must not be spent as an
+        // ordinary one: it waits for the next sync to tell.
+        continue;
+      }
       final p2cs = script == null
           ? null
           : pivxParseColdStakeScript(script.toUint8ListFromHex);
@@ -947,6 +1003,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
         await _recover(isRescan: isRescan);
       } finally {
         _recovering = false;
+        _recoverCancelled = false;
       }
     });
     if (!doNotFireRefreshEvents) {
@@ -954,8 +1011,24 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     }
   }
 
+  /// Set by [cancelRecover]: the running [recover] stops at the next
+  /// batch of shield blocks.
+  bool _recoverCancelled = false;
+
+  /// Stop the [recover] running (the user cancelled a restore): a shield
+  /// scan from the restore height can take long.
+  void cancelRecover() => _recoverCancelled = true;
+
   Future<void> _recover({required bool isRescan}) async {
+    // A rescan deletes the coin rows: the user's freezes, unfreezes and
+    // coin names are put back on the coins found again.
+    final kept = <String, UTXO>{};
     if (isRescan) {
+      for (final u in await mainDB.getUTXOs(walletId).findAll()) {
+        if (u.isBlocked || u.userUnfroze || u.name.isNotEmpty) {
+          kept[pivxOutpointKey(u.txid, u.vout)] = u;
+        }
+      }
       await mainDB.deleteWalletBlockchainData(walletId);
     }
     await checkSaveInitialReceivingAddress();
@@ -975,8 +1048,28 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     }
     await updateTransactions();
     await updateUTXOs();
+    if (kept.isNotEmpty) await _restoreUserCoinState(kept);
     await updateBalance();
   }
+
+  Future<void> _restoreUserCoinState(Map<String, UTXO> kept) =>
+      _utxoLock.protect(() async {
+        final rows = <UTXO>[];
+        for (final u in await mainDB.getUTXOs(walletId).findAll()) {
+          final old = kept[pivxOutpointKey(u.txid, u.vout)];
+          if (old == null) continue;
+          rows.add(
+            u.copyWith(
+              // Frozen by the user, or unfrozen by the user after the
+              // wallet froze it (the reason stays to tell).
+              isBlocked: old.isBlocked || (u.isBlocked && !old.userUnfroze),
+              blockedReason: old.blockedReason,
+              name: old.name.isNotEmpty ? old.name : null,
+            ),
+          );
+        }
+        await mainDB.isar.writeTxn(() => mainDB.isar.utxos.putAll(rows));
+      });
 
   // ===========================================================================
   // Sync progress
@@ -1901,6 +1994,28 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     }
   }
 }
+
+/// What deleting [wallet] loses that its recovery phrase doesn't bring
+/// back; null when nothing.
+String? pivxDeleteWarning(Wallet wallet) {
+  if (wallet is! PivxWallet) return null;
+  final warnings = [
+    if (wallet.masternodes.isNotEmpty)
+      "Its masternode keys aren't part of the recovery phrase. Note them "
+          "first (in each masternode's details), or the masternodes have to "
+          "be set up again.",
+    if (wallet.pendingProposals.any((p) => p.error == null))
+      "Proposals still waiting to be submitted are lost, with the fee "
+          "already paid for them.",
+  ];
+  return warnings.isEmpty ? null : warnings.join("\n\n");
+}
+
+/// Why "New address" gave none: see [PivxWallet.generateNewTransparentAddress].
+const pivxAddressGapMessage =
+    "You already have 20 unused addresses. Use one of them first: a wallet "
+    "restored from the recovery phrase only looks 20 addresses past the "
+    "last used one.";
 
 /// Chain (0 receiving, 1 change) and index of a bridge token path such as
 /// `m/44'/119'/0'/0/5`; null for any other path.

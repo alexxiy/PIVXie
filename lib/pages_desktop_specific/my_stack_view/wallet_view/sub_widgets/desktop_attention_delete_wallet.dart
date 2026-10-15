@@ -20,6 +20,7 @@ import '../../../../route_generator.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/logger.dart';
 import '../../../../utilities/text_styles.dart';
+import '../../../../wallets/wallet/impl/pivx_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
@@ -80,7 +81,12 @@ class _DesktopAttentionDeleteWallet
                   child: Padding(
                     padding: const EdgeInsets.all(10.0),
                     child: Text(
-                      _deleteWarning,
+                      [
+                        _deleteWarning,
+                        ?pivxDeleteWarning(
+                          ref.read(pWallets).getWallet(widget.walletId),
+                        ),
+                      ].join("\n\n"),
                       style: STextStyles.desktopTextExtraExtraSmall(context)
                           .copyWith(
                             color: Theme.of(context)

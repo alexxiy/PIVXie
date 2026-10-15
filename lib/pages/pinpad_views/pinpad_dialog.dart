@@ -12,6 +12,7 @@ import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/biometrics.dart';
 import '../../utilities/flutter_secure_storage_interface.dart';
+import '../../utilities/pin_attempts.dart';
 import '../../utilities/text_styles.dart';
 import '../../widgets/custom_pin_put/custom_pin_put.dart';
 import '../../widgets/shake/shake.dart';
@@ -43,11 +44,7 @@ class _PinpadDialogState extends ConsumerState<PinpadDialog> {
 
   late final bool _autoPin;
 
-  late int _attempts;
-  bool _attemptLock = false;
-  late Duration _timeout;
-  static const maxAttemptsBeforeThrottling = 3;
-  Timer? _timer;
+  late final PinAttempts _pinAttempts;
 
   final FocusNode _pinFocusNode = FocusNode();
 
@@ -68,23 +65,27 @@ class _PinpadDialogState extends ConsumerState<PinpadDialog> {
     );
   }
 
+  Future<String?> _storedPin() =>
+      _secureStore.read(key: ref.read(pDuress) ? kDuressPinKey : kPinKey);
+
   final Mutex _autoPinCheckLock = Mutex();
+
+  /// Auto PIN: unlock as soon as the PIN is right. A PIN as long as the
+  /// stored one that isn't right counts as a wrong PIN, as if submitted.
   void _onPinChangedAutologinCheck() async {
     if (mounted) {
       await _autoPinCheckLock.acquire();
     }
 
     try {
-      if (_autoPin && _pinTextController.text.length >= 4) {
-        final String? storedPin;
-        if (ref.read(pDuress)) {
-          storedPin = await _secureStore.read(key: kDuressPinKey);
-        } else {
-          storedPin = await _secureStore.read(key: kPinKey);
-        }
-        if (_pinTextController.text == storedPin) {
+      final pin = _pinTextController.text;
+      if (_autoPin && pin.length >= 4) {
+        final storedPin = await _storedPin();
+        if (await _pinAttempts.lockedFor() == null && pin == storedPin) {
           await Future<void>.delayed(const Duration(milliseconds: 200));
           unawaited(_onUnlock());
+        } else if (pin.length >= (storedPin?.length ?? 4)) {
+          await _onSubmit(pin);
         }
       }
     } finally {
@@ -93,6 +94,7 @@ class _PinpadDialogState extends ConsumerState<PinpadDialog> {
   }
 
   Future<void> _onUnlock() async {
+    await _pinAttempts.succeeded();
     final now = DateTime.now().toUtc();
     ref.read(prefsChangeNotifierProvider).lastUnlocked =
         now.millisecondsSinceEpoch ~/ 1000;
@@ -105,8 +107,9 @@ class _PinpadDialogState extends ConsumerState<PinpadDialog> {
       await ref.read(prefsChangeNotifierProvider).init();
     }
 
-    final bool useBiometrics =
-        ref.read(prefsChangeNotifierProvider).useBiometrics;
+    final bool useBiometrics = ref
+        .read(prefsChangeNotifierProvider)
+        .useBiometrics;
 
     final title = widget.biometricsAuthenticationTitle;
     final localizedReason = widget.biometricsLocalizedReason;
@@ -128,59 +131,36 @@ class _PinpadDialogState extends ConsumerState<PinpadDialog> {
   }
 
   Future<void> _onSubmit(String pin) async {
-    _attempts++;
-
-    if (_attempts > maxAttemptsBeforeThrottling) {
-      _attemptLock = true;
-      switch (_attempts) {
-        case 4:
-          _timeout = const Duration(seconds: 30);
-          break;
-
-        case 5:
-          _timeout = const Duration(seconds: 60);
-          break;
-
-        case 6:
-          _timeout = const Duration(minutes: 5);
-          break;
-
-        case 7:
-          _timeout = const Duration(minutes: 10);
-          break;
-
-        case 8:
-          _timeout = const Duration(minutes: 20);
-          break;
-
-        case 9:
-          _timeout = const Duration(minutes: 30);
-          break;
-
-        default:
-          _timeout = const Duration(minutes: 60);
+    final locked = await _pinAttempts.lockedFor();
+    if (locked != null) {
+      if (mounted) {
+        unawaited(
+          showFloatingFlushBar(
+            type: FlushBarType.warning,
+            message: PinAttempts.lockedMessage(locked),
+            context: context,
+            iconAsset: Assets.svg.alertCircle,
+          ),
+        );
       }
-
-      _timer?.cancel();
-      _timer = Timer(_timeout, () {
-        _attemptLock = false;
-        _attempts = 0;
-      });
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+      _pinTextController.text = '';
+      return;
     }
 
-    if (_attemptLock) {
-      String prettyTime = "";
-      if (_timeout.inSeconds >= 60) {
-        prettyTime += "${_timeout.inMinutes} minutes";
-      } else {
-        prettyTime += "${_timeout.inSeconds} seconds";
-      }
-
+    if (pin == await _storedPin()) {
+      await Future<void>.delayed(const Duration(milliseconds: 200));
+      if (mounted) unawaited(_onUnlock());
+    } else {
+      final lockout = await _pinAttempts.failed();
+      if (!mounted) return;
+      unawaited(_shakeController.shake());
       unawaited(
         showFloatingFlushBar(
           type: FlushBarType.warning,
-          message:
-              "Incorrect PIN entered too many times. Please wait $prettyTime",
+          message: lockout != null
+              ? PinAttempts.lockedMessage(lockout)
+              : "Incorrect PIN. Please try again",
           context: context,
           iconAsset: Assets.svg.alertCircle,
         ),
@@ -189,36 +169,6 @@ class _PinpadDialogState extends ConsumerState<PinpadDialog> {
       await Future<void>.delayed(const Duration(milliseconds: 100));
 
       _pinTextController.text = '';
-
-      return;
-    }
-
-    final String? storedPin;
-    if (ref.read(pDuress)) {
-      storedPin = await _secureStore.read(key: kDuressPinKey);
-    } else {
-      storedPin = await _secureStore.read(key: kPinKey);
-    }
-
-    if (mounted) {
-      if (storedPin == pin) {
-        await Future<void>.delayed(const Duration(milliseconds: 200));
-        unawaited(_onUnlock());
-      } else {
-        unawaited(_shakeController.shake());
-        unawaited(
-          showFloatingFlushBar(
-            type: FlushBarType.warning,
-            message: "Incorrect PIN. Please try again",
-            context: context,
-            iconAsset: Assets.svg.alertCircle,
-          ),
-        );
-
-        await Future<void>.delayed(const Duration(milliseconds: 100));
-
-        _pinTextController.text = '';
-      }
     }
   }
 
@@ -228,8 +178,7 @@ class _PinpadDialogState extends ConsumerState<PinpadDialog> {
 
     _secureStore = ref.read(secureStoreProvider);
     biometrics = widget.biometrics;
-    _attempts = 0;
-    _timeout = Duration.zero;
+    _pinAttempts = PinAttempts(_secureStore);
     _autoPin = ref.read(prefsChangeNotifierProvider).autoPin;
     if (_autoPin) {
       _pinTextController.addListener(_onPinChangedAutologinCheck);
@@ -283,16 +232,18 @@ class _PinpadDialogState extends ConsumerState<PinpadDialog> {
                       disabledBorder: InputBorder.none,
                       errorBorder: InputBorder.none,
                       focusedErrorBorder: InputBorder.none,
-                      fillColor:
-                          Theme.of(context).extension<StackColors>()!.popupBG,
+                      fillColor: Theme.of(context)
+                          .extension<StackColors>()!
+                          .popupBG,
                       counterText: "",
                     ),
                     submittedFieldDecoration: _pinPutDecoration,
-                    isRandom:
-                        ref.read(prefsChangeNotifierProvider).randomizePIN,
+                    isRandom: ref
+                        .read(prefsChangeNotifierProvider)
+                        .randomizePIN,
                     onSubmit: (pin) {
                       if (!_autoPinCheckLock.isLocked) {
-                        _onSubmit(pin);
+                        unawaited(_onSubmit(pin));
                       }
                     },
                   ),

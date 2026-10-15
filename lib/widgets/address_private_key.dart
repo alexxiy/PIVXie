@@ -11,6 +11,7 @@ import '../utilities/util.dart';
 import '../wallets/wallet/intermediate/bip39_hd_wallet.dart';
 import 'custom_buttons/blue_text_button.dart';
 import 'detail_item.dart';
+import 'secret_screen.dart';
 
 class AddressPrivateKey extends ConsumerStatefulWidget {
   /// The [walletId] MUST be the id of a [Bip39HDWallet]!
@@ -68,11 +69,7 @@ class _AddressPrivateKeyState extends ConsumerState<AddressPrivateKey> {
           rootNavigator: Util.isDesktop,
         );
 
-        if (context.mounted) {
-          setState(() {});
-        } else {
-          _private == null;
-        }
+        if (mounted) setState(() {});
       }
     } finally {
       _lock = false;
@@ -91,10 +88,18 @@ class _AddressPrivateKeyState extends ConsumerState<AddressPrivateKey> {
         "Private key (WIF)",
         style: STextStyles.itemSubtitle(context),
       ),
-      detail: SelectableText(
-        _private ?? "*" * 52, // 52 is approx length
-        style: STextStyles.w500_14(context),
-      ),
+      detail: _private == null
+          ? Text(
+              "*" * 52, // 52 is approx length
+              style: STextStyles.w500_14(context),
+            )
+          // No screenshots while the key is shown.
+          : SecretScreen(
+              child: SelectableText(
+                _private!,
+                style: STextStyles.w500_14(context),
+              ),
+            ),
     );
   }
 }

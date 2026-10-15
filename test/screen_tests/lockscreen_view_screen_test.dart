@@ -150,8 +150,7 @@ void main() {
     await enterAndSubmitPin(tester, '1234');
     await tester.pumpAndSettle(const Duration(milliseconds: 200));
 
-    expect(platformOverrides.secureStorage.readKeys, <String>[kPinKey]);
-    expect(platformOverrides.secureStorage.reads, 1);
+    expect(pinReads(platformOverrides.secureStorage), <String>[kPinKey]);
     expect(onSuccessCalls, 1);
     expect(biometrics.calls, 0);
     expect(find.text('unlocked route'), findsOneWidget);
@@ -181,8 +180,7 @@ void main() {
     await enterAndSubmitPin(tester, '9876');
     await tester.pumpAndSettle(const Duration(milliseconds: 200));
 
-    expect(platformOverrides.secureStorage.readKeys, <String>[kDuressPinKey]);
-    expect(platformOverrides.secureStorage.reads, 1);
+    expect(pinReads(platformOverrides.secureStorage), <String>[kDuressPinKey]);
     expect(container.read(pDuress), isTrue);
     expect(onSuccessCalls, 1);
     expect(biometrics.calls, 0);
@@ -215,8 +213,7 @@ void main() {
     await enterAndSubmitPin(tester, '1234');
     await tester.pump(const Duration(milliseconds: 900));
 
-    expect(platformOverrides.secureStorage.readKeys, <String>[kDuressPinKey]);
-    expect(platformOverrides.secureStorage.reads, 1);
+    expect(pinReads(platformOverrides.secureStorage), <String>[kDuressPinKey]);
     expect(container.read(pDuress), isTrue);
     expect(onSuccessCalls, 0);
     expect(biometrics.calls, 0);
@@ -224,5 +221,52 @@ void main() {
     expect(find.text('unlocked route'), findsNothing);
 
     verifyNever(prefs.lastUnlocked = any);
+    // Counted, for every PIN screen and across restarts.
+    expect(
+      await platformOverrides.secureStorage.read(key: "pinFailedAttempts"),
+      "1",
+    );
+  });
+
+  testWidgets('wrong PINs lock PIN entry, even for the right PIN', (
+    tester,
+  ) async {
+    final prefs = MockPrefs();
+    final platformOverrides = await createPlatformTestOverrides(
+      secureStorageEntries: {kPinKey: '1234'},
+    );
+    var onSuccessCalls = 0;
+
+    stubPrefs(prefs);
+
+    await pumpLockscreenView(
+      tester,
+      prefs: prefs,
+      biometrics: SpyBiometrics(),
+      overrides: platformOverrides.overrides,
+      isDuress: false,
+      onSuccess: () => onSuccessCalls += 1,
+    );
+
+    for (var i = 0; i < 4; i++) {
+      await enterAndSubmitPin(tester, '0000');
+      await tester.pump(const Duration(milliseconds: 900));
+    }
+    expect(
+      await platformOverrides.secureStorage.read(key: "pinLockedUntil"),
+      isNotNull,
+    );
+
+    await enterAndSubmitPin(tester, '1234');
+    await tester.pump(const Duration(milliseconds: 900));
+    expect(onSuccessCalls, 0);
+    expect(find.text('unlocked route'), findsNothing);
+    expect(find.textContaining('Too many wrong PINs'), findsWidgets);
   });
 }
+
+/// The PINs the lock screen read (it also reads its attempt counter).
+List<String> pinReads(RecordingFakeSecureStorage storage) => [
+  for (final k in storage.readKeys)
+    if (k == kPinKey || k == kDuressPinKey) k,
+];

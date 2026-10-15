@@ -9,18 +9,14 @@
  */
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:isar_community/isar.dart';
 
 import '../../app_config.dart';
-import '../../db/hive/db.dart';
 import '../../notifications/show_flush_bar.dart';
-import '../../pages/intro_view.dart';
+import '../../utilities/app_data_wipe.dart';
 import '../../utilities/logger.dart';
-import '../../utilities/stack_file_system.dart';
 import '../../utilities/text_styles.dart';
 import '../../widgets/app_icon.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -44,69 +40,6 @@ class DeletePasswordWarningView extends ConsumerStatefulWidget {
 class _ForgotPasswordDesktopViewState
     extends ConsumerState<DeletePasswordWarningView> {
   bool _deleteInProgress = false;
-
-  Future<bool> _deleteStack() async {
-    final appRoot = await StackFileSystem.applicationRootDirectory();
-
-    try {
-      await DB.instance.hive.close();
-      if (Platform.isWindows) {
-        final xmrDir = Directory("${appRoot.path}/wallets");
-        if (xmrDir.existsSync()) {
-          await xmrDir.delete(recursive: true);
-        }
-        final epicDir = Directory("${appRoot.path}/epiccash");
-        if (epicDir.existsSync()) {
-          await epicDir.delete(recursive: true);
-        }
-
-        final mimblewimblecoinDir = Directory(
-          "${appRoot.path}/mimblewimblecoin",
-        );
-        if (mimblewimblecoinDir.existsSync()) {
-          await mimblewimblecoinDir.delete(recursive: true);
-        }
-
-        await Isar.getInstance("desktopStore")?.close(deleteFromDisk: true);
-
-        await (await StackFileSystem.applicationHiveDirectory()).delete(
-          recursive: true,
-        );
-      } else if (Platform.isLinux) {
-        await appRoot.delete(recursive: true);
-      } else {
-        // macos in ipad mode
-        final xmrDir = Directory("${appRoot.path}/wallets");
-        if (xmrDir.existsSync()) {
-          await xmrDir.delete(recursive: true);
-        }
-        final epicDir = Directory("${appRoot.path}/epiccash");
-        if (epicDir.existsSync()) {
-          await epicDir.delete(recursive: true);
-        }
-        final mimblewimblecoinDir = Directory(
-          "${appRoot.path}/mimblewimblecoin",
-        );
-        if (mimblewimblecoinDir.existsSync()) {
-          await mimblewimblecoinDir.delete(recursive: true);
-        }
-
-        await (await StackFileSystem.applicationHiveDirectory()).delete(
-          recursive: true,
-        );
-        await (await StackFileSystem.applicationIsarDirectory()).delete(
-          recursive: true,
-        );
-      }
-
-      await DB.instance.init();
-    } catch (e, s) {
-      Logging.instance.f("$e\n$s", error: e, stackTrace: s);
-      return false;
-    }
-
-    return true;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -145,10 +78,9 @@ class _ForgotPasswordDesktopViewState
                           style: STextStyles.desktopTextSmall(context),
                         ),
                         TextSpan(
-                          text:
-                              widget.shouldCreateNew
-                                  ? "create a new ${AppConfig.prefix}"
-                                  : "restore from backup",
+                          text: widget.shouldCreateNew
+                              ? "create a new ${AppConfig.prefix}"
+                              : "restore from backup",
                           style: STextStyles.desktopTextSmallBold(context),
                         ),
                         TextSpan(
@@ -161,7 +93,11 @@ class _ForgotPasswordDesktopViewState
                         ),
                         TextSpan(
                           text:
-                              ". All wallets will be lost. If you have not written down your recovery phrase for EACH wallet, you may be in danger of losing funds. Continue?",
+                              ". Make sure you have the recovery phrase of each "
+                              "one: without it, its funds are lost.\n\n"
+                              "${AppConfig.appName} closes when it's done. Open "
+                              "it again to "
+                              "${widget.shouldCreateNew ? "start over" : "restore your backup"}.",
                           style: STextStyles.desktopTextSmall(context),
                         ),
                       ],
@@ -170,48 +106,28 @@ class _ForgotPasswordDesktopViewState
                 ),
                 const SizedBox(height: 48),
                 PrimaryButton(
-                  label: "Delete and continue",
+                  label: "Delete and close",
                   enabled: !_deleteInProgress,
                   onPressed: () async {
-                    final shouldDelete = !_deleteInProgress;
-                    setState(() {
-                      _deleteInProgress = true;
-                    });
-
-                    if (shouldDelete) {
+                    if (_deleteInProgress) return;
+                    setState(() => _deleteInProgress = true);
+                    try {
+                      await AppDataWipe.wipeDesktopAndExit();
+                    } catch (e, s) {
+                      Logging.instance.e(
+                        "Deleting the app data failed",
+                        error: e,
+                        stackTrace: s,
+                      );
+                      if (!mounted) return;
                       unawaited(
                         showFloatingFlushBar(
-                          type: FlushBarType.info,
-                          message: "Deleting wallet...",
+                          type: FlushBarType.warning,
+                          message: "Deleting failed: $e",
                           context: context,
                         ),
                       );
-
-                      final success = await _deleteStack();
-
-                      if (success) {
-                        await showFloatingFlushBar(
-                          type: FlushBarType.success,
-                          message: "Wallet deleted",
-                          context: context,
-                        );
-                        if (mounted) {
-                          await Navigator.of(context).pushNamedAndRemoveUntil(
-                            IntroView.routeName,
-                            (_) => false,
-                          );
-                        }
-                      } else {
-                        await showFloatingFlushBar(
-                          type: FlushBarType.warning,
-                          message: "Something broke badly. Contact developer",
-                          context: context,
-                        );
-
-                        setState(() {
-                          _deleteInProgress = false;
-                        });
-                      }
+                      setState(() => _deleteInProgress = false);
                     }
                   },
                 ),

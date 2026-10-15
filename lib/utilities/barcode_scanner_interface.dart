@@ -13,6 +13,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 
+import '../app_config.dart';
 import '../widgets/desktop/primary_button.dart';
 import '../widgets/desktop/secondary_button.dart';
 import '../widgets/qr_scanner.dart';
@@ -62,14 +63,15 @@ Future<void> checkCamPermDeniedMobileAndOpenAppSettings(
       final trySettings = await showDialog<bool>(
         context: context,
         builder: (context) => StackDialog(
-          title: "Camera permissions required",
-          message: "Open settings?",
+          title: "Camera access needed",
+          message:
+              "Scanning QR codes needs the camera. Allow it in the settings?",
           leftButton: SecondaryButton(
             label: "Cancel",
             onPressed: Navigator.of(context).pop,
           ),
           rightButton: PrimaryButton(
-            label: "Continue",
+            label: "Open settings",
             onPressed: () => Navigator.of(context).pop(true),
           ),
         ),
@@ -84,7 +86,9 @@ Future<void> checkCamPermDeniedMobileAndOpenAppSettings(
               context: context,
               builder: (context) => StackDialog(
                 title: "Could not open app settings",
-                message: "You will need manually go find your app settings",
+                message:
+                    "Open your phone's settings and allow the camera for "
+                    "${AppConfig.appName} there.",
                 rightButton: PrimaryButton(
                   label: "Ok",
                   onPressed: Navigator.of(context).pop,

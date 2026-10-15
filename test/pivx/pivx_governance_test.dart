@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:paymint/utilities/amount/amount.dart';
 import 'package:paymint/utilities/extensions/extensions.dart';
 import 'package:paymint/wallets/crypto_currency/crypto_currency.dart';
 import 'package:paymint/wallets/wallet/impl/pivx_wallet.dart';
@@ -84,6 +85,7 @@ void main() {
   test("a proposal payout is found in the superblock's coinstake", () {
     // Regtest superblock 8064 paid the 10 PIV proposal "budgettest3".
     const payee = "yDTMsQVS3ZAfweCPbtLXDHKuJZyejNyBVw";
+    final tenPiv = Amount(rawValue: BigInt.from(1000000000), fractionDigits: 8);
     final txs = [
       {
         "txid": "50767c9b60ed03de",
@@ -107,7 +109,7 @@ void main() {
       txs,
       address: payee,
       superblock: 8064,
-      fractionDigits: 8,
+      monthlyPayment: tenPiv,
     )!;
     expect(paid.state, PivxPayoutState.paid);
     expect(paid.txid, "50767c9b60ed03de");
@@ -122,12 +124,31 @@ void main() {
         [plain],
         address: payee,
         superblock: 8064,
-        fractionDigits: 8,
+        monthlyPayment: tenPiv,
       ),
       isNull,
     );
     expect(
-      pivxPaidPayout(txs, address: payee, superblock: 8208, fractionDigits: 8),
+      pivxPaidPayout(
+        txs,
+        address: payee,
+        superblock: 8208,
+        monthlyPayment: tenPiv,
+      ),
+      isNull,
+    );
+
+    // A stake reward to the payment address isn't the payout.
+    expect(
+      pivxPaidPayout(
+        txs,
+        address: payee,
+        superblock: 8064,
+        monthlyPayment: Amount(
+          rawValue: BigInt.from(500000000),
+          fractionDigits: 8,
+        ),
+      ),
       isNull,
     );
   });
