@@ -46,7 +46,8 @@ class StackDialogBase extends StatelessWidget {
           children: [
             Flexible(
               child: SizedBox(
-                width: width,
+                // Phone dialogs shown on desktop: not across the window.
+                width: width ?? (Util.isDesktop ? 580 : null),
                 child: SingleChildScrollView(
                   child: Material(
                     borderRadius: BorderRadius.circular(20),

@@ -15,6 +15,7 @@ import 'package:permission_handler/permission_handler.dart';
 
 import '../app_config.dart';
 import '../widgets/desktop/primary_button.dart';
+import '../widgets/desktop/qr_code_scanner_dialog.dart';
 import '../widgets/desktop/secondary_button.dart';
 import '../widgets/qr_scanner.dart';
 import '../widgets/stack_dialog.dart';
@@ -35,16 +36,15 @@ class BarcodeScannerWrapper implements BarcodeScannerInterface {
 
   @override
   Future<ScanResult> scan({required BuildContext context}) async {
-    try {
-      final data = await showDialog<String>(
-        context: context,
-        builder: (context) => const QrScanner(),
-      );
-
-      return ScanResult(rawContent: data);
-    } catch (e) {
-      rethrow;
-    }
+    final data = await showDialog<String>(
+      context: context,
+      // The camera plugin behind QrScanner has no Linux or Windows support:
+      // there the desktop scanner reads the camera or an image file.
+      builder: (context) => Platform.isLinux || Platform.isWindows
+          ? const QrCodeScannerDialog()
+          : const QrScanner(),
+    );
+    return ScanResult(rawContent: data);
   }
 }
 

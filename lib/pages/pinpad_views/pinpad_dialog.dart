@@ -160,7 +160,7 @@ class _PinpadDialogState extends ConsumerState<PinpadDialog> {
           type: FlushBarType.warning,
           message: lockout != null
               ? PinAttempts.lockedMessage(lockout)
-              : "Incorrect PIN. Please try again",
+              : "Wrong PIN. Try again.",
           context: context,
           iconAsset: Assets.svg.alertCircle,
         ),

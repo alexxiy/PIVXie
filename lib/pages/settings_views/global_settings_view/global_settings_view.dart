@@ -131,7 +131,7 @@ class GlobalSettingsView extends ConsumerWidget {
                                   SettingsListButton(
                                     iconAssetName: Assets.svg.tor,
                                     iconSize: 18,
-                                    title: "Tor Settings",
+                                    title: "Tor settings",
                                     onPressed: () {
                                       Navigator.of(context)
                                           .pushNamed(TorSettingsView.routeName);

@@ -343,7 +343,8 @@ class _ConfirmTransactionViewState
     // a failed send, or the user would pay again.
     try {
       sendProgressController.triggerSuccess?.call();
-      await Future<void>.delayed(const Duration(seconds: 5));
+      // Long enough to see the tick, not to wait on it.
+      await Future<void>.delayed(const Duration(seconds: 2));
       await mainDB.putTransactionNote(
         TransactionNote(
           walletId: walletId,

@@ -57,7 +57,7 @@ class ConfirmFullRescanDialog extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    "Warning! It may take a while. If you exit before completion, you will have to redo the process.",
+                    "This can take a while. If you close the app before it finishes, the rescan starts over.",
                     style: STextStyles.desktopTextSmall(context),
                   ),
                   const SizedBox(
@@ -101,7 +101,7 @@ class ConfirmFullRescanDialog extends StatelessWidget {
         child: StackDialog(
           title: "Rescan blockchain",
           message:
-              "Warning! It may take a while. If you exit before completion, you will have to redo the process.",
+              "This can take a while. If you close the app before it finishes, the rescan starts over.",
           leftButton: TextButton(
             style: Theme.of(context)
                 .extension<StackColors>()!

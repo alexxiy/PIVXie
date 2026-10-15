@@ -317,96 +317,103 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
             ),
             Padding(
               padding: const EdgeInsets.all(16),
+              // Narrower on a Linux phone, where this is the scanner too.
               child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  Expanded(child: Container()),
                   // "Select file" button.
-                  SecondaryButton(
-                    buttonHeight: ButtonHeight.l,
-                    label: "Select file",
-                    width: 200,
-                    onPressed: () async {
-                      final result = await FilePicker.pickFile(
-                        type: FileType.custom,
-                        allowedExtensions: ["png", "jpg", "jpeg"],
-                      );
+                  Flexible(
+                    flex: 200,
+                    child: SecondaryButton(
+                      buttonHeight: ButtonHeight.l,
+                      label: "Select file",
+                      width: 200,
+                      onPressed: () async {
+                        final result = await FilePicker.pickFile(
+                          type: FileType.custom,
+                          allowedExtensions: ["png", "jpg", "jpeg"],
+                        );
 
-                      if (context.mounted) {
-                        if (result == null || result.path == null) {
-                          await showFloatingFlushBar(
-                            type: FlushBarType.info,
-                            message: "No file selected",
-                            iconAsset: Assets.svg.file,
-                            context: context,
-                          );
-                          return;
-                        }
-
-                        final filePath = result.path;
-                        if (filePath == null) {
-                          await showFloatingFlushBar(
-                            type: FlushBarType.info,
-                            message: "Error selecting file.",
-                            iconAsset: Assets.svg.file,
-                            context: context,
-                          );
-                          return;
-                        }
-
-                        try {
-                          final img.Image? image =
-                              img.decodeImage(File(filePath).readAsBytesSync());
-                          if (image == null) {
+                        if (context.mounted) {
+                          if (result == null || result.path == null) {
                             await showFloatingFlushBar(
                               type: FlushBarType.info,
-                              message: "Failed to decode image.",
+                              message: "No file selected",
                               iconAsset: Assets.svg.file,
                               context: context,
                             );
                             return;
                           }
 
-                          final String? scanResult = await _scanImage(image);
-                          if (context.mounted) {
-                            if (scanResult != null && scanResult.isNotEmpty) {
-                              Navigator.of(context).pop(scanResult);
-                            } else {
+                          final filePath = result.path;
+                          if (filePath == null) {
+                            await showFloatingFlushBar(
+                              type: FlushBarType.info,
+                              message: "Error selecting file.",
+                              iconAsset: Assets.svg.file,
+                              context: context,
+                            );
+                            return;
+                          }
+
+                          try {
+                            final img.Image? image =
+                                img.decodeImage(File(filePath).readAsBytesSync());
+                            if (image == null) {
                               await showFloatingFlushBar(
                                 type: FlushBarType.info,
-                                message: "No QR code found in the image.",
+                                message: "Failed to decode image.",
+                                iconAsset: Assets.svg.file,
+                                context: context,
+                              );
+                              return;
+                            }
+
+                            final String? scanResult = await _scanImage(image);
+                            if (context.mounted) {
+                              if (scanResult != null && scanResult.isNotEmpty) {
+                                Navigator.of(context).pop(scanResult);
+                              } else {
+                                await showFloatingFlushBar(
+                                  type: FlushBarType.info,
+                                  message: "No QR code found in the image.",
+                                  iconAsset: Assets.svg.file,
+                                  context: context,
+                                );
+                              }
+                            }
+                          } catch (e, s) {
+                            Logging.instance.e(
+                              "Failed to decode image: ",
+                              error: e,
+                              stackTrace: s,
+                            );
+                            if (context.mounted) {
+                              await showFloatingFlushBar(
+                                type: FlushBarType.info,
+                                message:
+                                    "Error processing the image. Please try again.",
                                 iconAsset: Assets.svg.file,
                                 context: context,
                               );
                             }
                           }
-                        } catch (e, s) {
-                          Logging.instance.e(
-                            "Failed to decode image: ",
-                            error: e,
-                            stackTrace: s,
-                          );
-                          if (context.mounted) {
-                            await showFloatingFlushBar(
-                              type: FlushBarType.info,
-                              message:
-                                  "Error processing the image. Please try again.",
-                              iconAsset: Assets.svg.file,
-                              context: context,
-                            );
-                          }
                         }
-                      }
-                    },
+                      },
+                    ),
                   ),
                   const SizedBox(width: 16),
                   // Close button.
-                  PrimaryButton(
-                    buttonHeight: ButtonHeight.l,
-                    label: "Close",
-                    width: 272.5,
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                    },
+                  Flexible(
+                    flex: 272,
+                    child: PrimaryButton(
+                      buttonHeight: ButtonHeight.l,
+                      label: "Close",
+                      width: 272.5,
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
                   ),
                 ],
               ),

@@ -10,6 +10,15 @@ import 'package:paymint/wallets/wallet/impl/pivx_wallet.dart';
 void main() {
   setUpAll(() async => coinlib.loadCoinlib());
 
+  test("passing needs more net yes than a tenth of the masternodes", () {
+    // Core: IsPassing fails when yeas - nays <= mnCount / 10.
+    expect(pivxRequiredNetYes(0), 1);
+    expect(pivxRequiredNetYes(4), 1);
+    expect(pivxRequiredNetYes(10), 2);
+    expect(pivxRequiredNetYes(2000), 201);
+    expect(pivxRequiredNetYes(2009), 201);
+  });
+
   test("proposal hash matches PIVX Core's", () {
     // Submitted on regtest; Core's getbudgetinfo gave this Hash and
     // BlockEnd.

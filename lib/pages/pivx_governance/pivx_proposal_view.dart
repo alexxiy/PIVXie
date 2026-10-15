@@ -296,8 +296,10 @@ class _PivxProposalViewState extends ConsumerState<PivxProposalView> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              "Passes at 10% net Yes: ${g.requiredNetYes} of "
-                              "${g.enabledMasternodes} masternodes online",
+                              "Passes with ${g.requiredNetYes} net Yes "
+                              "${g.requiredNetYes == 1 ? "vote" : "votes"} "
+                              "(more than 10% of ${g.enabledMasternodes} "
+                              "masternodes online)",
                               style: secondary,
                             ),
                             if (p.abstains > 0) ...[

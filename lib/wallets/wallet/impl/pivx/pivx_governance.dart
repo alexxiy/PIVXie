@@ -225,9 +225,9 @@ class PivxGovernance {
 
   int get blocksToSuperblock => nextSuperblock - chainHeight;
 
-  /// Net yes votes a proposal needs: 10 % of the masternodes online
-  /// (Core: a tenth of the enabled ones).
-  int get requiredNetYes => enabledMasternodes ~/ 10;
+  /// Net yes votes a proposal needs: more than a tenth of the
+  /// masternodes online (see [pivxRequiredNetYes]).
+  int get requiredNetYes => pivxRequiredNetYes(enabledMasternodes);
 
   /// Net yes votes as a share of the masternodes online (passing at 10 %),
   /// as pivx.org shows it.
@@ -337,6 +337,11 @@ class PivxPendingProposal {
         error: json["error"] as String?,
       );
 }
+
+/// Net yes votes a proposal needs with [enabledMasternodes] online. Core
+/// (CBudgetProposal::IsPassing) wants more than a tenth of them, rounded
+/// down: 1 of up to 19, 201 of 2000.
+int pivxRequiredNetYes(int enabledMasternodes) => enabledMasternodes ~/ 10 + 1;
 
 /// Last superblock paying a proposal (CBudgetProposal's nBlockEnd).
 int pivxProposalBlockEnd({
@@ -699,7 +704,7 @@ extension PivxGovernanceWallet on PivxWallet {
     final cycle = budgetCycleBlocks;
     final nextSuperblock = height - height % cycle + cycle;
     final enabled = (count["enabled"] as num?)?.toInt() ?? 0;
-    final required = enabled ~/ 10;
+    final required = pivxRequiredNetYes(enabled);
     final total = budgetPerSuperblock;
 
     // Current: Core's projection of the next superblock decides.
@@ -714,8 +719,7 @@ extension PivxGovernanceWallet on PivxWallet {
           ((p["Yeas"] as num?)?.toInt() ?? 0) -
           ((p["Nays"] as num?)?.toInt() ?? 0);
       if (p["IsEstablished"] != true) return PivxProposalStatus.waiting;
-      // Core: not passing below a tenth of the enabled masternodes.
-      if (net >= required && net > 0) {
+      if (net >= required) {
         return PivxProposalStatus.passingNotFunded;
       }
       return PivxProposalStatus.notPassing;

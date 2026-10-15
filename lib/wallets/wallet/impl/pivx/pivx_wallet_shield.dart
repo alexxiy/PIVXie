@@ -11,6 +11,7 @@ const _kMainnetDefaultShieldStart = 4190531;
 /// library (anything touching a shield address or shield balance).
 const _kOdShieldTx = "pivxShieldTx";
 const _kOdShieldNullifiers = "pivxShieldNullifiers";
+const _kOdShieldPendingIn = "pivxShieldPendingIn";
 
 /// Set in [TxData.otherData] by the UI to spend the shield balance.
 const kPivxFromShield = "pivxFromShield";
@@ -398,6 +399,8 @@ extension _PivxShield on PivxWallet {
     for (final w in r["wallet_transactions"] as List) {
       final wtx = Map<String, dynamic>.from(w as Map);
       final txid = wtx["txid"] as String;
+      // Its notes are in [unspentNotes] now.
+      state.pendingIncoming.remove(txid);
       for (final n in wtx["received"] as List) {
         final note = state.nullifierNotes[(n as Map)["nullifier"]];
         if (note != null) {
@@ -546,16 +549,33 @@ extension _PivxShield on PivxWallet {
       total += v;
       if (frozen.contains(n["nullifier"])) blocked += v;
     }
+    // Change (or a send to self) of sends still unconfirmed: without it
+    // the balance dropped by the whole spent note until the next block.
+    // Only while the send is unconfirmed in the history: a dropped send is
+    // forgotten, a confirmed one is in the notes above.
+    var pending = 0;
+    if (state.pendingIncoming.isNotEmpty) {
+      final unconfirmed = await mainDB.isar.transactionV2s
+          .where()
+          .walletIdEqualTo(walletId)
+          .filter()
+          .heightIsNull()
+          .txidProperty()
+          .findAll();
+      for (final e in state.pendingIncoming.entries) {
+        if (unconfirmed.contains(e.key)) pending += e.value;
+      }
+    }
     Amount amount(int v) => Amount(
       rawValue: BigInt.from(v),
       fractionDigits: cryptoCurrency.fractionDigits,
     );
     await info.updateBalanceSecondary(
       newBalance: Balance(
-        total: amount(total),
+        total: amount(total + pending),
         spendable: amount(total - blocked),
         blockedTotal: amount(blocked),
-        pendingSpendable: amount(0),
+        pendingSpendable: amount(pending),
       ),
       isar: mainDB.isar,
     );
@@ -880,11 +900,23 @@ extension _PivxShield on PivxWallet {
       fee: fee,
     )!;
 
+    // What comes back to this wallet's shield addresses.
+    var shieldIn = BigInt.zero;
+    if (changeIsOurs && isShieldAddress(changeAddress)) {
+      shieldIn += changeValue;
+    }
+    if (special == null &&
+        recipientIsOurs &&
+        isShieldAddress(recipient.address)) {
+      shieldIn += amount;
+    }
+
     final otherData = <String, dynamic>{
       if (txData.otherData != null)
         ...jsonDecode(txData.otherData!) as Map<String, dynamic>,
       _kOdShieldTx: true,
       _kOdShieldNullifiers: fromShield ? nullifiers : <String>[],
+      if (shieldIn > BigInt.zero) _kOdShieldPendingIn: shieldIn.toInt(),
       if (!changeIsOurs && changeValue > BigInt.zero)
         kPivxForeignChange: {
           "address": changeAddress,
@@ -938,11 +970,15 @@ extension _PivxShield on PivxWallet {
     final nullifiers = List<String>.from(
       od[_kOdShieldNullifiers] as List? ?? const [],
     );
-    final state = nullifiers.isEmpty ? null : await _loadShield();
+    final pendingIn = (od[_kOdShieldPendingIn] as num?)?.toInt() ?? 0;
+    final state = nullifiers.isEmpty && pendingIn == 0
+        ? null
+        : await _loadShield();
     final txid = await bridge.sendTx(txData.raw!);
     // Sent: its notes are spent from now on, even if saving that fails
     // (the state in memory is what the next send picks notes from).
-    state?.pendingSpent[txid] = nullifiers;
+    if (nullifiers.isNotEmpty) state?.pendingSpent[txid] = nullifiers;
+    if (pendingIn > 0) state?.pendingIncoming[txid] = pendingIn;
     final sent = txData.copyWith(txid: txid, txHash: txid);
     // What follows only records the send. An error here must not read as
     // a failed send, or the user would pay again.

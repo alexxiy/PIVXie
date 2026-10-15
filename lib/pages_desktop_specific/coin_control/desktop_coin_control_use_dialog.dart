@@ -169,8 +169,7 @@ class _DesktopCoinControlUseDialogState
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          "This option allows you to control, freeze, and utilize "
-                          "outputs at your discretion.",
+                          "Choose which outputs this send uses.",
                           style: STextStyles.desktopTextExtraExtraSmall(
                             context,
                           ),

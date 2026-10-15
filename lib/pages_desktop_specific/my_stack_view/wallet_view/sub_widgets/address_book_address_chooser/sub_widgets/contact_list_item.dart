@@ -137,7 +137,7 @@ class _ContactListItemState extends ConsumerState<ContactListItem> {
                               ),
                             ),
                             CustomTextButton(
-                              text: "Select wallet",
+                              text: "Use address",
                               onTap: () {
                                 Navigator.of(context).pop(e);
                               },

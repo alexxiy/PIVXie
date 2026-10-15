@@ -206,7 +206,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                   height: 24,
                 ),
                 SizedBox(
-                  width: 350,
+                  width: 480,
                   child: Text(
                     AppConfig.shortDescriptionText,
                     textAlign: TextAlign.center,

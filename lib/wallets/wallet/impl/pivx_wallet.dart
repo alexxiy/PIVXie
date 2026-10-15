@@ -852,7 +852,10 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
       );
     }
     final state = _shield;
-    if (state != null && state.pendingSpent.remove(txid) != null) {
+    if (state == null) return;
+    final nullifiers = state.pendingSpent.remove(txid);
+    final incoming = state.pendingIncoming.remove(txid);
+    if (nullifiers != null || incoming != null) {
       await state.save(walletId);
       await _writeShieldNoteRows(state);
     }
@@ -2001,12 +2004,12 @@ String? pivxDeleteWarning(Wallet wallet) {
   if (wallet is! PivxWallet) return null;
   final warnings = [
     if (wallet.masternodes.isNotEmpty)
-      "Its masternode keys aren't part of the recovery phrase. Note them "
-          "first (in each masternode's details), or the masternodes have to "
-          "be set up again.",
+      "This wallet's masternode keys aren't part of the recovery phrase. "
+          "Note them first (in each masternode's details), or you'll have "
+          "to set the masternodes up again.",
     if (wallet.pendingProposals.any((p) => p.error == null))
-      "Proposals still waiting to be submitted are lost, with the fee "
-          "already paid for them.",
+      "Proposals still waiting to be submitted will be lost, along with "
+          "the fees already paid for them.",
   ];
   return warnings.isEmpty ? null : warnings.join("\n\n");
 }

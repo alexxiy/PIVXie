@@ -9,6 +9,7 @@
  */
 
 import 'dart:async';
+import 'dart:convert';
 import 'dart:collection';
 import 'dart:io';
 import 'dart:math';
@@ -288,6 +289,11 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
           coin: widget.coin,
           name: widget.walletName,
           restoreHeight: widget.restoreBlockHeight,
+          // Like a new wallet: one hidden right after restoring would give
+          // duress mode away.
+          otherDataJsonString: ref.read(pDuress)
+              ? jsonEncode({WalletInfoKeys.duressMarkedVisibleWalletKey: true})
+              : null,
         );
 
         bool isRestoring = true;

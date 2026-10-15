@@ -24,10 +24,12 @@ class PivxShieldState {
     List<Map<String, dynamic>>? unspentNotes,
     Map<String, Map<String, dynamic>>? nullifierNotes,
     Map<String, List<String>>? pendingSpent,
+    Map<String, int>? pendingIncoming,
     Map<String, Map<String, dynamic>>? txInfo,
   }) : unspentNotes = unspentNotes ?? [],
        nullifierNotes = nullifierNotes ?? {},
        pendingSpent = pendingSpent ?? {},
+       pendingIncoming = pendingIncoming ?? {},
        txInfo = txInfo ?? {};
 
   static const version = 1;
@@ -57,6 +59,11 @@ class PivxShieldState {
 
   /// Broadcast but unconfirmed shield spends: txid -> nullifiers.
   Map<String, List<String>> pendingSpent;
+
+  /// Broadcast but unconfirmed sends paying this wallet's shield
+  /// addresses (change above all): txid -> sats. They are notes only once
+  /// a block has them; until then the balance counts them as pending.
+  Map<String, int> pendingIncoming;
 
   /// Shield parts of wallet transactions: txid -> {received: [{value,
   /// address, memo}], spentNullifiers: [...]}.
@@ -93,6 +100,7 @@ class PivxShieldState {
     "unspentNotes": unspentNotes,
     "nullifierNotes": nullifierNotes,
     "pendingSpent": pendingSpent,
+    "pendingIncoming": pendingIncoming,
     "txInfo": txInfo,
   };
 
@@ -122,6 +130,12 @@ class PivxShieldState {
           json["pendingSpent"] as Map? ?? {},
         ).entries)
           e.key: List<String>.from(e.value as List),
+      },
+      pendingIncoming: {
+        for (final e in Map<String, dynamic>.from(
+          json["pendingIncoming"] as Map? ?? {},
+        ).entries)
+          e.key: (e.value as num).toInt(),
       },
       txInfo: mapOfMaps(json["txInfo"]),
     );

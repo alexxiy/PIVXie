@@ -141,13 +141,25 @@ class _ChangePinViewState extends ConsumerState<ChangePinView> {
                     submittedFieldDecoration: _pinPutDecoration,
                     selectedFieldDecoration: _pinPutDecoration,
                     followingFieldDecoration: _pinPutDecoration,
-                    onSubmit: (String pin) {
-                      if (pin.length < 4) {
-                        showFloatingFlushBar(
-                          type: FlushBarType.warning,
-                          message: "PIN not long enough!",
-                          iconAsset: Assets.svg.alertCircle,
-                          context: context,
+                    onSubmit: (String pin) async {
+                      // The duress PIN would win at the lock screen, hiding
+                      // every other wallet. Not checked in duress mode: a
+                      // refusal there would confirm a guess of the real PIN.
+                      final takenByDuress =
+                          !ref.read(pDuress) &&
+                          pin == await _secureStore.read(key: kDuressPinKey);
+                      if (!context.mounted) return;
+                      if (pin.length < 4 || takenByDuress) {
+                        if (takenByDuress) _pinPutController1.clear();
+                        unawaited(
+                          showFloatingFlushBar(
+                            type: FlushBarType.warning,
+                            message: takenByDuress
+                                ? "That's your duress PIN. Pick a different one."
+                                : "PIN not long enough!",
+                            iconAsset: Assets.svg.alertCircle,
+                            context: context,
+                          ),
                         );
                       } else {
                         _pageController.nextPage(
@@ -225,8 +237,9 @@ class _ChangePinViewState extends ConsumerState<ChangePinView> {
                           unawaited(
                             showFloatingFlushBar(
                               type: FlushBarType.success,
-                              message:
-                                  "New${isDuress ? " duress" : ""} PIN is set up",
+                              // The same in duress mode, which this must
+                              // not give away.
+                              message: "New PIN is set up",
                               context: context,
                               iconAsset: Assets.svg.check,
                             ),

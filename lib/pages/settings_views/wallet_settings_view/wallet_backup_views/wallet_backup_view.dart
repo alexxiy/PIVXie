@@ -199,7 +199,7 @@ class _Mnemonic extends ConsumerWidget {
                                 .extension<StackColors>()!
                                 .getSecondaryEnabledButtonStyle(context),
                             child: Text(
-                              "Cancel",
+                              "Close",
                               style: STextStyles.button(context).copyWith(
                                 color: Theme.of(context)
                                     .extension<StackColors>()!

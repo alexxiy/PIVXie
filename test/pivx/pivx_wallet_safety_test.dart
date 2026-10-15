@@ -193,4 +193,36 @@ void main() {
     expect(loaded.extfvk, "secret-viewing-key");
     expect(loaded.lastProcessedBlock, 2);
   });
+
+  test("pending shield change survives a save and load", () {
+    final state = PivxShieldState(
+      extfvk: "k",
+      isTestnet: true,
+      startHeight: 1,
+      lastProcessedBlock: 2,
+      commitmentTree: "00",
+      diversifierIndex: const [0],
+      currentAddress: "ps1",
+      pendingSpent: {
+        "aa": ["nf1"],
+      },
+      pendingIncoming: {"aa": 65202000},
+    );
+    final loaded = PivxShieldState.fromJson(
+      jsonDecode(jsonEncode(state.toJson())) as Map<String, dynamic>,
+      extfvk: "k",
+    );
+    expect(loaded.pendingSpent, {
+      "aa": ["nf1"],
+    });
+    expect(loaded.pendingIncoming, {"aa": 65202000});
+
+    // A file from before pendingIncoming existed.
+    final old = state.toJson()..remove("pendingIncoming");
+    final fromOld = PivxShieldState.fromJson(
+      jsonDecode(jsonEncode(old)) as Map<String, dynamic>,
+      extfvk: "k",
+    );
+    expect(fromOld.pendingIncoming, isEmpty);
+  });
 }

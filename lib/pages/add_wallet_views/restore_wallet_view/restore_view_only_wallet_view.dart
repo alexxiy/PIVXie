@@ -2,11 +2,13 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../../models/keys/view_only_wallet_data.dart';
+import '../../../notifications/show_flush_bar.dart';
 import '../../../pages_desktop_specific/desktop_home_view.dart';
 import '../../../pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import '../../../providers/global/secure_store_provider.dart';
@@ -58,11 +60,39 @@ class _RestoreViewOnlyWalletViewState
   bool _enableRestoreButton = false;
   bool _buttonLock = false;
 
+  /// Why [xpub] can't be watched, or null. Checked before anything is
+  /// made: a bad key only failed deep in the restore, with the library's
+  /// error ("Instance of 'InvalidBase58Checksum'").
+  String? _xpubProblem(String xpub) {
+    final coin = widget.coin as Bip39HDCurrency;
+    final coinlib.HDPublicKey key;
+    try {
+      key = coinlib.HDPublicKey.decode(xpub, coin.networkParams.pubHDPrefix);
+    } catch (_) {
+      return "That isn't a ${coin.prettyName} extended public key.";
+    }
+    // Addresses are derived below the account key (chain/index).
+    if (key.depth != 3) {
+      return "Use the extended public key of the account "
+          "(${coin.supportedHardenedDerivationPaths.last}).";
+    }
+    return null;
+  }
+
   Future<void> _requestRestore() async {
     if (_buttonLock) return;
     _buttonLock = true;
 
     try {
+      final problem = _xpubProblem(viewKeyController.text.trim());
+      if (problem != null) {
+        await showFloatingFlushBar(
+          type: FlushBarType.warning,
+          message: problem,
+          context: context,
+        );
+        return;
+      }
       if (!Util.isDesktop) {
         // wait for keyboard to disappear
         FocusScope.of(context).unfocus();
@@ -92,6 +122,9 @@ class _RestoreViewOnlyWalletViewState
     // PIVX view only wallets watch one BIP44 account xpub.
     otherDataJson[WalletInfoKeys.viewOnlyTypeIndexKey] =
         ViewOnlyWalletType.xPub.index;
+    if (ref.read(pDuress)) {
+      otherDataJson[WalletInfoKeys.duressMarkedVisibleWalletKey] = true;
+    }
 
     if (!Platform.isLinux && !Util.isDesktop) await WakelockPlus.enable();
 

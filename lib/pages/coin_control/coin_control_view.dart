@@ -487,12 +487,12 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                           RoundedWhiteContainer(
                             child: Text(
                               _shieldNotes == true
-                                  ? "This option allows you to control, freeze, and "
-                                        "utilize shield notes at your discretion. Tap "
-                                        "the note circle to select."
-                                  : "This option allows you to control, freeze, and utilize "
-                                        "outputs at your discretion. Tap the output circle to "
-                                        "select.",
+                                  ? "Choose which shield notes a send uses, and "
+                                        "freeze the ones you want to keep. Tap a "
+                                        "note's circle to select it."
+                                  : "Choose which outputs a send uses, and freeze "
+                                        "the ones you want to keep. Tap an output's "
+                                        "circle to select it.",
                               style: STextStyles.w500_14(context).copyWith(
                                 color: Theme.of(context)
                                     .extension<StackColors>()!

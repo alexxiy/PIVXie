@@ -43,7 +43,7 @@ import 'more_features/more_features_dialog.dart';
 enum WalletFeature {
   coinControl(
     "Coin control",
-    "Control, freeze, and utilize outputs at your discretion",
+    "Choose which outputs to spend and freeze the ones to keep",
   ),
   masternodes("Masternodes", "Create, start and follow your masternodes"),
   coldStaking(

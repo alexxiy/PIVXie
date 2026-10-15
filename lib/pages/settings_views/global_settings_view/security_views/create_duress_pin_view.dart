@@ -132,13 +132,23 @@ class _CreateDuressPinViewState extends ConsumerState<CreateDuressPinView> {
                     submittedFieldDecoration: _pinPutDecoration,
                     selectedFieldDecoration: _pinPutDecoration,
                     followingFieldDecoration: _pinPutDecoration,
-                    onSubmit: (String pin) {
-                      if (pin.length < 4) {
-                        showFloatingFlushBar(
-                          type: FlushBarType.warning,
-                          message: "PIN not long enough!",
-                          iconAsset: Assets.svg.alertCircle,
-                          context: context,
+                    onSubmit: (String pin) async {
+                      // The same PIN would always open duress mode, hiding
+                      // every other wallet for good.
+                      final isMainPin =
+                          pin == await _secureStore.read(key: kPinKey);
+                      if (!context.mounted) return;
+                      if (pin.length < 4 || isMainPin) {
+                        if (isMainPin) _pinPutController1.clear();
+                        unawaited(
+                          showFloatingFlushBar(
+                            type: FlushBarType.warning,
+                            message: isMainPin
+                                ? "That's your PIN. Pick a different duress PIN."
+                                : "PIN not long enough!",
+                            iconAsset: Assets.svg.alertCircle,
+                            context: context,
+                          ),
                         );
                       } else {
                         _pageController.nextPage(

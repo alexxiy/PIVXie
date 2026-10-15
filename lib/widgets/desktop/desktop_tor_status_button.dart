@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../pages_desktop_specific/desktop_menu_item.dart';
+import '../../providers/global/prefs_provider.dart';
 import '../../services/event_bus/events/global/tor_connection_status_changed_event.dart';
 import '../../services/event_bus/global_event_bus.dart';
 import '../../services/tor_service.dart';
@@ -116,6 +117,10 @@ class _DesktopTorStatusButtonState extends ConsumerState<DesktopTorStatusButton>
 
   @override
   Widget build(BuildContext context) {
+    // "Disconnected" read as if the wallet were offline.
+    final torOn = ref.watch(
+      prefsChangeNotifierProvider.select((value) => value.useTor),
+    );
     return TextButton(
       style: Theme.of(context)
           .extension<StackColors>()!
@@ -155,7 +160,9 @@ class _DesktopTorStatusButtonState extends ConsumerState<DesktopTorStatusButton>
                           width: 12,
                         ),
                         Text(
-                          _torConnectionStatus.name.capitalize(),
+                          torOn
+                              ? _torConnectionStatus.name.capitalize()
+                              : "Tor off",
                           style: STextStyles.smallMed12(context).copyWith(
                             color: _color(_torConnectionStatus),
                           ),

@@ -55,6 +55,10 @@ class CustomPinPutState extends State<CustomPinPut>
       // widget.onSubmit?.call(pin);
       // }
     }
+    // The dots follow the text when a screen clears it (wrong PIN).
+    if (pin.length != pinCount && mounted) {
+      setState(() => pinCount = pin.length);
+    }
   }
 
   @override

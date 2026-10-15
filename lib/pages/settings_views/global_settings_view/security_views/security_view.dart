@@ -128,7 +128,7 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
   }
 
   Future<void> _deleteDuressPin() async {
-    await showDialog<void>(
+    final delete = await showDialog<bool>(
       context: context,
       builder: (context) => StackDialogBase(
         child: Column(
@@ -140,10 +140,8 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
               children: [
                 Flexible(
                   child: Text(
-                    "Your duress pin will be deleted. "
-                    "You will be asked to create a PIN when you enable this again. "
-                    "Are you sure you want to continue?",
-
+                    "Your duress PIN will be deleted. To turn this on "
+                    "again, you'll create a new one.",
                     style: STextStyles.smallMed14(context),
                   ),
                 ),
@@ -155,30 +153,14 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                 Expanded(
                   child: SecondaryButton(
                     label: "Cancel",
-                    onPressed: Navigator.of(context).pop,
+                    onPressed: () => Navigator.of(context).pop(false),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: PrimaryButton(
-                    label: "Ok",
-                    onPressed: () async {
-                      try {
-                        await ref
-                            .read(secureStoreProvider)
-                            .delete(key: kDuressPinKey);
-                      } catch (e, s) {
-                        Logging.instance.f(
-                          "dpin delete failed!!",
-                          error: e,
-                          stackTrace: s,
-                        );
-                      }
-
-                      if (context.mounted) {
-                        Navigator.of(context).pop();
-                      }
-                    },
+                    label: "Delete",
+                    onPressed: () => Navigator.of(context).pop(true),
                   ),
                 ),
               ],
@@ -187,7 +169,20 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
         ),
       ),
     );
+    if (delete != true || !mounted) return;
 
+    // Off only once the PIN is gone: the lock screen checks the stored
+    // PIN, not this setting.
+    try {
+      await ref.read(secureStoreProvider).delete(key: kDuressPinKey);
+    } catch (e, s) {
+      Logging.instance.f(
+        "Deleting the duress PIN failed",
+        error: e,
+        stackTrace: s,
+      );
+      return;
+    }
     ref.read(prefsChangeNotifierProvider).hasDuressPin = false;
   }
 

@@ -562,8 +562,9 @@ class _BudgetCard extends ConsumerWidget {
           ),
           line(
             Icons.how_to_vote_rounded,
-            "To pass: ${g.requiredNetYes} net Yes votes "
-            "(10% of ${g.enabledMasternodes} masternodes online)",
+            "To pass: ${g.requiredNetYes} net Yes "
+            "${g.requiredNetYes == 1 ? "vote" : "votes"} (more than 10% of "
+            "${g.enabledMasternodes} masternodes online)",
           ),
         ],
       ),
