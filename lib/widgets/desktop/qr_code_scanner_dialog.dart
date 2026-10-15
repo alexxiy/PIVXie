@@ -30,11 +30,11 @@ class QrCodeScannerDialog extends StatefulWidget {
 }
 
 class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
-  final CameraLinux? _cameraLinuxPlugin =
-      Platform.isLinux ? CameraLinux() : null;
+  // Made when the camera starts: loading the plugin library can fail.
+  CameraLinux? _cameraLinuxPlugin;
   final CameraWindows? _cameraWindowsPlugin =
       Platform.isWindows ? CameraWindows() : null;
-  bool _isCameraOpen = false;
+  bool _noCamera = false;
   Image? _image;
   bool _isScanning = false;
   int _cameraId = -1;
@@ -48,19 +48,34 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
     _initializeCamera().then((camOpen) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted && camOpen) {
-          setState(() {
-            _isCameraOpen = true;
-          });
           unawaited(_captureAndScanImage());
+        } else if (mounted) {
+          setState(() => _noCamera = true);
         }
       });
     });
   }
 
+  /// The Linux plugin can't say there's no camera (it just never delivers
+  /// a frame), so look for a video device first.
+  static bool _linuxHasVideoDevice() {
+    try {
+      return Directory("/dev")
+          .listSync(followLinks: false)
+          .any((e) => RegExp(r"/video\d+$").hasMatch(e.path));
+    } catch (_) {
+      return true; // Can't tell; let the plugin try.
+    }
+  }
+
   Future<bool> _initializeCamera() async {
     try {
-      if (Platform.isLinux && _cameraLinuxPlugin != null) {
-        await _cameraLinuxPlugin.initializeCamera();
+      if (Platform.isLinux) {
+        if (!_linuxHasVideoDevice()) {
+          throw CameraException('No cameras available', 'No video device.');
+        }
+        final camera = _cameraLinuxPlugin = CameraLinux();
+        await camera.initializeCamera();
         Logging.instance.d("Linux Camera initialized");
       } else if (Platform.isWindows && _cameraWindowsPlugin != null) {
         final List<CameraDescription> cameras =
@@ -114,8 +129,9 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
     _isScanning = false;
 
     try {
-      if (Platform.isLinux && _cameraLinuxPlugin != null) {
-        _cameraLinuxPlugin.stopCamera();
+      final linuxCamera = _cameraLinuxPlugin;
+      if (linuxCamera != null) {
+        linuxCamera.stopCamera();
         Logging.instance.d("Linux Camera stopped");
       } else if (Platform.isWindows && _cameraWindowsPlugin != null) {
         // if (_cameraId >= 0) {
@@ -148,8 +164,9 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
     while (_isScanning) {
       try {
         String? base64Image;
-        if (Platform.isLinux && _cameraLinuxPlugin != null) {
-          base64Image = await _cameraLinuxPlugin.captureImage();
+        final linuxCamera = _cameraLinuxPlugin;
+        if (linuxCamera != null) {
+          base64Image = await linuxCamera.captureImage();
         } else if (Platform.isWindows) {
           final XFile xfile =
               await _cameraWindowsPlugin!.takePicture(_cameraId);
@@ -232,7 +249,9 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
         image.width,
         image.height,
         image
-            .convert(numChannels: 4)
+            // 8 bits per channel whatever the source (1-bit palette PNGs
+            // from QR generators, 16-bit PNGs): one int per pixel.
+            .convert(format: img.Format.uint8, numChannels: 4)
             .getBytes(order: img.ChannelOrder.abgr)
             .buffer
             .asInt32List(),
@@ -279,16 +298,22 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
               ],
             ),
             Expanded(
-              child: _isCameraOpen
-                  ? _image != null
-                      ? _image!
-                      : const Center(
-                          child: CircularProgressIndicator(),
-                        )
-                  : const Center(
-                      child:
-                          CircularProgressIndicator(), // Show progress indicator immediately
-                    ),
+              child: _noCamera
+                  ? Center(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 32),
+                        child: Text(
+                          "No camera found. Use Select file to scan a QR "
+                          "code from an image.",
+                          textAlign: TextAlign.center,
+                          style: STextStyles.desktopTextMedium(context),
+                        ),
+                      ),
+                    )
+                  : _image ??
+                      const Center(
+                        child: CircularProgressIndicator(),
+                      ),
             ),
             Padding(
               padding: const EdgeInsets.all(16),

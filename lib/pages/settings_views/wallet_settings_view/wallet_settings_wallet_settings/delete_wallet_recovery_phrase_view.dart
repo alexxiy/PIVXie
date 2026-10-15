@@ -26,6 +26,7 @@ import '../../../../utilities/text_styles.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../../widgets/secret_screen.dart';
 import '../../../../widgets/stack_dialog.dart';
 import '../../../add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
 import '../../../home_view/home_view.dart';
@@ -116,7 +117,10 @@ class _DeleteWalletRecoveryPhraseViewState
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) =>
+      SecretScreen(child: Builder(builder: _buildScreen));
+
+  Widget _buildScreen(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
     return Background(

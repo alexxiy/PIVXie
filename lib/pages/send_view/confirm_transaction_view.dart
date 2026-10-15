@@ -62,6 +62,8 @@ class ConfirmTransactionView extends ConsumerStatefulWidget {
     this.routeOnSuccessName,
     this.onSuccessInsteadOfRouteOnSuccess,
     this.pivxName,
+    this.beforeBroadcast,
+    this.afterFailedBroadcast,
   });
 
   static const String routeName = "/confirmTransactionView";
@@ -75,6 +77,13 @@ class ConfirmTransactionView extends ConsumerStatefulWidget {
   /// The PIVX.name name being paid, with the address it was proven to point
   /// to when the transaction was built. Checked again before sending.
   final PivxNameVerified? pivxName;
+
+  /// Runs right before the transaction goes out (after the PIN), for what
+  /// must be remembered even if the app stops right after sending.
+  final Future<void> Function()? beforeBroadcast;
+
+  /// Runs when sending failed, to undo [beforeBroadcast].
+  final Future<void> Function()? afterFailedBroadcast;
 
   @override
   ConsumerState<ConfirmTransactionView> createState() =>
@@ -110,6 +119,36 @@ class _ConfirmTransactionViewState
         Text(
           "Checked against the PIVX.name registry on BNB Smart Chain",
           style: style.copyWith(color: colors.textSubtitle2, fontSize: 12),
+        ),
+      ],
+    );
+  }
+
+  /// Change paid to an address outside the wallet (a custom change address
+  /// the user entered): it leaves the wallet like the payment does.
+  Widget _foreignChangeDetails(
+    BuildContext context,
+    TextStyle style,
+    ({String address, BigInt sats}) change,
+    CryptoCurrency coin,
+  ) {
+    final color = Theme.of(context).extension<StackColors>()!.textError;
+    final amount = ref
+        .watch(pAmountFormatter(coin))
+        .format(
+          Amount(rawValue: change.sats, fractionDigits: coin.fractionDigits),
+        );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 8),
+        Text("Change: $amount to", style: style.copyWith(color: color)),
+        SelectableText(change.address, style: style.copyWith(color: color)),
+        const SizedBox(height: 4),
+        Text(
+          "This change address isn't one of this wallet's, so the change "
+          "goes to whoever owns it.",
+          style: style.copyWith(color: color, fontSize: 12),
         ),
       ],
     );
@@ -195,8 +234,7 @@ class _ConfirmTransactionViewState
 
     final time = Future<dynamic>.delayed(const Duration(milliseconds: 2500));
 
-    final List<String> txids = [];
-    final Future<TxData> txDataFuture;
+    final mainDB = ref.read(mainDBProvider);
 
     // Paying a name without a note: keep the name, so the history shows who
     // was paid.
@@ -204,41 +242,25 @@ class _ConfirmTransactionViewState
         ? widget.pivxName!.name
         : noteController.text;
 
+    final TxData confirmedTx;
     try {
       if (widget.pivxName != null) await _recheckPivxName(widget.pivxName!);
-      txDataFuture = wallet.confirmSend(txData: widget.txData);
-      final results = await Future.wait([txDataFuture, time]);
-      final confirmedTx = results.first as TxData;
-
-      sendProgressController.triggerSuccess?.call();
-      await Future<void>.delayed(const Duration(seconds: 5));
-
-      txids.add(confirmedTx.txid!);
-      ref.refresh(desktopUseUTXOs);
-
-      // save note
-      for (final txid in txids) {
-        await ref
-            .read(mainDBProvider)
-            .putTransactionNote(
-              TransactionNote(walletId: walletId, txid: txid, value: note),
-            );
-      }
-
-      unawaited(wallet.refresh());
-
-      closeSendingDialog();
-
-      widget.onSuccess.call();
-
-      if (context.mounted) {
-        if (widget.onSuccessInsteadOfRouteOnSuccess == null) {
-          Navigator.of(context)
-              .popUntil(ModalRoute.withName(routeOnSuccessName));
-        } else {
-          widget.onSuccessInsteadOfRouteOnSuccess!.call();
+      await widget.beforeBroadcast?.call();
+      try {
+        confirmedTx = await wallet.confirmSend(txData: widget.txData);
+      } catch (_) {
+        try {
+          await widget.afterFailedBroadcast?.call();
+        } catch (e, s) {
+          Logging.instance.w(
+            "Cleaning up after a failed send",
+            error: e,
+            stackTrace: s,
+          );
         }
+        rethrow;
       }
+      await time;
     } catch (e, s) {
       final message = e is _NotSent
           ? "Not sent"
@@ -314,6 +336,42 @@ class _ConfirmTransactionViewState
           },
         );
       }
+      return;
+    }
+
+    // Sent. What follows only records it: an error here must not read as
+    // a failed send, or the user would pay again.
+    try {
+      sendProgressController.triggerSuccess?.call();
+      await Future<void>.delayed(const Duration(seconds: 5));
+      await mainDB.putTransactionNote(
+        TransactionNote(
+          walletId: walletId,
+          txid: confirmedTx.txid!,
+          value: note,
+        ),
+      );
+      if (mounted) ref.invalidate(desktopUseUTXOs);
+    } catch (e, s) {
+      Logging.instance.w(
+        "Sent ${confirmedTx.txid}, but saving its note failed",
+        error: e,
+        stackTrace: s,
+      );
+    }
+
+    unawaited(wallet.refresh());
+
+    closeSendingDialog();
+
+    widget.onSuccess.call();
+
+    if (context.mounted) {
+      if (widget.onSuccessInsteadOfRouteOnSuccess == null) {
+        Navigator.of(context).popUntil(ModalRoute.withName(routeOnSuccessName));
+      } else {
+        widget.onSuccessInsteadOfRouteOnSuccess!.call();
+      }
     }
   }
 
@@ -346,6 +404,15 @@ class _ConfirmTransactionViewState
     final unit = coin.ticker;
     final Amount? fee = widget.txData.fee;
     final Amount amountWithoutChange = widget.txData.amountWithoutChange!;
+    final foreignChange = pivxForeignChange(widget.txData);
+    // What leaves the wallet, change to someone else's address included.
+    final Amount total =
+        amountWithoutChange +
+        fee! +
+        Amount(
+          rawValue: foreignChange?.sats ?? BigInt.zero,
+          fractionDigits: coin.fractionDigits,
+        );
 
     return ConditionalParent(
       condition: !isDesktop,
@@ -446,6 +513,13 @@ class _ConfirmTransactionViewState
                             context,
                             STextStyles.itemSubtitle12(context),
                           ),
+                        if (foreignChange != null)
+                          _foreignChangeDetails(
+                            context,
+                            STextStyles.itemSubtitle12(context),
+                            foreignChange,
+                            coin,
+                          ),
                       ],
                     ),
                   ),
@@ -475,7 +549,7 @@ class _ConfirmTransactionViewState
                           style: STextStyles.smallMed12(context),
                         ),
                         SelectableText(
-                          ref.watch(pAmountFormatter(coin)).format(fee!),
+                          ref.watch(pAmountFormatter(coin)).format(fee),
                           style: STextStyles.itemSubtitle12(context),
                           textAlign: TextAlign.right,
                         ),
@@ -696,6 +770,13 @@ class _ConfirmTransactionViewState
                                 context,
                                 STextStyles.desktopTextExtraExtraSmall(context),
                               ),
+                            if (foreignChange != null)
+                              _foreignChangeDetails(
+                                context,
+                                STextStyles.desktopTextExtraExtraSmall(context),
+                                foreignChange,
+                                coin,
+                              ),
                           ],
                         ),
                       ),
@@ -833,7 +914,7 @@ class _ConfirmTransactionViewState
                       .extension<StackColors>()!
                       .textFieldDefaultBG,
                   child: SelectableText(
-                    ref.watch(pAmountFormatter(coin)).format(fee!),
+                    ref.watch(pAmountFormatter(coin)).format(fee),
                     style: STextStyles.itemSubtitle(context),
                   ),
                 ),
@@ -864,7 +945,7 @@ class _ConfirmTransactionViewState
                       .extension<StackColors>()!
                       .textFieldDefaultBG,
                   child: SelectableText(
-                    "~${fee!.raw.toInt() ~/ widget.txData.vSize!}",
+                    "~${fee.raw.toInt() ~/ widget.txData.vSize!}",
                     style: STextStyles.itemSubtitle(context),
                   ),
                 ),
@@ -901,9 +982,7 @@ class _ConfirmTransactionViewState
                             ),
                     ),
                     SelectableText(
-                      ref
-                          .watch(pAmountFormatter(coin))
-                          .format(amountWithoutChange + fee!),
+                      ref.watch(pAmountFormatter(coin)).format(total),
                       style: isDesktop
                           ? STextStyles.desktopTextExtraExtraSmall(context)
                                 .copyWith(

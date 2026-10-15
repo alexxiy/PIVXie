@@ -184,7 +184,11 @@ void main(List<String> args) async {
     level: Prefs.instance.logLevel,
     debugConsoleLevel: kDebugMode ? Level.trace : null,
   );
-  UiStallWatch.start();
+  // A 100 ms timer: only when looking for UI stalls (debug and profile
+  // builds, or verbose logs), not draining phones otherwise.
+  if (!kReleaseMode || Prefs.instance.logLevel.value <= Level.debug.value) {
+    UiStallWatch.start();
+  }
 
   if (AppConfig.hasFeature(AppFeature.tor)) {
     // TODO:

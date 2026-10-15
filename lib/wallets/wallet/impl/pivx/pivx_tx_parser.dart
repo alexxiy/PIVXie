@@ -164,10 +164,11 @@ Map<String, dynamic> pivxTxOtherData({
   String? memo,
   bool ownSend = false,
   String? alsoKind,
+  String? rawTx,
 }) => {
   if (memo != null && memo.isNotEmpty) TxV2OdKeys.onChainNote: memo,
   if (c.kind != null) TxV2OdKeys.pivxKind: c.kind,
-  if (alsoKind != null) TxV2OdKeys.pivxAlsoKind: alsoKind,
+  TxV2OdKeys.pivxAlsoKind: ?alsoKind,
   TxV2OdKeys.pivxAmount: Amount(
     rawValue: c.amount,
     fractionDigits: fractionDigits,
@@ -175,6 +176,7 @@ Map<String, dynamic> pivxTxOtherData({
   if (changeAddresses.isNotEmpty)
     TxV2OdKeys.pivxChange: changeAddresses.toList(),
   if (ownSend) TxV2OdKeys.pivxOwnSend: true,
+  TxV2OdKeys.pivxRawTx: ?rawTx,
   // Rewards create coins: no fee. Always set otherwise, as the inputs
   // may not show the fee (shield spends, unknown inputs).
   TxV2OdKeys.overrideFee: Amount(
@@ -383,6 +385,12 @@ String? pivxColdStakeAlsoKind(
       ? PivxTxKind.budgetPayment
       : PivxTxKind.masternodeReward;
 }
+
+/// Output scripts (hex) of a bridge transaction, by output index.
+List<String> pivxOutputScripts(Map<String, dynamic> json) => [
+  for (final v in (json["vout"] as List? ?? const []))
+    (v as Map)["hex"] as String? ?? "",
+];
 
 /// One output of a raw transaction: its value and script.
 typedef PivxRawOutput = ({BigInt value, Uint8List script});

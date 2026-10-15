@@ -1,6 +1,8 @@
 //! Tests through the JSON dispatcher (the same path Dart uses).
 //! Vectors from PIVX-Labs/pivx-shield (generated on regtest).
 use crate::dispatch;
+use pivx_primitives::consensus::{BranchId, NetworkConstants, TEST_NETWORK};
+use pivx_primitives::transaction::Transaction;
 use serde_json::{json, Value};
 
 const EXTSK: &str = "p-secret-spending-key-test1qd7a5dwjqqqqpqyzy3xs3usw7rzal27gvx6szvt56qff69ceqxtzdst9cuvut3n7dcp28wk2why35qd3989hdvf5wq9m62q6xfrmnlkf0r70v2s7x63sr2zzt8shr6psry8sq66kvzwskrghutgd7wmqknsljq0j0t2kmyg8xzqweug0pg40ml0s8mvvmgmp9c9pdvmpnx9gnhwde9yrg4f2c36c808d6p29ywevmn47lp9elyawr93wxl96ttd5pevj6f68qc6rcps5u9990";
@@ -86,4 +88,94 @@ fn ffi_roundtrip_reports_errors() {
         let v: Value = serde_json::from_str(&s).unwrap();
         assert!(v["err"].as_str().unwrap().contains("unknown method"));
     }
+}
+
+/// Loads the Sapling parameters from PIVX_PARAMS_DIR (sapling-output.params
+/// and sapling-spend.params); tests that build transactions skip without.
+fn load_prover() -> bool {
+    let Ok(dir) = std::env::var("PIVX_PARAMS_DIR") else {
+        eprintln!("PIVX_PARAMS_DIR not set: skipping");
+        return false;
+    };
+    call(
+        "load_prover",
+        json!({
+            "output_path": format!("{dir}/sapling-output.params"),
+            "spend_path": format!("{dir}/sapling-spend.params"),
+        }),
+    );
+    true
+}
+
+/// Pays `amount` from one transparent output worth `value` to the test
+/// wallet's shield address, or with `to_transparent` back to the key's own
+/// transparent address.
+fn pay_from_utxo(value: u64, amount: u64, subtract_fee: bool, to_transparent: bool) -> Result<Value, String> {
+    let secp = secp256k1::Secp256k1::new();
+    let key = secp256k1::SecretKey::from_slice(&[1u8; 32]).unwrap();
+    // Deprecated upstream without a replacement yet.
+    #[allow(deprecated)]
+    let owner = zcash_transparent::keys::pubkey_to_address(&key.public_key(&secp));
+    let change = zcash_keys::encoding::encode_transparent_address(
+        &TEST_NETWORK.b58_pubkey_address_prefix(),
+        &TEST_NETWORK.b58_script_address_prefix(),
+        &owner,
+    );
+    let extfvk = call("generate_extfvk", json!({"key": EXTSK, "is_testnet": true}));
+    let to = if to_transparent {
+        json!(change)
+    } else {
+        call("default_address", json!({"key": extfvk, "is_testnet": true}))["address"].clone()
+    };
+    let args = json!({
+        "utxos": [{
+            "txid": "11".repeat(32),
+            "vout": 0,
+            "amount": value,
+            "private_key": "01".repeat(32),
+            "script": hex::encode(&owner.script().0),
+        }],
+        "extsk": EXTSK,
+        "to_address": to,
+        "change_address": change,
+        "amount": amount,
+        "block_height": 2_000_000,
+        "is_testnet": true,
+        "subtract_fee": subtract_fee,
+    });
+    dispatch("create_transaction", &args.to_string())
+}
+
+fn transparent_outputs(tx: &Value) -> usize {
+    let raw = hex::decode(tx["txhex"].as_str().unwrap()).unwrap();
+    let tx = Transaction::read(&raw[..], BranchId::Sapling).unwrap();
+    tx.transparent_bundle().map_or(0, |b| b.vout.len())
+}
+
+/// Fee the library charges for one transparent input, transparent change
+/// and the two shield outputs (1000 sat per estimated byte).
+const SHIELDING_FEE: u64 = 1000 * (150 + 34 + 2 * 948 + 85);
+
+#[test]
+fn shielding_folds_dust_change_into_the_fee() {
+    if !load_prover() {
+        return;
+    }
+    let amount = 100_000_000;
+    let tx = pay_from_utxo(amount + SHIELDING_FEE + 1000, amount, false, false).unwrap();
+    assert_eq!(tx["fee"], SHIELDING_FEE + 1000);
+    assert_eq!(transparent_outputs(&tx), 0, "no dust change output");
+
+    // Change at the dust limit is kept.
+    let tx = pay_from_utxo(amount + SHIELDING_FEE + 5460, amount, false, false).unwrap();
+    assert_eq!(tx["fee"], SHIELDING_FEE);
+    assert_eq!(transparent_outputs(&tx), 1);
+}
+
+#[test]
+fn transparent_payment_below_dust_after_the_fee_is_refused() {
+    // Refused before proving: no parameters needed.
+    let fee = 1000 * (150 + 2 * 34 + 2 * 948 + 85);
+    let err = pay_from_utxo(fee + 100, fee + 100, true, true).unwrap_err();
+    assert!(err.contains("below the dust limit"), "{err}");
 }

@@ -210,6 +210,11 @@ class TransactionV2 {
   bool get isPivxOwnSend =>
       _getFromOtherData(key: TxV2OdKeys.pivxOwnSend) == true;
 
+  /// Raw hex of an unconfirmed transaction this wallet sent.
+  @ignore
+  String? get pivxRawTx =>
+      _getFromOtherData(key: TxV2OdKeys.pivxRawTx) as String?;
+
   Amount? _getPivxAmount() {
     try {
       return Amount.fromSerializedJsonString(
@@ -363,6 +368,10 @@ abstract final class TxV2OdKeys {
   /// PIVX: built and sent by this wallet; its amount and change are
   /// exact, unlike what a rescan can infer.
   static const pivxOwnSend = "pivxOwnSend";
+
+  /// PIVX: raw hex of a transaction this wallet sent, kept while it is
+  /// unconfirmed to send it again if the network loses it.
+  static const pivxRawTx = "pivxRawTx";
 }
 
 /// Kinds of PIVX transactions shown with their own label.

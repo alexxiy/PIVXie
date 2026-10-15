@@ -47,6 +47,7 @@ import '../../../widgets/desktop/desktop_scaffold.dart';
 import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/icon_widgets/clipboard_icon.dart';
 import '../../../widgets/icon_widgets/qrcode_icon.dart';
+import '../../../widgets/secret_screen.dart';
 import '../../../widgets/table_view/table_view.dart';
 import '../../../widgets/table_view/table_view_cell.dart';
 import '../../../widgets/table_view/table_view_row.dart';
@@ -664,7 +665,10 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) =>
+      SecretScreen(child: Builder(builder: _buildScreen));
+
+  Widget _buildScreen(BuildContext context) {
     final isDesktop = Util.isDesktop;
     return MasterScaffold(
       isDesktop: isDesktop,

@@ -86,6 +86,16 @@ class _PivxChangeAddressSheetState
         : "Receiving #${a.derivationIndex}";
   }
 
+  /// The typed address is valid but not one of this wallet's: the change
+  /// would leave the wallet.
+  bool get _foreign {
+    final address = _controller.text.trim();
+    final valid = widget.shield
+        ? widget.coin.isShieldAddress(address)
+        : widget.coin.isTransparentAddress(address);
+    return valid && !_addresses.any((a) => a.value == address);
+  }
+
   void _useCustom() {
     final address = _controller.text.trim();
     if (widget.shield
@@ -187,7 +197,7 @@ class _PivxChangeAddressSheetState
                   _option(
                     title: "Automatic",
                     subtitle: widget.shield
-                        ? "A new shield address of this wallet"
+                        ? "This wallet's shield change address"
                         : "A new change address of this wallet",
                     selected: widget.current == null,
                     onTap: () => Navigator.of(context).pop(""),
@@ -223,6 +233,15 @@ class _PivxChangeAddressSheetState
                 ).copyWith(errorText: _error),
               ),
             ),
+            if (_error == null && _foreign) ...[
+              const SizedBox(height: 8),
+              Text(
+                "This address isn't one of this wallet's. The change would go "
+                "to whoever owns it.",
+                style: STextStyles.label(context)
+                    .copyWith(color: colors.textError),
+              ),
+            ],
             const SizedBox(height: 12),
             PrimaryButton(label: "Use this address", onPressed: _useCustom),
           ],

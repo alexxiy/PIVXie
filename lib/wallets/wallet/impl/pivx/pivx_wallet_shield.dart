@@ -24,6 +24,44 @@ const kPivxSubtractFee = "pivxSubtractFee";
 /// sends from the shield balance.
 const kPivxChangeAddress = "pivxChangeAddress";
 
+/// Set in [TxData.otherData] by [PivxWallet.prepareSend] when the change
+/// goes to an address that is not this wallet's (a custom change address):
+/// `{"address": ..., "sats": "..."}`. The confirm screen shows it, since
+/// that change leaves the wallet like the payment does.
+const kPivxForeignChange = "pivxForeignChange";
+
+/// Change of [txData] that leaves the wallet (see [kPivxForeignChange]).
+({String address, BigInt sats})? pivxForeignChange(TxData txData) {
+  if (txData.otherData == null) return null;
+  final v = (jsonDecode(txData.otherData!) as Map)[kPivxForeignChange];
+  if (v is! Map) return null;
+  return (
+    address: v["address"] as String,
+    sats: BigInt.parse(v["sats"] as String),
+  );
+}
+
+/// [otherData] (JSON) with [kPivxForeignChange] set.
+String _withForeignChange(String? otherData, String address, BigInt sats) =>
+    jsonEncode({
+      if (otherData != null) ...jsonDecode(otherData) as Map<String, dynamic>,
+      kPivxForeignChange: {"address": address, "sats": sats.toString()},
+    });
+
+/// Diversifier index (11 bytes, little endian) just below the one the
+/// wallet's shield change goes to: 2^87, far beyond any receiving address
+/// ([PivxWallet.generateNewShieldAddress] counts up from 0). Change then
+/// never lands on an address the wallet hands out later, so the history
+/// keeps telling change apart (PIVX Core's IsNoteSaplingChange).
+const _kShieldChangeSlot = [
+  0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f, //
+];
+
+/// The Sapling parameters download and load, shared by every wallet (the
+/// prover is loaded once per process); progress goes to every caller.
+Future<void>? _proverLoading;
+final _proverProgress = <void Function(double)>{};
+
 /// How the user pays a transaction: from the shield ([fromShield]) or
 /// the transparent balance, with the coins picked in coin control (none:
 /// chosen automatically) and where the change goes (null: automatic).
@@ -84,19 +122,25 @@ extension _PivxShield on PivxWallet {
 
   /// ZIP32 spending key, derived like MyPIVXWallet: from the first 32
   /// bytes of the BIP39 seed.
-  Future<String> _extsk() async {
-    final seed = await _seed();
-    return libPivxShield.extendedSpendingKey(
-      seed: seed.sublist(0, 32),
-      coinType: _shieldCoinType,
-    );
-  }
+  Future<String> _extsk() async => _extskFromSeed(await _seed());
 
-  Future<PivxShieldState> _createShieldState(int fromHeight) async {
-    final extfvk = libPivxShield.extendedFullViewingKey(
-      extsk: await _extsk(),
-      isTestnet: _isTestnet,
-    );
+  String _extskFromSeed(Uint8List seed) => libPivxShield.extendedSpendingKey(
+    seed: seed.sublist(0, 32),
+    coinType: _shieldCoinType,
+  );
+
+  /// Full viewing key: derived when the wallet's shield state loads and
+  /// kept in memory only (it reveals every shield transaction, past and
+  /// future, so it isn't written to the state file).
+  Future<String> _extfvk() async => libPivxShield.extendedFullViewingKey(
+    extsk: await _extsk(),
+    isTestnet: _isTestnet,
+  );
+
+  Future<PivxShieldState> _createShieldState(
+    int fromHeight, {
+    required String extfvk,
+  }) async {
     final cp = libPivxShield.closestCheckpoint(
       height: fromHeight,
       isTestnet: _isTestnet,
@@ -124,16 +168,22 @@ extension _PivxShield on PivxWallet {
   /// Loaded (or newly created) shield state. A wallet without state was
   /// created in-app, so scanning starts near the current tip; restores
   /// reset the state in [PivxWallet.recover].
-  Future<PivxShieldState> _loadShield() async {
-    if (_shield != null) return _shield!;
-    var state = await PivxShieldState.load(walletId);
+  Future<PivxShieldState> _loadShield() async =>
+      _shield ??
+      await (_shieldLoading ??= _readShield().whenComplete(
+        () => _shieldLoading = null,
+      ));
+
+  Future<PivxShieldState> _readShield() async {
+    final extfvk = await _extfvk();
+    var state = await PivxShieldState.load(walletId, extfvk: extfvk);
     if (state == null) {
       int from = info.restoreHeight;
       if (from <= 0) {
         from = await chainHeight;
         if (from <= 0) from = await bridge.getBlockCount();
       }
-      state = await _createShieldState(from);
+      state = await _createShieldState(from, extfvk: extfvk);
     }
     await _storeShieldAddresses(state);
     _shield = state;
@@ -200,11 +250,22 @@ extension _PivxShield on PivxWallet {
   }
 
   Future<void> _resetShield({required int fromHeight}) async {
+    final extfvk = _shield?.extfvk ?? await _extfvk();
     await PivxShieldState.delete(walletId);
-    _shield = null;
-    _shield = await _createShieldState(fromHeight);
-    await _storeShieldAddresses(_shield!);
+    // The old state stays in use until the new one is ready.
+    final state = await _createShieldState(fromHeight, extfvk: extfvk);
+    _shield = state;
+    await _storeShieldAddresses(state);
   }
+
+  /// Where automatic shield change goes (see [_kShieldChangeSlot]).
+  String _shieldChangeAddress(PivxShieldState state) => libPivxShield
+      .nextAddress(
+        extfvk: state.extfvk,
+        diversifierIndex: _kShieldChangeSlot,
+        isTestnet: state.isTestnet,
+      )
+      .address;
 
   // ===========================================================================
   // Sync
@@ -376,12 +437,20 @@ extension _PivxShield on PivxWallet {
 
   Future<void> _storeShieldHistory(Set<String> txids) async {
     final sets = await _addressSets();
-    final txns = <TransactionV2>[];
-    for (final txid in txids) {
-      final tx = _parseTx(await bridge.tx(txid), sets: sets);
-      if (tx != null) txns.add(tx);
+    final ids = txids.toList();
+    final fetched = <Map<String, dynamic>>[];
+    for (var i = 0; i < ids.length; i += PivxWallet._kParallelRequests) {
+      fetched.addAll(
+        await Future.wait(
+          ids.skip(i).take(PivxWallet._kParallelRequests).map(bridge.tx),
+        ),
+      );
     }
-    await _storeTxs(txns);
+    final coldStake = await _coldStakeOutpoints(fetched);
+    await _storeTxs([
+      for (final json in fetched)
+        ?_parseTx(json, sets: sets, isColdStakeOutpoint: coldStake),
+    ]);
   }
 
   /// [UTXO] rows for the unspent notes (see [kPivxShieldNoteKey]).
@@ -496,6 +565,24 @@ extension _PivxShield on PivxWallet {
     void Function(double progress)? onProgress,
   }) async {
     if (libPivxShield.proverIsLoaded()) return;
+    // One download at a time: two would write the same files.
+    if (onProgress != null) _proverProgress.add(onProgress);
+    try {
+      await (_proverLoading ??= _loadProver().whenComplete(
+        () => _proverLoading = null,
+      ));
+    } finally {
+      if (onProgress != null) _proverProgress.remove(onProgress);
+    }
+  }
+
+  Future<void> _loadProver() async {
+    void onProgress(double p) {
+      for (final listener in [..._proverProgress]) {
+        listener(p);
+      }
+    }
+
     final root = await StackFileSystem.applicationRootDirectory();
     final dir = Directory("${root.path}/sapling-params");
     if (!dir.existsSync()) dir.createSync(recursive: true);
@@ -519,7 +606,7 @@ extension _PivxShield on PivxWallet {
             file,
             proxy: proxy,
             onProgress: (r, t) {
-              if (t != null) onProgress?.call(base + weight * r / t);
+              if (t != null) onProgress(base + weight * r / t);
             },
           );
           lastError = null;
@@ -560,6 +647,12 @@ extension _PivxShield on PivxWallet {
           "or tick \"Subtract fee from amount\".",
         );
       }
+      if (e.toString().contains("below the dust limit")) {
+        throw Exception(
+          "After the fee, the amount is too small to send to a transparent "
+          "address.",
+        );
+      }
       rethrow;
     }
   }
@@ -591,6 +684,8 @@ extension _PivxShield on PivxWallet {
     final Map<String, dynamic> result;
     List<StandardInput> usedInputs = const [];
     final String changeAddress;
+    // The automatic shield change address, which has no address row.
+    String? ownChange;
 
     if (fromShield) {
       final custom = txData.otherData == null
@@ -603,15 +698,8 @@ extension _PivxShield on PivxWallet {
         }
         changeAddress = custom;
       } else {
-        // A fresh address never handed out, so the history knows it's
-        // change (PIVX Core's IsNoteSaplingChange).
-        changeAddress = libPivxShield
-            .nextAddress(
-              extfvk: state.extfvk,
-              diversifierIndex: state.diversifierIndex,
-              isTestnet: state.isTestnet,
-            )
-            .address;
+        changeAddress = _shieldChangeAddress(state);
+        ownChange = changeAddress;
       }
       final notes = await _notesToSpend(state, txData);
       final available = notes.fold<int>(
@@ -640,16 +728,35 @@ extension _PivxShield on PivxWallet {
           .whereType<StandardInput>()
           .map((e) => e.utxo)
           .toList();
-      final utxos = _spendable(
+      final candidates = _spendable(
         selected.isNotEmpty
             ? selected
             : await mainDB.getUTXOs(walletId).findAll(),
         await chainHeight,
+        collateral: selected.isNotEmpty,
       );
-      if (selected.isNotEmpty && utxos.length != selected.length) {
+      if (selected.isNotEmpty && candidates.length != selected.length) {
         throw Exception("Attempted to use an unavailable utxo");
       }
-      final inputs = await _withKeys(utxos);
+      // Keys only for the coins the library will spend (all of a
+      // coin-control selection).
+      final needed = selected.isNotEmpty
+          ? candidates
+          : pivxShieldingInputs(
+              candidates,
+              amount: recipient.amount.raw.toInt(),
+              toShield: isShieldAddress(recipient.address),
+              subtractFee: _otherDataFlag(txData, kPivxSubtractFee),
+            );
+      final seed = await _seed();
+      // Shield transactions sign each transparent input's value (ZIP-243
+      // sighash): a wrong value from the bridge only makes the signature
+      // invalid, so the values aren't fetched and checked one by one.
+      final inputs = await _withKeys(
+        needed,
+        root: coinlib.HDPrivateKey.fromSeed(seed),
+        verifyValues: false,
+      );
       result = await libPivxShield.createTransaction(
         utxos: [
           for (final i in inputs)
@@ -664,7 +771,7 @@ extension _PivxShield on PivxWallet {
               ).program.script.compiled.toHex,
             },
         ],
-        extsk: await _extsk(),
+        extsk: _extskFromSeed(seed),
         toAddress: recipient.address,
         changeAddress: changeAddress,
         amount: recipient.amount.raw.toInt(),
@@ -739,6 +846,8 @@ extension _PivxShield on PivxWallet {
     final recipientIsOurs =
         own.contains(recipient.address) ||
         recipient.address == state.currentAddress;
+    final changeIsOurs =
+        changeAddress == ownChange || own.contains(changeAddress);
     // Shield notes have no script; transparent outputs keep theirs.
     String script(String address) => isShieldAddress(address)
         ? ""
@@ -758,7 +867,7 @@ extension _PivxShield on PivxWallet {
           scriptPubKeyHex: script(changeAddress),
           valueStringSats: changeValue.toString(),
           addresses: [changeAddress],
-          walletOwns: true,
+          walletOwns: changeIsOurs,
         ),
     ];
     final tempClass = classifyPivxTx(
@@ -773,6 +882,11 @@ extension _PivxShield on PivxWallet {
         ...jsonDecode(txData.otherData!) as Map<String, dynamic>,
       _kOdShieldTx: true,
       _kOdShieldNullifiers: fromShield ? nullifiers : <String>[],
+      if (!changeIsOurs && changeValue > BigInt.zero)
+        kPivxForeignChange: {
+          "address": changeAddress,
+          "sats": changeValue.toString(),
+        },
     };
 
     return txData.copyWith(
@@ -809,6 +923,7 @@ extension _PivxShield on PivxWallet {
                 ? txData.memo?.trim()
                 : null,
             ownSend: true,
+            rawTx: result["txhex"] as String,
           ),
         ),
       ),
@@ -817,25 +932,62 @@ extension _PivxShield on PivxWallet {
 
   Future<TxData> _confirmShieldSend(TxData txData) async {
     final od = jsonDecode(txData.otherData!) as Map<String, dynamic>;
-    final txid = await bridge.sendTx(txData.raw!);
     final nullifiers = List<String>.from(
       od[_kOdShieldNullifiers] as List? ?? const [],
     );
-    if (nullifiers.isNotEmpty) {
-      final state = await _loadShield();
-      state.pendingSpent[txid] = nullifiers;
-      await state.save(walletId);
-      await _writeShieldNoteRows(state);
+    final state = nullifiers.isEmpty ? null : await _loadShield();
+    final txid = await bridge.sendTx(txData.raw!);
+    // Sent: its notes are spent from now on, even if saving that fails
+    // (the state in memory is what the next send picks notes from).
+    state?.pendingSpent[txid] = nullifiers;
+    final sent = txData.copyWith(txid: txid, txHash: txid);
+    // What follows only records the send. An error here must not read as
+    // a failed send, or the user would pay again.
+    try {
+      if (state != null) {
+        await state.save(walletId);
+        await _writeShieldNoteRows(state);
+      }
+      final used = (txData.usedUTXOs ?? const [])
+          .whereType<StandardInput>()
+          .map((e) => e.utxo.copyWith(used: true))
+          .toList();
+      if (used.isNotEmpty) {
+        await _utxoLock.protect(() => mainDB.putUTXOs(used));
+      }
+      final result = await updateSentCachedTxData(txData: sent);
+      await updateBalance();
+      return result;
+    } catch (e, s) {
+      Logging.instance.e(
+        "PIVX: $txid sent, but recording it failed",
+        error: e,
+        stackTrace: s,
+      );
+      return sent;
     }
-    final used = (txData.usedUTXOs ?? const [])
-        .whereType<StandardInput>()
-        .map((e) => e.utxo.copyWith(used: true))
-        .toList();
-    if (used.isNotEmpty) await mainDB.putUTXOs(used);
-    final result = await updateSentCachedTxData(
-      txData: txData.copyWith(txid: txid, txHash: txid),
-    );
-    await updateBalance();
-    return result;
   }
+}
+
+/// The transparent coins the shield library spends to pay [amount] from
+/// [candidates]: smallest first, until they cover the amount and the fee
+/// (1000 sat per estimated byte, with transparent change and two shield
+/// outputs), as its coin selection does; all of them when they never do.
+List<UTXO> pivxShieldingInputs(
+  List<UTXO> candidates, {
+  required int amount,
+  required bool toShield,
+  bool subtractFee = false,
+}) {
+  final sorted = [...candidates]..sort((a, b) => a.value.compareTo(b.value));
+  final tOut = (toShield ? 0 : 1) + 1;
+  var total = 0;
+  for (var i = 0; i < sorted.length; i++) {
+    total += sorted[i].value;
+    final fee = 1000 * (150 * (i + 1) + 34 * tOut + 948 * 2 + 85);
+    if (total >= amount + (subtractFee ? 0 : fee)) {
+      return sorted.sublist(0, i + 1);
+    }
+  }
+  return sorted;
 }

@@ -98,7 +98,10 @@ add_executable(${BINARY_NAME}
 apply_standard_settings(${BINARY_NAME})
 
 # Add dependency libraries. Add any application-specific dependencies here.
-target_link_libraries(${BINARY_NAME} PRIVATE -static-libgcc -static-libstdc++)
+# No -static-libstdc++/-static-libgcc: the plugins load the system C++
+# runtime anyway, and a second, static copy in the executable takes over
+# the exceptions plugin code throws; mixed with the system unwinder it
+# aborts the app (OpenCV's camera probe on a machine without a camera).
 target_link_libraries(${BINARY_NAME} PRIVATE flutter)
 target_link_libraries(${BINARY_NAME} PRIVATE PkgConfig::GTK)
 if(USE_SYSTEM_SECURE_STORAGE_DEPS)

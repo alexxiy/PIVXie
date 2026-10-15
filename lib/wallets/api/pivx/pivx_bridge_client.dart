@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 
 import 'package:socks5_proxy/socks_client.dart';
 
@@ -21,6 +22,11 @@ typedef PivxBridgeWatch = ({
   bool reset,
   bool changed,
 });
+
+/// [text] decoded on a short-lived isolate. Top level, so the closure
+/// carries nothing but the text.
+Future<dynamic> _decodeApart(String text) =>
+    Isolate.run(() => jsonDecode(text));
 
 class PivxBridgeException implements Exception {
   PivxBridgeException(this.message, {this.statusCode});
@@ -171,7 +177,13 @@ class PivxBridgeClient {
       return await () async {
         request = await _http.openUrl(method, url);
         headers?.forEach(request!.headers.set);
-        if (body != null) request!.add(utf8.encode(body));
+        if (body != null) {
+          final bytes = utf8.encode(body);
+          // A length rather than chunked encoding, which some servers and
+          // proxies refuse.
+          request!.contentLength = bytes.length;
+          request!.add(bytes);
+        }
         final response = await request!.close();
         final text = await response.transform(utf8.decoder).join();
         _lastActivity = DateTime.now();
@@ -180,8 +192,16 @@ class PivxBridgeClient {
     } on TimeoutException {
       request?.abort();
       rethrow;
+    } on HttpException catch (e) {
+      // Its text names the URL, which may hold the wallet's xpub.
+      throw HttpException(redactXpubs(e.message));
     }
   }
+
+  /// [text] without extended public keys: error messages end up in the
+  /// logs, and an xpub reveals every address of a wallet.
+  static String redactXpubs(String text) =>
+      text.replaceAll(RegExp(r"[xt]pub[1-9A-HJ-NP-Za-km-z]{100,}"), "<xpub>");
 
   Uri _uri(String path, [Map<String, String>? query]) => baseUri.replace(
     path: "${baseUri.path}$path",
@@ -210,15 +230,19 @@ class PivxBridgeClient {
   }
 
   Future<dynamic> _getJson(String path, [Map<String, String>? query]) async {
-    return jsonDecode(await _getText(path, query));
+    final text = await _getText(path, query);
+    // A large answer (a page of history) is decoded off the UI isolate.
+    return text.length < 256 * 1024 ? jsonDecode(text) : _decodeApart(text);
   }
 
   String _errorMessage(String body) {
     try {
       final json = jsonDecode(body);
-      if (json is Map && json["error"] != null) return json["error"].toString();
+      if (json is Map && json["error"] != null) {
+        return redactXpubs(json["error"].toString());
+      }
     } catch (_) {}
-    return body;
+    return redactXpubs(body);
   }
 
   // ---------------------------------------------------------------------------
@@ -298,20 +322,25 @@ class PivxBridgeClient {
       ),
     ];
     final totalPages = first["totalPages"] as int? ?? 1;
-    for (int page = 2; page <= totalPages; page++) {
-      final next = await this.xpub(
-        xpub,
-        page: page,
-        from: from,
-        gap: gap,
-        tokens: "used",
-      );
-      txs.addAll(
-        ((next["transactions"] as List?) ?? const []).map(
-          (e) => Map<String, dynamic>.from(e as Map),
-        ),
-      );
+    // The other pages, a few at a time, kept in page order.
+    const parallel = 4;
+    for (int page = 2; page <= totalPages; page += parallel) {
+      final pages = await Future.wait([
+        for (int p = page; p < page + parallel && p <= totalPages; p++)
+          this.xpub(xpub, page: p, from: from, gap: gap, tokens: "used"),
+      ]);
+      for (final next in pages) {
+        txs.addAll(
+          ((next["transactions"] as List?) ?? const []).map(
+            (e) => Map<String, dynamic>.from(e as Map),
+          ),
+        );
+      }
     }
+    // A tx arriving between two page requests shifts the pages: the same
+    // tx may come twice.
+    final seen = <String>{};
+    txs.retainWhere((t) => seen.add(t["txid"] as String));
     return (txs: txs, info: first);
   }
 

@@ -140,7 +140,7 @@ class _PivxGovernanceViewState extends ConsumerState<PivxGovernanceView> {
     for (final p in [...g.current, ...g.future]) {
       if (!mounted || generation != _generation) return;
       try {
-        final votes = await wallet.masternodeVotes(p);
+        final votes = await wallet.masternodeVotes(p, governance: g);
         if (mounted && generation == _generation) {
           setState(() => _votes[p.hash] = votes);
         }

@@ -30,6 +30,7 @@ import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/qr.dart';
+import '../../../../widgets/secret_screen.dart';
 import '../../../../widgets/stack_dialog.dart';
 import '../../../add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
 import '../../sub_widgets/view_only_wallet_data_widget.dart';
@@ -46,7 +47,11 @@ class WalletBackupView extends ConsumerWidget {
   final String walletId;
   final List<String> mnemonic;
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context, WidgetRef ref) => SecretScreen(
+    child: Builder(builder: (context) => _buildScreen(context, ref)),
+  );
+
+  Widget _buildScreen(BuildContext context, WidgetRef ref) {
     debugPrint("BUILD: $runtimeType");
 
     return Background(
@@ -227,7 +232,11 @@ class MobileKeyDataView extends ConsumerWidget {
   final KeyDataInterface keyData;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context, WidgetRef ref) => SecretScreen(
+    child: Builder(builder: (context) => _buildScreen(context, ref)),
+  );
+
+  Widget _buildScreen(BuildContext context, WidgetRef ref) {
     return Background(
       child: Scaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,

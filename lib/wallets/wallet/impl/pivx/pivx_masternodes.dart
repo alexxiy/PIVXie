@@ -176,8 +176,10 @@ extension PivxMasternodes on PivxWallet {
     }
   }
 
-  bool _isMasternodeCollateral(String txid, int vout) =>
-      masternodes.any((m) => m.txid == txid && m.vout == vout);
+  /// Collateral outputs of this wallet's masternodes (`txid:vout`).
+  Set<String> get _masternodeCollaterals => {
+    for (final m in masternodes) pivxOutpointKey(m.txid, m.vout),
+  };
 
   String _masternodeKeyName(String id) => pivxMasternodeKeyName(walletId, id);
 
@@ -210,6 +212,7 @@ extension PivxMasternodes on PivxWallet {
   /// masternode yet (e.g. a collateral sent before, or after a restore).
   Future<List<UTXO>> availableCollaterals() async {
     final raw = masternodeCollateral.raw.toInt();
+    final used = _masternodeCollaterals;
     return (await mainDB.getUTXOs(walletId).findAll())
         .where(
           (u) =>
@@ -217,7 +220,7 @@ extension PivxMasternodes on PivxWallet {
               !isPivxColdStakeUtxo(u) &&
               u.value == raw &&
               u.used != true &&
-              !_isMasternodeCollateral(u.txid, u.vout),
+              !used.contains(pivxOutpointKey(u.txid, u.vout)),
         )
         .toList();
   }
@@ -377,9 +380,12 @@ extension PivxMasternodes on PivxWallet {
 
   /// Masternode rewards paid to [mn]'s collateral address so far.
   Future<Amount> masternodeEarned(PivxMasternode mn) async {
+    // The kinds are in otherData (JSON): only those rows are read.
     final txs = await mainDB.isar.transactionV2s
         .where()
         .walletIdEqualTo(walletId)
+        .filter()
+        .otherDataContains('"${PivxTxKind.masternodeReward}"')
         .findAll();
     var total = BigInt.zero;
     for (final tx in txs) {

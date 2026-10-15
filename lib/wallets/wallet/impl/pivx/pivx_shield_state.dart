@@ -6,9 +6,12 @@ import '../../../../utilities/stack_file_system.dart';
 /// Per-wallet PIVX Shield (Sapling) state, mirroring what
 /// pivx-shield's `PIVXShield.save()` keeps in MyPIVXWallet.
 ///
-/// Nothing here is secret (the spending key is derived from the
-/// mnemonic when needed); it is stored as a JSON file next to the app
-/// data so the large witness data stays out of Isar.
+/// Stored as a JSON file next to the app data so the large witness data
+/// stays out of Isar. No keys go in the file: the full viewing key
+/// ([extfvk]) reveals every shield transaction, past and future, so it is
+/// derived from the mnemonic when the state loads and kept in memory.
+/// The notes, amounts and memos in the file are what the wallet's history
+/// shows anyway.
 class PivxShieldState {
   PivxShieldState({
     required this.extfvk,
@@ -29,6 +32,7 @@ class PivxShieldState {
 
   static const version = 1;
 
+  /// Not saved (see the class comment).
   final String extfvk;
   final bool isTestnet;
 
@@ -80,7 +84,6 @@ class PivxShieldState {
 
   Map<String, dynamic> toJson() => {
     "version": version,
-    "extfvk": extfvk,
     "isTestnet": isTestnet,
     "startHeight": startHeight,
     "lastProcessedBlock": lastProcessedBlock,
@@ -93,13 +96,16 @@ class PivxShieldState {
     "txInfo": txInfo,
   };
 
-  factory PivxShieldState.fromJson(Map<String, dynamic> json) {
+  factory PivxShieldState.fromJson(
+    Map<String, dynamic> json, {
+    required String extfvk,
+  }) {
     Map<String, Map<String, dynamic>> mapOfMaps(dynamic v) => {
       for (final e in Map<String, dynamic>.from(v as Map? ?? {}).entries)
         e.key: Map<String, dynamic>.from(e.value as Map),
     };
     return PivxShieldState(
-      extfvk: json["extfvk"] as String,
+      extfvk: extfvk,
       isTestnet: json["isTestnet"] as bool,
       startHeight: json["startHeight"] as int,
       lastProcessedBlock: json["lastProcessedBlock"] as int,
@@ -131,12 +137,15 @@ class PivxShieldState {
     return File("${dir.path}/$walletId.json");
   }
 
-  static Future<PivxShieldState?> load(String walletId) async {
+  static Future<PivxShieldState?> load(
+    String walletId, {
+    required String extfvk,
+  }) async {
     final f = await _file(walletId);
     if (!f.existsSync()) return null;
     final json = jsonDecode(await f.readAsString()) as Map<String, dynamic>;
     if (json["version"] != version) return null;
-    return PivxShieldState.fromJson(json);
+    return PivxShieldState.fromJson(json, extfvk: extfvk);
   }
 
   Future<void> save(String walletId) async {

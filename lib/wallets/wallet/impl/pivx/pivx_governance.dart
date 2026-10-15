@@ -190,6 +190,7 @@ class PivxGovernance {
     required this.totalBudget,
     required this.allocated,
     required this.futureAllocated,
+    this.netYesByName = const {},
   });
 
   /// Proposals the next superblock may pay (started already or starting
@@ -214,6 +215,10 @@ class PivxGovernance {
 
   /// Taken by the future proposals passing now.
   final Amount futureAllocated;
+
+  /// Net yes votes of every proposal the node knows, finished ones too,
+  /// by name and hash: names aren't unique (see [pivxVotesAreFor]).
+  final Map<String, Map<String, int>> netYesByName;
 
   int get nextSuperblock =>
       chainHeight - chainHeight % cycleBlocks + cycleBlocks;
@@ -375,13 +380,14 @@ List<PivxPastProposal> parsePivxProposalArchive(
   String html, {
   required int fractionDigits,
 }) {
+  // "&amp;" last: "&amp;lt;" is the text "&lt;", not "<".
   String unescape(String s) => s
-      .replaceAll("&amp;", "&")
       .replaceAll("&quot;", '"')
       .replaceAll("&#039;", "'")
       .replaceAll("&#39;", "'")
       .replaceAll("&lt;", "<")
-      .replaceAll("&gt;", ">");
+      .replaceAll("&gt;", ">")
+      .replaceAll("&amp;", "&");
 
   final rows = RegExp(
     r'<tr data-hash="([0-9a-f]{64})" data-title="([^"]*)">([\s\S]*?)</tr>',
@@ -449,6 +455,17 @@ class PivxMasternodeVote {
   );
 
   bool get canChange => DateTime.now().isAfter(changeableAt);
+}
+
+/// Whether `getbudgetvotes <name>` answers with the votes of proposal
+/// [hash]: the RPC takes a name, and PIVX Core picks the proposal of that
+/// name with the most net yes votes ([namesakes]: net yes by hash, this
+/// one included). A tie is left unattributed: Core breaks it by its
+/// internal hash order.
+bool pivxVotesAreFor(String hash, Map<String, int> namesakes) {
+  final own = namesakes[hash];
+  if (own == null) return namesakes.isEmpty;
+  return namesakes.entries.every((e) => e.key == hash || e.value < own);
 }
 
 /// Core's `COutPoint::ToStringShort()`, the masternode id in vote lists.
@@ -730,7 +747,14 @@ extension PivxGovernanceWallet on PivxWallet {
     ];
 
     final onNetwork = {for (final p in info) p["Hash"] as String};
+    final netYesByName = <String, Map<String, int>>{};
+    for (final p in info) {
+      (netYesByName[p["Name"] as String? ?? ""] ??= {})[p["Hash"] as String] =
+          ((p["Yeas"] as num?)?.toInt() ?? 0) -
+          ((p["Nays"] as num?)?.toInt() ?? 0);
+    }
     return PivxGovernance(
+      netYesByName: netYesByName,
       current: current,
       future: future,
       pending: [
@@ -948,6 +972,19 @@ extension PivxGovernanceWallet on PivxWallet {
   Future<void> removePendingProposal(String hash) =>
       _savePending([...pendingProposals.where((p) => p.hash != hash)]);
 
+  /// After sending [proposal]'s fee failed: forget the proposal when the
+  /// network doesn't have its fee transaction. Kept when it may have it
+  /// (it is then submitted once the fee confirms).
+  Future<void> forgetUnsentProposal(PivxPendingProposal proposal) async {
+    final saved = pendingProposals
+        .where((p) => p.hash == proposal.hash)
+        .firstOrNull;
+    if (saved == null) return;
+    if (await _stillOnNetwork(saved.feeTxid) == false) {
+      await removePendingProposal(proposal.hash);
+    }
+  }
+
   /// Confirmations of a pending proposal's fee, null while unconfirmed.
   Future<int?> feeConfirmationsOf(PivxPendingProposal p) async {
     final tx = await mainDB.isar.transactionV2s
@@ -1019,12 +1056,20 @@ extension PivxGovernanceWallet on PivxWallet {
   }
 
   /// The current votes of this wallet's masternodes on [proposal], by
-  /// masternode id ([PivxMasternode.id]).
+  /// masternode id ([PivxMasternode.id]). None when the node's answer may
+  /// be another proposal's with the same name (see [pivxVotesAreFor]).
   Future<Map<String, PivxMasternodeVote>> masternodeVotes(
-    PivxProposal proposal,
-  ) async {
+    PivxProposal proposal, {
+    required PivxGovernance governance,
+  }) async {
     final mns = masternodes;
     if (mns.isEmpty) return const {};
+    if (!pivxVotesAreFor(
+      proposal.hash,
+      governance.netYesByName[proposal.name] ?? const {},
+    )) {
+      return const {};
+    }
     final byOutpoint = {
       for (final m in mns) pivxMasternodeOutpointId(m.txid, m.vout): m.id,
     };

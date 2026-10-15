@@ -61,9 +61,13 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
 
   PivxShieldState? _shield;
 
+  /// The first load of [_shield], which callers at the same time share:
+  /// two loads would give two states, one overwriting the other's file.
+  Future<PivxShieldState>? _shieldLoading;
+
   /// Remove what a PIVX wallet keeps outside the wallet tables: masternode
-  /// private keys and the shield state file (it holds the full viewing
-  /// key). For wallet deletion.
+  /// private keys and the shield state file (its notes and history). For
+  /// wallet deletion.
   static Future<void> deleteLocalData({
     required String walletId,
     required Map<String, dynamic> otherData,
@@ -83,6 +87,10 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
   /// pick up reorged / late-confirmed transactions.
   static const _kResyncDepth = 10;
   static const _kBridgeGap = 20;
+
+  /// Bridge requests run at once when many are needed (previous
+  /// transactions, history pages).
+  static const _kParallelRequests = 6;
 
   /// Upper-bound serialized sizes (bytes) for fee estimation. A P2PKH
   /// input is 148 bytes, or 149 with a 73-byte DER signature.
@@ -223,38 +231,19 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
   /// Store the bridge's used addresses (`tokens`) and make sure the
   /// current receiving/change addresses are fresh ones.
   Future<void> _syncAddresses(List<dynamic>? tokens) async {
-    final pathRe = RegExp(r"/(\d+)/(\d+)$");
-    int maxReceive = -1;
-    int maxChange = -1;
-    final toStore = <Address>[];
-    final existing = (await mainDB.getAddresses(walletId).findAll())
-        .map((e) => e.value)
-        .toSet();
-
-    for (final t in tokens ?? const []) {
-      final token = Map<String, dynamic>.from(t as Map);
-      final name = token["name"] as String;
-      final m = pathRe.firstMatch(token["path"] as String? ?? "");
-      if (m == null) continue;
-      final chain = int.parse(m.group(1)!);
-      final index = int.parse(m.group(2)!);
-      if (chain == 0) maxReceive = max(maxReceive, index);
-      if (chain == 1) maxChange = max(maxChange, index);
-      if (existing.contains(name)) continue;
-
-      final address = await _deriveAddress(chain: chain, index: index);
-      if (address.value != name) {
-        Logging.instance.e(
-          "PIVX: bridge address $name at ${token["path"]} does not match "
-          "local derivation ${address.value}; ignoring",
-        );
-        continue;
-      }
-      toStore.add(address);
+    final used = await pivxUsedAddresses(
+      tokens: tokens ?? const [],
+      stored: {
+        for (final a in await mainDB.getAddresses(walletId).findAll())
+          a.value: a,
+      },
+      derive: (chain, index) => _deriveAddress(chain: chain, index: index),
+    );
+    if (used.derived.isNotEmpty) {
+      await mainDB.updateOrPutAddresses(used.derived);
     }
-    if (toStore.isNotEmpty) {
-      await mainDB.updateOrPutAddresses(toStore);
-    }
+    final maxReceive = used.maxReceive;
+    final maxChange = used.maxChange;
 
     // Next unused receiving address.
     final (storedReceive, storedChange) = await _highestStoredIndices();
@@ -507,8 +496,10 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
   /// [updateUTXOs] (run alongside it) can tell delegated outputs apart.
   Completer<void>? _historyFetched;
 
-  /// Output scripts of the transactions the last history fetch returned.
-  Map<String, List<String>> _historyOutScripts = const {};
+  /// Output scripts and blocks of the transactions the last history fetch
+  /// returned.
+  Map<String, ({List<String> scripts, String? blockHash, int? blockTime})>
+  _historyTxs = const {};
 
   @override
   Future<void> updateTransactions() async {
@@ -532,12 +523,13 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
         gap: await _bridgeGap(),
       ),
     );
-    _historyOutScripts = {
+    _historyTxs = {
       for (final json in result.txs)
-        json["txid"] as String: [
-          for (final v in (json["vout"] as List? ?? const []))
-            (v as Map)["hex"] as String? ?? "",
-        ],
+        json["txid"] as String: (
+          scripts: pivxOutputScripts(json),
+          blockHash: json["blockHash"] as String?,
+          blockTime: json["blockTime"] as int?,
+        ),
     };
     fetched.complete();
 
@@ -558,13 +550,24 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     }
 
     final sets = await _addressSets();
+    final coldStake = await _coldStakeOutpoints(result.txs);
     final txns = <TransactionV2>[
-      for (final json in result.txs) ?_parseTx(json, sets: sets),
+      for (final json in result.txs)
+        ?_parseTx(json, sets: sets, isColdStakeOutpoint: coldStake),
     ];
     await UiStallWatch.run(
       "PIVX ${info.name}: store ${txns.length} txs",
       () => _storeTxs(txns),
     );
+    try {
+      await _checkUnconfirmed();
+    } catch (e, s) {
+      Logging.instance.w(
+        "PIVX: checking unconfirmed transactions failed",
+        error: e,
+        stackTrace: s,
+      );
+    }
     _syncProgress(1);
     if (info.otherData[_kTxParseVersion] != _txParseVersion) {
       await info.updateOtherData(
@@ -576,7 +579,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
 
   /// Bumped when parsing changes: the next sync re-parses all history.
   static const _kTxParseVersion = "pivxTxParseVersion";
-  static const _txParseVersion = 5;
+  static const _txParseVersion = 6;
 
   /// The wallet's view of a bridge tx; see [parsePivxTx].
   TransactionV2? _parseTx(
@@ -588,6 +591,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
       Set<String> shield,
     })
     sets,
+    required bool Function(OutpointV2 outpoint) isColdStakeOutpoint,
   }) => parsePivxTx(
     json,
     walletId: walletId,
@@ -597,19 +601,33 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     shieldAddresses: sets.shield,
     shield: _shield?.txInfo[json["txid"]],
     nullifierNotes: _shield?.nullifierNotes ?? const {},
-    isColdStakeOutpoint: _isColdStakeOutpoint,
+    isColdStakeOutpoint: isColdStakeOutpoint,
     masternodePayment: cryptoCurrency.masternodePaymentAt,
   );
 
-  /// Whether [outpoint] is a cold-stake (P2CS) output of a stored tx.
-  bool _isColdStakeOutpoint(OutpointV2 outpoint) {
-    final prev = mainDB.isar.transactionV2s
-        .where()
-        .txidWalletIdEqualTo(outpoint.txid, walletId)
-        .findFirstSync();
-    return prev != null &&
-        outpoint.vout < prev.outputs.length &&
-        pivxIsColdStakeScript(prev.outputs[outpoint.vout].scriptPubKeyHex);
+  /// Tells cold-stake (P2CS) outputs apart while parsing [txs]: by the
+  /// scripts of [txs] themselves (a delegation and its withdrawal may
+  /// arrive in the same sync), else of the stored transactions, all read
+  /// in one query.
+  Future<bool Function(OutpointV2 outpoint)> _coldStakeOutpoints(
+    List<Map<String, dynamic>> txs,
+  ) async {
+    final scripts = {
+      for (final json in txs) json["txid"] as String: pivxOutputScripts(json),
+    };
+    final stored = await _storedTxs({
+      for (final json in txs)
+        for (final v in (json["vin"] as List? ?? const []))
+          if ((v as Map)["txid"] case final String t
+              when !scripts.containsKey(t))
+            t,
+    });
+    return (OutpointV2 o) {
+      final script =
+          scripts[o.txid]?.elementAtOrNull(o.vout) ??
+          stored[o.txid]?.outputs.elementAtOrNull(o.vout)?.scriptPubKeyHex;
+      return script != null && pivxIsColdStakeScript(script);
+    };
   }
 
   /// Store [txns] that are new or differ from the stored copy. Rewriting
@@ -684,6 +702,115 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
       "${o.valueStringSats}:${o.addresses.join(",")}:${o.walletOwns}",
   ].join("|");
 
+  // ===========================================================================
+  // Unconfirmed transactions
+
+  /// Unconfirmed transactions are checked with the bridge once this old.
+  static const _kCheckUnconfirmedAfter = Duration(minutes: 5);
+
+  /// One the network doesn't have, and this wallet can't send again (a
+  /// payment received, or no raw transaction kept), is forgotten after
+  /// this long.
+  static const _kForgetUnknownAfter = Duration(hours: 1);
+
+  /// Sends unconfirmed transactions of this wallet again when the network
+  /// lost them (e.g. the bridge's node restarted), and forgets ones it no
+  /// longer accepts (their coins spent elsewhere): they leave the history
+  /// and their coins count again. Without this, a dropped send stayed
+  /// pending forever, and its coins (shield notes above all) out of the
+  /// balance.
+  Future<void> _checkUnconfirmed() async {
+    final now = DateTime.timestamp().millisecondsSinceEpoch ~/ 1000;
+    final rows = await mainDB.isar.transactionV2s
+        .where()
+        .walletIdEqualTo(walletId)
+        .filter()
+        .heightIsNull()
+        .sortByTimestamp()
+        .findAll();
+    // Oldest first: a parent goes out again before its child.
+    final byTxid = {for (final t in rows) t.txid: t};
+    final txids = {...byTxid.keys, ...?_shield?.pendingSpent.keys};
+    for (final txid in txids) {
+      final row = byTxid[txid];
+      final age = row == null ? null : now - row.timestamp;
+      if (age != null && age < _kCheckUnconfirmedAfter.inSeconds) continue;
+      final raw = row?.pivxRawTx;
+      if (await _stillOnNetwork(txid, raw: raw) != false) continue;
+      if (raw == null && age != null && age < _kForgetUnknownAfter.inSeconds) {
+        continue;
+      }
+      Logging.instance.w("PIVX: $txid is no longer on the network; forgot it");
+      await _forgetUnconfirmed(txid, row);
+    }
+  }
+
+  /// Whether unconfirmed [txid] is still on the network: true when the
+  /// bridge's node has it or takes [raw] again, false when it doesn't
+  /// have it and refuses [raw] (or there is none), null when that can't
+  /// be told now (the bridge unreachable, ...).
+  Future<bool?> _stillOnNetwork(String txid, {String? raw}) async {
+    try {
+      await bridge.tx(txid);
+      return true;
+    } on PivxBridgeException catch (e) {
+      // Any other error (the node down, ...) tells nothing.
+      if (e.statusCode != 404 || !e.message.contains("No such mempool")) {
+        return null;
+      }
+    } catch (_) {
+      return null;
+    }
+    if (raw == null) return false;
+    try {
+      await bridge.sendTx(raw);
+      Logging.instance.i("PIVX: the network lost $txid; sent it again");
+      return true;
+    } on PivxBridgeException catch (e) {
+      final reason = e.message;
+      // "transaction already in block chain": confirmed meanwhile.
+      if (reason.contains("already")) return true;
+      if (e.statusCode != 400) return null;
+      // A full mempool, its fee floor or a long chain of unconfirmed
+      // parents may pass; a conflict or an invalid transaction won't.
+      if (reason.contains("mempool") && !reason.contains("conflict")) {
+        return null;
+      }
+      Logging.instance.w("PIVX: $txid refused: $reason");
+      return false;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  /// Drop unconfirmed [txid] ([row] in the history, if any): its coins
+  /// and shield notes become spendable again.
+  Future<void> _forgetUnconfirmed(String txid, TransactionV2? row) async {
+    if (row != null) {
+      final spent = {
+        for (final i in row.inputs)
+          if (i.outpoint case final o?) pivxOutpointKey(o.txid, o.vout),
+      };
+      await _utxoLock.protect(() async {
+        final freed = [
+          for (final u in await mainDB.getUTXOs(walletId).findAll())
+            if (u.used == true &&
+                spent.contains(pivxOutpointKey(u.txid, u.vout)))
+              u.copyWith(used: false),
+        ];
+        if (freed.isNotEmpty) await mainDB.putUTXOs(freed);
+      });
+      await mainDB.isar.writeTxn(
+        () => mainDB.isar.transactionV2s.delete(row.id),
+      );
+    }
+    final state = _shield;
+    if (state != null && state.pendingSpent.remove(txid) != null) {
+      await state.save(walletId);
+      await _writeShieldNoteRows(state);
+    }
+  }
+
   final _blockHashes = <int, String>{};
 
   Future<String> _blockHashAt(int height) async =>
@@ -699,7 +826,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     if (stored != null && vout < stored.outputs.length) {
       return stored.outputs[vout].scriptPubKeyHex;
     }
-    final fetched = _historyOutScripts[txid];
+    final fetched = _historyTxs[txid]?.scripts;
     if (fetched != null && vout < fetched.length) return fetched[vout];
     try {
       final outputs = await _verifiedOutputs(txid);
@@ -718,6 +845,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     await _historyFetched?.future;
     final txs = await _storedTxs(list.map((u) => u["txid"] as String));
 
+    final collaterals = _masternodeCollaterals;
     final utxos = <UTXO>[];
     for (final u in list) {
       final txid = u["txid"] as String;
@@ -744,7 +872,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
           ),
         });
       }
-      if (_isMasternodeCollateral(txid, vout)) {
+      if (collaterals.contains(pivxOutpointKey(txid, vout))) {
         blocked = true;
         blockedReason = _kMasternodeFrozenReason;
       }
@@ -755,9 +883,12 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
       String? blockHash;
       int? blockTime;
       if (height != null) {
-        blockHash = tx?.blockHash ?? await _blockHashAt(height);
+        final fetched = _historyTxs[txid];
+        blockHash =
+            tx?.blockHash ?? fetched?.blockHash ?? await _blockHashAt(height);
         blockTime =
             tx?.timestamp ??
+            fetched?.blockTime ??
             DateTime.timestamp().millisecondsSinceEpoch ~/ 1000;
       }
 
@@ -881,6 +1012,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
   Future<void> updateBalance() async {
     final utxos = await mainDB.getUTXOs(walletId).findAll();
     final height = await chainHeight;
+    final collaterals = _masternodeCollaterals;
     var total = BigInt.zero;
     var spendable = BigInt.zero;
     var pending = BigInt.zero;
@@ -889,7 +1021,11 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
       if (ignoreUtxoInBalance(u)) continue;
       final value = BigInt.from(u.value);
       total += value;
-      if (u.isBlocked || isPivxColdStakeUtxo(u)) {
+      // Delegated coins and masternode collateral are never spent by an
+      // ordinary send, even when unfrozen.
+      if (u.isBlocked ||
+          isPivxColdStakeUtxo(u) ||
+          collaterals.contains(pivxOutpointKey(u.txid, u.vout))) {
         blocked += value;
       } else if (u.isConfirmed(
         height,
@@ -1018,6 +1154,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
       values = _spendable(
         selected?.toList() ?? await mainDB.getUTXOs(walletId).findAll(),
         await chainHeight,
+        collateral: selected != null,
       ).map((u) => u.value).toList();
     }
     values.sort();
@@ -1161,25 +1298,22 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
   }
 
   /// Spendable transparent outputs (shield note rows excluded).
-  /// Delegated outputs only when [coldStake] (picked by the user), even
-  /// though they are frozen.
+  /// Delegated outputs only when [coldStake], masternode collateral only
+  /// when [collateral] (both: picked by the user).
   List<UTXO> _spendable(
     List<UTXO> utxos,
     int chainHeight, {
     bool coldStake = false,
-  }) => utxos
-      .where(
-        (u) =>
-            !isPivxShieldNote(u) &&
-            (isPivxColdStakeUtxo(u) ? coldStake : !u.isBlocked) &&
-            u.used != true &&
-            u.isConfirmed(
-              chainHeight,
-              cryptoCurrency.minConfirms,
-              cryptoCurrency.minCoinbaseConfirms,
-            ),
-      )
-      .toList();
+    bool collateral = false,
+  }) => pivxSpendable(
+    utxos,
+    chainHeight: chainHeight,
+    minConfirms: cryptoCurrency.minConfirms,
+    minCoinbaseConfirms: cryptoCurrency.minCoinbaseConfirms,
+    collaterals: _masternodeCollaterals,
+    coldStake: coldStake,
+    collateral: collateral,
+  );
 
   @override
   Future<Amount> estimateFeeFor(Amount amount, BigInt feeRate) async {
@@ -1339,7 +1473,12 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
           .whereType<StandardInput>()
           .map((e) => e.utxo)
           .toList();
-      final usable = _spendable(candidates, currentHeight, coldStake: true);
+      final usable = _spendable(
+        candidates,
+        currentHeight,
+        coldStake: true,
+        collateral: true,
+      );
       if (usable.length != candidates.length) {
         throw Exception("Attempted to use an unavailable utxo");
       }
@@ -1492,11 +1631,24 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
       throw Exception("Fee estimate too low ($fee < $required); please retry");
     }
 
+    // Change to an address outside the wallet leaves it like the payment.
+    final change = outputs.where((o) => o.isChange).firstOrNull;
+    var otherData = built.txData.otherData;
+    if (change != null &&
+        await mainDB.getAddress(walletId, change.address) == null) {
+      otherData = _withForeignChange(
+        otherData,
+        change.address,
+        change.amount.raw,
+      );
+    }
+
     return built.txData.copyWith(
       recipients: outputs,
       fee: Amount(rawValue: fee, fractionDigits: cryptoCurrency.fractionDigits),
       vSize: built.size,
       usedUTXOs: inputs,
+      otherData: otherData,
     );
   }
 
@@ -1512,8 +1664,15 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
   /// transaction, which must hash to its txid. Its script also tells how
   /// to sign it (P2PKH or cold staking).
   Future<void> _verifyInputValues(List<UTXO> utxos) async {
+    // The previous transactions, a few requests at a time.
+    final txids = {for (final u in utxos) u.txid}.toList();
+    for (var i = 0; i < txids.length; i += _kParallelRequests) {
+      await Future.wait(
+        txids.skip(i).take(_kParallelRequests).map(_verifiedOutputs),
+      );
+    }
     for (final u in utxos) {
-      final outputs = await _verifiedOutputs(u.txid);
+      final outputs = _prevOuts[u.txid]!;
       if (u.vout >= outputs.length ||
           outputs[u.vout].value != BigInt.from(u.value)) {
         throw Exception(
@@ -1527,16 +1686,23 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
   /// Verified script of the output [u] spends.
   Uint8List _prevScript(UTXO u) => _prevOuts[u.txid]![u.vout].script;
 
-  /// Keys for [utxos]. Delegated outputs only when [coldStake]: the user
-  /// picked them.
+  /// Keys for [utxos], from [root] (else derived from the seed).
+  /// Delegated outputs only when [coldStake]: the user picked them.
+  ///
+  /// With [verifyValues] (legacy signatures, which don't commit to the
+  /// value spent), each value is checked against its previous transaction
+  /// first; that also tells delegated outputs apart by their script.
   Future<List<StandardInput>> _withKeys(
     List<UTXO> utxos, {
     bool coldStake = false,
+    coinlib.HDPrivateKey? root,
+    bool verifyValues = true,
   }) async {
-    final root = isViewOnly ? null : await getRootHDNode();
-    if (root == null) throw Exception("View only wallets cannot sign");
-    await _verifyInputValues(utxos);
-    if (!coldStake &&
+    if (isViewOnly) throw Exception("View only wallets cannot sign");
+    root ??= await getRootHDNode();
+    if (verifyValues) await _verifyInputValues(utxos);
+    if (verifyValues &&
+        !coldStake &&
         utxos.any((u) => pivxParseColdStakeScript(_prevScript(u)) != null)) {
       throw Exception(
         "Delegated coins are only spent when you pick them; please retry",
@@ -1646,6 +1812,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     for (int i = 0; i < inputs.length; i++) {
       tx = tx.signLegacy(inputN: i, key: inputs[i].key!.privateKey!);
     }
+    final raw = tx.toHex();
 
     // Pending history entry, classified like confirmed ones.
     final changeAddresses = {
@@ -1665,7 +1832,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     return (
       size: tx.size,
       txData: txData.copyWith(
-        raw: tx.toHex(),
+        raw: raw,
         txid: tx.txid,
         tempTx: TransactionV2(
           walletId: walletId,
@@ -1686,6 +1853,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
               changeAddresses: changeAddresses,
               fee: fee,
               ownSend: true,
+              rawTx: raw,
             ),
           ),
         ),
@@ -1699,24 +1867,120 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
         (jsonDecode(txData.otherData!) as Map)[_kOdShieldTx] == true) {
       return _confirmShieldSend(txData);
     }
+    final String txid;
     try {
-      final txid = await bridge.sendTx(txData.raw!);
-      final used = txData.usedUTXOs!
-          .whereType<StandardInput>()
-          .map(
-            (e) => StandardInput(
-              e.utxo.copyWith(used: true),
-              derivePathType: e.derivePathType,
-            ),
-          )
-          .toList();
-      await mainDB.putUTXOs(used.map((e) => e.utxo).toList());
-      return await updateSentCachedTxData(
-        txData: txData.copyWith(usedUTXOs: used, txid: txid, txHash: txid),
-      );
+      txid = await bridge.sendTx(txData.raw!);
     } catch (e, s) {
       Logging.instance.e("PIVX confirmSend failed", error: e, stackTrace: s);
       rethrow;
     }
+    // Sent: what follows only records it. An error here must not read
+    // as a failed send, or the user would pay again.
+    final used = txData.usedUTXOs!
+        .whereType<StandardInput>()
+        .map(
+          (e) => StandardInput(
+            e.utxo.copyWith(used: true),
+            derivePathType: e.derivePathType,
+          ),
+        )
+        .toList();
+    final sent = txData.copyWith(usedUTXOs: used, txid: txid, txHash: txid);
+    try {
+      await _utxoLock.protect(
+        () => mainDB.putUTXOs(used.map((e) => e.utxo).toList()),
+      );
+      return await updateSentCachedTxData(txData: sent);
+    } catch (e, s) {
+      Logging.instance.e(
+        "PIVX: $txid sent, but recording it failed",
+        error: e,
+        stackTrace: s,
+      );
+      return sent;
+    }
   }
 }
+
+/// Chain (0 receiving, 1 change) and index of a bridge token path such as
+/// `m/44'/119'/0'/0/5`; null for any other path.
+({int chain, int index})? pivxTokenPath(String? path) {
+  final m = RegExp(r"/([01])/(\d{1,10})$").firstMatch(path ?? "");
+  if (m == null) return null;
+  final index = int.parse(m.group(2)!);
+  // Hardened indices can't be derived from the account xpub.
+  if (index >= 0x80000000) return null;
+  return (chain: int.parse(m.group(1)!), index: index);
+}
+
+/// The used addresses a bridge reports ([tokens]: `name` and `path`), as
+/// this wallet's own: [stored] rows, and new ones from [derive] whose
+/// address matches the name. The highest used index per chain counts
+/// these only: a path the bridge sends is never taken on trust, or a
+/// lying bridge could move the next receiving address beyond what any
+/// wallet scans.
+Future<({List<Address> derived, int maxReceive, int maxChange})>
+pivxUsedAddresses({
+  required List<dynamic> tokens,
+  required Map<String, Address> stored,
+  required Future<Address> Function(int chain, int index) derive,
+}) async {
+  final derived = <Address>[];
+  int maxReceive = -1;
+  int maxChange = -1;
+  for (final t in tokens) {
+    final token = Map<String, dynamic>.from(t as Map);
+    final name = token["name"] as String?;
+    if (name == null) continue;
+    var address = stored[name];
+    if (address == null) {
+      final path = pivxTokenPath(token["path"] as String?);
+      if (path == null) continue;
+      final candidate = await derive(path.chain, path.index);
+      if (candidate.value != name) {
+        Logging.instance.e(
+          "PIVX: bridge address $name at ${token["path"]} does not match "
+          "local derivation ${candidate.value}; ignoring",
+        );
+        continue;
+      }
+      derived.add(candidate);
+      address = candidate;
+    }
+    if (address.type == AddressType.pivxShield) continue;
+    if (address.subType == AddressSubType.receiving) {
+      maxReceive = max(maxReceive, address.derivationIndex);
+    } else if (address.subType == AddressSubType.change) {
+      maxChange = max(maxChange, address.derivationIndex);
+    }
+  }
+  return (derived: derived, maxReceive: maxReceive, maxChange: maxChange);
+}
+
+/// `txid:vout`, as masternode ids are written.
+String pivxOutpointKey(String txid, int vout) => "$txid:$vout";
+
+/// Transparent outputs a send may spend: confirmed, not already being
+/// spent, not frozen, no shield note rows. Delegated outputs only with
+/// [coldStake] and masternode [collaterals] only with [collateral], when
+/// the user picked them: an unfrozen collateral would otherwise be the
+/// first coin an ordinary send spends (largest first), stopping the
+/// masternode.
+List<UTXO> pivxSpendable(
+  Iterable<UTXO> utxos, {
+  required int chainHeight,
+  required int minConfirms,
+  required int minCoinbaseConfirms,
+  Set<String> collaterals = const {},
+  bool coldStake = false,
+  bool collateral = false,
+}) => [
+  for (final u in utxos)
+    if (!isPivxShieldNote(u) &&
+        (isPivxColdStakeUtxo(u) ? coldStake : !u.isBlocked) &&
+        (collateral ||
+            !collaterals.contains(pivxOutpointKey(u.txid, u.vout))) &&
+        u.used != true &&
+        u.isConfirmed(chainHeight, minConfirms, minCoinbaseConfirms))
+      u,
+];

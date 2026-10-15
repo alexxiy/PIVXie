@@ -143,7 +143,6 @@ class _PivxCreateProposalViewState
         );
     if (!mounted || prepared == null) return;
     final (txData, proposal) = prepared;
-    Future<void>? saving;
     await Navigator.of(context).push(
       RouteGenerator.getRoute<void>(
         shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
@@ -152,11 +151,14 @@ class _PivxCreateProposalViewState
           child: ConfirmTransactionView(
             txData: txData,
             walletId: widget.walletId,
-            onSuccess: () {
-              saving = wallet.addPendingProposal(proposal, txData.txid!);
-            },
-            onSuccessInsteadOfRouteOnSuccess: () async {
-              await saving;
+            // Remembered before the fee goes out: were the app to stop
+            // right after sending, the fee would be burnt with nothing
+            // left to submit the proposal.
+            beforeBroadcast: () =>
+                wallet.addPendingProposal(proposal, txData.txid!),
+            afterFailedBroadcast: () => wallet.forgetUnsentProposal(proposal),
+            onSuccess: () {},
+            onSuccessInsteadOfRouteOnSuccess: () {
               if (mounted) {
                 Navigator.of(
                   context,

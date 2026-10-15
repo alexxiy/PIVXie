@@ -70,6 +70,17 @@ void main() {
     expect(past[1].yesPercent, 40);
   });
 
+  test("archive text is unescaped once", () {
+    final html =
+        '<tr data-hash="${"ab" * 32}" data-title="a &amp;lt;3 b">'
+        '<td><b>Passing</b></td><td><a href="https://x.org/?a=1&amp;b=2">'
+        '</a></td><td data-order="1"><b>1 <span>PIV</span></b></td>'
+        '<td data-order="1">1 / 0</td></tr>';
+    final past = parsePivxProposalArchive(html, fractionDigits: 8);
+    expect(past.single.name, "a &lt;3 b");
+    expect(past.single.url, "https://x.org/?a=1&b=2");
+  });
+
   test("a proposal payout is found in the superblock's coinstake", () {
     // Regtest superblock 8064 paid the 10 PIV proposal "budgettest3".
     const payee = "yDTMsQVS3ZAfweCPbtLXDHKuJZyejNyBVw";

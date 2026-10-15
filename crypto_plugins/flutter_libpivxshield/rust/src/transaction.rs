@@ -70,6 +70,10 @@ use zcash_transparent::bundle::{OutPoint, TxOut};
 
 pub const DEPTH: u8 = 32;
 
+/// PIVX Core's dust threshold for a P2PKH output at the 10 sat/byte relay
+/// fee (3 * (34 + 148) * 10): nodes don't relay smaller transparent outputs.
+const DUST_SATS: u64 = 5460;
+
 type BoxResult<T> = Result<T, Box<dyn Error>>;
 
 /// Shield fee rule used by PIVX wallets: 1000 sat per estimated byte.
@@ -637,6 +641,21 @@ impl Selection {
     }
 }
 
+/// Error when a transparent recipient would get less than [`DUST_SATS`]
+/// (only possible when the fee comes out of the amount).
+const BELOW_DUST: &str = "Amount after the fee is below the dust limit";
+
+/// Change and fee once transparent change below [`DUST_SATS`] goes to the
+/// fee, as PIVX Core's wallet does: nodes would refuse the transaction
+/// with such an output. Shield change has no such limit.
+fn fold_dust_change(change: u64, fee: u64, transparent_change: bool) -> (u64, u64) {
+    if transparent_change && change > 0 && change < DUST_SATS {
+        (0, fee + change)
+    } else {
+        (change, fee)
+    }
+}
+
 #[allow(clippy::too_many_arguments)]
 fn create_transaction_internal(
     inputs: Either<Vec<(Note, String)>, Vec<Utxo>>,
@@ -668,11 +687,10 @@ fn create_transaction_internal(
     );
     let mut signing_set = TransparentSigningSet::new();
 
-    let (mut transparent_output_count, sapling_output_count) =
-        if to_address.starts_with(network.hrp_sapling_payment_address()) { (0, 2) } else { (1, 2) };
-    if !change_address.starts_with(network.hrp_sapling_payment_address()) {
-        transparent_output_count += 1;
-    }
+    let to_shield = to_address.starts_with(network.hrp_sapling_payment_address());
+    let change_to_shield = change_address.starts_with(network.hrp_sapling_payment_address());
+    let sapling_output_count = 2;
+    let transparent_output_count = u64::from(!to_shield) + u64::from(!change_to_shield);
     let (nullifiers, change, fee) = match inputs {
         Either::Left(notes) => choose_notes(
             &mut builder,
@@ -693,6 +711,11 @@ fn create_transaction_internal(
             selection,
         )?,
     };
+    let (change, fee) = fold_dust_change(change, fee, !change_to_shield);
+    if !to_shield && amount < DUST_SATS {
+        Err(BELOW_DUST)?;
+    }
+    let change = Zatoshis::from_u64(change).map_err(|_| "Invalid change")?;
     let send_amount = Zatoshis::from_u64(amount).map_err(|_| "Invalid Amount")?;
     // Outputs carry the wallet's outgoing viewing key (as PIVX Core does),
     // so the sender can later recover recipient, amount and memo.
@@ -777,6 +800,7 @@ fn create_script_transaction(
         }
     }
     let change = selection.settle(total, &mut amount, fee)?;
+    let (change, fee) = fold_dust_change(change, fee, !shield_change);
 
     let ovk = dfvk.fvk().ovk;
     let mut transparent = TransparentBuilder::empty();
@@ -851,7 +875,7 @@ fn choose_utxos(
     sapling_output_count: u64,
     signing_set: &mut TransparentSigningSet,
     selection: Selection,
-) -> BoxResult<(Vec<String>, Zatoshis, u64)> {
+) -> BoxResult<(Vec<String>, u64, u64)> {
     let mut total = 0;
     let mut used = vec![];
     let mut count = 0;
@@ -887,7 +911,6 @@ fn choose_utxos(
         }
     }
     let change = selection.settle(total, amount, fee)?;
-    let change = Zatoshis::from_u64(change).map_err(|_| "Invalid change")?;
     Ok((used, change, fee))
 }
 
@@ -899,7 +922,7 @@ fn choose_notes(
     transparent_output_count: u64,
     sapling_output_count: u64,
     selection: Selection,
-) -> BoxResult<(Vec<String>, Zatoshis, u64)> {
+) -> BoxResult<(Vec<String>, u64, u64)> {
     let mut total = 0;
     let mut nullifiers = vec![];
     let mut count = 0;
@@ -920,7 +943,6 @@ fn choose_notes(
         }
     }
     let change = selection.settle(total, amount, fee)?;
-    let change = Zatoshis::from_u64(change).map_err(|_| "Invalid change")?;
     Ok((nullifiers, change, fee))
 }
 
@@ -945,4 +967,35 @@ fn prove_transaction(
     let tx = result.transaction();
     tx.write(&mut tx_hex)?;
     Ok(JSTransaction { txid: tx.txid().to_string(), txhex: hex::encode(tx_hex), nullifiers, fee, amount: 0 })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn dust_change_goes_to_the_fee() {
+        assert_eq!(fold_dust_change(DUST_SATS - 1, 1000, true), (0, 1000 + DUST_SATS - 1));
+        assert_eq!(fold_dust_change(DUST_SATS, 1000, true), (DUST_SATS, 1000));
+        assert_eq!(fold_dust_change(0, 1000, true), (0, 1000));
+        // Shield change has no dust limit.
+        assert_eq!(fold_dust_change(1, 1000, false), (1, 1000));
+    }
+
+    #[test]
+    fn selection_settles_change_and_fee() {
+        let plain = Selection { use_all: false, subtract_fee: false };
+        let mut amount = 100;
+        assert_eq!(plain.settle(150, &mut amount, 10).unwrap(), 40);
+        assert_eq!(amount, 100);
+        let mut amount = 100;
+        assert!(plain.settle(105, &mut amount, 10).is_err());
+
+        let subtract = Selection { use_all: false, subtract_fee: true };
+        let mut amount = 100;
+        assert_eq!(subtract.settle(150, &mut amount, 10).unwrap(), 50);
+        assert_eq!(amount, 90);
+        let mut amount = 10;
+        assert!(subtract.settle(150, &mut amount, 10).is_err());
+    }
 }

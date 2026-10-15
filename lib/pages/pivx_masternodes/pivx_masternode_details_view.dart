@@ -16,11 +16,13 @@ import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/custom_buttons/blue_text_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
+import '../../widgets/icon_buttons.dart';
 import '../../widgets/rounded_white_container.dart';
+import '../../widgets/secret_screen.dart';
 import '../../widgets/stack_dialog.dart';
 import '../../widgets/stack_text_field.dart';
+import '../pinpad_views/authenticate_user.dart';
 import 'pivx_masternodes_view.dart';
-import '../../widgets/icon_buttons.dart';
 
 const _kMasternodeSpaceUrl = "https://masternode.space";
 
@@ -169,6 +171,22 @@ class _PivxMasternodeDetailsViewState
     }
   }
 
+  /// Shows the masternode key once the user proved it's them (PIN or
+  /// password): it can vote as the masternode and run it elsewhere.
+  Future<bool> _revealKey() async {
+    if (_showKey) return true;
+    final ok = await authenticateUser(
+      context,
+      coin: _wallet.cryptoCurrency,
+      title: "Show masternode key",
+      reason: "Unlock to show the masternode private key",
+    );
+    if (ok && mounted) setState(() => _showKey = true);
+    return ok;
+  }
+
+  static const _hiddenKey = "••••••••••••••••••••";
+
   Widget _row(String label, String value, {bool secret = false}) {
     final colors = Theme.of(context).extension<StackColors>()!;
     return RoundedWhiteContainer(
@@ -185,7 +203,7 @@ class _PivxMasternodeDetailsViewState
                 ),
                 const SizedBox(height: 4),
                 SelectableText(
-                  secret && !_showKey ? "••••••••••••••••••••" : value,
+                  secret && !_showKey ? _hiddenKey : value,
                   style: STextStyles.w600_14(context),
                 ),
               ],
@@ -194,16 +212,22 @@ class _PivxMasternodeDetailsViewState
           if (secret)
             CustomTextButton(
               text: _showKey ? "Hide" : "Show",
-              onTap: () => setState(() => _showKey = !_showKey),
+              onTap: _showKey
+                  ? () => setState(() => _showKey = false)
+                  : _revealKey,
             ),
-          const SizedBox(width: 8),
-          IconCopyButton(data: value),
+          if (!secret || _showKey) ...[
+            const SizedBox(width: 8),
+            IconCopyButton(data: value),
+          ],
         ],
       ),
     );
   }
 
-  Widget _codeBlock(String code) {
+  /// [code] holds the masternode key: hidden, and not copied, until
+  /// [_revealKey].
+  Widget _codeBlock(String Function(String key) code, String key) {
     final colors = Theme.of(context).extension<StackColors>()!;
     return RoundedWhiteContainer(
       child: Row(
@@ -211,13 +235,16 @@ class _PivxMasternodeDetailsViewState
         children: [
           Expanded(
             child: SelectableText(
-              code,
+              code(_showKey ? key : _hiddenKey),
               style: STextStyles.w500_12(context)
                   .copyWith(fontFamily: "monospace", color: colors.textDark),
             ),
           ),
           const SizedBox(width: 8),
-          IconCopyButton(data: code),
+          if (_showKey)
+            IconCopyButton(data: code(key))
+          else
+            CustomTextButton(text: "Show", onTap: _revealKey),
         ],
       ),
     );
@@ -305,7 +332,10 @@ class _PivxMasternodeDetailsViewState
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) =>
+      SecretScreen(child: Builder(builder: _buildScreen));
+
+  Widget _buildScreen(BuildContext context) {
     final colors = Theme.of(context).extension<StackColors>()!;
     final wallet = _wallet;
     final mn = _masternode;
@@ -457,7 +487,11 @@ class _PivxMasternodeDetailsViewState
                     const SizedBox(height: 12),
                     PrimaryButton(
                       label: "Show what masternode.space needs",
-                      onPressed: () => _showHostingDetails(mn, key),
+                      onPressed: () async {
+                        if (await _revealKey() && mounted) {
+                          await _showHostingDetails(mn, key);
+                        }
+                      },
                     ),
                     const SizedBox(height: 24),
                     Text(
@@ -474,7 +508,7 @@ class _PivxMasternodeDetailsViewState
                       style: STextStyles.itemSubtitle(context),
                     ),
                     const SizedBox(height: 8),
-                    _codeBlock(wallet.masternodePivxConf(mn, key)),
+                    _codeBlock((k) => wallet.masternodePivxConf(mn, k), key),
                     const SizedBox(height: 12),
                     Text(
                       "masternode.conf line, for a PIVX Core controller "
@@ -482,7 +516,7 @@ class _PivxMasternodeDetailsViewState
                       style: STextStyles.itemSubtitle(context),
                     ),
                     const SizedBox(height: 8),
-                    _codeBlock(wallet.masternodeConfLine(mn, key)),
+                    _codeBlock((k) => wallet.masternodeConfLine(mn, k), key),
                     const SizedBox(height: 24),
                     SecondaryButton(
                       label: "Remove masternode",

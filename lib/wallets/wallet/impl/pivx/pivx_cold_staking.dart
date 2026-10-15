@@ -399,9 +399,14 @@ extension PivxColdStakingWallet on PivxWallet {
   /// since withdrawn.
   Future<Map<String, ({BigInt amount, int stakes})>>
   coldStakeRewardsByOwner() async {
+    // The kind is in otherData (JSON): only those rows are read.
     final txs = await mainDB.isar.transactionV2s
         .where()
         .walletIdEqualTo(walletId)
+        .filter()
+        .otherDataContains(
+          '"${TxV2OdKeys.pivxKind}":"${PivxTxKind.coldStakeReward}"',
+        )
         .findAll();
     final byOwner = <String, BigInt>{};
     final stakes = <String, int>{};

@@ -50,7 +50,10 @@ class _PivxProposalViewState extends ConsumerState<PivxProposalView> {
   @override
   void initState() {
     super.initState();
-    _votes = _wallet.masternodeVotes(widget.proposal);
+    _votes = _wallet.masternodeVotes(
+      widget.proposal,
+      governance: widget.governance,
+    );
     _payouts = _wallet.proposalPayouts(
       widget.proposal,
       chainHeight: ref.read(pWalletChainHeight(widget.walletId)),
@@ -81,8 +84,15 @@ class _PivxProposalViewState extends ConsumerState<PivxProposalView> {
     );
     if (done == true && mounted) {
       _voted = true;
-      setState(() => _votes = _wallet.masternodeVotes(_proposal));
+      // The new tally first: it tells whose votes the node answers with.
       await _reloadTally();
+      if (!mounted) return;
+      setState(
+        () => _votes = _wallet.masternodeVotes(
+          _proposal,
+          governance: _governance,
+        ),
+      );
     }
   }
 

@@ -600,9 +600,9 @@ class _SendViewState extends ConsumerState<SendView> {
       recipient = pivxName.address;
     }
 
+    // The dialog's Cancel button closes the dialog itself.
+    bool wasCancelled = false;
     try {
-      bool wasCancelled = false;
-
       if (mounted) {
         unawaited(
           showDialog<void>(
@@ -612,11 +612,7 @@ class _SendViewState extends ConsumerState<SendView> {
             builder: (context) {
               return BuildingTransactionDialog(
                 coin: wallet.info.coin,
-                onCancel: () {
-                  wasCancelled = true;
-
-                  Navigator.of(context).pop();
-                },
+                onCancel: () => wasCancelled = true,
               );
             },
           ),
@@ -698,7 +694,8 @@ class _SendViewState extends ConsumerState<SendView> {
       }
     } catch (e, s) {
       Logging.instance.e("$e\n$s", error: e, stackTrace: s);
-      if (mounted) {
+      // Cancelled: the dialog is closed already, and the error is moot.
+      if (mounted && !wasCancelled) {
         // pop building dialog
         Navigator.of(context, rootNavigator: true).pop();
 

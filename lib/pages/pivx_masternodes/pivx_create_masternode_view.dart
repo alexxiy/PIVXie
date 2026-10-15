@@ -18,6 +18,7 @@ import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/custom_buttons/blue_text_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/rounded_white_container.dart';
+import '../../widgets/secret_screen.dart';
 import '../../widgets/stack_text_field.dart';
 import '../send_view/confirm_transaction_view.dart';
 import '../send_view/sub_widgets/building_transaction_dialog.dart';
@@ -382,7 +383,10 @@ class _PivxCreateMasternodeViewState
   );
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) =>
+      SecretScreen(child: Builder(builder: _buildScreen));
+
+  Widget _buildScreen(BuildContext context) {
     final colors = Theme.of(context).extension<StackColors>()!;
     final wallet = _wallet;
     final collateral =

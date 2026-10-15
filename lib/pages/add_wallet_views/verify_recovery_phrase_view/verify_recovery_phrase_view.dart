@@ -31,6 +31,7 @@ import '../../../wallets/wallet/wallet.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/desktop/desktop_app_bar.dart';
 import '../../../widgets/desktop/desktop_scaffold.dart';
+import '../../../widgets/secret_screen.dart';
 import '../../home_view/home_view.dart';
 import '../new_wallet_options/new_wallet_options_view.dart';
 import '../new_wallet_recovery_phrase_view/new_wallet_recovery_phrase_view.dart';
@@ -198,7 +199,10 @@ class _VerifyRecoveryPhraseViewState
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) =>
+      SecretScreen(child: Builder(builder: _buildScreen));
+
+  Widget _buildScreen(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
     final correctIndex = ref.watch(verifyMnemonicWordIndexStateProvider);
 

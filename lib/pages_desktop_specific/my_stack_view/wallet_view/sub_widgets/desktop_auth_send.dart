@@ -26,10 +26,21 @@ import '../../../../widgets/loading_indicator.dart';
 import '../../../../widgets/stack_text_field.dart';
 
 class DesktopAuthSend extends ConsumerStatefulWidget {
-  const DesktopAuthSend({super.key, required this.coin, this.tokenTicker});
+  const DesktopAuthSend({
+    super.key,
+    required this.coin,
+    this.tokenTicker,
+    this.title,
+    this.message,
+  });
 
   final CryptoCurrency coin;
   final String? tokenTicker;
+
+  /// For other uses than sending: replaces "Confirm transaction" and its
+  /// line about sending.
+  final String? title;
+  final String? message;
 
   @override
   ConsumerState<DesktopAuthSend> createState() => _DesktopAuthSendState();
@@ -101,10 +112,14 @@ class _DesktopAuthSendState extends ConsumerState<DesktopAuthSend> {
       children: [
         SvgPicture.asset(Assets.svg.keys, width: 100),
         const SizedBox(height: 56),
-        Text("Confirm transaction", style: STextStyles.desktopH3(context)),
+        Text(
+          widget.title ?? "Confirm transaction",
+          style: STextStyles.desktopH3(context),
+        ),
         const SizedBox(height: 16),
         Text(
-          "Enter your wallet password to send ${widget.tokenTicker ?? widget.coin.ticker}",
+          widget.message ??
+              "Enter your wallet password to send ${widget.tokenTicker ?? widget.coin.ticker}",
           style: STextStyles.desktopTextMedium(context).copyWith(
             color: Theme.of(context).extension<StackColors>()!.textDark3,
           ),
