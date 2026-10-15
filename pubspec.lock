@@ -229,12 +229,10 @@ packages:
   camera_linux:
     dependency: "direct main"
     description:
-      path: "."
-      ref: ecb412474c5d240347b04ac1eb9f019802ff7034
-      resolved-ref: ecb412474c5d240347b04ac1eb9f019802ff7034
-      url: "https://github.com/cypherstack/camera-linux"
-    source: git
-    version: "0.0.8"
+      path: "plugins/camera_linux"
+      relative: true
+    source: path
+    version: "0.0.8+pivxie.1"
   camera_macos:
     dependency: "direct main"
     description:

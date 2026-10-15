@@ -16,6 +16,7 @@ analyzer:
     - "integrated_test/**"
     - "integration_test/**.dart"
     - "crypto_plugins/**"
+    - "plugins/**"
     - "bin/cache/**"
     - "lib/generated_plugin_registrant.dart"
     - "lib/wl_gen/generated/**"

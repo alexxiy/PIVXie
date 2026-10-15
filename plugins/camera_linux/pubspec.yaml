@@ -1,0 +1,22 @@
+# PIVXie's copy of camera_linux (https://github.com/islamroshan/camera-linux,
+# via cypherstack/camera-linux at ecb4124), changed so the app bundle is
+# self-contained: one library with a static OpenCV linked in. See README.md.
+name: camera_linux
+description: Camera capture for the Linux desktop QR scanner.
+version: 0.0.8+pivxie.1
+publish_to: none
+
+environment:
+  sdk: '>=3.1.0 <4.0.0'
+  flutter: '>=3.3.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  ffi: ^2.0.1
+
+flutter:
+  plugin:
+    platforms:
+      linux:
+        ffiPlugin: true

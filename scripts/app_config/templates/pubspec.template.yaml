@@ -111,10 +111,9 @@ dependencies:
     git:
       url: https://github.com/cypherstack/mobile_app_privacy
       ref: v0.0.3
+  # In-repo copy: bundles its own static OpenCV (plugins/camera_linux).
   camera_linux:
-    git:
-      url: https://github.com/cypherstack/camera-linux
-      ref: ecb412474c5d240347b04ac1eb9f019802ff7034
+    path: ./plugins/camera_linux
   camera_windows:
     git: # TODO [prio=low]: Revert to official after https://github.com/flutter/packages/pull/7067.
       url: https://github.com/cypherstack/packages.git

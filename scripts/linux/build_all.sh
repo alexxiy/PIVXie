@@ -13,5 +13,7 @@ mkdir -p build
 
 ./build_secp256k1.sh
 
+./build_opencv.sh
+
 wait
 echo "Done building"

@@ -134,22 +134,26 @@ The Linux app is built on a Linux host with the same Flutter and Rust setup, plu
 
 - Ubuntu or Debian:
   ```bash
-  sudo apt-get install clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libsecret-1-dev libjsoncpp-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libopencv-dev
+  sudo apt-get install clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev libsecret-1-dev libjsoncpp-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev
   ```
 - Fedora:
   ```bash
-  sudo dnf install clang cmake ninja-build gtk3-devel xz-devel libsecret-devel jsoncpp-devel gstreamer1-devel gstreamer1-plugins-base-devel opencv-devel libstdc++-devel libstdc++-static
+  sudo dnf install clang cmake ninja-build gtk3-devel xz-devel libsecret-devel jsoncpp-devel gstreamer1-devel gstreamer1-plugins-base-devel libstdc++-devel
   ```
 
-Then configure and build. `-s` links the system libsecret and jsoncpp, and `USE_SYSTEM_SECURE_STORAGE_DEPS=1` tells the Linux CMake files to bundle them:
+Then configure and build. `-s` links the system libsecret and jsoncpp, and `USE_SYSTEM_SECURE_STORAGE_DEPS=1` tells the Linux CMake files to bundle them. The QR scanner's camera support needs a small static OpenCV, built once from source by `scripts/linux/build_opencv.sh` (about two minutes; it stays in `scripts/linux/build/opencv`). `build_app.sh` runs it when called without `-i`:
 ```bash
 export USE_SYSTEM_SECURE_STORAGE_DEPS=1
 cd scripts
 ./build_app.sh -a pivxie -p linux -v 1.0.0 -b 1 -i -s
-cd ..
+cd linux
+./build_opencv.sh
+cd ../..
 flutter pub get
 flutter build linux --release
 ```
+
+The bundle doesn't need OpenCV installed: it's built into the camera plugin's library (`lib/libcamera_linux.so`). To link the system OpenCV instead, install `libopencv-dev` (Ubuntu) or `opencv-devel` (Fedora) and build with `USE_SYSTEM_OPENCV=1`; users then need OpenCV installed too.
 
 The app is in `build/linux/x64/release/bundle` (run `bundle/pivxie`). It keeps its data in `~/.pivxie`. SHIELD works on Linux: the Rust library is built by cargokit and bundled as `lib/libpivx_shield_ffi.so`.
 
