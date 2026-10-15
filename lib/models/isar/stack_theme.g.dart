@@ -7,7 +7,7 @@ part of 'stack_theme.dart';
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types, experimental_member_use
 
 extension GetStackThemeCollection on Isar {
   IsarCollection<StackTheme> get stackThemes => this.collection();
@@ -857,7 +857,7 @@ const StackThemeSchema = CollectionSchema(
   getId: _stackThemeGetId,
   getLinks: _stackThemeGetLinks,
   attach: _stackThemeAttach,
-  version: '3.3.2',
+  version: '3.4.1',
 );
 
 int _stackThemeEstimateSize(
@@ -1315,18 +1315,16 @@ P _stackThemeDeserializeProp<P>(
       return (reader.readLong(offset)) as P;
     case 6:
       return (reader.readObjectOrNull<ThemeAssets>(
-            offset,
-            ThemeAssetsSchema.deserialize,
-            allOffsets,
-          ))
-          as P;
+        offset,
+        ThemeAssetsSchema.deserialize,
+        allOffsets,
+      )) as P;
     case 7:
       return (reader.readObjectOrNull<ThemeAssetsV2>(
-            offset,
-            ThemeAssetsV2Schema.deserialize,
-            allOffsets,
-          ))
-          as P;
+        offset,
+        ThemeAssetsV2Schema.deserialize,
+        allOffsets,
+      )) as P;
     case 8:
       return (reader.readLong(offset)) as P;
     case 9:
@@ -1635,11 +1633,10 @@ P _stackThemeDeserializeProp<P>(
       return (reader.readLong(offset)) as P;
     case 161:
       return (reader.readObjectOrNull<ThemeAssetsV3>(
-            offset,
-            ThemeAssetsV3Schema.deserialize,
-            allOffsets,
-          ))
-          as P;
+        offset,
+        ThemeAssetsV3Schema.deserialize,
+        allOffsets,
+      )) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -18369,7 +18366,7 @@ extension StackThemeQueryProperty
 // **************************************************************************
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types, experimental_member_use
 
 const ThemeAssetsSchema = Schema(
   name: r'ThemeAssets',
@@ -26707,7 +26704,7 @@ extension ThemeAssetsQueryObject
     on QueryBuilder<ThemeAssets, ThemeAssets, QFilterCondition> {}
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types, experimental_member_use
 
 const ThemeAssetsV2Schema = Schema(
   name: r'ThemeAssetsV2',
@@ -30438,7 +30435,7 @@ extension ThemeAssetsV2QueryObject
     on QueryBuilder<ThemeAssetsV2, ThemeAssetsV2, QFilterCondition> {}
 
 // coverage:ignore-file
-// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types
+// ignore_for_file: duplicate_ignore, non_constant_identifier_names, constant_identifier_names, invalid_use_of_protected_member, unnecessary_cast, prefer_const_constructors, lines_longer_than_80_chars, require_trailing_commas, inference_failure_on_function_invocation, unnecessary_parenthesis, unnecessary_raw_strings, unnecessary_null_checks, join_return_with_assignment, prefer_final_locals, avoid_js_rounded_ints, avoid_positional_boolean_parameters, always_specify_types, experimental_member_use
 
 const ThemeAssetsV3Schema = Schema(
   name: r'ThemeAssetsV3',

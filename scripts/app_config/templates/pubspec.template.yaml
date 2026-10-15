@@ -78,8 +78,8 @@ dependencies:
   # Storage plugins
   flutter_secure_storage: ^11.2.0
   hive_ce: ^2.20.2
-  isar_community: 3.3.2
-  isar_community_flutter_libs: 3.3.2
+  isar_community: 3.4.1
+  isar_community_flutter_libs: 3.4.1
   path_provider: ^2.1.6
   path: ^1.9.1
   saf_util: ^3.1.1
@@ -142,15 +142,15 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  build_runner: ^2.15.1 # 2.16 needs a newer analyzer than isar_community_generator allows
+  build_runner: ^2.16.2
   flutter_launcher_icons: ^0.14.4
-  hive_ce_generator: ^1.11.1 # 1.11.2+ needs analyzer 14, isar_community_generator <11
+  hive_ce_generator: ^1.11.3
   dependency_validator: ^5.1.0
   hive_test: ^1.0.1
-  mockito: ^5.6.4 # 5.6.5+ needs a newer analyzer than isar_community_generator allows
+  mockito: ^5.8.1
   import_sorter: ^4.6.0
   flutter_lints: ^6.0.0
-  isar_community_generator: 3.3.2
+  isar_community_generator: 3.4.1
 
 flutter_native_splash:
   image: assets/icon/splash.png
