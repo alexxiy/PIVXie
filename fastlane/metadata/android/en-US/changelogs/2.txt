@@ -1,0 +1,1 @@
+The first release of PIVXie: a PIVX wallet with SHIELD private transactions, cold staking, masternodes and governance voting. Your recovery phrase and keys stay on your device.
