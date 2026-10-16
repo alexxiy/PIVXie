@@ -27,12 +27,14 @@ import '../../../utilities/assets.dart';
 import '../../../utilities/if_not_already.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../wallets/wallet/impl/pivx_wallet.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../../widgets/background.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../pinpad_views/lock_screen_view.dart';
+import '../../pivx_accounts/pivx_accounts.dart';
 import '../sub_widgets/settings_list_button.dart';
 import 'sign_message_view.dart';
 import 'wallet_backup_views/wallet_backup_view.dart';
@@ -250,6 +252,16 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                   );
                 },
               ),
+            if (wallet is PivxWallet && !wallet.isViewOnly) ...[
+              const SizedBox(height: 8),
+              SettingsListButton(
+                iconAssetName: Assets.svg.plus,
+                iconSize: 16,
+                title: "Add account",
+                onPressed: () =>
+                    showPivxAddAccountDialog(context, ref, walletId),
+              ),
+            ],
             const SizedBox(height: 8),
             SettingsListButton(
               iconAssetName: Assets.svg.pencil,

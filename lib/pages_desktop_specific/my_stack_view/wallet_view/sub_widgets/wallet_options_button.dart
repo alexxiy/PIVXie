@@ -20,8 +20,10 @@ import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/text_styles.dart';
+import '../../../../wallets/wallet/impl/pivx_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../../addresses/desktop_wallet_addresses_view.dart';
+import '../../../../pages/pivx_accounts/pivx_accounts.dart';
 import '../../../../pages/settings_views/wallet_settings_view/sign_message_view.dart';
 import 'desktop_delete_wallet_dialog.dart';
 import 'wallet_keys_button.dart';
@@ -29,6 +31,7 @@ import 'wallet_keys_button.dart';
 enum _WalletOptions {
   signMessage,
   walletKeys,
+  addAccount,
   deleteWallet;
 
   String get prettyName {
@@ -37,6 +40,8 @@ enum _WalletOptions {
         return "Sign message";
       case _WalletOptions.walletKeys:
         return "Wallet seed";
+      case _WalletOptions.addAccount:
+        return "Add account";
       case _WalletOptions.deleteWallet:
         return "Delete wallet";
     }
@@ -93,6 +98,7 @@ class WalletOptionsButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final wallet = ref.read(pWallets).getWallet(walletId);
     return RawMaterialButton(
       constraints: const BoxConstraints(minHeight: 32, minWidth: 32),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(1000)),
@@ -110,6 +116,9 @@ class WalletOptionsButton extends ConsumerWidget {
               onWalletKeysPressed: showKeys
                   ? () => Navigator.of(context).pop(_WalletOptions.walletKeys)
                   : null,
+              onAddAccountPressed: wallet is PivxWallet && !wallet.isViewOnly
+                  ? () => Navigator.of(context).pop(_WalletOptions.addAccount)
+                  : null,
               walletId: walletId,
             );
           },
@@ -122,6 +131,9 @@ class WalletOptionsButton extends ConsumerWidget {
               break;
             case _WalletOptions.walletKeys:
               unawaited(showWalletKeys(context, walletId));
+              break;
+            case _WalletOptions.addAccount:
+              unawaited(showPivxAddAccountDialog(context, ref, walletId));
               break;
             case _WalletOptions.deleteWallet:
               final result = await showDialog<bool?>(
@@ -177,6 +189,7 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
     required this.onSignMessagePressed,
     required this.onDeletePressed,
     required this.onWalletKeysPressed,
+    this.onAddAccountPressed,
     required this.walletId,
   });
 
@@ -185,6 +198,9 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
 
   /// Null: no Wallet seed (or keys) item.
   final VoidCallback? onWalletKeysPressed;
+
+  /// Null: no Add account item (only PIVX wallets with a phrase have one).
+  final VoidCallback? onAddAccountPressed;
   final String walletId;
 
   @override
@@ -223,6 +239,14 @@ class WalletOptionsPopupMenu extends ConsumerWidget {
                         ref.read(pWallets).getWallet(walletId),
                       ),
                       onPressed: onWalletKeysPressed!,
+                    ),
+                  ],
+                  if (onAddAccountPressed != null) ...[
+                    const SizedBox(height: 8),
+                    _MenuItem(
+                      icon: Assets.svg.plus,
+                      label: _WalletOptions.addAccount.prettyName,
+                      onPressed: onAddAccountPressed!,
                     ),
                   ],
                   const SizedBox(height: 8),

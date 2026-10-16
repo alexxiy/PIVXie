@@ -20,7 +20,10 @@ import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/stack_dialog.dart';
 
 class RestoreSucceededDialog extends StatelessWidget {
-  const RestoreSucceededDialog({super.key});
+  const RestoreSucceededDialog({super.key, this.message});
+
+  /// Shown instead of the usual note.
+  final String? message;
 
   @override
   Widget build(BuildContext context) {
@@ -50,12 +53,15 @@ class RestoreSucceededDialog extends StatelessWidget {
             const SizedBox(
               height: 16,
             ),
-            Text(
-              "You may access your wallet now.",
-              style: STextStyles.desktopTextMedium(context).copyWith(
-                color: Theme.of(context).extension<StackColors>()!.textDark3,
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: Text(
+                message ?? "You may access your wallet now.",
+                style: STextStyles.desktopTextMedium(context).copyWith(
+                  color: Theme.of(context).extension<StackColors>()!.textDark3,
+                ),
+                textAlign: TextAlign.center,
               ),
-              textAlign: TextAlign.center,
             ),
             const Spacer(
               flex: 2,
@@ -80,7 +86,7 @@ class RestoreSucceededDialog extends StatelessWidget {
     } else {
       return StackDialog(
         title: "Wallet restored",
-        message: "You may access your wallet now.",
+        message: message ?? "You may access your wallet now.",
         icon: SvgPicture.asset(
           Assets.svg.checkCircle,
           width: 24,

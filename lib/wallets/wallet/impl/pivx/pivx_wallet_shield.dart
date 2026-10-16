@@ -118,16 +118,14 @@ extension _PivxShield on PivxWallet {
 
   int get _shieldCoinType => _isTestnet ? 1 : 119;
 
-  int get _defaultShieldRestoreHeight =>
-      _isTestnet ? 0 : _kMainnetDefaultShieldStart;
-
   /// ZIP32 spending key, derived like MyPIVXWallet: from the first 32
-  /// bytes of the BIP39 seed.
+  /// bytes of the BIP39 seed, for this wallet's account.
   Future<String> _extsk() async => _extskFromSeed(await _seed());
 
   String _extskFromSeed(Uint8List seed) => libPivxShield.extendedSpendingKey(
     seed: seed.sublist(0, 32),
     coinType: _shieldCoinType,
+    accountIndex: account,
   );
 
   /// Full viewing key: derived when the wallet's shield state loads and

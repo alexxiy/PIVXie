@@ -53,6 +53,7 @@ import '../../../widgets/table_view/table_view.dart';
 import '../../../widgets/table_view/table_view_cell.dart';
 import '../../../widgets/table_view/table_view_row.dart';
 import '../../home_view/home_view.dart';
+import '../../pivx_accounts/pivx_accounts.dart';
 import 'confirm_recovery_dialog.dart';
 import 'sub_widgets/restore_failed_dialog.dart';
 import 'sub_widgets/restore_succeeded_dialog.dart';
@@ -347,6 +348,11 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
 
           await wallet.init();
           await wallet.recover(isRescan: false);
+          // The phrase's other used accounts (MyPIVXWallet's "Add account")
+          // come back as wallets of their own.
+          final otherAccounts = wallet is PivxWallet
+              ? await pivxFindUsedAccounts(wallet)
+              : const <int>[];
           if (!isRestoring) throw Exception("Restore cancelled");
 
           // check if state is still active before continuing
@@ -363,6 +369,9 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
             }
 
             ref.read(pWallets).addWallet(wallet);
+            final addedAccounts = wallet is PivxWallet
+                ? await pivxAddAccounts(ref, wallet, otherAccounts)
+                : const <String>[];
 
             if (mounted) {
               if (isDesktop) {
@@ -382,7 +391,9 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                 useSafeArea: false,
                 barrierDismissible: true,
                 builder: (context) {
-                  return const RestoreSucceededDialog();
+                  return RestoreSucceededDialog(
+                    message: pivxAddedAccountsMessage(addedAccounts),
+                  );
                 },
               );
             }

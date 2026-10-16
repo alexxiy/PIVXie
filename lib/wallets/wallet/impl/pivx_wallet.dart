@@ -49,6 +49,58 @@ part 'pivx/pivx_governance.dart';
 part 'pivx/pivx_masternodes.dart';
 part 'pivx/pivx_wallet_shield.dart';
 
+/// Which account of its recovery phrase a PIVX wallet is, in
+/// [WalletInfo.otherData]. Most wallets are account 0; MyPIVXWallet's
+/// "Add account" (and PIVXie's) makes accounts 1, 2, …, each a wallet of
+/// its own with its own BIP44 account and shield account.
+const kPivxAccountKey = "pivxAccount";
+
+/// BIP44 path of [account] (`m/44'/119'/n'`), as MyPIVXWallet derives it.
+String pivxAccountPath(Pivx coin, int account) => coin
+    .constructDerivePath(
+      derivePathType: DerivePathType.bip44,
+      account: account,
+      chain: 0,
+      index: 0,
+    )
+    .replaceFirst(RegExp(r"/0/0$"), "");
+
+/// Account-level xpub of [account], serialised with the network's
+/// `pubHDPrefix`.
+String pivxAccountXpub(coinlib.HDPrivateKey root, Pivx coin, int account) =>
+    root
+        .derivePath(pivxAccountPath(coin, account))
+        .hdPublicKey
+        .encode(coin.networkParams.pubHDPrefix);
+
+/// The used accounts from [from] on, BIP44 style: looking stops after
+/// [gap] unused accounts in a row, or [max] accounts (a bridge saying
+/// every account is used can't add wallets without end). MyPIVXWallet
+/// adds accounts one by one, so a skipped one or two is looked past.
+Future<List<int>> pivxFindAccounts({
+  required int from,
+  required Future<bool> Function(int account) isUsed,
+  int gap = 3,
+  int max = 20,
+}) async {
+  final found = <int>[];
+  for (int n = from, unused = 0; unused < gap && n < from + max; n++) {
+    if (await isUsed(n)) {
+      found.add(n);
+      unused = 0;
+    } else {
+      unused++;
+    }
+  }
+  return found;
+}
+
+/// Whether a bridge `/xpub` answer (any `details`) shows the account used.
+bool pivxXpubIsUsed(Map<String, dynamic> json) =>
+    (json["usedTokens"] as num? ?? 0) > 0 ||
+    (json["txs"] as num? ?? 0) > 0 ||
+    (json["unconfirmedTxs"] as num? ?? 0) > 0;
+
 /// PIVX transparent wallet backed by pivx-bridge.
 ///
 /// Sync works on the BIP44 account xpub like MyPIVXWallet: one `/xpub`
@@ -164,19 +216,13 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
   Future<coinlib.HDPrivateKey> getRootHDNode() async =>
       coinlib.HDPrivateKey.fromSeed(await _seed());
 
-  String get _accountPath => cryptoCurrency
-      .constructDerivePath(
-        derivePathType: DerivePathType.bip44,
-        chain: 0,
-        index: 0,
-      )
-      .replaceFirst(RegExp(r"/0/0$"), "");
+  /// This wallet's account of its recovery phrase ([kPivxAccountKey]).
+  late final int account = info.otherData[kPivxAccountKey] as int? ?? 0;
 
   String? _accountXpub;
   coinlib.HDPublicKey? _accountKey;
 
-  /// BIP44 account-level xpub (`m/44'/119'/0'`), serialised with the
-  /// network's `pubHDPrefix`.
+  /// BIP44 account-level xpub (`m/44'/119'/n'`, see [pivxAccountXpub]).
   Future<String> get accountXpub async {
     if (_accountXpub != null) return _accountXpub!;
     if (isViewOnly) {
@@ -186,11 +232,11 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
       }
       _accountXpub = data.xPubs.first.encoded;
     } else {
-      final root = await getRootHDNode();
-      _accountXpub = root
-          .derivePath(_accountPath)
-          .hdPublicKey
-          .encode(cryptoCurrency.networkParams.pubHDPrefix);
+      _accountXpub = pivxAccountXpub(
+        await getRootHDNode(),
+        cryptoCurrency,
+        account,
+      );
     }
     return _accountXpub!;
   }
@@ -201,6 +247,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
   }) async {
     final path = cryptoCurrency.constructDerivePath(
       derivePathType: DerivePathType.bip44,
+      account: account,
       chain: chain,
       index: index,
     );
@@ -261,6 +308,45 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     final address = await _nextReceivingAddress();
     if (address == null) throw Exception(pivxAddressGapMessage);
     return address;
+  }
+
+  // The base class derives these from account 0; a PIVX wallet uses its
+  // own account (and its account xpub when it's watch only).
+
+  @override
+  Future<void> checkSaveInitialReceivingAddress() async {
+    if (isViewOnly && viewOnlyType == ViewOnlyWalletType.addressOnly) return;
+    if (await getCurrentReceivingAddress() != null) return;
+    await mainDB.updateOrPutAddresses([
+      await _deriveAddress(chain: 0, index: 0),
+    ]);
+  }
+
+  @override
+  Future<void> generateNewReceivingAddress() async {
+    if (isViewOnly && viewOnlyType == ViewOnlyWalletType.addressOnly) return;
+    final current = await getCurrentReceivingAddress();
+    final address = await _deriveAddress(
+      chain: 0,
+      index: current == null ? 0 : current.derivationIndex + 1,
+    );
+    await mainDB.updateOrPutAddresses([address]);
+    await info.updateReceivingAddress(
+      newAddress: address.value,
+      isar: mainDB.isar,
+    );
+  }
+
+  @override
+  Future<void> generateNewChangeAddress() async {
+    if (isViewOnly && viewOnlyType == ViewOnlyWalletType.addressOnly) return;
+    final current = await getCurrentChangeAddress();
+    await mainDB.updateOrPutAddresses([
+      await _deriveAddress(
+        chain: 1,
+        index: current == null ? 0 : current.derivationIndex + 1,
+      ),
+    ]);
   }
 
   /// Makes the next receiving address current and returns it; null when
@@ -1051,11 +1137,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     }
     await updateChainHeight();
     if (_shieldSupported) {
-      await _resetShield(
-        fromHeight: info.restoreHeight > 0
-            ? info.restoreHeight
-            : _defaultShieldRestoreHeight,
-      );
+      await _resetShield(fromHeight: shieldRestoreHeight);
     }
     await updateTransactions();
     await updateUTXOs();
@@ -1197,6 +1279,30 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
   bool isShieldAddress(String address) =>
       libPivxShield.isAvailable &&
       libPivxShield.isValidAddress(address, isTestnet: _isTestnet);
+
+  /// Where a restore starts the shield scan: the restore height, or the
+  /// shield launch when there's none.
+  int get shieldRestoreHeight => info.restoreHeight > 0
+      ? info.restoreHeight
+      : (_isTestnet ? 0 : _kMainnetDefaultShieldStart);
+
+  /// The other accounts of this wallet's recovery phrase, after this one,
+  /// that have been used: what restoring the phrase brings back. Only the
+  /// transparent side is looked at (a shield-only account takes a full
+  /// shield scan to find).
+  Future<List<int>> findUsedAccounts() async {
+    final root = await getRootHDNode();
+    return pivxFindAccounts(
+      from: account + 1,
+      isUsed: (n) async => pivxXpubIsUsed(
+        await bridge.xpub(
+          pivxAccountXpub(root, cryptoCurrency, n),
+          details: "basic",
+          gap: _kBridgeGap,
+        ),
+      ),
+    );
+  }
 
   /// A wallet made in the app has no history before now: remember the tip
   /// as its birthday. The shield scan starts there, and so do a rescan and
