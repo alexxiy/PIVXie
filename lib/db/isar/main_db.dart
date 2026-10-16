@@ -184,21 +184,27 @@ class MainDB {
           await isar.utxos.putAll(utxos);
         });
 
+  /// Make [utxos] the wallet's coins: coins no longer listed are removed,
+  /// new ones added, and stored ones keep the user's flags (see below).
+  /// Returns whether any coin is new.
+  ///
+  /// Runs on every sync with all of the wallet's coins, so the stored ones
+  /// are read in one query and only rows that changed are written: one
+  /// query per coin and rewriting them all took seconds on slow phones
+  /// for a wallet with a few hundred coins.
   Future<bool> updateUTXOs(String walletId, List<UTXO> utxos) async {
     bool newUTXO = false;
 
     await isar.writeTxn(() async {
-      final set = utxos.toSet();
+      final stored = {
+        for (final u in await getUTXOs(walletId).findAll()) (u.txid, u.vout): u,
+      };
+      // By outpoint: a coin listed twice is kept once.
+      final rows = <(String, int), UTXO>{};
       for (final utxo in utxos) {
-        // check if utxo exists in db and update accordingly
-        final storedUtxo = await isar.utxos
-            .where()
-            .txidWalletIdVoutEqualTo(utxo.txid, utxo.walletId, utxo.vout)
-            .findFirst();
-
+        final storedUtxo = stored[(utxo.txid, utxo.vout)];
         if (storedUtxo != null) {
-          // update
-          // Preserve user-set flags, but allow a fresh auto-freeze (e.g. firo
+          // Preserve user-set flags, but allow a fresh auto-freeze (e.g.
           // masternode collateral detected after registration) unless the
           // user deliberately unfroze this utxo before. Never auto-unfreeze:
           // a flaky network check must not unlock coins.
@@ -206,36 +212,53 @@ class MainDB {
               utxo.isBlocked &&
               !storedUtxo.isBlocked &&
               !storedUtxo.userUnfroze;
-          set.remove(utxo);
-          set.add(
-            storedUtxo.copyWith(
-              value: utxo.value,
-              address: utxo.address,
-              blockTime: utxo.blockTime,
-              blockHeight: utxo.blockHeight,
-              blockHash: utxo.blockHash,
-              // passing null keeps the stored value
-              otherData: utxo.otherData,
-              isBlocked: applyAutoBlock ? true : null,
-              blockedReason: applyAutoBlock ? utxo.blockedReason : null,
-              name: applyAutoBlock && storedUtxo.name.isEmpty
-                  ? utxo.name
-                  : null,
-            ),
+          rows[(utxo.txid, utxo.vout)] = storedUtxo.copyWith(
+            value: utxo.value,
+            address: utxo.address,
+            blockTime: utxo.blockTime,
+            blockHeight: utxo.blockHeight,
+            blockHash: utxo.blockHash,
+            // passing null keeps the stored value
+            otherData: utxo.otherData,
+            isBlocked: applyAutoBlock ? true : null,
+            blockedReason: applyAutoBlock ? utxo.blockedReason : null,
+            name: applyAutoBlock && storedUtxo.name.isEmpty ? utxo.name : null,
           );
         } else {
           newUTXO = true;
+          rows[(utxo.txid, utxo.vout)] = utxo;
         }
       }
 
-      await isar.utxos.where().walletIdEqualTo(walletId).deleteAll();
-      if (set.isNotEmpty) {
-        await isar.utxos.putAll(set.toList());
-      }
+      final gone = [
+        for (final e in stored.entries)
+          if (!rows.containsKey(e.key)) e.value.id,
+      ];
+      final changed = [
+        for (final e in rows.entries)
+          if (!_sameUtxo(stored[e.key], e.value)) e.value,
+      ];
+      if (gone.isNotEmpty) await isar.utxos.deleteAll(gone);
+      if (changed.isNotEmpty) await isar.utxos.putAll(changed);
     });
 
     return newUTXO;
   }
+
+  static bool _sameUtxo(UTXO? a, UTXO b) =>
+      a != null &&
+      a.id == b.id &&
+      a.value == b.value &&
+      a.name == b.name &&
+      a.isBlocked == b.isBlocked &&
+      a.blockedReason == b.blockedReason &&
+      a.isCoinbase == b.isCoinbase &&
+      a.blockHash == b.blockHash &&
+      a.blockHeight == b.blockHeight &&
+      a.blockTime == b.blockTime &&
+      a.address == b.address &&
+      a.used == b.used &&
+      a.otherData == b.otherData;
 
   Stream<UTXO?> watchUTXO({required Id id, bool fireImmediately = false}) {
     return isar.utxos.watchObject(id, fireImmediately: fireImmediately);
