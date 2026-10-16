@@ -135,7 +135,14 @@ class _LanguageOptionSettings extends ConsumerState<LanguageOptionSettings> {
                         onChanged: (m) => setThemeMode(context, ref, m!),
                         title: Text(
                           kThemeModeTexts[mode]!.$1,
-                          style: STextStyles.desktopTextExtraSmall(context),
+                          // The style's own colour is a button text one:
+                          // white on the light theme's white card.
+                          style: STextStyles.desktopTextExtraSmall(context)
+                              .copyWith(
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textDark,
+                              ),
                         ),
                         subtitle: Text(
                           kThemeModeTexts[mode]!.$2,
