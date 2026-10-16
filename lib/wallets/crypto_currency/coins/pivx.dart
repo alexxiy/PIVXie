@@ -272,14 +272,13 @@ class Pivx extends Bip39HDCurrency {
   NodeModel defaultNode({required bool isPrimary}) {
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        // TODO: switch to the public bridge URL once it runs with
-        // ADDR_INDEX enabled. Development bridge for now.
+        // PIVXie's own bridge (pivx-bridge with the address index).
         return NodeModel(
-          host: "http://192.168.1.100:3000",
-          port: 3000,
+          host: "https://bridge.pivxie.me",
+          port: 443,
           name: DefaultNodes.defaultName,
           id: DefaultNodes.buildId(this),
-          useSSL: false,
+          useSSL: true,
           coinName: identifier,
           torEnabled: true,
           clearnetEnabled: true,

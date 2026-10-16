@@ -6,9 +6,13 @@ set -x -e
 APP_BUILD_PLATFORM=$1
 
 export NEW_NAME="PIVXie"
-export NEW_APP_ID="org.pivx.pivxie"
-export NEW_APP_ID_CAMEL="org.pivx.pivxie"
-export NEW_APP_ID_SNAKE="org.pivx.pivxie"
+export NEW_APP_ID="me.pivxie"
+export NEW_APP_ID_CAMEL="me.pivxie"
+export NEW_APP_ID_SNAKE="me.pivxie"
+# Linux: Flatpak IDs need three parts, and on Wayland a window finds its
+# icon through a .desktop file named after its ID, so every Linux package
+# (tarball, AppImage, Flatpak) uses this one.
+export NEW_LINUX_APP_ID="me.pivxie.PIVXie"
 export NEW_BASIC_NAME="pivxie"
 
 NEW_PUBSPEC_NAME="paymint" # package name used across lib/ imports

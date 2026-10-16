@@ -2,12 +2,12 @@
 #
 # Put next to this file before building:
 #   bundle/            the Linux release bundle (build/linux/x64/release/bundle)
-#   org.pivx.pivxie.png  a 512x512 app icon (asset_sources/icon/pivxie/icon.png, resized)
+#   me.pivxie.PIVXie.png  a 512x512 app icon (asset_sources/icon/pivxie/icon.png, resized)
 #
-#   flatpak-builder --user --install build-dir org.pivx.pivxie.yaml
-app-id: org.pivx.pivxie
+#   flatpak-builder --user --install build-dir me.pivxie.PIVXie.yaml
+app-id: me.pivxie.PIVXie
 runtime: org.freedesktop.Platform
-runtime-version: '24.08'
+runtime-version: '26.08'
 sdk: org.freedesktop.Sdk
 command: pivxie
 
@@ -16,7 +16,8 @@ finish-args:
   - --share=ipc
   - --socket=fallback-x11
   - --socket=wayland
-  - --device=dri
+  # GPU, and the camera for the QR scanner (OpenCV opens /dev/video*).
+  - --device=all
   # Wallet data lives in ~/.pivxie.
   - --filesystem=~/.pivxie:create
   # Secure storage (libsecret).
@@ -33,12 +34,12 @@ modules:
       - cp -r bundle/lib bundle/data /app/lib/pivxie/
       # Wrapper so the Flatpak command resolves to the binary.
       - install -Dm755 pivxie.sh /app/bin/pivxie
-      - install -Dm644 org.pivx.pivxie.desktop
-          /app/share/applications/org.pivx.pivxie.desktop
-      - install -Dm644 org.pivx.pivxie.metainfo.xml
-          /app/share/metainfo/org.pivx.pivxie.metainfo.xml
-      - install -Dm644 org.pivx.pivxie.png
-          /app/share/icons/hicolor/512x512/apps/org.pivx.pivxie.png
+      - install -Dm644 me.pivxie.PIVXie.desktop
+          /app/share/applications/me.pivxie.PIVXie.desktop
+      - install -Dm644 me.pivxie.PIVXie.metainfo.xml
+          /app/share/metainfo/me.pivxie.PIVXie.metainfo.xml
+      - install -Dm644 me.pivxie.PIVXie.png
+          /app/share/icons/hicolor/512x512/apps/me.pivxie.PIVXie.png
     sources:
       - type: dir
         path: .

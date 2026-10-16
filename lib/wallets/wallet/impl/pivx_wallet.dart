@@ -720,7 +720,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
 
   /// Bumped when parsing changes: the next sync re-parses all history.
   static const _kTxParseVersion = "pivxTxParseVersion";
-  static const _txParseVersion = 6;
+  static const _txParseVersion = 1;
 
   /// The wallet's view of a bridge tx; see [parsePivxTx].
   TransactionV2? _parseTx(

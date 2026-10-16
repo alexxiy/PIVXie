@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <component type="desktop-application">
-  <id>org.pivx.pivxie</id>
+  <id>me.pivxie.PIVXie</id>
   <metadata_license>CC0-1.0</metadata_license>
   <project_license>GPL-3.0-only</project_license>
   <name>PIVXie</name>
@@ -20,7 +20,10 @@
       <li>Encrypted backups, PIN lock and optional Tor</li>
     </ul>
   </description>
-  <launchable type="desktop-id">org.pivx.pivxie.desktop</launchable>
+  <launchable type="desktop-id">me.pivxie.PIVXie.desktop</launchable>
   <url type="homepage">https://pivxie.me</url>
   <content_rating type="oars-1.1"/>
+  <releases>
+    <release version="1.0.0" date="2026-10-16"/>
+  </releases>
 </component>
