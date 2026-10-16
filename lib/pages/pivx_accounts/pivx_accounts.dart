@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -82,7 +83,9 @@ Future<PivxWallet> pivxAddAccountWallet(
   final info = WalletInfo.createNew(
     coin: from.cryptoCurrency,
     name: name,
-    restoreHeight: from.shieldRestoreHeight,
+    // Never 0 (testnet without one): if the app closes before the restore
+    // below runs, the first sync would start the shield scan at the tip.
+    restoreHeight: max(from.shieldRestoreHeight, 1),
     otherDataJsonString: jsonEncode({
       kPivxAccountKey: account,
       // Like a restore: one hidden right after adding would give duress
