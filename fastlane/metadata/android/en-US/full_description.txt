@@ -1,14 +1,31 @@
-PIVXie is a non-custodial mobile wallet for PIVX. Your recovery phrase and keys never leave your phone, and nobody else can move your coins.
+PIVXie is a PIVX wallet that keeps you in control. Your recovery phrase and keys stay on your device. There's no account to create, and nobody else can move your coins.
 
-Highlights:
-- SHIELD private transactions: shield, unshield and send privately, with an optional encrypted memo.
-- Cold staking: delegate PIV to a staker and earn staking rewards while your coins stay in your wallet. Pick a staker from masternode.space or use your own node, and undelegate at any time.
-- Masternodes: set up a masternode from your wallet, start it, and follow its status and rewards.
-- Governance: browse budget proposals, vote with your masternodes, submit your own proposal, and see when budget payments arrive.
-- Clear history: staking rewards, masternode rewards and proposal payments are labelled, and you can filter by each type.
-- Coin control, an address book and pivx: payment links.
-- Encrypted backups of all your wallets and settings, plus automatic backups.
-- PIN and fingerprint lock.
-- Optional Tor for every connection.
-- Connect to your own pivx-bridge server if you prefer.
-- Open source (GPLv3), with no ads and no tracking.
+Privacy
+• SHIELD transactions: shield, unshield and send PIV privately, with an optional encrypted memo.
+• Optional Tor for every connection.
+• No ads and no tracking.
+
+Staking, masternodes and governance
+• Cold staking: delegate your PIV to a staker and receive staking rewards while the coins stay in your wallet. Pick a staker from masternode.space or use your own node, and undelegate whenever you like.
+• Masternodes: set up a masternode from the wallet, start it, and follow its status and rewards.
+• Governance: browse budget proposals, vote with your masternodes, submit your own proposal and see when budget payments arrive.
+
+Everyday use
+• Send to PIVX.name names as well as addresses.
+• Scan QR codes and open pivx: payment links.
+• Address book and coin control.
+• Sign and verify messages.
+• A clear history: staking rewards, masternode rewards, proposal payments and SHIELD transactions are labelled, and you can filter by each kind.
+• Several accounts from one recovery phrase, and watch-only wallets from an extended public key.
+
+Backups and security
+• Restore with your 12- or 24-word recovery phrase, with an optional passphrase. Recovery phrases from MyPIVXWallet work too.
+• Encrypted backups of your wallets and settings, plus automatic backups.
+• PIN and biometric lock, and a duress PIN that opens the app with only the wallets you choose.
+
+Your own server, if you like
+PIVXie connects to the PIVXie bridge by default. You can switch to your own pivx-bridge server at any time.
+
+Keep your recovery phrase written down somewhere safe. Whoever has it controls your coins, and nobody, the PIVXie team included, can restore it for you.
+
+PIVXie is open source under the GPLv3 license.
