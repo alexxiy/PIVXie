@@ -35,13 +35,7 @@ abstract class StackFileSystem {
   static Future<Directory> applicationRootDirectory() async {
     Directory appDirectory;
 
-    // todo: can merge and do same as regular linux home dir?
-    if (Util.isArmLinux) {
-      appDirectory = await getApplicationDocumentsDirectory();
-      appDirectory = Directory(
-        path.join(appDirectory.path, ".${AppConfig.appDefaultDataDirName}"),
-      );
-    } else if (Platform.isLinux) {
+    if (Platform.isLinux) {
       if (_overrideDesktopDirPath != null) {
         appDirectory = Directory(_overrideDesktopDirPath!);
       } else {

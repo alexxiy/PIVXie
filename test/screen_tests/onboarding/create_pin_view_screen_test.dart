@@ -132,7 +132,8 @@ void main() {
 
     expect(await platformOverrides.secureStorage.read(key: kPinKey), '1234');
     expect(platformOverrides.secureStorage.writes, 1);
-    expect(biometrics.calls, 0);
+    // Asked once; the spy answers like a skip.
+    expect(biometrics.calls, 1);
 
     verify(prefs.useBiometrics = false).called(1);
     verify(prefs.hasPin = true).called(1);

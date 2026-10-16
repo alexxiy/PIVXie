@@ -16,11 +16,9 @@ import 'package:intl/number_symbols.dart';
 import 'package:intl/number_symbols_data.dart';
 
 abstract class Util {
-  static const isArmLinux = bool.fromEnvironment("IS_ARM");
   static final isTestEnv = Platform.environment["FLUTTER_TEST"] == "true";
 
   static Directory? libraryPath;
-  static double? screenWidth;
 
   static NumberSymbols? getSymbolsFor({required String locale}) {
     return numberFormatSymbols[locale] ??
@@ -29,12 +27,9 @@ abstract class Util {
         numberFormatSymbols[locale.substring(0, 2)];
   }
 
+  /// Linux is always desktop, whatever the screen size: one data folder
+  /// and the password, not a second set of wallets behind a PIN.
   static bool get isDesktop {
-    // special check for running on linux based phones
-    if (Platform.isLinux && screenWidth != null && screenWidth! < 800) {
-      return false;
-    }
-
     // special check for running under ipad mode in macos
     if (Platform.isIOS &&
         libraryPath != null &&

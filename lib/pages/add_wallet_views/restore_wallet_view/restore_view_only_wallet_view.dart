@@ -126,7 +126,7 @@ class _RestoreViewOnlyWalletViewState
       otherDataJson[WalletInfoKeys.duressMarkedVisibleWalletKey] = true;
     }
 
-    if (!Platform.isLinux && !Util.isDesktop) await WakelockPlus.enable();
+    if (!Platform.isLinux) await WakelockPlus.enable();
 
     try {
       final info = WalletInfo.createNew(
@@ -260,7 +260,7 @@ class _RestoreViewOnlyWalletViewState
         }
       }
     } finally {
-      if (!Platform.isLinux && !Util.isDesktop) await WakelockPlus.disable();
+      if (!Platform.isLinux) await WakelockPlus.disable();
     }
   }
 

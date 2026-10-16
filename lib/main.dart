@@ -82,18 +82,12 @@ void main(List<String> args) async {
     // The mobile layouts are designed for portrait only.
     await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
   }
-  Screen? screen;
-  if (Platform.isLinux || (Util.isDesktop && !Platform.isIOS)) {
-    screen = await getCurrentScreen();
-    Util.screenWidth = screen?.frame.width;
-  }
-
   if (Util.isDesktop && !Platform.isIOS) {
     setWindowTitle(AppConfig.appName);
     setWindowMinSize(const Size(1220, 100));
     setWindowMaxSize(Size.infinite);
 
-    final screenHeight = screen?.frame.height;
+    final screenHeight = (await getCurrentScreen())?.frame.height;
     if (screenHeight != null) {
       // starting to height be 3/4 screen height or 900, whichever is smaller
       final height = min<double>(screenHeight * 0.75, 900);

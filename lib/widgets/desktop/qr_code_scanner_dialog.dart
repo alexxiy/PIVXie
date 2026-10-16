@@ -293,7 +293,6 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
             ),
             Padding(
               padding: const EdgeInsets.all(16),
-              // Narrower on a Linux phone, where this is the scanner too.
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [

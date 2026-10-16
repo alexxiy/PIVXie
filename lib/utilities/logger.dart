@@ -134,9 +134,6 @@ class Logging {
       return;
     }
 
-    if (Util.isTestEnv || Util.isArmLinux) {
-      toFile = false;
-    }
     try {
       _sendPort.send((
         LogEvent(

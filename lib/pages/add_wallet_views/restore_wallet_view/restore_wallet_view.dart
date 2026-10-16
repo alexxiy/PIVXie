@@ -387,12 +387,12 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
               );
             }
 
-            if (!Platform.isLinux && !isDesktop) {
+            if (!Platform.isLinux) {
               await WakelockPlus.disable();
             }
           }
         } catch (e) {
-          if (!Platform.isLinux && !isDesktop) {
+          if (!Platform.isLinux) {
             await WakelockPlus.disable();
           }
 
@@ -428,7 +428,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
           }
         }
 
-        if (!Platform.isLinux && !isDesktop) {
+        if (!Platform.isLinux) {
           await WakelockPlus.disable();
         }
       }
