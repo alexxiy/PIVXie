@@ -60,6 +60,7 @@ import 'pages/pivx_governance/pivx_create_proposal_view.dart';
 import 'pages/pivx_governance/pivx_governance_view.dart';
 import 'pages/pivx_governance/pivx_proposal_view.dart';
 import 'pages/pivx_masternodes/pivx_create_masternode_view.dart';
+import 'pages/pivx_masternodes/pivx_import_masternode_conf_view.dart';
 import 'pages/pivx_masternodes/pivx_masternode_details_view.dart';
 import 'pages/pivx_masternodes/pivx_masternodes_view.dart';
 import 'pages/settings_views/global_settings_view/appearance_settings/appearance_view.dart';
@@ -1144,6 +1145,18 @@ class RouteGenerator {
                 walletId: args.walletId,
                 existing: args.existing,
               ),
+            ),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case PivxImportMasternodeConfView.routeName:
+        if (args is String) {
+          return getRoute<int>(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => DesktopPageColumn(
+              child: PivxImportMasternodeConfView(walletId: args),
             ),
             settings: RouteSettings(name: settings.name),
           );

@@ -92,6 +92,270 @@ const _kMasternodeProtocolVersion = 70927;
 /// PIVX's message signing magic.
 const _kMessageMagic = "DarkNet Signed Message:\n";
 
+/// Parse a masternode server address, `1.2.3.4:51472`,
+/// `[2001:db8::1]:51472` or a bare IP (default [port]). Returns
+/// `ip:port`, or throws a [FormatException] saying what is wrong.
+String pivxNormalizeMasternodeService(
+  String text, {
+  required int port,
+  required bool regtest,
+}) {
+  final s = text.trim();
+  final defaultPort = port;
+  String host;
+  if (s.startsWith("[")) {
+    final end = s.indexOf("]");
+    if (end < 0) throw const FormatException("Invalid IPv6 address");
+    host = s.substring(1, end);
+    final rest = s.substring(end + 1);
+    if (rest.isNotEmpty) {
+      if (!rest.startsWith(":")) throw const FormatException("Invalid port");
+      port = _parseServicePort(rest.substring(1));
+    }
+  } else if (":".allMatches(s).length == 1) {
+    final i = s.indexOf(":");
+    host = s.substring(0, i);
+    port = _parseServicePort(s.substring(i + 1));
+  } else {
+    host = s;
+  }
+  final ip = InternetAddress.tryParse(host);
+  if (ip == null) {
+    throw const FormatException("Not an IP address");
+  }
+  if (port <= 0 || port > 65535) throw const FormatException("Invalid port");
+  // As PIVX Core checks a masternode broadcast: mainnet masternodes run
+  // on 51472 and other networks never do. Testnet uses its default port;
+  // regtest (several nodes on one host) any other.
+  if (regtest) {
+    if (port == kPivxMasternodePortMain) {
+      throw const FormatException(
+        "Port $kPivxMasternodePortMain is for mainnet masternodes only",
+      );
+    }
+  } else if (port != defaultPort) {
+    throw FormatException("Masternodes must use port $defaultPort");
+  }
+  // The standard spelling (e.g. lower case IPv6 with "::"), so the same
+  // IP always reads the same.
+  final address = InternetAddress.fromRawAddress(ip.rawAddress).address;
+  return ip.type == InternetAddressType.IPv6
+      ? "[$address]:$port"
+      : "$address:$port";
+}
+
+int _parseServicePort(String text) {
+  final port = int.tryParse(text.trim());
+  if (port == null) throw const FormatException("Invalid port");
+  return port;
+}
+
+/// The IP of a normalized `ip:port` (`[...]` kept for IPv6).
+String _serviceIp(String service) =>
+    service.substring(0, service.lastIndexOf(":")).toLowerCase();
+
+/// What importing one line of a PIVX Core masternode.conf does.
+class PivxMasternodeConfImport {
+  const PivxMasternodeConfImport._({
+    required this.line,
+    required this.alias,
+    required this.service,
+    required this.collateral,
+    this.skipped,
+    this.collateralInWallet,
+    this.masternode,
+    this.key,
+  });
+
+  /// Line number in the file, from 1.
+  final int line;
+
+  /// As in the file (empty when the line can't be read).
+  final String alias;
+  final String service;
+
+  /// `txid:index` as in the file.
+  final String collateral;
+
+  /// Why the line is skipped; null when it is imported.
+  final String? skipped;
+
+  /// Whether the collateral is one of the wallet's outputs or
+  /// masternodes; null when the line doesn't name one.
+  final bool? collateralInWallet;
+
+  /// The masternode added, with the alias it gets here.
+  final PivxMasternode? masternode;
+
+  /// Its masternode private key.
+  final String? key;
+
+  bool get imported => masternode != null;
+
+  /// The alias differs from the file's (taken, or with characters PIVXie
+  /// doesn't use in aliases).
+  bool get renamed => imported && masternode!.label != alias;
+}
+
+/// The lines of a PIVX Core masternode.conf. Each is `alias IP:port
+/// masternodeprivkey collateral_txid collateral_index` (more words are
+/// ignored, as PIVX Core does), and one whose first word starts with "#"
+/// is a comment.
+List<({int line, List<String> words})> pivxMasternodeConfLines(String text) {
+  // A file saved by Windows Notepad may start with a byte order mark.
+  if (text.startsWith("\uFEFF")) text = text.substring(1);
+  final lines = <({int line, List<String> words})>[];
+  for (final (i, line) in text.split(RegExp(r"\r?\n")).indexed) {
+    final trimmed = line.trim();
+    if (trimmed.isEmpty) continue;
+    final words = trimmed.split(RegExp(r"\s+"));
+    if (words.first.startsWith("#")) continue;
+    lines.add((line: i + 1, words: words));
+  }
+  return lines;
+}
+
+/// Plan importing PIVX Core's masternode.conf [text] next to the wallet's
+/// [existing] masternodes, which stay as they are. A line is imported only
+/// when its collateral is one of the wallet's transparent [outputs] (by
+/// `txid:vout`) of exactly [collateral] sats, and neither that collateral
+/// nor its IP is used by another masternode. Aliases are made unique (and
+/// PIVXie's characters only).
+List<PivxMasternodeConfImport> pivxPlanMasternodeConfImport(
+  String text, {
+  required List<PivxMasternode> existing,
+  required Map<String, UTXO> outputs,
+  required int collateral,
+  required String collateralText,
+  required String Function(String) normalizeService,
+  required bool Function(String) isValidKey,
+  required int now,
+}) {
+  final byCollateral = {for (final m in existing) m.id: m};
+  final byIp = {
+    for (final m in existing)
+      if (m.service != null) _serviceIp(m.service!): m.label,
+  };
+  final aliases = {for (final m in existing) m.label.trim().toLowerCase()};
+  // Lines imported so far, by collateral and IP.
+  final importedCollaterals = <String, int>{};
+  final importedIps = <String, int>{};
+
+  String uniqueAlias(String alias) {
+    var base = alias.replaceAll(RegExp(r"[^A-Za-z0-9_.-]"), "_");
+    if (base.length > 32) base = base.substring(0, 32);
+    if (base.isEmpty) base = "MN";
+    var name = base;
+    for (int i = 2; aliases.contains(name.toLowerCase()); i++) {
+      final suffix = "-$i";
+      name = base.length + suffix.length > 32
+          ? base.substring(0, 32 - suffix.length) + suffix
+          : base + suffix;
+    }
+    return name;
+  }
+
+  final result = <PivxMasternodeConfImport>[];
+  for (final (:line, :words) in pivxMasternodeConfLines(text)) {
+    bool? inWallet;
+    PivxMasternodeConfImport skip(String why) => PivxMasternodeConfImport._(
+      line: line,
+      alias: words.first,
+      // Only from a line that has all the words.
+      service: words.length >= 5 ? words[1] : "",
+      collateral: words.length >= 5 ? "${words[3]}:${words[4]}" : "",
+      skipped: why,
+      collateralInWallet: inWallet,
+    );
+
+    if (words.length < 5) {
+      result.add(
+        skip(
+          "Not a masternode line: alias, IP:port, masternode private key, "
+          "collateral transaction id and output index",
+        ),
+      );
+      continue;
+    }
+    final [alias, serviceText, key, txidText, voutText, ...] = words;
+    final txid = txidText.toLowerCase();
+    final vout = int.tryParse(voutText);
+    if (!RegExp(r"^[0-9a-f]{64}$").hasMatch(txid) || vout == null || vout < 0) {
+      result.add(skip("The collateral isn't a transaction id and index"));
+      continue;
+    }
+    final id = pivxOutpointKey(txid, vout);
+    inWallet = outputs.containsKey(id) || byCollateral.containsKey(id);
+    final same = byCollateral[id];
+    if (same != null) {
+      result.add(skip("Already added as ${same.label}"));
+      continue;
+    }
+    final String service;
+    try {
+      service = normalizeService(serviceText);
+    } on FormatException catch (e) {
+      result.add(skip(e.message));
+      continue;
+    }
+    final ip = _serviceIp(service);
+    final sameIp = byIp[ip];
+    if (sameIp != null) {
+      result.add(skip("This IP is already used by $sameIp"));
+      continue;
+    }
+    if (importedCollaterals[id] case final other?) {
+      result.add(skip("Same collateral as line $other"));
+      continue;
+    }
+    if (importedIps[ip] case final other?) {
+      result.add(skip("Same IP as line $other"));
+      continue;
+    }
+    if (!isValidKey(key)) {
+      result.add(skip("The masternode private key isn't valid"));
+      continue;
+    }
+    final output = outputs[id];
+    if (output == null) {
+      result.add(skip("Its collateral isn't in this wallet"));
+      continue;
+    }
+    if (output.value != collateral) {
+      result.add(skip("Its collateral isn't $collateralText"));
+      continue;
+    }
+    if (output.used == true) {
+      result.add(skip("Its collateral is being spent"));
+      continue;
+    }
+
+    final label = uniqueAlias(alias);
+    aliases.add(label.toLowerCase());
+    importedCollaterals[id] = line;
+    importedIps[ip] = line;
+    result.add(
+      PivxMasternodeConfImport._(
+        line: line,
+        alias: alias,
+        service: serviceText,
+        collateral: "$txidText:$voutText",
+        collateralInWallet: true,
+        masternode: PivxMasternode(
+          label: label,
+          address: output.address ?? "",
+          txid: txid,
+          vout: vout,
+          createdAt: now,
+          service: service,
+        ),
+        key: key,
+      ),
+    );
+  }
+  return result;
+}
+
 extension PivxMasternodes on PivxWallet {
   /// Regtest has its own masternode rules (100 PIV collateral, 1
   /// confirmation). Known after [loadMasternodeNetwork].
@@ -262,13 +526,7 @@ extension PivxMasternodes on PivxWallet {
       createdAt: DateTime.timestamp().millisecondsSinceEpoch ~/ 1000,
       service: service,
     );
-    await secureStorageInterface.write(
-      key: _masternodeKeyName(mn.id),
-      value: masternodeKey.trim(),
-    );
-    await _updateMasternodes(
-      (stored) => [...stored.where((m) => m.id != mn.id), mn],
-    );
+    await _addMasternodes([(masternode: mn, key: masternodeKey)]);
     final newLabel = addressLabel?.trim() ?? "";
     if (newLabel.isNotEmpty) {
       final existing = mainDB.getAddressLabelSync(walletId, address);
@@ -282,8 +540,67 @@ extension PivxMasternodes on PivxWallet {
             ),
       );
     }
-    await _freezeCollateral(mn, frozen: true);
     return mn;
+  }
+
+  /// Plan importing PIVX Core's masternode.conf [text] into this wallet
+  /// (see [pivxPlanMasternodeConfImport]); [importMasternodes] adds them.
+  Future<List<PivxMasternodeConfImport>> planMasternodeConfImport(
+    String text,
+  ) async {
+    await loadMasternodeNetwork();
+    return pivxPlanMasternodeConfImport(
+      text,
+      existing: masternodes,
+      outputs: {
+        for (final u in await mainDB.getUTXOs(walletId).findAll())
+          if (!isPivxShieldNote(u) && !isPivxColdStakeUtxo(u))
+            pivxOutpointKey(u.txid, u.vout): u,
+      },
+      collateral: masternodeCollateral.raw.toInt(),
+      collateralText:
+          "${masternodeCollateral.decimal} ${cryptoCurrency.ticker}",
+      normalizeService: normalizeMasternodeService,
+      isValidKey: isValidMasternodeKey,
+      now: DateTime.timestamp().millisecondsSinceEpoch ~/ 1000,
+    );
+  }
+
+  /// Add the masternodes [plan] imports and freeze their collaterals.
+  /// Returns how many were added.
+  Future<int> importMasternodes(List<PivxMasternodeConfImport> plan) async {
+    // Added meanwhile (e.g. a second tap): left as they are.
+    final used = _masternodeCollaterals;
+    final added = [
+      for (final p in plan)
+        if (p.masternode != null && !used.contains(p.masternode!.id))
+          (masternode: p.masternode!, key: p.key!),
+    ];
+    if (added.isNotEmpty) await _addMasternodes(added);
+    return added.length;
+  }
+
+  /// Store [added] with their keys, in one write of the list, and freeze
+  /// their collaterals.
+  Future<void> _addMasternodes(
+    List<({PivxMasternode masternode, String key})> added,
+  ) async {
+    for (final a in added) {
+      await secureStorageInterface.write(
+        key: _masternodeKeyName(a.masternode.id),
+        value: a.key.trim(),
+      );
+    }
+    final ids = {for (final a in added) a.masternode.id};
+    await _updateMasternodes(
+      (stored) => [
+        ...stored.where((m) => !ids.contains(m.id)),
+        for (final a in added) a.masternode,
+      ],
+    );
+    await _freezeCollaterals([
+      for (final a in added) a.masternode,
+    ], frozen: true);
   }
 
   /// Forget a masternode; its collateral becomes spendable again.
@@ -292,24 +609,30 @@ extension PivxMasternodes on PivxWallet {
       (stored) => [...stored.where((m) => m.id != mn.id)],
     );
     await secureStorageInterface.delete(key: _masternodeKeyName(mn.id));
-    await _freezeCollateral(mn, frozen: false);
+    await _freezeCollaterals([mn], frozen: false);
   }
 
-  Future<void> _freezeCollateral(
-    PivxMasternode mn, {
+  Future<void> _freezeCollaterals(
+    List<PivxMasternode> mns, {
     required bool frozen,
   }) async {
-    final utxo = await mainDB.isar.utxos
-        .where()
-        .txidWalletIdVoutEqualTo(mn.txid, walletId, mn.vout)
-        .findFirst();
-    if (utxo == null) return; // frozen by updateUTXOs once it is seen
-    await mainDB.putUTXO(
-      utxo.copyWith(
-        isBlocked: frozen,
-        blockedReason: frozen ? _kMasternodeFrozenReason : null,
-      ),
-    );
+    final utxos = <UTXO>[];
+    for (final mn in mns) {
+      final utxo = await mainDB.isar.utxos
+          .where()
+          .txidWalletIdVoutEqualTo(mn.txid, walletId, mn.vout)
+          .findFirst();
+      // Missing ones are frozen by updateUTXOs once they are seen.
+      if (utxo == null) continue;
+      utxos.add(
+        utxo.copyWith(
+          isBlocked: frozen,
+          blockedReason: frozen ? _kMasternodeFrozenReason : null,
+        ),
+      );
+    }
+    if (utxos.isEmpty) return;
+    await mainDB.putUTXOs(utxos);
     await updateBalance();
   }
 
@@ -445,53 +768,12 @@ extension PivxMasternodes on PivxWallet {
 
   /// Parse a server address, `1.2.3.4:51472`, `[2001:db8::1]:51472` or a
   /// bare IP (default port). Returns `ip:port`, or throws.
-  String normalizeMasternodeService(String text) {
-    final s = text.trim();
-    String host;
-    int port = masternodePort;
-    if (s.startsWith("[")) {
-      final end = s.indexOf("]");
-      if (end < 0) throw const FormatException("Invalid IPv6 address");
-      host = s.substring(1, end);
-      final rest = s.substring(end + 1);
-      if (rest.isNotEmpty) {
-        if (!rest.startsWith(":")) throw const FormatException("Invalid port");
-        port = _parsePort(rest.substring(1));
-      }
-    } else if (":".allMatches(s).length == 1) {
-      final i = s.indexOf(":");
-      host = s.substring(0, i);
-      port = _parsePort(s.substring(i + 1));
-    } else {
-      host = s;
-    }
-    final ip = InternetAddress.tryParse(host);
-    if (ip == null) {
-      throw const FormatException("Enter the server's IP address");
-    }
-    if (port <= 0 || port > 65535) throw const FormatException("Invalid port");
-    // As PIVX Core checks a masternode broadcast: mainnet masternodes run
-    // on 51472 and other networks never do. Testnet uses its default port;
-    // regtest (several nodes on one host) any other.
-    if (_isRegtest) {
-      if (port == kPivxMasternodePortMain) {
-        throw const FormatException(
-          "Port $kPivxMasternodePortMain is for mainnet masternodes only",
-        );
-      }
-    } else if (port != masternodePort) {
-      throw FormatException("Masternodes must use port $masternodePort");
-    }
-    return ip.type == InternetAddressType.IPv6
-        ? "[${ip.address}]:$port"
-        : "${ip.address}:$port";
-  }
-
-  static int _parsePort(String text) {
-    final port = int.tryParse(text.trim());
-    if (port == null) throw const FormatException("Invalid port");
-    return port;
-  }
+  String normalizeMasternodeService(String text) =>
+      pivxNormalizeMasternodeService(
+        text,
+        port: masternodePort,
+        regtest: _isRegtest,
+      );
 
   /// 16-byte IP (IPv4 mapped into IPv6) and big-endian port, as PIVX
   /// serializes a `CService`.
