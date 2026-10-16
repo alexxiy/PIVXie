@@ -160,9 +160,12 @@ class PivxBridgeClient {
   }
 
   static HttpClient _newHttpClient(({InternetAddress host, int port})? proxy) {
+    // Idle connections are dropped well before servers close them
+    // (pivx-bridge: after 30 s), so a request never goes out on one the
+    // server is just closing.
     final client = HttpClient()
       ..connectionTimeout = _timeout
-      ..idleTimeout = const Duration(seconds: 30);
+      ..idleTimeout = const Duration(seconds: 15);
     if (proxy != null) {
       SocksTCPClient.assignToHttpClient(client, [
         ProxySettings(proxy.host, proxy.port),
@@ -228,8 +231,18 @@ class PivxBridgeClient {
     queryParameters: (query == null || query.isEmpty) ? null : query,
   );
 
+  /// Pauses before asking again after a 503: the bridge's node is busy
+  /// ("try again"), its address index is still opening, or a reverse
+  /// proxy limits the rate.
+  static const _busyPauses = [Duration(seconds: 1), Duration(seconds: 3)];
+
   Future<String> _getText(String path, [Map<String, String>? query]) async {
-    final response = await _send("GET", _uri(path, query));
+    var response = await _send("GET", _uri(path, query));
+    for (final pause in _busyPauses) {
+      if (response.code != 503) break;
+      await Future<void>.delayed(pause);
+      response = await _send("GET", _uri(path, query));
+    }
     if (response.code == 404 && response.body.trim().isEmpty) {
       // No such route: a bridge older than 0.5 (index under /api/v2), or
       // one without the address index.
