@@ -1,9 +1,6 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../notifications/show_flush_bar.dart';
 import '../../providers/global/wallets_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount.dart';
@@ -12,12 +9,10 @@ import '../../utilities/text_styles.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
-import '../../widgets/custom_buttons/blue_text_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/rounded_white_container.dart';
 import 'pivx_create_masternode_view.dart';
-import 'pivx_import_masternode_conf_view.dart';
 import 'pivx_masternode_details_view.dart';
 
 /// The wallet's PIVX masternodes, from the wallet's "More" menu.
@@ -80,26 +75,6 @@ class _PivxMasternodesViewState extends ConsumerState<PivxMasternodesView> {
   Future<void> _open(String route, Object arguments) async {
     await Navigator.of(context).pushNamed(route, arguments: arguments);
     if (mounted) setState(_reload);
-  }
-
-  Future<void> _importConf() async {
-    final added = await Navigator.of(context).pushNamed<int>(
-      PivxImportMasternodeConfView.routeName,
-      arguments: widget.walletId,
-    );
-    if (!mounted) return;
-    setState(_reload);
-    if (added != null && added > 0) {
-      unawaited(
-        showFloatingFlushBar(
-          type: FlushBarType.success,
-          message: added == 1
-              ? "Added 1 masternode"
-              : "Added $added masternodes",
-          context: context,
-        ),
-      );
-    }
   }
 
   @override
@@ -166,13 +141,6 @@ class _PivxMasternodesViewState extends ConsumerState<PivxMasternodesView> {
                     walletId: widget.walletId,
                     existing: true,
                   )),
-                ),
-                const SizedBox(height: 12),
-                Center(
-                  child: CustomTextButton(
-                    text: "Import masternode.conf from PIVX Core",
-                    onTap: _importConf,
-                  ),
                 ),
               ],
             ),
@@ -261,8 +229,9 @@ class PivxMasternodesSummary extends ConsumerWidget {
               const SizedBox(height: 4),
               Text(
                 label,
-                style: STextStyles.w500_12(context)
-                    .copyWith(color: colors.textSubtitle1),
+                style: STextStyles.w500_12(
+                  context,
+                ).copyWith(color: colors.textSubtitle1),
               ),
             ],
           ),
@@ -317,8 +286,9 @@ class PivxMasternodeCard extends ConsumerWidget {
             children: [
               Text(
                 label,
-                style: STextStyles.w500_12(context)
-                    .copyWith(color: colors.textSubtitle1),
+                style: STextStyles.w500_12(
+                  context,
+                ).copyWith(color: colors.textSubtitle1),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -326,8 +296,9 @@ class PivxMasternodeCard extends ConsumerWidget {
                   value,
                   textAlign: TextAlign.right,
                   overflow: TextOverflow.ellipsis,
-                  style: STextStyles.w500_12(context)
-                      .copyWith(color: colors.textDark),
+                  style: STextStyles.w500_12(
+                    context,
+                  ).copyWith(color: colors.textDark),
                 ),
               ),
             ],
