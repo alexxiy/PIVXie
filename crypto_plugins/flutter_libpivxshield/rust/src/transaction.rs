@@ -235,6 +235,18 @@ fn memo_text(bytes: &[u8]) -> Option<String> {
 // Block handling
 // ---------------------------------------------------------------------------
 
+/// Txid (display hex) of a raw transaction: its double SHA-256, reversed.
+/// `Transaction::txid` hashes only the bytes the parser reads, which for a
+/// special transaction (masternode registration and the like, nType != 0)
+/// leaves out its extra payload after the Sapling data.
+pub(crate) fn raw_txid(raw_hex: &str) -> BoxResult<String> {
+    let raw = hex::decode(raw_hex)?;
+    let once = hex::decode(sha256::digest(&raw[..]))?;
+    let mut twice = hex::decode(sha256::digest(&once[..]))?;
+    twice.reverse();
+    Ok(hex::encode(twice))
+}
+
 /// Scan full raw transactions (the bridge's default `pivx` stream format).
 pub fn handle_blocks(
     tree_hex: &str,
@@ -309,7 +321,7 @@ pub fn handle_blocks(
             .any(|n| tx_nullifiers.contains(&n.nullifier));
         if !received_here.is_empty() || spends_ours || !sent.is_empty() {
             wallet_transactions.push(WalletTxDetail {
-                txid: tx.txid().to_string(),
+                txid: raw_txid(hex_tx)?,
                 hex: (*hex_tx).clone(),
                 received: received_here
                     .iter()

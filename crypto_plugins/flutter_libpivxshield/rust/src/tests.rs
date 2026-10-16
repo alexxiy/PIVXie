@@ -179,3 +179,29 @@ fn transparent_payment_below_dust_after_the_fee_is_refused() {
     let err = pay_from_utxo(fee + 100, fee + 100, true, true).unwrap_err();
     assert!(err.contains("below the dust limit"), "{err}");
 }
+
+/// Real mainnet tx 815921e0…3394 from block 5361234 (2 shield spends,
+/// 1 shield output).
+const MAINNET_SAPLING_TX: &str = include_str!("../testdata/mainnet_sapling_tx.hex");
+
+#[test]
+fn txid_of_normal_and_special_transactions() {
+    let hex = MAINNET_SAPLING_TX.trim();
+    let txid = "815921e01f022c640276427a37e8cf0bddd23eb77878fa03835ef97764d53394";
+    let parsed = Transaction::read(&hex::decode(hex).unwrap()[..], BranchId::Sapling).unwrap();
+    assert_eq!(parsed.txid().to_string(), txid);
+    assert_eq!(crate::transaction::raw_txid(hex).unwrap(), txid);
+
+    // The same as a special transaction (nType 1) with an extra payload
+    // after the Sapling data: it still parses, with the same shield
+    // output, but the parser's txid leaves the payload out.
+    let mut special = hex::decode(hex).unwrap();
+    special[2] = 0x01;
+    special.extend([0x01, 0x03, 0xAA, 0xBB, 0xCC]);
+    let special_hex = hex::encode(&special);
+    let parsed = Transaction::read(&special[..], BranchId::Sapling).unwrap();
+    assert_eq!(parsed.sapling_bundle().unwrap().shielded_outputs().len(), 1);
+    let real = crate::transaction::raw_txid(&special_hex).unwrap();
+    assert_ne!(real, txid);
+    assert_ne!(parsed.txid().to_string(), real);
+}
