@@ -380,7 +380,6 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
 
 class _AddressDetailsTxV2List extends ConsumerWidget {
   const _AddressDetailsTxV2List({
-    super.key,
     required this.walletId,
     required this.address,
   });
@@ -460,7 +459,7 @@ class _AddressDetailsTxV2List extends ConsumerWidget {
 }
 
 class _Div extends StatelessWidget {
-  const _Div({super.key, required this.height});
+  const _Div({required this.height});
 
   final double height;
 
@@ -479,7 +478,7 @@ class _Div extends StatelessWidget {
 }
 
 class _Tags extends StatelessWidget {
-  const _Tags({super.key, required this.tags});
+  const _Tags({required this.tags});
 
   final List<String>? tags;
 

@@ -103,7 +103,6 @@ class StackBackupView extends StatelessWidget {
                       Navigator.of(
                         context,
                       ).pushNamed(CreateBackupView.routeName);
-                      // .pushNamed(CreateBackupInfoView.routeName);
                     },
                     child: Padding(
                       padding: const EdgeInsets.symmetric(

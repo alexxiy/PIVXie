@@ -24,8 +24,6 @@ extension BigIntExtensions on BigInt {
     }
   }
 
-  String get toHexUppercase => toHex.toUpperCase();
-
   Uint8List get toBytes {
     if (this < BigInt.zero) {
       throw Exception("BigInt value is negative");

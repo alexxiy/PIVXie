@@ -19,7 +19,6 @@ import '../notifications/show_flush_bar.dart';
 import '../pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import '../pages/settings_views/global_settings_view/manage_nodes_views/node_details_view.dart';
 import '../providers/global/active_wallet_provider.dart';
-import '../providers/global/secure_store_provider.dart';
 import '../providers/providers.dart';
 import '../themes/stack_colors.dart';
 import '../utilities/assets.dart';
@@ -167,27 +166,15 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                       text: "Connect",
                       enabled: _status == "Disconnected",
                       onTap: () async {
-                        final TorPlainNetworkOption netOption;
-                        if (_node.torEnabled && !_node.clearnetEnabled) {
-                          netOption = TorPlainNetworkOption.tor;
-                        } else if (_node.clearnetEnabled && !_node.torEnabled) {
-                          netOption = TorPlainNetworkOption.clear;
-                        } else {
-                          netOption = TorPlainNetworkOption.both;
-                        }
-
                         final nodeFormData = NodeFormData()
                           ..useSSL = _node.useSSL
-                          ..trusted = _node.trusted
                           ..name = _node.name
                           ..host = _node.host
-                          ..login = _node.loginName
                           ..port = _node.port
-                          ..netOption = netOption
-                          ..isFailover = _node.isFailover;
-                        nodeFormData.password = await _node.getPassword(
-                          ref.read(secureStoreProvider),
-                        );
+                          ..netOption = TorPlainNetworkOption.fromNodeData(
+                            _node.torEnabled,
+                            _node.clearnetEnabled,
+                          );
 
                         if (context.mounted) {
                           final canConnect =

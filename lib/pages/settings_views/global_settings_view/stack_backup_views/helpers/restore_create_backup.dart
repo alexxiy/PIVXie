@@ -39,13 +39,13 @@ import '../../../../../utilities/enums/sync_type_enum.dart';
 import '../../../../../utilities/flutter_secure_storage_interface.dart';
 import '../../../../../utilities/format.dart';
 import '../../../../../utilities/logger.dart';
+import '../../../../../utilities/password_rules.dart';
 import '../../../../../utilities/prefs.dart';
 import '../../../../../utilities/util.dart';
 import '../../../../../wallets/isar/models/wallet_info.dart';
 import '../../../../../wallets/wallet/impl/pivx_wallet.dart';
 import '../../../../../wallets/wallet/wallet.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
-import '../../../../../wallets/wallet/wallet_mixin_interfaces/private_key_interface.dart';
 import '../../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 
 class PreRestoreState {
@@ -105,11 +105,13 @@ bool validateFail(
   String passphrase,
   String repeatPassphrase,
 ) {
+  final missing = passwordMissing(passphrase);
   for (final e in [
     [pathToSave.isEmpty, "Directory not chosen"],
     if (!pathToSave.startsWith("content://"))
       [!(Directory(pathToSave).existsSync()), "Directory does not exist"],
     [passphrase.isEmpty, "A passphrase is required"],
+    [missing != null, missing ?? ""],
     [passphrase != repeatPassphrase, "Passphrase does not match"],
   ]) {
     if (e[0] as bool) {
@@ -225,7 +227,6 @@ abstract class SWB {
     final NodeService nodeService = NodeService(
       secureStorageInterface: secureStorage,
     );
-    final _secureStore = secureStorage;
 
     Logging.instance.d("createStackWalletJSON awaiting DB.instance.mutex...");
     // prevent modification of data
@@ -233,13 +234,7 @@ abstract class SWB {
       Logging.instance.i("...createStackWalletJSON DB.instance.mutex acquired");
       Logging.instance.i("SWB backing up nodes");
       try {
-        final nodesFuture = nodeService.nodes.map((e) async {
-          final map = e.toMap();
-          map["password"] = await e.getPassword(_secureStore);
-          return map;
-        }).toList();
-        final nodes = await Future.wait(nodesFuture);
-        backupJson['nodes'] = nodes;
+        backupJson['nodes'] = nodeService.nodes.map((e) => e.toMap()).toList();
       } catch (e, s) {
         Logging.instance.e("", error: e, stackTrace: s);
       }
@@ -254,7 +249,6 @@ abstract class SWB {
       prefs['hasPin'] = _prefs.hasPin;
       prefs['language'] = _prefs.language;
       prefs['showFavoriteWallets'] = _prefs.showFavoriteWallets;
-      prefs['wifiOnly'] = _prefs.wifiOnly;
       prefs['syncType'] = _prefs.syncType.name;
       prefs['walletIdsSyncOnStartup'] = _prefs.walletIdsSyncOnStartup;
       prefs['showTestNetCoins'] = _prefs.showTestNetCoins;
@@ -301,8 +295,6 @@ abstract class SWB {
           backupWallet['mnemonic'] = await wallet.getMnemonic();
           backupWallet['mnemonicPassphrase'] = await wallet
               .getMnemonicPassphrase();
-        } else if (wallet is PrivateKeyInterface) {
-          backupWallet['privateKey'] = await wallet.getPrivateKey();
         }
         backupWallet['coinName'] = wallet.info.coin.identifier;
         backupWallet['storedChainHeight'] = wallet.info.cachedChainHeight;
@@ -341,13 +333,6 @@ abstract class SWB {
     });
     Logging.instance.d("createStackWalletJSON DB.instance.mutex released");
 
-    // // back up notifications data
-    // final notificationsService = NotificationsService();
-    // await notificationsService.init(nodeService, tradesService);
-    // backupJson["allNotifications"] = notificationsService.notifications
-    //     .map((e) => e.toMap())
-    //     .toList(growable: false);
-
     Logging.instance.d("...createStackWalletJSON complete");
     return backupJson;
   }
@@ -362,7 +347,7 @@ abstract class SWB {
     final info = tuple.item2;
     final walletbackup = tuple.item1;
 
-    String? mnemonic, mnemonicPassphrase, privateKey;
+    String? mnemonic, mnemonicPassphrase;
 
     ViewOnlyWalletData? viewOnlyData;
     if (info.isViewOnly) {
@@ -373,22 +358,8 @@ abstract class SWB {
         viewOnlyDataEncoded,
         walletId: info.walletId,
       );
-    } else if (walletbackup['mnemonic'] == null) {
-      // probably private key based
-      if (walletbackup['privateKey'] != null) {
-        privateKey = walletbackup['privateKey'] as String;
-      }
-    } else {
-      if (walletbackup['mnemonic'] is List) {
-        final List<String> mnemonicList =
-            (walletbackup['mnemonic'] as List<dynamic>)
-                .map<String>((e) => e as String)
-                .toList();
-        mnemonic = mnemonicList.join(" ").trim();
-      } else {
-        mnemonic = walletbackup['mnemonic'] as String;
-      }
-
+    } else if (walletbackup['mnemonic'] != null) {
+      mnemonic = walletbackup['mnemonic'] as String;
       mnemonicPassphrase = walletbackup['mnemonicPassphrase'] as String? ?? "";
     }
 
@@ -409,7 +380,6 @@ abstract class SWB {
         prefs: prefs,
         mnemonic: mnemonic,
         mnemonicPassphrase: mnemonicPassphrase,
-        privateKey: privateKey,
         viewOnlyData: viewOnlyData,
       );
 
@@ -551,7 +521,6 @@ abstract class SWB {
         validJSON["prefs"] as Map<String, dynamic>;
     final List<dynamic>? addressBookEntries =
         validJSON["addressBookEntries"] as List?;
-    final List<dynamic>? primaryNodes = validJSON["primaryNodes"] as List?;
     final List<dynamic>? nodes = validJSON["nodes"] as List?;
 
     uiState?.preferences = StackRestoringStatus.restoring;
@@ -571,27 +540,9 @@ abstract class SWB {
     uiState?.nodes = StackRestoringStatus.restoring;
 
     Logging.instance.d("SWB restoring nodes");
-    await _restoreNodes(nodes, primaryNodes, secureStorageInterface);
+    await _restoreNodes(nodes, secureStorageInterface);
 
     uiState?.nodes = StackRestoringStatus.success;
-    // uiState?.notifications = RestoringState.restoring;
-
-    // // restore notifications data
-    // final notificationsService = NotificationsService();
-    // await notificationsService.init(nodeService, tradesService);
-    // if (allNotifications != null) {
-    //   for (int i = 0; i < allNotifications.length - 1; i++) {
-    //     notificationsService.add(
-    //         NotificationModel.fromJson(allNotifications[i]), false);
-    //   }
-    //   // only call notifyListeners on last one added
-    //   if (allNotifications.length > 0) {
-    //     notificationsService.add(
-    //         NotificationModel.fromJson(allNotifications.last), true);
-    //   }
-    // }
-
-    // uiState?.notifications = RestoringState.done;
   }
 
   static Future<bool?> restoreStackWalletJSON(
@@ -681,9 +632,6 @@ abstract class SWB {
       final walletName = walletbackup['name'] as String;
       final walletId = oldToNewWalletIdMap[walletbackup["id"] as String]!;
 
-      // TODO: use these for monero and possibly other coins later on?
-      // final List<String> txidList = List<String>.from(walletbackup['txidList'] as List? ?? []);
-
       Map<String, dynamic>? otherData;
       try {
         if (walletbackup["otherDataJsonString"] is String) {
@@ -714,12 +662,8 @@ abstract class SWB {
 
       if (node == null) {
         node = coin.defaultNode(isPrimary: true);
-        await nodeService.save(node, null, false);
+        await nodeService.save(node, false);
       }
-
-      // final txTracker = TransactionNotificationTracker(walletId: walletId);
-      //
-      // final failovers = nodeService.failoverNodesFor(coin: coin);
 
       // check if cancel was requested and restore previous state
       if (_checkShouldCancel(preRestoreState, secureStorageInterface)) {
@@ -880,7 +824,7 @@ abstract class SWB {
         }
       }
     } else {
-      final Map<String, dynamic> preNodeMap = {};
+      final Map<String, Map<String, dynamic>> preNodeMap = {};
       for (final nodeData in nodes) {
         preNodeMap[nodeData['id'] as String] = nodeData as Map<String, dynamic>;
       }
@@ -890,29 +834,7 @@ abstract class SWB {
         if (nodeData != null) {
           // node existed before restore attempt
           // revert to pre restore node
-          await nodeService.save(
-            node.copyWith(
-              host: nodeData['host'] as String,
-              port: nodeData['port'] as int,
-              name: nodeData['name'] as String,
-              useSSL: _nodeFlag(nodeData['useSSL'], or: true),
-              enabled: _nodeFlag(nodeData['enabled'], or: true),
-              coinName: nodeData['coinName'] as String,
-              loginName: nodeData['loginName'] as String?,
-              isFailover: nodeData['isFailover'] as bool,
-              isDown: nodeData['isDown'] as bool,
-              trusted: nodeData['trusted'] as bool?,
-              torEnabled: _nodeFlag(nodeData['torEnabled'], or: true),
-              clearnetEnabled: _nodeFlag(
-                nodeData['clearEnabled'] ?? nodeData['plainEnabled'],
-                or: true,
-              ),
-              forceNoTor: _nodeFlag(nodeData['forceNoTor'], or: false),
-              isPrimary: nodeData["isPrimary"] as bool? ?? false,
-            ),
-            nodeData['password'] as String?,
-            true,
-          );
+          await nodeService.save(_nodeFromBackup(nodeData), true);
         } else {
           await nodeService.delete(node.id, true);
         }
@@ -938,11 +860,8 @@ abstract class SWB {
     final _prefs = Prefs.instance;
     await _prefs.init();
     _prefs.currency = prefs['currency'] as String;
-    // _prefs.useBiometrics = prefs['useBiometrics'] as bool;
-    // _prefs.hasPin = prefs['hasPin'] as bool;
     _prefs.language = prefs['language'] as String;
     _prefs.showFavoriteWallets = prefs['showFavoriteWallets'] as bool;
-    _prefs.wifiOnly = prefs['wifiOnly'] as bool;
     _prefs.syncType = prefs['syncType'] == "currentWalletOnly"
         ? SyncingType.currentWalletOnly
         : prefs['syncType'] == "selectedWalletsAtStartup"
@@ -998,56 +917,31 @@ abstract class SWB {
 
   static Future<void> _restoreNodes(
     List<dynamic>? nodes,
-    List<dynamic>? primaryNodes,
     SecureStorageInterface secureStorageInterface,
   ) async {
     final NodeService nodeService = NodeService(
       secureStorageInterface: secureStorageInterface,
     );
-    if (nodes != null) {
-      final primaryIds = primaryNodes
-          ?.map((e) => e["id"] as String?)
-          .whereType<String>()
-          .toSet();
-
-      for (final node in nodes) {
-        final id = node['id'] as String;
-        await nodeService.save(
-          NodeModel(
-            host: node['host'] as String,
-            port: node['port'] as int,
-            name: node['name'] as String,
-            id: id,
-            useSSL: _nodeFlag(node['useSSL'], or: true),
-            enabled: _nodeFlag(node['enabled'], or: true),
-            coinName: node['coinName'] as String,
-            loginName: node['loginName'] as String?,
-            isFailover: node['isFailover'] as bool,
-            isDown: node['isDown'] as bool,
-            trusted: node['trusted'] as bool?,
-            torEnabled: _nodeFlag(node['torEnabled'], or: true),
-            clearnetEnabled: _nodeFlag(
-              node['clearEnabled'] ?? node['plainEnabled'],
-              or: true,
-            ),
-            forceNoTor: _nodeFlag(node['forceNoTor'], or: false),
-            isPrimary:
-                node["isPrimary"] as bool? ?? primaryIds?.contains(id) ?? false,
-          ),
-          node["password"] as String?,
-          true,
-        );
-      }
+    for (final node in nodes ?? const []) {
+      await nodeService.save(
+        _nodeFromBackup(Map<String, dynamic>.from(node as Map)),
+        true,
+      );
     }
 
     await nodeService.updateDefaults();
   }
 }
 
-/// A node setting from a backup: a bool ([NodeModel.toMap]), or "true" /
-/// "false" as older backups wrote some of them.
-bool _nodeFlag(Object? value, {required bool or}) => switch (value) {
-  final bool b => b,
-  final String s => s != "false",
-  _ => or,
-};
+/// A node as [NodeModel.toMap] wrote it into a backup.
+NodeModel _nodeFromBackup(Map<String, dynamic> node) => NodeModel(
+  host: node['host'] as String,
+  port: node['port'] as int,
+  name: node['name'] as String,
+  id: node['id'] as String,
+  useSSL: node['useSSL'] as bool? ?? true,
+  coinName: node['coinName'] as String,
+  torEnabled: node['torEnabled'] as bool? ?? true,
+  clearnetEnabled: node['clearEnabled'] as bool? ?? true,
+  isPrimary: node['isPrimary'] as bool? ?? false,
+);

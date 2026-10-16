@@ -10,13 +10,7 @@
 
 import 'package:flutter_riverpod/legacy.dart';
 
-import '../../pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
 import '../../utilities/amount/amount.dart';
-
-final tokenFeeSessionCacheProvider =
-    ChangeNotifierProvider<FeeSheetSessionCache>((ref) {
-      return FeeSheetSessionCache();
-    });
 
 final sendAmountProvider = StateProvider.autoDispose<Amount>(
   (_) => Amount.zero,

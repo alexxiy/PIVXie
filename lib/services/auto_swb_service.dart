@@ -29,9 +29,6 @@ class AutoSWBService extends ChangeNotifier {
   AutoSWBStatus _status = AutoSWBStatus.idle;
   AutoSWBStatus get status => _status;
 
-  bool _isActiveTimer = false;
-  bool get isActivePeriodicTimer => _isActiveTimer;
-
   final SecureStorageInterface secureStorageInterface;
 
   AutoSWBService({required this.secureStorageInterface});
@@ -175,7 +172,6 @@ class AutoSWBService extends ChangeNotifier {
   }) {
     _timer?.cancel();
     _timer = Timer.periodic(duration, (_) => doBackup());
-    _isActiveTimer = true;
     if (shouldNotifyListeners) {
       notifyListeners();
     }
@@ -185,7 +181,6 @@ class AutoSWBService extends ChangeNotifier {
   void stopPeriodicBackupTimer({bool shouldNotifyListeners = true}) {
     _timer?.cancel();
     _timer = null;
-    _isActiveTimer = false;
     if (shouldNotifyListeners) {
       notifyListeners();
     }

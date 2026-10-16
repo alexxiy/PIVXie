@@ -26,12 +26,10 @@ import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../wallets/isar/providers/all_wallets_info_provider.dart';
-import '../../wallets/wallet/intermediate/external_wallet.dart';
 import '../../widgets/breathing.dart';
 import '../../widgets/conditional_parent.dart';
 import '../../widgets/desktop/desktop_dialog.dart';
 import '../../widgets/desktop/desktop_dialog_close_button.dart';
-import '../../widgets/dialogs/tor_warning_dialog.dart';
 import '../../widgets/rounded_white_container.dart';
 import 'wallet_view/desktop_wallet_view.dart';
 
@@ -86,24 +84,6 @@ class DesktopWalletSummaryRow extends ConsumerStatefulWidget {
 
 class _DesktopWalletSummaryRowState
     extends ConsumerState<DesktopWalletSummaryRow> {
-  Future<void> _checkTor() async {
-    if (ref.read(prefsChangeNotifierProvider).useTor) {
-      // ... and if the coin supports Tor.
-      if (!widget.coin.torSupport) {
-        // If not, show a Tor warning dialog.
-        final shouldContinue =
-            await showDialog<bool>(
-              context: context,
-              builder: (_) => TorWarningDialog(coin: widget.coin),
-            ) ??
-            false;
-        if (!shouldContinue || !context.mounted) {
-          return;
-        }
-      }
-    }
-  }
-
   bool get goStraightIntoWallet => Util.isDesktop && widget.walletCount == 1;
 
   bool _buttonLock = false;
@@ -111,8 +91,6 @@ class _DesktopWalletSummaryRowState
     if (_buttonLock) return;
     _buttonLock = true;
     try {
-      await _checkTor();
-
       if (mounted) {
         final wallet = ref
             .read(pWallets)
@@ -134,16 +112,8 @@ class _DesktopWalletSummaryRowState
           return;
         }
 
-        final Future<void> loadFuture;
-        if (wallet is ExternalWallet) {
-          loadFuture = wallet.init().then(
-            (value) async => await (wallet).open(),
-          );
-        } else {
-          loadFuture = wallet.init();
-        }
         await showLoading(
-          whileFuture: loadFuture,
+          whileFuture: wallet.init(),
           context: context,
           message: 'Opening ${wallet.info.name}',
           rootNavigator: Util.isDesktop,
@@ -165,7 +135,6 @@ class _DesktopWalletSummaryRowState
     _buttonLock = true;
     try {
       // Check if Tor is enabled...
-      await _checkTor();
 
       if (mounted) {
         await showDialog<void>(

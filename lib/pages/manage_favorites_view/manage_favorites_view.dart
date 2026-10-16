@@ -203,8 +203,6 @@ class ManageFavoritesView extends StatelessWidget {
                             primary: false,
                             itemCount: nonFavorites.length,
                             itemBuilder: (buildContext, index) {
-                              // final walletId = ref.watch(
-                              //     nonFavorites[index].select((value) => value.walletId));
                               final walletId = nonFavorites[index].walletId;
                               return Padding(
                                 key: Key(
@@ -364,8 +362,6 @@ class ManageFavoritesView extends StatelessWidget {
                           return ListView.builder(
                             itemCount: nonFavorites.length,
                             itemBuilder: (buildContext, index) {
-                              // final walletId = ref.watch(
-                              //     nonFavorites[index].select((value) => value.walletId));
                               final walletId = nonFavorites[index].walletId;
                               return Padding(
                                 key: Key(

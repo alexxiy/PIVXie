@@ -126,9 +126,6 @@ class PivxProposal {
     fractionDigits: monthlyPayment.fractionDigits,
   );
 
-  /// Payments made so far.
-  int get paymentsMade => totalPayments - remainingPayments;
-
   PivxProposal _withStatus(PivxProposalStatus status) => PivxProposal._(
     name: name,
     url: url,

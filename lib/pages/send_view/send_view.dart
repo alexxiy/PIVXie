@@ -236,11 +236,6 @@ class _SendViewState extends ConsumerState<SendView> {
 
   Future<void> _scanQr() async {
     try {
-      // ref
-      //     .read(
-      //         shouldShowLockscreenOnResumeStateProvider
-      //             .state)
-      //     .state = false;
       if (FocusScope.of(context).hasFocus) {
         FocusScope.of(context).unfocus();
         await Future<void>.delayed(const Duration(milliseconds: 75));
@@ -248,15 +243,6 @@ class _SendViewState extends ConsumerState<SendView> {
       if (!mounted) return;
 
       final qrResult = await ref.read(pBarcodeScanner).scan(context: context);
-
-      // Future<void>.delayed(
-      //   const Duration(seconds: 2),
-      //   () => ref
-      //       .read(
-      //           shouldShowLockscreenOnResumeStateProvider
-      //               .state)
-      //       .state = true,
-      // );
 
       Logging.instance.d("qrResult content: ${qrResult.rawContent}");
       if (qrResult.rawContent == null) return;
@@ -279,12 +265,6 @@ class _SendViewState extends ConsumerState<SendView> {
         });
       }
     } on PlatformException catch (e, s) {
-      // ref
-      //     .read(
-      //         shouldShowLockscreenOnResumeStateProvider
-      //             .state)
-      //     .state = true;
-
       if (mounted) {
         try {
           await checkCamPermDeniedMobileAndOpenAppSettings(
@@ -347,11 +327,6 @@ class _SendViewState extends ConsumerState<SendView> {
       cryptoAmountController.text = "";
       _cryptoAmountChangeLock = false;
     }
-    // setState(() {
-    //   _calculateFeesFuture = calculateFees(
-    //       Format.decimalAmountToSatoshis(
-    //           _amountToSend!));
-    // });
     ref.read(pSendAmount.notifier).state = amount;
   }
 
@@ -838,37 +813,6 @@ class _SendViewState extends ConsumerState<SendView> {
       });
     }
 
-    // if (coin is! Epiccash) {
-    // _cryptoFocus.addListener(() {
-    //   if (!_cryptoFocus.hasFocus && !_baseFocus.hasFocus) {
-    //     if (_amountToSend == null) {
-    //       setState(() {
-    //         _calculateFeesFuture = calculateFees(0);
-    //       });
-    //     } else {
-    //       setState(() {
-    //         _calculateFeesFuture = calculateFees(
-    //             Format.decimalAmountToSatoshis(_amountToSend!, coin));
-    //       });
-    //     }
-    //   }
-    // });
-
-    // _baseFocus.addListener(() {
-    //   if (!_cryptoFocus.hasFocus && !_baseFocus.hasFocus) {
-    //     if (_amountToSend == null) {
-    //       setState(() {
-    //         _calculateFeesFuture = calculateFees(0);
-    //       });
-    //     } else {
-    //       setState(() {
-    //         _calculateFeesFuture = calculateFees(
-    //             Format.decimalAmountToSatoshis(_amountToSend!, coin));
-    //       });
-    //     }
-    //   }
-    // });
-    // }
     super.initState();
   }
 
@@ -997,9 +941,6 @@ class _SendViewState extends ConsumerState<SendView> {
                                           overflow: TextOverflow.ellipsis,
                                           maxLines: 1,
                                         ),
-                                        // const SizedBox(
-                                        //   height: 2,
-                                        // ),
                                         Text(
                                           balType == BalanceType.private
                                               ? "Shielded balance"
@@ -1082,21 +1023,6 @@ class _SendViewState extends ConsumerState<SendView> {
                                   style: STextStyles.smallMed12(context),
                                   textAlign: TextAlign.left,
                                 ),
-                                // if (coin is Monero)
-                                //   CustomTextButton(
-                                //     text: "Use OpenAlias",
-                                //     onTap: () async {
-                                //       await showModalBottomSheet(
-                                //         context: context,
-                                //         builder: (context) =>
-                                //             OpenAliasBottomSheet(
-                                //           onSelected: (address) {
-                                //             sendToController.text = address;
-                                //           },
-                                //         ),
-                                //       );
-                                //     },
-                                //   ),
                               ],
                             ),
                             const SizedBox(height: 8),
@@ -1441,16 +1367,6 @@ class _SendViewState extends ConsumerState<SendView> {
                                   unit: ref.watch(pAmountUnit(coin)),
                                   locale: locale,
                                 ),
-
-                                // regex to validate a crypto amount with 8 decimal places
-                                // TextInputFormatter.withFunction((oldValue,
-                                //         newValue) =>
-                                //     // RegExp(r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$')
-                                //     // RegExp(r'^\d{1,3}([,\.]\d+)?|[,\.\d]+$')
-                                //     getAmountRegex(locale, coin.fractionDigits)
-                                //             .hasMatch(newValue.text)
-                                //         ? newValue
-                                //         : oldValue),
                               ],
                               decoration: InputDecoration(
                                 contentPadding: const EdgeInsets.only(
@@ -1509,14 +1425,6 @@ class _SendViewState extends ConsumerState<SendView> {
                                     decimals: 2,
                                     locale: locale,
                                   ),
-                                  // regex to validate a fiat amount with 2 decimal places
-                                  // TextInputFormatter.withFunction((oldValue,
-                                  //         newValue) =>
-                                  //     // RegExp(r'^([0-9]*[,.]?[0-9]{0,2}|[,.][0-9]{0,2})$')
-                                  //     getAmountRegex(locale, 2)
-                                  //             .hasMatch(newValue.text)
-                                  //         ? newValue
-                                  //         : oldValue),
                                 ],
                                 onChanged: _fiatFieldChanged,
                                 decoration: InputDecoration(

@@ -10,16 +10,13 @@
 
 export './db/main_db_provider.dart';
 export './global/barcode_scanner_provider.dart';
-export './global/clipboard_provider.dart';
 export './global/duress_provider.dart';
 export './global/locale_provider.dart';
 export './global/node_service_provider.dart';
 export './global/prefs_provider.dart';
 export './global/global_nav_key_provider.dart';
 export './global/price_provider.dart';
-export './global/should_show_lockscreen_on_resume_state_provider.dart';
 export './global/wallets_provider.dart';
-export './global/wallets_service_provider.dart';
 export './ui/add_wallet_selected_coin_provider.dart';
 export './ui/check_box_state_provider.dart';
 export './ui/home_view_index_provider.dart';

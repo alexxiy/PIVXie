@@ -4,13 +4,7 @@ import 'package:paymint/db/hive/db.dart';
 
 void main() {
   group("DB box names", () {
-    test("address book", () => expect(DB.boxNameAddressBook, "addressBook"));
     test("nodes", () => expect(DB.boxNameNodeModels, "nodeModels"));
-    test("wallets info", () => expect(DB.boxNameAllWalletsData, "wallets"));
-    test(
-      "favorite wallets",
-      () => expect(DB.boxNameFavoriteWallets, "favoriteWallets"),
-    );
     test("preferences", () => expect(DB.boxNamePrefs, "prefs"));
     test(
       "deleted wallets to clear out on start",

@@ -31,20 +31,6 @@ class ClipboardWrapper implements ClipboardInterface {
   }
 }
 
-class FakeClipboard implements ClipboardInterface {
-  String? _value;
-
-  @override
-  Future<ClipboardData?> getData(String format) async {
-    return _value == null ? null : ClipboardData(text: _value!);
-  }
-
-  @override
-  Future<void> setData(ClipboardData data) async {
-    _value = data.text;
-  }
-}
-
 extension SecretClipboard on ClipboardInterface {
   /// Copy a secret (a recovery phrase, a masternode key) and clear the
   /// clipboard again after [after], unless something else was copied

@@ -75,13 +75,6 @@ class PivxShieldState {
   int get balance =>
       unspentNotes.fold(0, (p, n) => p + (n["value"] as num).toInt());
 
-  int get spendableBalance {
-    final pending = pendingNullifiers;
-    return unspentNotes
-        .where((n) => !pending.contains(n["nullifier"]))
-        .fold(0, (p, n) => p + (n["value"] as num).toInt());
-  }
-
   List<Map<String, dynamic>> get spendableNotes {
     final pending = pendingNullifiers;
     return unspentNotes

@@ -505,21 +505,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     }
   }
 
-  // String? _updateInvalidAddressText(String address) {
-  //   if (_data != null && _data!.contactLabel == address) {
-  //     return null;
-  //   }
-  //   if (address.isNotEmpty &&
-  //       !ref
-  //           .read(pWallets)
-  //           .getWallet(walletId)
-  //           .cryptoCurrency
-  //           .validateAddress(address)) {
-  //     return "Invalid address";
-  //   }
-  //   return null;
-  // }
-
   void _processQrCodeData(String qrCodeData) {
     try {
       final paymentData = AddressUtils.parsePaymentUri(
@@ -645,23 +630,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     }
   }
 
-  Future<void> pasteMemo() async {
-    if (memoController.text.isNotEmpty) {
-      setState(() {
-        memoController.text = "";
-      });
-    } else {
-      final ClipboardData? data = await clipboard.getData(Clipboard.kTextPlain);
-      if (data?.text != null && data!.text!.isNotEmpty) {
-        final String content = data.text!.trim();
-
-        setState(() {
-          memoController.text = content;
-        });
-      }
-    }
-  }
-
   void fiatTextFieldOnChanged(String baseAmountString) {
     final baseAmount = Amount.tryParseFiatString(
       baseAmountString,
@@ -701,11 +669,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       cryptoAmountController.text = "";
       _cryptoAmountChangeLock = false;
     }
-    // setState(() {
-    //   _calculateFeesFuture = calculateFees(
-    //       Format.decimalAmountToSatoshis(
-    //           _amountToSend!));
-    // });
     ref.read(pSendAmount.notifier).state = amount;
   }
 
@@ -824,7 +787,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       ref.read(pValidSendToAddress.notifier).state = false;
     });
 
-    // _calculateFeesFuture = calculateFees(0);
     _data = widget.autoFillData;
     walletId = widget.walletId;
     coin = ref.read(pWalletInfo(walletId)).coin;
@@ -1063,12 +1025,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               unit: ref.watch(pAmountUnit(coin)),
               locale: locale,
             ),
-            // // regex to validate a crypto amount with 8 decimal places
-            // TextInputFormatter.withFunction((oldValue, newValue) =>
-            //     RegExp(r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$')
-            //             .hasMatch(newValue.text)
-            //         ? newValue
-            //         : oldValue),
           ],
           onChanged: (newValue) {},
           decoration: InputDecoration(
@@ -1119,12 +1075,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             textAlign: TextAlign.right,
             inputFormatters: [
               AmountInputFormatter(decimals: 2, locale: locale),
-              // // regex to validate a fiat amount with 2 decimal places
-              // TextInputFormatter.withFunction((oldValue, newValue) =>
-              //     RegExp(r'^([0-9]*[,.]?[0-9]{0,2}|[,.][0-9]{0,2})$')
-              //             .hasMatch(newValue.text)
-              //         ? newValue
-              //         : oldValue),
             ],
             onChanged: fiatTextFieldOnChanged,
             decoration: InputDecoration(
@@ -1522,49 +1472,4 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       ],
     );
   }
-}
-
-String formatAddress(String epicAddress) {
-  // strip http:// or https:// prefixes if the address contains an @ symbol (and is thus an epicbox address)
-  if ((epicAddress.startsWith("http://") ||
-          epicAddress.startsWith("https://")) &&
-      epicAddress.contains("@")) {
-    epicAddress = epicAddress.replaceAll("http://", "");
-    epicAddress = epicAddress.replaceAll("https://", "");
-  }
-  // strip mailto: prefix
-  if (epicAddress.startsWith("mailto:")) {
-    epicAddress = epicAddress.replaceAll("mailto:", "");
-  }
-  // strip / suffix if the address contains an @ symbol (and is thus an epicbox address)
-  if (epicAddress.endsWith("/") && epicAddress.contains("@")) {
-    epicAddress = epicAddress.substring(0, epicAddress.length - 1);
-  }
-  return epicAddress;
-}
-
-String formatAddressMwc(String mimblewimblecoinAddress) {
-  // strip http:// or https:// prefixes if the address contains an @ symbol (and is thus an mwcmqs address)
-  if ((mimblewimblecoinAddress.startsWith("http://") ||
-          mimblewimblecoinAddress.startsWith("https://")) &&
-      mimblewimblecoinAddress.contains("@")) {
-    mimblewimblecoinAddress = mimblewimblecoinAddress.replaceAll("http://", "");
-    mimblewimblecoinAddress = mimblewimblecoinAddress.replaceAll(
-      "https://",
-      "",
-    );
-  }
-  // strip mailto: prefix
-  if (mimblewimblecoinAddress.startsWith("mailto:")) {
-    mimblewimblecoinAddress = mimblewimblecoinAddress.replaceAll("mailto:", "");
-  }
-  // strip / suffix if the address contains an @ symbol (and is thus an mwcmqs address)
-  if (mimblewimblecoinAddress.endsWith("/") &&
-      mimblewimblecoinAddress.contains("@")) {
-    mimblewimblecoinAddress = mimblewimblecoinAddress.substring(
-      0,
-      mimblewimblecoinAddress.length - 1,
-    );
-  }
-  return mimblewimblecoinAddress;
 }

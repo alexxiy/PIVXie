@@ -15,8 +15,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../app_config.dart';
-import '../../db/db_version_migration.dart';
-import '../../db/hive/db.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../providers/desktop/storage_crypto_handler_provider.dart';
 import '../../providers/global/secure_store_provider.dart';
@@ -24,9 +22,7 @@ import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/flutter_secure_storage_interface.dart';
-import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
-import '../../utilities/util.dart';
 import '../../widgets/app_icon.dart';
 import '../../widgets/custom_buttons/blue_text_button.dart';
 import '../../widgets/desktop/desktop_scaffold.dart';
@@ -60,30 +56,6 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
 
   bool hidePassword = true;
   bool _continueEnabled = false;
-
-  Future<void> _checkDesktopMigrate() async {
-    if (Util.isDesktop) {
-      final int dbVersion = DB.instance.get<dynamic>(
-            boxName: DB.boxNameDBInfo,
-            key: "hive_data_version",
-          ) as int? ??
-          0;
-      if (dbVersion < Constants.currentDataVersion) {
-        try {
-          await DbVersionMigrator().migrate(
-            dbVersion,
-            secureStore: ref.read(secureStoreProvider),
-          );
-        } catch (e, s) {
-          Logging.instance.f(
-            "Cannot migrate desktop database",
-            error: e,
-            stackTrace: s,
-          );
-        }
-      }
-    }
-  }
 
   bool _loginLock = false;
   Future<void> login() async {
@@ -119,9 +91,6 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
 
       // init desktop secure storage
       await (ref.read(secureStoreProvider).store as DesktopSecureStore).init();
-
-      // check and migrate if needed
-      await _checkDesktopMigrate();
 
       // load data
       await widget.load?.call();

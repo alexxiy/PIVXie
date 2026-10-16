@@ -126,9 +126,7 @@ class _NewWalletRecoveryPhraseWarningViewState
 
       if (node == null) {
         node = coin.defaultNode(isPrimary: true);
-        await ref
-            .read(nodeServiceChangeNotifierProvider)
-            .save(node, null, false);
+        await ref.read(nodeServiceChangeNotifierProvider).save(node, false);
       }
 
       String? mnemonicPassphrase;

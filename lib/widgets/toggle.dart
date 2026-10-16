@@ -37,7 +37,6 @@ class Toggle extends StatefulWidget {
   final String? offText;
   final void Function(bool)? onValueChanged;
   final bool isOn;
-  // final bool enabled;
   final DSBController? controller;
 
   final Color onColor;
@@ -59,26 +58,10 @@ class ToggleState extends State<Toggle> {
   late bool _isOn;
   bool get isOn => _isOn;
 
-  // late bool _enabled;
-
   late ValueNotifier<double> valueListener;
 
   final tapAnimationDuration = const Duration(milliseconds: 150);
   bool _isDragging = false;
-
-  // Color _colorBG(bool isOn, double alpha) {
-  //   return Color.alphaBlend(
-  //     onColor.withOpacity(alpha),
-  //     offColor,
-  //   );
-  // }
-
-  // Color _colorFG(bool isOn, double alpha) {
-  //   return Color.alphaBlend(
-  //     onColor.withOpacity(alpha),
-  //     offColor,
-  //   );
-  // }
 
   @override
   initState() {
@@ -87,12 +70,10 @@ class ToggleState extends State<Toggle> {
     decoration = widget.decoration;
     controller = widget.controller;
     _isOn = widget.isOn;
-    // _enabled = widget.enabled;
     valueListener = _isOn ? ValueNotifier(1.0) : ValueNotifier(0.0);
 
     widget.controller?.activate = () {
       _isOn = !_isOn;
-      // widget.onValueChanged?.call(_isOn);
       valueListener.value = _isOn ? 1.0 : 0.0;
     };
     super.initState();

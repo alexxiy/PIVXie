@@ -185,9 +185,6 @@ class WalletSyncingOptionsView extends ConsumerWidget {
                                               )
                                               .contains(info.walletId),
                                           onValueChanged: (value) {
-                                            // final syncType = ref
-                                            //     .read(prefsChangeNotifierProvider)
-                                            //     .syncType;
                                             final ids =
                                                 ref
                                                     .read(
@@ -200,26 +197,6 @@ class WalletSyncingOptionsView extends ConsumerWidget {
                                             } else {
                                               ids.remove(info.walletId);
                                             }
-
-                                            // final wallet = ref
-                                            //     .read(pWallets)
-                                            //     .getWallet(info.walletId);
-                                            //
-                                            // switch (syncType) {
-                                            //   case SyncingType.currentWalletOnly:
-                                            //     if (info.walletId ==
-                                            //         ref.read(
-                                            //             currentWalletIdProvider)) {
-                                            //       wallet.shouldAutoSync = value;
-                                            //     }
-                                            //     break;
-                                            //   case SyncingType
-                                            //         .selectedWalletsAtStartup:
-                                            //   case SyncingType
-                                            //         .allWalletsOnStartup:
-                                            //     wallet.shouldAutoSync = value;
-                                            //     break;
-                                            // }
 
                                             ref
                                                 .read(

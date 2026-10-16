@@ -4,7 +4,7 @@ import 'dart:math';
 import 'package:isar_community/isar.dart';
 
 import '../../../../../utilities/amount/amount.dart';
-import '../transaction.dart';
+import '../transaction_type.dart';
 import 'input_v2.dart';
 import 'output_v2.dart';
 

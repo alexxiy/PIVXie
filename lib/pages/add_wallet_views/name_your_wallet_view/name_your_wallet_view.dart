@@ -152,10 +152,6 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
 
   @override
   Widget build(BuildContext context) {
-    //todo: check if print needed
-    // debugPrint(
-    //     "BUILD: NameYourWalletView with ${coin.name} ${addWalletType.name}");
-
     if (isDesktop) {
       return DesktopScaffold(
         appBar: const DesktopAppBar(

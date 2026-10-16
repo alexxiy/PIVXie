@@ -25,17 +25,3 @@ final coinImageProvider = Provider.family<String, CryptoCurrency>((ref, coin) {
     return (assets as ThemeAssetsV3).coinImages[coin.mainNetId]!;
   }
 });
-
-final coinImageSecondaryProvider =
-    Provider.family<String, CryptoCurrency>((ref, coin) {
-  final assets = ref.watch(themeAssetsProvider);
-
-  if (assets is ThemeAssets) {
-    // just update your wallet or theme
-    return assets.stackIcon;
-  } else if (assets is ThemeAssetsV2) {
-    return (assets).coinSecondaryImages[coin.mainNetId]!;
-  } else {
-    return (assets as ThemeAssetsV3).coinSecondaryImages[coin.mainNetId]!;
-  }
-});

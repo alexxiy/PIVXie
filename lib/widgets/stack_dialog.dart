@@ -237,7 +237,6 @@ class StackOkDialog extends StatelessWidget {
                               int count = 0;
                               Navigator.of(context)
                                   .popUntil((_) => count++ >= 2);
-                              // onOkPressed?.call("OK");
                             }
                           },
                     style: Theme.of(context)

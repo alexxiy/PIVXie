@@ -669,13 +669,6 @@ class _AddAddressBookEntryViewState
                           },
                           text: "+ Add another address",
                         ),
-                        // GestureDetector(
-                        //
-                        //   child: Text(
-                        //     "+ Add another address",
-                        //     style: STextStyles.largeMedium14(context),
-                        //   ),
-                        // ),
                         const SizedBox(height: 16),
                         const Spacer(),
                         Row(

@@ -172,21 +172,9 @@ class MockPrefs extends _i1.Mock implements _i11.Prefs {
           as bool);
 
   @override
-  int get lastUnlockedTimeout => (super.noSuchMethod(
-    Invocation.getter(#lastUnlockedTimeout),
-    returnValue: 0,
-  ) as int);
-
-  @override
   int get lastUnlocked =>
       (super.noSuchMethod(Invocation.getter(#lastUnlocked), returnValue: 0)
           as int);
-
-  @override
-  int get currentNotificationId => (super.noSuchMethod(
-    Invocation.getter(#currentNotificationId),
-    returnValue: 0,
-  ) as int);
 
   @override
   List<String> get walletIdsSyncOnStartup => (super.noSuchMethod(
@@ -199,11 +187,6 @@ class MockPrefs extends _i1.Mock implements _i11.Prefs {
     Invocation.getter(#syncType),
     returnValue: _i12.SyncingType.currentWalletOnly,
   ) as _i12.SyncingType);
-
-  @override
-  bool get wifiOnly =>
-      (super.noSuchMethod(Invocation.getter(#wifiOnly), returnValue: false)
-          as bool);
 
   @override
   bool get showFavoriteWallets => (super.noSuchMethod(
@@ -248,16 +231,6 @@ class MockPrefs extends _i1.Mock implements _i11.Prefs {
     Invocation.getter(#biometricsDuress),
     returnValue: false,
   ) as bool);
-
-  @override
-  int get familiarity =>
-      (super.noSuchMethod(Invocation.getter(#familiarity), returnValue: 0)
-          as int);
-
-  @override
-  bool get torKillSwitch =>
-      (super.noSuchMethod(Invocation.getter(#torKillSwitch), returnValue: false)
-          as bool);
 
   @override
   bool get showTestNetCoins => (super.noSuchMethod(
@@ -369,12 +342,6 @@ class MockPrefs extends _i1.Mock implements _i11.Prefs {
   ) as bool);
 
   @override
-  set lastUnlockedTimeout(int? lastUnlockedTimeout) => super.noSuchMethod(
-    Invocation.setter(#lastUnlockedTimeout, lastUnlockedTimeout),
-    returnValueForMissingStub: null,
-  );
-
-  @override
   set lastUnlocked(int? lastUnlocked) => super.noSuchMethod(
     Invocation.setter(#lastUnlocked, lastUnlocked),
     returnValueForMissingStub: null,
@@ -390,12 +357,6 @@ class MockPrefs extends _i1.Mock implements _i11.Prefs {
   @override
   set syncType(_i12.SyncingType? syncType) => super.noSuchMethod(
     Invocation.setter(#syncType, syncType),
-    returnValueForMissingStub: null,
-  );
-
-  @override
-  set wifiOnly(bool? wifiOnly) => super.noSuchMethod(
-    Invocation.setter(#wifiOnly, wifiOnly),
     returnValueForMissingStub: null,
   );
 
@@ -444,18 +405,6 @@ class MockPrefs extends _i1.Mock implements _i11.Prefs {
   @override
   set biometricsDuress(bool? biometricsDuress) => super.noSuchMethod(
     Invocation.setter(#biometricsDuress, biometricsDuress),
-    returnValueForMissingStub: null,
-  );
-
-  @override
-  set familiarity(int? familiarity) => super.noSuchMethod(
-    Invocation.setter(#familiarity, familiarity),
-    returnValueForMissingStub: null,
-  );
-
-  @override
-  set torKillSwitch(bool? torKillswitch) => super.noSuchMethod(
-    Invocation.setter(#torKillSwitch, torKillswitch),
     returnValueForMissingStub: null,
   );
 
@@ -623,30 +572,10 @@ class MockPrefs extends _i1.Mock implements _i11.Prefs {
   ) as _i9.Future<void>);
 
   @override
-  _i9.Future<int> incrementCurrentNotificationIndex() => (super.noSuchMethod(
-    Invocation.method(#incrementCurrentNotificationIndex, []),
-    returnValue: _i9.Future<int>.value(0),
-  ) as _i9.Future<int>);
-
-  @override
   _i9.Future<bool> isExternalCallsSet() => (super.noSuchMethod(
     Invocation.method(#isExternalCallsSet, []),
     returnValue: _i9.Future<bool>.value(false),
   ) as _i9.Future<bool>);
-
-  @override
-  _i9.Future<void> saveUserID(String? userId) => (super.noSuchMethod(
-    Invocation.method(#saveUserID, [userId]),
-    returnValue: _i9.Future<void>.value(),
-    returnValueForMissingStub: _i9.Future<void>.value(),
-  ) as _i9.Future<void>);
-
-  @override
-  _i9.Future<void> saveSignupEpoch(int? signupEpoch) => (super.noSuchMethod(
-    Invocation.method(#saveSignupEpoch, [signupEpoch]),
-    returnValue: _i9.Future<void>.value(),
-    returnValueForMissingStub: _i9.Future<void>.value(),
-  ) as _i9.Future<void>);
 
   @override
   _i16.AmountUnit amountUnit(_i4.CryptoCurrency? coin) => (super.noSuchMethod(
@@ -784,23 +713,12 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
           as _i18.NodeModel?);
 
   @override
-  List<_i18.NodeModel> failoverNodesFor({
-    required _i4.CryptoCurrency? currency,
-  }) => (super.noSuchMethod(
-    Invocation.method(#failoverNodesFor, [], {#currency: currency}),
-    returnValue: <_i18.NodeModel>[],
-  ) as List<_i18.NodeModel>);
-
-  @override
-  _i9.Future<void> save(
-    _i18.NodeModel? node,
-    String? password,
-    bool? shouldNotifyListeners,
-  ) => (super.noSuchMethod(
-    Invocation.method(#save, [node, password, shouldNotifyListeners]),
-    returnValue: _i9.Future<void>.value(),
-    returnValueForMissingStub: _i9.Future<void>.value(),
-  ) as _i9.Future<void>);
+  _i9.Future<void> save(_i18.NodeModel? node, bool? shouldNotifyListeners) =>
+      (super.noSuchMethod(
+        Invocation.method(#save, [node, shouldNotifyListeners]),
+        returnValue: _i9.Future<void>.value(),
+        returnValueForMissingStub: _i9.Future<void>.value(),
+      ) as _i9.Future<void>);
 
   @override
   _i9.Future<void> delete(String? id, bool? shouldNotifyListeners) =>
@@ -809,17 +727,6 @@ class MockNodeService extends _i1.Mock implements _i2.NodeService {
         returnValue: _i9.Future<void>.value(),
         returnValueForMissingStub: _i9.Future<void>.value(),
       ) as _i9.Future<void>);
-
-  @override
-  _i9.Future<void> setEnabledState(
-    String? id,
-    bool? enabled,
-    bool? shouldNotifyListeners,
-  ) => (super.noSuchMethod(
-    Invocation.method(#setEnabledState, [id, enabled, shouldNotifyListeners]),
-    returnValue: _i9.Future<void>.value(),
-    returnValueForMissingStub: _i9.Future<void>.value(),
-  ) as _i9.Future<void>);
 
   @override
   void addListener(_i17.VoidCallback? listener) => super.noSuchMethod(

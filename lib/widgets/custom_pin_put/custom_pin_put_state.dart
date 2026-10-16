@@ -51,9 +51,6 @@ class CustomPinPutState extends State<CustomPinPut>
       } catch (e) {
         _textControllerValue = ValueNotifier(_controller.value.text);
       }
-      // if (pin.length == widget.fieldsCount) {
-      // widget.onSubmit?.call(pin);
-      // }
     }
     // The dots follow the text when a screen clears it (wrong PIN).
     if (pin.length != pinCount && mounted) {

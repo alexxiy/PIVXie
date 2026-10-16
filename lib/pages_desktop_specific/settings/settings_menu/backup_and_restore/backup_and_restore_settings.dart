@@ -298,7 +298,6 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
     fileLocationFocusNode = FocusNode();
     passwordFocusNode = FocusNode();
 
-    // _toggle = ref.read(prefsChangeNotifierProvider).isAutoBackupEnabled;
     super.initState();
   }
 

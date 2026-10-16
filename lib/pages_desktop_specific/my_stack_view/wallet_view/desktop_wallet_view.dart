@@ -71,8 +71,6 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
   late final TextEditingController controller;
   late final EventBus eventBus;
 
-  // late final bool _shouldDisableAutoSyncOnLogOut;
-
   Future<void> onBackPressed() async {
     await _logout();
     if (mounted) {
@@ -101,9 +99,6 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
     if (!wallet.shouldAutoSync) {
       //   // enable auto sync if it wasn't enabled when loading wallet
       wallet.shouldAutoSync = true;
-      //   _shouldDisableAutoSyncOnLogOut = true;
-      // } else {
-      //   _shouldDisableAutoSyncOnLogOut = false;
     }
 
     wallet.refresh();

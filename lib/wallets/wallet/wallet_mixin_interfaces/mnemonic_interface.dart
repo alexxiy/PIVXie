@@ -29,7 +29,6 @@ mixin MnemonicInterface<T extends CryptoCurrency> on Wallet<T> {
       // some really old wallets may not have this set so for legacy reasons do
       // not throw here for now
       return "";
-      //throw SWException("mnemonicPassphrase has not been set");
     }
 
     return mnemonicPassphrase;

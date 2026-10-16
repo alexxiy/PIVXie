@@ -34,12 +34,10 @@ class WalletInfoRowBalance extends ConsumerWidget {
     final info = ref.watch(pWalletInfo(walletId));
 
     final Amount totalBalance = balanceType == BalanceType.private
-        ? info.cachedBalanceSecondary.total + info.cachedBalanceTertiary.total
+        ? info.cachedBalanceSecondary.total
         : balanceType == BalanceType.public
         ? info.cachedBalance.total
-        : info.cachedBalance.total +
-              info.cachedBalanceSecondary.total +
-              info.cachedBalanceTertiary.total;
+        : info.cachedBalance.total + info.cachedBalanceSecondary.total;
 
     return Text(
       ref.watch(pAmountFormatter(info.coin)).format(totalBalance),

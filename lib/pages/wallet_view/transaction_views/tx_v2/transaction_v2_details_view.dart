@@ -18,7 +18,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:tuple/tuple.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../../../models/isar/models/blockchain_data/transaction.dart';
+import '../../../../models/isar/models/blockchain_data/transaction_type.dart';
 import '../../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../../providers/global/address_book_service_provider.dart';
 import '../../../../providers/providers.dart';
@@ -266,10 +266,6 @@ class _TransactionV2DetailsViewState
                     .background,
                 leading: AppBarBackButton(
                   onPressed: () async {
-                    // if (FocusScope.of(context).hasFocus) {
-                    //   FocusScope.of(context).unfocus();
-                    //   await Future<void>.delayed(Duration(milliseconds: 50));
-                    // }
                     Navigator.of(context).pop();
                   },
                 ),
@@ -351,10 +347,6 @@ class _TransactionV2DetailsViewState
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text("Status", style: labelStyle),
-                                    // Flexible(
-                                    //   child: FittedBox(
-                                    //     fit: BoxFit.scaleDown,
-                                    //     child:
                                     SelectableText(
                                       whatIsIt(_transaction, currentHeight),
                                       style: isDesktop
@@ -377,8 +369,6 @@ class _TransactionV2DetailsViewState
                                             )
                                           : STextStyles.itemSubtitle12(context),
                                     ),
-                                    //   ),
-                                    // ),
                                   ],
                                 ),
                               ),
@@ -428,50 +418,7 @@ class _TransactionV2DetailsViewState
                                                 mainAxisAlignment:
                                                     MainAxisAlignment
                                                         .spaceBetween,
-                                                children: [
-                                                  child,
-                                                  // CustomTextButton(
-                                                  //   text: "Info",
-                                                  //   onTap: () async {
-                                                  //     final adr = await ref
-                                                  //         .read(mainDBProvider)
-                                                  //         .getAddress(walletId,
-                                                  //             addresses.first);
-                                                  //     if (adr != null &&
-                                                  //         mounted) {
-                                                  //       if (isDesktop) {
-                                                  //         await showDialog<
-                                                  //             void>(
-                                                  //           context: context,
-                                                  //           builder: (_) =>
-                                                  //               DesktopDialog(
-                                                  //             maxHeight: double
-                                                  //                 .infinity,
-                                                  //             child:
-                                                  //                 AddressDetailsView(
-                                                  //               addressId:
-                                                  //                   adr.id,
-                                                  //               walletId: widget
-                                                  //                   .walletId,
-                                                  //             ),
-                                                  //           ),
-                                                  //         );
-                                                  //       } else {
-                                                  //         await Navigator.of(
-                                                  //                 context)
-                                                  //             .pushNamed(
-                                                  //           AddressDetailsView
-                                                  //               .routeName,
-                                                  //           arguments: Tuple2(
-                                                  //             adr.id,
-                                                  //             widget.walletId,
-                                                  //           ),
-                                                  //         );
-                                                  //       }
-                                                  //     }
-                                                  //   },
-                                                  // )
-                                                ],
+                                                children: [child],
                                               );
                                             },
                                             child: Text(
@@ -611,10 +558,6 @@ class _TransactionV2DetailsViewState
                                         ],
                                       ),
                                     ),
-                                    // if (isDesktop)
-                                    //   IconCopyButton(
-                                    //     data: addresses.first,
-                                    //   ),
                                   ],
                                 ),
                               ),
@@ -1001,96 +944,8 @@ class _TransactionV2DetailsViewState
                               _TxidDetailItem(
                                 coin: coin,
                                 txid: _transaction.txid,
-                                subType: _transaction.subType,
                               ),
-                              // if ((coin is FiroTestNet || coin is Firo) &&
-                              //     _transaction.subType == "mint")
-                              //   const SizedBox(
-                              //     height: 12,
-                              //   ),
-                              // if ((coin is FiroTestNet || coin is Firo) &&
-                              //     _transaction.subType == "mint")
-                              //   RoundedWhiteContainer(
-                              //     child: Column(
-                              //       crossAxisAlignment: CrossAxisAlignment.start,
-                              //       children: [
-                              //         Row(
-                              //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              //           children: [
-                              //             Text(
-                              //               "Mint Transaction ID",
-                              //               style: STextStyles.itemSubtitle(context),
-                              //             ),
-                              //           ],
-                              //         ),
-                              //         const SizedBox(
-                              //           height: 8,
-                              //         ),
-                              //         // Flexible(
-                              //         //   child: FittedBox(
-                              //         //     fit: BoxFit.scaleDown,
-                              //         //     child:
-                              //         SelectableText(
-                              //           _transaction.otherData ?? "Unknown",
-                              //           style: STextStyles.itemSubtitle12(context),
-                              //         ),
-                              //         //   ),
-                              //         // ),
-                              //         const SizedBox(
-                              //           height: 8,
-                              //         ),
-                              //         BlueTextButton(
-                              //           text: "Open in block explorer",
-                              //           onTap: () async {
-                              //             final uri = getBlockExplorerTransactionUrlFor(
-                              //               coin: coin,
-                              //               txid: _transaction.otherData ?? "Unknown",
-                              //             );
-                              //             // ref
-                              //             //     .read(
-                              //             //         shouldShowLockscreenOnResumeStateProvider
-                              //             //             .state)
-                              //             //     .state = false;
-                              //             try {
-                              //               await launchUrl(
-                              //                 uri,
-                              //                 mode: LaunchMode.externalApplication,
-                              //               );
-                              //             } catch (_) {
-                              //               unawaited(showDialog<void>(
-                              //                 context: context,
-                              //                 builder: (_) => StackOkDialog(
-                              //                   title: "Could not open in block explorer",
-                              //                   message:
-                              //                       "Failed to open \"${uri.toString()}\"",
-                              //                 ),
-                              //               ));
-                              //             } finally {
-                              //               // Future<void>.delayed(
-                              //               //   const Duration(seconds: 1),
-                              //               //   () => ref
-                              //               //       .read(
-                              //               //           shouldShowLockscreenOnResumeStateProvider
-                              //               //               .state)
-                              //               //       .state = true,
-                              //               // );
-                              //             }
-                              //           },
-                              //         ),
-                              //       ],
-                              //     ),
-                              //   ),
                               if (!isDesktop) const SizedBox(height: 12),
-                              // if (whatIsIt(
-                              //       _transaction,
-                              //       currentHeight,
-                              //     ) !=
-                              //     "Sending")
-                              //   isDesktop
-                              //       ? const _Divider()
-                              //       : const SizedBox(
-                              //           height: 12,
-                              //         ),
                             ],
                           ),
                         ),
@@ -1360,15 +1215,9 @@ class _DetailItemBase extends StatelessWidget {
 }
 
 class _DetailItem extends StatelessWidget {
-  const _DetailItem({
-    // super.key,
-    required this.label,
-    required this.detail,
-    this.vertical = false,
-  });
+  const _DetailItem({required this.label, required this.detail});
 
   final String label, detail;
-  final bool vertical;
 
   @override
   Widget build(BuildContext context) {
@@ -1383,23 +1232,14 @@ class _DetailItem extends StatelessWidget {
         : STextStyles.itemSubtitle12(context);
 
     return _DetailItemBase(
-      child: vertical
-          ? Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(children: [Text(label, style: labelStyle)]),
-                const SizedBox(height: 8),
-                SelectableText(detail, style: detailStyle),
-              ],
-            )
-          : Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(label, style: labelStyle),
-                SelectableText(detail, style: detailStyle),
-              ],
-            ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: labelStyle),
+          SelectableText(detail, style: detailStyle),
+        ],
+      ),
     );
   }
 }
@@ -1409,12 +1249,10 @@ class _TxidDetailItem extends ConsumerStatefulWidget {
     // super.key,
     required this.coin,
     required this.txid,
-    required this.subType,
   });
 
   final CryptoCurrency coin;
   final String txid;
-  final TransactionSubType subType;
 
   @override
   ConsumerState<_TxidDetailItem> createState() => _TxidDetailItemState();
@@ -1422,10 +1260,13 @@ class _TxidDetailItem extends ConsumerStatefulWidget {
 
 class _TxidDetailItemState extends ConsumerState<_TxidDetailItem> {
   Future<bool> showExplorerWarning(String explorer) async {
+    final outsideTor = ref.read(prefsChangeNotifierProvider).useTor
+        ? "\n\nYour browser opens it outside of Tor."
+        : "";
     final warningMessage =
         "You are about to view this transaction in a block explorer. "
         "The explorer may log your IP address and link it to the "
-        "transaction. Only proceed if you trust $explorer.";
+        "transaction. Only proceed if you trust $explorer.$outsideTor";
 
     final bool? shouldContinue = await showDialog<bool>(
       context: context,
@@ -1571,148 +1412,94 @@ class _TxidDetailItemState extends ConsumerState<_TxidDetailItem> {
     final isDesktop = Util.isDesktop;
 
     return _DetailItemBase(
-      child:
-          widget.txid.startsWith("mweb_outputId_") &&
-              widget.subType == TransactionSubType.mweb
-          ? Row(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-
+                ConditionalParent(
+                  condition: !isDesktop,
+                  builder: (child) => Row(
                     children: [
-                      ConditionalParent(
-                        condition: !isDesktop,
-                        builder: (child) => Row(
-                          children: [
-                            Expanded(child: child),
-                            SimpleCopyButton(
-                              data: widget.txid.replaceFirst(
-                                "mweb_outputId_",
-                                "",
-                              ),
+                      Expanded(child: child),
+                      SimpleCopyButton(data: widget.txid),
+                    ],
+                  ),
+                  child: Text(
+                    "Transaction ID",
+                    style: isDesktop
+                        ? STextStyles.desktopTextExtraExtraSmall(context)
+                        : STextStyles.itemSubtitle(context),
+                  ),
+                ),
+                const SizedBox(height: 8),
+
+                SelectableText(
+                  widget.txid,
+                  style: isDesktop
+                      ? STextStyles.desktopTextExtraExtraSmall(context)
+                            .copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textDark,
+                            )
+                      : STextStyles.itemSubtitle12(context),
+                ),
+                const SizedBox(height: 8),
+                CustomTextButton(
+                  text: "Open in block explorer",
+                  onTap: () async {
+                    final uri = getBlockExplorerTransactionUrlFor(
+                      coin: widget.coin,
+                      txid: widget.txid,
+                    );
+
+                    if (ref
+                            .read(prefsChangeNotifierProvider)
+                            .hideBlockExplorerWarning ==
+                        false) {
+                      final shouldContinue = await showExplorerWarning(
+                        "${uri.scheme}://${uri.host}",
+                      );
+
+                      if (!shouldContinue || !context.mounted) {
+                        return;
+                      }
+                    }
+
+                    try {
+                      await launchUrl(
+                        uri,
+                        mode: LaunchMode.externalApplication,
+                      );
+                    } catch (_) {
+                      if (context.mounted) {
+                        unawaited(
+                          showDialog<void>(
+                            context: context,
+                            builder: (_) => StackOkDialog(
+                              title: "Could not open in block explorer",
+                              message:
+                                  "Failed to open "
+                                  "\"${uri.toString()}\"",
+                              maxWidth: Util.isDesktop ? 400 : null,
                             ),
-                          ],
-                        ),
-                        child: Text(
-                          "MWEB Output ID",
-                          style: isDesktop
-                              ? STextStyles.desktopTextExtraExtraSmall(context)
-                              : STextStyles.itemSubtitle(context),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      SelectableText(
-                        widget.txid.replaceFirst("mweb_outputId_", ""),
-                        style: isDesktop
-                            ? STextStyles.desktopTextExtraExtraSmall(context)
-                                  .copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .textDark,
-                                  )
-                            : STextStyles.itemSubtitle12(context),
-                      ),
-                    ],
-                  ),
+                          ),
+                        );
+                      }
+                    }
+                  },
                 ),
-                if (isDesktop) const SizedBox(width: 12),
-                if (isDesktop)
-                  IconCopyButton(
-                    data: widget.txid.replaceFirst("mweb_outputId_", ""),
-                  ),
-              ],
-            )
-          : Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      ConditionalParent(
-                        condition: !isDesktop,
-                        builder: (child) => Row(
-                          children: [
-                            Expanded(child: child),
-                            SimpleCopyButton(data: widget.txid),
-                          ],
-                        ),
-                        child: Text(
-                          "Transaction ID",
-                          style: isDesktop
-                              ? STextStyles.desktopTextExtraExtraSmall(context)
-                              : STextStyles.itemSubtitle(context),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-
-                      SelectableText(
-                        widget.txid,
-                        style: isDesktop
-                            ? STextStyles.desktopTextExtraExtraSmall(context)
-                                  .copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .textDark,
-                                  )
-                            : STextStyles.itemSubtitle12(context),
-                      ),
-                      const SizedBox(height: 8),
-                      CustomTextButton(
-                        text: "Open in block explorer",
-                        onTap: () async {
-                          final uri = getBlockExplorerTransactionUrlFor(
-                            coin: widget.coin,
-                            txid: widget.txid,
-                          );
-
-                          if (ref
-                                  .read(prefsChangeNotifierProvider)
-                                  .hideBlockExplorerWarning ==
-                              false) {
-                            final shouldContinue = await showExplorerWarning(
-                              "${uri.scheme}://${uri.host}",
-                            );
-
-                            if (!shouldContinue || !context.mounted) {
-                              return;
-                            }
-                          }
-
-                          try {
-                            await launchUrl(
-                              uri,
-                              mode: LaunchMode.externalApplication,
-                            );
-                          } catch (_) {
-                            if (context.mounted) {
-                              unawaited(
-                                showDialog<void>(
-                                  context: context,
-                                  builder: (_) => StackOkDialog(
-                                    title: "Could not open in block explorer",
-                                    message:
-                                        "Failed to open "
-                                        "\"${uri.toString()}\"",
-                                    maxWidth: Util.isDesktop ? 400 : null,
-                                  ),
-                                ),
-                              );
-                            }
-                          }
-                        },
-                      ),
-                    ],
-                  ),
-                ),
-                if (isDesktop) const SizedBox(width: 12),
-                if (isDesktop) IconCopyButton(data: widget.txid),
               ],
             ),
+          ),
+          if (isDesktop) const SizedBox(width: 12),
+          if (isDesktop) IconCopyButton(data: widget.txid),
+        ],
+      ),
     );
   }
 }

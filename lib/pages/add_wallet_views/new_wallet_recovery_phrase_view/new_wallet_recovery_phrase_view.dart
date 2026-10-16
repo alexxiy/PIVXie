@@ -126,7 +126,6 @@ class _NewWalletRecoveryPhraseViewState
                         ),
                       );
                     }
-                    // Navigator.of(context).pop();
                   },
                 ),
                 trailing: ExitToMyStackButton(

@@ -82,11 +82,9 @@ class _WalletNetworkSettingsViewState
   late final EventBus eventBus;
 
   late WalletSyncStatus _currentSyncStatus;
-  // late NodeConnectionStatus _currentNodeStatus;
 
   late StreamSubscription<dynamic> _refreshSubscription;
   late StreamSubscription<dynamic> _syncStatusSubscription;
-  // late StreamSubscription _nodeStatusSubscription;
 
   late final bool isDesktop;
 
@@ -214,7 +212,6 @@ class _WalletNetworkSettingsViewState
   void initState() {
     isDesktop = Util.isDesktop;
     _currentSyncStatus = widget.initialSyncStatus;
-    // _currentNodeStatus = widget.initialNodeStatus;
     if (_currentSyncStatus == WalletSyncStatus.synced) {
       _percent = 1;
     } else {
@@ -275,7 +272,6 @@ class _WalletNetworkSettingsViewState
 
   @override
   void dispose() {
-    // _nodeStatusSubscription.cancel();
     _syncStatusSubscription.cancel();
     _refreshSubscription.cancel();
     super.dispose();
@@ -974,14 +970,6 @@ class _WalletNetworkSettingsViewState
                               const RouteSettings(),
                             ),
                           );
-                          // await showDialog<dynamic>(
-                          //   context: context,
-                          //   builder: (context) {
-                          //     return ConfirmFullRescanDialog(
-                          //       onConfirm: _attemptRescan,
-                          //     );
-                          //   },
-                          // );
                         },
                       ),
                     ),

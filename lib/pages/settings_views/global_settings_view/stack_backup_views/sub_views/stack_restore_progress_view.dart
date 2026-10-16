@@ -124,29 +124,6 @@ class _StackRestoreProgressViewState
       context: context,
       builder: (_) => const CancelStackRestoreDialog(),
     );
-    // : await Row(
-    //     children: [
-    //       SecondaryButton(
-    //         width: 248,
-    //          buttonHeight: ButtonHeight.l,
-    //         enabled: true,
-    //         label: "Keep restoring",
-    //         onPressed: () {
-    //           false;
-    //         },
-    //       ),
-    //       const SizedBox(width: 16),
-    //       PrimaryButton(
-    //         width: 248,
-    //          buttonHeight: ButtonHeight.l,
-    //         enabled: true,
-    //         label: "Cancel anyway",
-    //         onPressed: () {
-    //           true;
-    //         },
-    //       )
-    //     ],
-    //   );
 
     if (result is bool && result) {
       return true;
@@ -202,7 +179,6 @@ class _StackRestoreProgressViewState
 
   /// [SWB.restoreStackWalletJSON] returned (or threw).
   bool _restoreEnded = false;
-  bool pendingCancel = false;
 
   Future<bool> _onWillPop() async {
     if (_success) {

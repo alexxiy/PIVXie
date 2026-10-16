@@ -182,9 +182,7 @@ class _RestoreViewOnlyWalletViewState
 
       if (node == null) {
         node = widget.coin.defaultNode(isPrimary: true);
-        await ref
-            .read(nodeServiceChangeNotifierProvider)
-            .save(node, null, false);
+        await ref.read(nodeServiceChangeNotifierProvider).save(node, false);
       }
 
       try {

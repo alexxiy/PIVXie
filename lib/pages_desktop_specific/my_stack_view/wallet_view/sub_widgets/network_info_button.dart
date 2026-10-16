@@ -169,47 +169,6 @@ class _NetworkInfoButtonState extends ConsumerState<NetworkInfoButton> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(1000)),
       onPressed: () {
         if (Util.isDesktop) {
-          // showDialog<void>(
-          //   context: context,
-          //   builder: (context) => DesktopDialog(
-          //     maxHeight: MediaQuery.of(context).size.height - 64,
-          //     maxWidth: 580,
-          //     child: Column(
-          //       mainAxisSize: MainAxisSize.min,
-          //       children: [
-          //         Padding(
-          //           padding: const EdgeInsets.only(
-          //             left: 32,
-          //           ),
-          //           child: Row(
-          //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          //             children: [
-          //               Text(
-          //                 "Network",
-          //                 style: STextStyles.desktopH3(context),
-          //               ),
-          //               const DesktopDialogCloseButton(),
-          //             ],
-          //           ),
-          //         ),
-          //         Padding(
-          //           padding: const EdgeInsets.only(
-          //             top: 16,
-          //             left: 32,
-          //             right: 32,
-          //             bottom: 32,
-          //           ),
-          //           child: WalletNetworkSettingsView(
-          //             walletId: walletId,
-          //             initialSyncStatus: _currentSyncStatus,
-          //             initialNodeStatus: _currentNodeStatus,
-          //           ),
-          //         ),
-          //       ],
-          //     ),
-          //   ),
-          // );
-
           showDialog<void>(
             context: context,
             builder:

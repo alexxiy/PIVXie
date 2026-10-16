@@ -18,7 +18,6 @@ import '../../notifications/show_flush_bar.dart';
 import '../../providers/global/secure_store_provider.dart';
 import '../../providers/providers.dart';
 import '../../themes/stack_colors.dart';
-// import 'package:stackwallet/providers/global/should_show_lockscreen_on_resume_state_provider.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/biometrics.dart';
 import '../../utilities/flutter_secure_storage_interface.dart';
@@ -28,7 +27,6 @@ import '../../utilities/ui_stall_watch.dart';
 import '../../utilities/show_node_tor_settings_mismatch.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
-import '../../wallets/wallet/intermediate/external_wallet.dart';
 import '../../wallets/wallet/wallet.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -127,16 +125,7 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
         return false;
       }
 
-      final Future<void> loadFuture;
-      if (wallet is ExternalWallet) {
-        loadFuture = wallet.init().then(
-          (value) async => await (wallet as ExternalWallet).open(),
-        );
-      } else {
-        loadFuture = wallet.init();
-      }
-
-      await loadFuture;
+      await wallet.init();
     }
 
     return true;
@@ -147,11 +136,6 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
     final now = DateTime.now().toUtc();
     ref.read(prefsChangeNotifierProvider).lastUnlocked =
         now.millisecondsSinceEpoch ~/ 1000;
-
-    // if (widget.isInitialAppLogin) {
-    //   ref.read(hasAuthenticatedOnStartStateProvider.notifier).state = true;
-    //   ref.read(shouldShowLockscreenOnResumeStateProvider.notifier).state = true;
-    // }
 
     widget.onSuccess?.call();
 
@@ -238,27 +222,9 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
             localizedReason: localizedReason,
             cancelButtonText: cancelButtonText,
           ))) {
-        // check if initial log in
-        // if (widget.routeOnSuccess == "/mainview") {
-        //   await logIn(await walletsService.networkName, currentWalletName,
-        //       await walletsService.getWalletId(currentWalletName));
-        // }
-
         unawaited(_onUnlock());
       }
-      // leave this commented to enable pin fall back should biometrics not work properly
-      // else {
-      //   Navigator.pop(context);
-      // }
     }
-  }
-
-  @override
-  void didChangeDependencies() {
-    if (widget.isInitialAppLogin) {
-      // unawaited(Assets.precache(context));
-    }
-    super.didChangeDependencies();
   }
 
   @override
@@ -278,7 +244,6 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
 
   @override
   dispose() {
-    // _shakeController.dispose();
     _pinTextController.removeListener(_onPinChangedAutologinCheck);
     super.dispose();
   }

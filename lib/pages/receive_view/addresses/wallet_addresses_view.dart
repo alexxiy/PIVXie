@@ -53,9 +53,6 @@ class _WalletAddressesViewState extends ConsumerState<WalletAddressesView> {
 
   final String _searchString = "";
 
-  // late final TextEditingController _searchController;
-  // final searchFieldFocusNode = FocusNode();
-
   Future<List<int>> _search(String term) async {
     if (term.isEmpty) {
       return MainDB.instance
@@ -65,28 +62,11 @@ class _WalletAddressesViewState extends ConsumerState<WalletAddressesView> {
             (q) => q
                 .subTypeEqualTo(AddressSubType.change)
                 .or()
-                .subTypeEqualTo(AddressSubType.receiving)
-                .or()
-                .subTypeEqualTo(AddressSubType.paynymReceive)
-                .or()
-                .subTypeEqualTo(AddressSubType.paynymNotification),
+                .subTypeEqualTo(AddressSubType.receiving),
           )
           .and()
           .not()
           .typeEqualTo(AddressType.nonWallet)
-          .and()
-          .group(
-            (q) => q
-                .group(
-                  (q2) => q2
-                      .typeEqualTo(AddressType.frostMS)
-                      .and()
-                      .zSafeFrostEqualTo(true),
-                )
-                .or()
-                .not()
-                .typeEqualTo(AddressType.frostMS),
-          )
           .optional(
             widget.addressType != null,
             (q) => q.and().typeEqualTo(widget.addressType!),
@@ -130,28 +110,11 @@ class _WalletAddressesViewState extends ConsumerState<WalletAddressesView> {
           (q) => q
               .subTypeEqualTo(AddressSubType.change)
               .or()
-              .subTypeEqualTo(AddressSubType.receiving)
-              .or()
-              .subTypeEqualTo(AddressSubType.paynymReceive)
-              .or()
-              .subTypeEqualTo(AddressSubType.paynymNotification),
+              .subTypeEqualTo(AddressSubType.receiving),
         )
         .and()
         .not()
         .typeEqualTo(AddressType.nonWallet)
-        .and()
-        .group(
-          (q) => q
-              .group(
-                (q2) => q2
-                    .typeEqualTo(AddressType.frostMS)
-                    .and()
-                    .zSafeFrostEqualTo(true),
-              )
-              .or()
-              .not()
-              .typeEqualTo(AddressType.frostMS),
-        )
         .optional(
           widget.addressType != null,
           (q) => q.and().typeEqualTo(widget.addressType!),
@@ -160,20 +123,6 @@ class _WalletAddressesViewState extends ConsumerState<WalletAddressesView> {
         .idProperty()
         .findAll();
   }
-
-  // @override
-  // void initState() {
-  //   _searchController = TextEditingController();
-  //
-  //   super.initState();
-  // }
-  //
-  // @override
-  // void dispose() {
-  //   _searchController.dispose();
-  //   searchFieldFocusNode.dispose();
-  //   super.dispose();
-  // }
 
   @override
   Widget build(BuildContext context) {
@@ -208,74 +157,6 @@ class _WalletAddressesViewState extends ConsumerState<WalletAddressesView> {
       child: SafeArea(
         child: Column(
           children: [
-            // SizedBox(
-            //   width: isDesktop ? 490 : null,
-            //   child: ClipRRect(
-            //     borderRadius: BorderRadius.circular(
-            //       Constants.size.circularBorderRadius,
-            //     ),
-            //     child: TextField(
-            //       autocorrect: !isDesktop,
-            //       enableSuggestions: !isDesktop,
-            //       controller: _searchController,
-            //       focusNode: searchFieldFocusNode,
-            //       onChanged: (value) {
-            //         setState(() {
-            //           _searchString = value;
-            //         });
-            //       },
-            //       style: isDesktop
-            //           ? STextStyles.desktopTextExtraSmall(context).copyWith(
-            //               color: Theme.of(context)
-            //                   .extension<StackColors>()!
-            //                   .textFieldActiveText,
-            //               height: 1.8,
-            //             )
-            //           : STextStyles.field(context),
-            //       decoration: standardInputDecoration(
-            //         "Search...",
-            //         searchFieldFocusNode,
-            //         context,
-            //         desktopMed: isDesktop,
-            //       ).copyWith(
-            //         prefixIcon: Padding(
-            //           padding: EdgeInsets.symmetric(
-            //             horizontal: isDesktop ? 12 : 10,
-            //             vertical: isDesktop ? 18 : 16,
-            //           ),
-            //           child: SvgPicture.asset(
-            //             Assets.svg.search,
-            //             width: isDesktop ? 20 : 16,
-            //             height: isDesktop ? 20 : 16,
-            //           ),
-            //         ),
-            //         suffixIcon: _searchController.text.isNotEmpty
-            //             ? Padding(
-            //                 padding: const EdgeInsets.only(right: 0),
-            //                 child: UnconstrainedBox(
-            //                   child: Row(
-            //                     children: [
-            //                       TextFieldIconButton(
-            //                         child: const XIcon(),
-            //                         onTap: () async {
-            //                           setState(() {
-            //                             _searchController.text = "";
-            //                             _searchString = "";
-            //                           });
-            //                         },
-            //                       ),
-            //                     ],
-            //                   ),
-            //                 ),
-            //               )
-            //             : null,
-            //       ),
-            //     ),
-            //   ),
-            // ),
-            // SizedBox(
-            //   height: isDesktop ? 20 : 16,
-            // ),
             Expanded(
               child: FutureBuilder(
                 future: _search(_searchString),

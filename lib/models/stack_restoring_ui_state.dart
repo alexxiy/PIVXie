@@ -116,16 +116,6 @@ class StackRestoringUIState extends ChangeNotifier {
   Map<String, ChangeNotifierProvider<WalletRestoreState>>
   get walletStateProviders => _walletStateProviders;
 
-  WalletRestoreState getWalletRestoreState(String walletId) {
-    return _walletStates[walletId]!;
-  }
-
-  ChangeNotifierProvider<WalletRestoreState> getWalletRestoreStateProvider(
-    String walletId,
-  ) {
-    return _walletStateProviders[walletId]!;
-  }
-
   void update({
     required String walletId,
     required StackRestoringStatus restoringStatus,

@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:paymint/models/models.dart';
+import 'package:paymint/models/paymint/fee_object_model.dart';
 
 void main() {
   test("FeeObject constructor", () {

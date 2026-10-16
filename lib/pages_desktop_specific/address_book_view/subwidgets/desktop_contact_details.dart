@@ -150,9 +150,6 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
                   child: ListView(
                     primary: false,
                     shrinkWrap: true,
-                    // child: Column(
-                    //   crossAxisAlignment: CrossAxisAlignment.start,
-                    //   mainAxisSize: MainAxisSize.min,
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,

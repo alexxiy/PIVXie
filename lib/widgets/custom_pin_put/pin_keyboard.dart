@@ -309,8 +309,6 @@ class PinKeyboard extends ConsumerWidget {
       "0",
     ];
 
-    // final isRandom = ref.read(prefsChangeNotifierProvider).randomizePIN;
-
     if (isRandom) list.shuffle();
 
     return Container(

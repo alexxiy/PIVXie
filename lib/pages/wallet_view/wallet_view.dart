@@ -94,8 +94,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
 
   late final bool isPivxShield;
 
-  // late final bool _shouldDisableAutoSyncOnLogOut;
-
   late WalletSyncStatus _currentSyncStatus;
   late NodeConnectionStatus _currentNodeStatus;
 
@@ -119,9 +117,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
     if (!wallet.shouldAutoSync) {
       // enable auto sync if it wasn't enabled when loading wallet
       wallet.shouldAutoSync = true;
-      //   _shouldDisableAutoSyncOnLogOut = true;
-      // } else {
-      //   _shouldDisableAutoSyncOnLogOut = false;
     }
 
     isPivxShield = wallet is PivxWallet && wallet.supportsShield;
@@ -149,14 +144,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
         .on<WalletSyncStatusChangedEvent>()
         .listen((event) async {
           if (event.walletId == widget.walletId) {
-            // switch (event.newStatus) {
-            //   case WalletSyncStatus.unableToSync:
-            //     break;
-            //   case WalletSyncStatus.synced:
-            //     break;
-            //   case WalletSyncStatus.syncing:
-            //     break;
-            // }
             setState(() {
               _currentSyncStatus = event.newStatus;
             });
@@ -167,12 +154,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
         .on<NodeConnectionStatusChangedEvent>()
         .listen((event) async {
           if (event.walletId == widget.walletId) {
-            // switch (event.newStatus) {
-            //   case NodeConnectionStatus.disconnected:
-            //     break;
-            //   case NodeConnectionStatus.connected:
-            //     break;
-            // }
             setState(() {
               _currentNodeStatus = event.newStatus;
             });
@@ -189,8 +170,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
     super.dispose();
   }
 
-  // DateTime? _cachedTime;
-
   Future<bool> _onWillPop() async {
     if (_rescanningOnOpen) {
       return false;
@@ -199,33 +178,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
     _logout();
 
     return true;
-    // final now = DateTime.now();
-    // const timeout = Duration(milliseconds: 1500);
-    // if (_cachedTime == null || now.difference(_cachedTime!) > timeout) {
-    //   _cachedTime = now;
-    //   unawaited(
-    //     showDialog<dynamic>(
-    //       context: context,
-    //       barrierDismissible: false,
-    //       builder: (_) => WillPopScope(
-    //         onWillPop: () async {
-    //           Navigator.of(context).popUntil(
-    //             ModalRoute.withName(HomeView.routeName),
-    //           );
-    //           _logout();
-    //           return false;
-    //         },
-    //         child: const StackDialog(title: "Tap back again to exit wallet"),
-    //       ),
-    //     ).timeout(
-    //       timeout,
-    //       onTimeout: () => Navigator.of(context).popUntil(
-    //         ModalRoute.withName(WalletView.routeName),
-    //       ),
-    //     ),
-    //   );
-    // }
-    // return false;
   }
 
   void _logout() async {
@@ -549,8 +501,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
                             height: 20,
                           ),
                           onPressed: () {
-                            //todo: check if print needed
-                            // debugPrint("wallet view settings tapped");
                             Navigator.of(context).pushNamed(
                               WalletSettingsView.routeName,
                               arguments: Tuple4(
@@ -753,21 +703,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
                         label: "Send",
                         icon: const SendNavIcon(),
                         onTap: () {
-                          // not sure what this is supposed to accomplish?
-                          // switch (ref
-                          //     .read(walletBalanceToggleStateProvider.state)
-                          //     .state) {
-                          //   case WalletBalanceToggleState.full:
-                          //     ref
-                          //         .read(publicPrivateBalanceStateProvider.state)
-                          //         .state = "Public";
-                          //     break;
-                          //   case WalletBalanceToggleState.available:
-                          //     ref
-                          //         .read(publicPrivateBalanceStateProvider.state)
-                          //         .state = "Private";
-                          //     break;
-                          // }
                           Navigator.of(context).pushNamed(
                             SendView.routeName,
                             arguments: (walletId: walletId, coin: coin),

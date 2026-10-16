@@ -32,7 +32,6 @@ class AppBarIconButton extends StatelessWidget {
   final Widget icon;
   final VoidCallback? onPressed;
   final Color? color;
-  // final double circularBorderRadius;
   final double size;
   final List<BoxShadow> shadows;
   final String semanticsLabel;

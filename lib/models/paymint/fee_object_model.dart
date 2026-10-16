@@ -31,29 +31,3 @@ class FeeObject {
     return "{fast: $fast, medium: $medium, slow: $slow, numberOfBlocksFast: $numberOfBlocksFast, numberOfBlocksAverage: $numberOfBlocksAverage, numberOfBlocksSlow: $numberOfBlocksSlow}";
   }
 }
-
-class EthFeeObject extends FeeObject {
-  final BigInt suggestBaseFee;
-
-  EthFeeObject({
-    required this.suggestBaseFee,
-    required super.numberOfBlocksFast,
-    required super.numberOfBlocksAverage,
-    required super.numberOfBlocksSlow,
-    required super.fast,
-    required super.medium,
-    required super.slow,
-  });
-
-  @override
-  String toString() =>
-      "{\n"
-      "  fast: $fast,\n"
-      "  medium: $medium,\n"
-      "  slow: $slow,\n"
-      "  suggestBaseFee: $suggestBaseFee,\n"
-      "  numberOfBlocksFast: $numberOfBlocksFast,\n"
-      "  numberOfBlocksAverage: $numberOfBlocksAverage,\n"
-      "  numberOfBlocksSlow: $numberOfBlocksSlow,\n"
-      "}";
-}

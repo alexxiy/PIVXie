@@ -11,44 +11,9 @@
 import '../../models/isar/models/blockchain_data/address.dart';
 
 enum DerivePathType {
-  bip44,
-  bch44,
-  bip49,
-  bip84,
-  eth,
-  eCash44,
-  solana,
-  bip86,
-  cardanoShelley,
-  xelis;
+  bip44;
 
-  AddressType getAddressType() {
-    switch (this) {
-      case DerivePathType.bip44:
-      case DerivePathType.bch44:
-      case DerivePathType.eCash44:
-        return AddressType.p2pkh;
-
-      case DerivePathType.bip49:
-        return AddressType.p2sh;
-
-      case DerivePathType.bip84:
-        return AddressType.p2wpkh;
-
-      case DerivePathType.eth:
-        return AddressType.ethereum;
-
-      case DerivePathType.solana:
-        return AddressType.solana;
-
-      case DerivePathType.bip86:
-        return AddressType.p2tr;
-
-      case DerivePathType.cardanoShelley:
-        return AddressType.cardanoShelley;
-
-      case DerivePathType.xelis:
-        return AddressType.xelis;
-    }
-  }
+  AddressType getAddressType() => switch (this) {
+    DerivePathType.bip44 => AddressType.p2pkh,
+  };
 }

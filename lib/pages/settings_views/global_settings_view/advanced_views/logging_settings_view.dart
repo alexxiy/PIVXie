@@ -15,7 +15,6 @@ import 'dart:typed_data';
 import 'package:archive/archive_io.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-// import 'package:flutter_libmonero/git_versions.dart' as MONERO_VERSIONS;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:path/path.dart' as path;
@@ -82,9 +81,6 @@ class _LoggingSettingsViewState extends ConsumerState<LoggingSettingsView> {
 
   Future<String?> _pickDir(BuildContext context, String currentPath) async {
     final String? chosenPath;
-    // if (Platform.isIOS) {
-    //   chosenPath = currentPath;
-    // } else {
     final String path = Platform.isWindows
         ? currentPath.replaceAll("/", "\\")
         : currentPath;

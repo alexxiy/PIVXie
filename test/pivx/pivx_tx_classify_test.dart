@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:paymint/models/transaction_filter.dart';
-import 'package:paymint/models/isar/models/blockchain_data/transaction.dart';
+import 'package:paymint/models/isar/models/blockchain_data/transaction_type.dart';
 import 'package:paymint/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:paymint/wallets/crypto_currency/crypto_currency.dart';
 import 'package:paymint/wallets/wallet/impl/pivx/pivx_tx_parser.dart';

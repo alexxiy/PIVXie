@@ -78,16 +78,10 @@ class WalletBackupView extends ConsumerWidget {
 }
 
 class _Mnemonic extends ConsumerWidget {
-  const _Mnemonic({
-    super.key,
-    required this.walletId,
-    required this.mnemonic,
-    this.clipboardInterface = const ClipboardWrapper(),
-  });
+  const _Mnemonic({required this.walletId, required this.mnemonic});
 
   final String walletId;
   final List<String> mnemonic;
-  final ClipboardInterface clipboardInterface;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -140,7 +134,7 @@ class _Mnemonic extends ConsumerWidget {
         SecondaryButton(
           label: "Copy",
           onPressed: () async {
-            await clipboardInterface.setSecret(mnemonic.join(" "));
+            await const ClipboardWrapper().setSecret(mnemonic.join(" "));
             if (context.mounted) {
               unawaited(
                 showFloatingFlushBar(
@@ -192,7 +186,6 @@ class _Mnemonic extends ConsumerWidget {
                           width: width,
                           child: TextButton(
                             onPressed: () async {
-                              // await _capturePng(true);
                               Navigator.of(context).pop();
                             },
                             style: Theme.of(context)

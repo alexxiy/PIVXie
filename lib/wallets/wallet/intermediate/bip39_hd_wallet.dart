@@ -20,11 +20,10 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
     with MultiAddressInterface<T>, ViewOnlyOptionInterface<T> {
   Bip39HDWallet(super.cryptoCurrency);
 
-  Set<AddressType> get supportedAddressTypes =>
-      cryptoCurrency.supportedDerivationPathTypes
-          .where((e) => e != DerivePathType.bip49)
-          .map((e) => e.getAddressType())
-          .toSet();
+  Set<AddressType> get supportedAddressTypes => cryptoCurrency
+      .supportedDerivationPathTypes
+      .map((e) => e.getAddressType())
+      .toSet();
 
   Future<coinlib.HDPrivateKey> getRootHDNode() async {
     final seed = bip39.mnemonicToSeed(
@@ -185,12 +184,6 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
 
   // ========== Subclasses may override ========================================
 
-  /// To be overridden by crypto currencies that do extra address conversions
-  /// on top of the normal btc style address. (BCH and Ecash for example)
-  String convertAddressString(String address) {
-    return address;
-  }
-
   /// If this function returns true, the UTXO will be ignored in displayed balance
   bool ignoreUtxoInBalance(UTXO utxo) => false;
 
@@ -214,34 +207,10 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
   }
 
   DerivePathType _fromAddressType(AddressType addressType) {
-    switch (addressType) {
-      case AddressType.p2pkh:
-        // DerivePathType.bip44:
-        // DerivePathType.bch44:
-        // DerivePathType.eCash44:
-        // Should be one of the above due to silly case due to bch and ecash
-        return info.coin.defaultDerivePathType;
-
-      case AddressType.p2sh:
-        return DerivePathType.bip49;
-
-      case AddressType.p2wpkh:
-        return DerivePathType.bip84;
-
-      case AddressType.p2tr:
-        return DerivePathType.bip86;
-
-      case AddressType.solana:
-        return DerivePathType.solana;
-
-      case AddressType.ethereum:
-        return DerivePathType.eth;
-
-      default:
-        throw ArgumentError(
-          "Incompatible AddressType \"$addressType\" passed to DerivePathType.fromAddressType()",
-        );
+    if (addressType != AddressType.p2pkh) {
+      throw ArgumentError("No derivation path for $addressType addresses");
     }
+    return info.coin.defaultDerivePathType;
   }
 
   Future<Address> _generateAddress({
@@ -291,7 +260,7 @@ abstract class Bip39HDWallet<T extends Bip39HDCurrency> extends Bip39Wallet<T>
 
     return Address(
       walletId: walletId,
-      value: convertAddressString(data.address.toString()),
+      value: data.address.toString(),
       publicKey: keys.publicKey.data,
       derivationIndex: index,
       derivationPath:

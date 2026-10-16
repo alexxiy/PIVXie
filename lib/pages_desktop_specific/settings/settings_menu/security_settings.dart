@@ -13,7 +13,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:zxcvbn/zxcvbn.dart';
 
 import '../../../app_config.dart';
 import '../../../notifications/show_flush_bar.dart';
@@ -22,6 +21,7 @@ import '../../../providers/global/prefs_provider.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/constants.dart';
+import '../../../utilities/password_rules.dart';
 import '../../../utilities/show_loading.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../widgets/desktop/primary_button.dart';
@@ -49,7 +49,6 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
   late final FocusNode passwordCurrentFocusNode;
   late final FocusNode passwordFocusNode;
   late final FocusNode passwordRepeatFocusNode;
-  final zxcvbn = Zxcvbn();
 
   bool hidePassword = true;
   bool shouldShowPasswordHint = true;
@@ -62,8 +61,7 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
         passwordRepeatController.text.isNotEmpty;
   }
 
-  String passwordFeedback =
-      "Add another word or two. Uncommon words are better. Use a few words, avoid common phrases. No need for symbols, digits, or uppercase letters.";
+  String passwordFeedback = kPasswordRules;
 
   bool _changePWLock = false;
   Future<(bool, FlushBarType, String)> _attemptChangePW() async {
@@ -76,10 +74,12 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
         .verifyPassphrase(pw);
 
     if (verified) {
+      final missing = passwordMissing(pwNew);
+      if (missing != null) return (false, FlushBarType.warning, missing);
       if (pwNew != pwNewRepeat) {
         await Future<void>.delayed(const Duration(seconds: 1));
 
-        return (false, FlushBarType.warning, "New passphrase does not match!");
+        return (false, FlushBarType.warning, "The new passwords don't match");
       } else {
         final success = await ref
             .read(storageCryptoHandlerProvider)
@@ -88,21 +88,17 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
         if (success) {
           await Future<void>.delayed(const Duration(seconds: 1));
 
-          return (
-            true,
-            FlushBarType.success,
-            "Passphrase successfully changed",
-          );
+          return (true, FlushBarType.success, "Password changed");
         } else {
           await Future<void>.delayed(const Duration(seconds: 1));
 
-          return (false, FlushBarType.warning, "Passphrase change failed");
+          return (false, FlushBarType.warning, "Couldn't change the password");
         }
       }
     } else {
       await Future<void>.delayed(const Duration(seconds: 1));
 
-      return (false, FlushBarType.warning, "Current passphrase is not valid!");
+      return (false, FlushBarType.warning, "That's not your current password");
     }
   }
 
@@ -327,48 +323,12 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
                                               ),
                                             ),
                                         onChanged: (newValue) {
-                                          if (newValue.isEmpty) {
-                                            setState(() {
-                                              passwordFeedback = "";
-                                            });
-                                            return;
-                                          }
-                                          final result = zxcvbn.evaluate(
+                                          final check = newPasswordFeedback(
                                             newValue,
                                           );
-                                          String suggestionsAndTips = "";
-                                          for (final sug
-                                              in result.feedback.suggestions!
-                                                  .toSet()) {
-                                            suggestionsAndTips += "$sug\n";
-                                          }
-                                          suggestionsAndTips +=
-                                              result.feedback.warning!;
-                                          String feedback =
-                                              // "Password Strength: ${((result.score! / 4.0) * 100).toInt()}%\n"
-                                              suggestionsAndTips;
-
-                                          passwordStrength = result.score! / 4;
-
-                                          // hack fix to format back string returned from zxcvbn
-                                          if (feedback.contains(
-                                            "phrasesNo need",
-                                          )) {
-                                            feedback = feedback.replaceFirst(
-                                              "phrasesNo need",
-                                              "phrases\nNo need",
-                                            );
-                                          }
-
-                                          if (feedback.endsWith("\n")) {
-                                            feedback = feedback.substring(
-                                              0,
-                                              feedback.length - 2,
-                                            );
-                                          }
-
                                           setState(() {
-                                            passwordFeedback = feedback;
+                                            passwordFeedback = check.feedback;
+                                            passwordStrength = check.strength;
                                           });
                                         },
                                       ),

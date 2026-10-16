@@ -14,7 +14,6 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../../notifications/show_flush_bar.dart';
@@ -37,8 +36,6 @@ import '../new_wallet_options/new_wallet_options_view.dart';
 import '../new_wallet_recovery_phrase_view/new_wallet_recovery_phrase_view.dart';
 import 'sub_widgets/word_table.dart';
 import 'verify_mnemonic_passphrase_dialog.dart';
-
-final createSpecialEthWalletRoutingFlag = StateProvider((ref) => false);
 
 class VerifyRecoveryPhraseView extends ConsumerStatefulWidget {
   const VerifyRecoveryPhraseView({
@@ -182,7 +179,6 @@ class _VerifyRecoveryPhraseViewState
   }
 
   Future<bool> onWillPop() async {
-    // await delete();
     Navigator.of(context).popUntil(
       ModalRoute.withName(
         // NewWalletRecoveryPhraseWarningView.routeName,

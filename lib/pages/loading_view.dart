@@ -65,12 +65,6 @@ class LoadingView extends ConsumerWidget {
                           ),
                 ),
               ),
-              // child: Image(
-              //   image: AssetImage(
-              //     Assets.png.splash,
-              //   ),
-              //   width: MediaQuery.of(context).size.width * 0.5,
-              // ),
             ),
           ),
         ),

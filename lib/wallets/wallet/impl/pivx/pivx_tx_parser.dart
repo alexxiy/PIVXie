@@ -3,7 +3,7 @@ import 'dart:typed_data';
 
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 
-import '../../../../models/isar/models/blockchain_data/transaction.dart';
+import '../../../../models/isar/models/blockchain_data/transaction_type.dart';
 import '../../../../models/isar/models/blockchain_data/v2/input_v2.dart';
 import '../../../../models/isar/models/blockchain_data/v2/output_v2.dart';
 import '../../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
@@ -439,10 +439,6 @@ List<PivxRawOutput> pivxTxOutputs(Uint8List raw) {
   return outputs;
 }
 
-/// Output values of a raw PIVX transaction.
-List<BigInt> pivxTxOutputValues(Uint8List raw) =>
-    pivxTxOutputs(raw).map((e) => e.value).toList();
-
 /// Outputs of the raw transaction [rawHex], after checking that it
 /// hashes to [txid]. Throws when it does not.
 List<PivxRawOutput> pivxVerifiedOutputs(String txid, String rawHex) {
@@ -454,8 +450,3 @@ List<PivxRawOutput> pivxVerifiedOutputs(String txid, String rawHex) {
   }
   return pivxTxOutputs(raw);
 }
-
-/// Output values of the raw transaction [rawHex], after checking that it
-/// hashes to [txid]. Throws when it does not.
-List<BigInt> pivxVerifiedOutputValues(String txid, String rawHex) =>
-    pivxVerifiedOutputs(txid, rawHex).map((e) => e.value).toList();

@@ -32,8 +32,6 @@ class PinWidgetState extends State<PinWidget> {
 
   @override
   Widget build(BuildContext context) {
-    final bool submittedPinMatches = false;
-
     return CustomPinPut(
       fieldsCount: pinCount,
       isRandom: widget.isRandom,
@@ -328,58 +326,6 @@ void main() {
       },
     );
 
-    // testWidgets("CustomPinPut entering a pin successfully, with random PIN",
-    //     (tester) async {
-    //   bool submittedPinMatches = false;
-    //
-    //   await tester.pumpWidget(
-    //     MaterialApp(
-    //       theme: ThemeData(
-    //         extensions: [
-    //           StackColors.fromStackColorTheme(
-    //             StackTheme.fromJson(
-    //               json: lightThemeJsonMap,
-    //
-    //             ),
-    //           ),
-    //         ],
-    //       ),
-    //       home: Material(
-    //         child: PinWidget(
-    //           pinAnimation: PinAnimationType.none,
-    //           isRandom: true,
-    //           onSubmit: (pin) {
-    //             submittedPinMatches = pin == "1234";
-    //             print("pin entered: $pin");
-    //           },
-    //         ),
-    //       ),
-    //     ),
-    //   );
-    //
-    //   await tester.tap(find.byWidgetPredicate(
-    //       (widget) => widget is NumberKey && widget.number == "1"));
-    //   await tester.pumpAndSettle();
-    //   await tester.tap(find.byWidgetPredicate(
-    //       (widget) => widget is NumberKey && widget.number == "2"));
-    //   await tester.pumpAndSettle();
-    //   await tester.tap(find.byWidgetPredicate(
-    //       (widget) => widget is NumberKey && widget.number == "6"));
-    //   await tester.pumpAndSettle();
-    //   await tester.tap(find.byType(BackspaceKey));
-    //   await tester.pumpAndSettle();
-    //   await tester.tap(find.byWidgetPredicate(
-    //       (widget) => widget is NumberKey && widget.number == "3"));
-    //   await tester.pumpAndSettle();
-    //   await tester.tap(find.byWidgetPredicate(
-    //       (widget) => widget is NumberKey && widget.number == "4"));
-    //   await tester.pumpAndSettle();
-    //   await tester.tap(find.byType(SubmitKey));
-    //   await tester.pumpAndSettle();
-    //
-    //   expect(submittedPinMatches, true);
-    // });
-
     testWidgets("CustomPinPut pin enter fade animation, with random PIN", (
       tester,
     ) async {
@@ -421,12 +367,6 @@ void main() {
       tester,
     ) async {
       final controller = TextEditingController();
-      final pinPut = CustomPinPut(
-        fieldsCount: 4,
-        pinAnimationType: PinAnimationType.scale,
-        controller: controller,
-        isRandom: true,
-      );
 
       await tester.pumpWidget(
         MaterialApp(
@@ -464,12 +404,6 @@ void main() {
       tester,
     ) async {
       final controller = TextEditingController();
-      final pinPut = CustomPinPut(
-        fieldsCount: 4,
-        pinAnimationType: PinAnimationType.rotation,
-        controller: controller,
-        isRandom: true,
-      );
 
       await tester.pumpWidget(
         MaterialApp(

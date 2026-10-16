@@ -107,7 +107,6 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
 
   @override
   Widget build(BuildContext context) {
-    // int pinCount = 1;
     return Background(
       child: Scaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
@@ -255,9 +254,6 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
                             .read(prefsChangeNotifierProvider)
                             .randomizePIN,
                         onSubmit: (String pin) async {
-                          // _onSubmitCount++;
-                          // if (_onSubmitCount - _onSubmitFailCount > 1) return;
-
                           if (_saving) return;
                           if (_pinPutController1.text ==
                               _pinPutController2.text) {
@@ -336,7 +332,6 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
                               }
                             }
                           } else {
-                            // _onSubmitFailCount++;
                             unawaited(
                               _pageController.animateTo(
                                 0,

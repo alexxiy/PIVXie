@@ -41,7 +41,6 @@ import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../wallets/isar/models/wallet_info.dart';
 import '../../../wallets/wallet/impl/pivx_wallet.dart';
-import '../../../wallets/wallet/intermediate/external_wallet.dart';
 import '../../../wallets/wallet/wallet.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/desktop/desktop_app_bar.dart';
@@ -332,9 +331,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
 
         if (node == null) {
           node = widget.coin.defaultNode(isPrimary: true);
-          await ref
-              .read(nodeServiceChangeNotifierProvider)
-              .save(node, null, false);
+          await ref.read(nodeServiceChangeNotifierProvider).save(node, false);
         }
 
         try {
@@ -351,10 +348,6 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
           await wallet.init();
           await wallet.recover(isRescan: false);
           if (!isRestoring) throw Exception("Restore cancelled");
-
-          if (wallet is ExternalWallet) {
-            await wallet.exit();
-          }
 
           // check if state is still active before continuing
           if (mounted) {
@@ -410,12 +403,6 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
             await wallets.deleteWallet(info, secureStore);
             return;
           }
-
-          // if (e is HiveError &&
-          //     e.message == "Box has already been closed.") {
-          //   // restore was cancelled
-          //   return;
-          // }
 
           // check if state is still active and restore wasn't cancelled
           // before continuing
@@ -655,8 +642,6 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
   }
 
   Future<void> pasteMnemonic() async {
-    //todo: check if print needed
-    // debugPrint("restoreWalletPasteButton tapped");
     final ClipboardData? data = await widget.clipboard.getData(
       Clipboard.kTextPlain,
     );
@@ -925,18 +910,6 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                                               .invalid;
                                                     }
 
-                                                    // if (formInputStatus ==
-                                                    //     FormInputStatus.valid) {
-                                                    //   if (i * 4 + j <
-                                                    //       _focusNodes.length) {
-                                                    //     _focusNodes[i * 4 + j]
-                                                    //         .requestFocus();
-                                                    //   } else if (i * 4 + j ==
-                                                    //       _focusNodes.length) {
-                                                    //     _focusNodes[i * 4 + j - 1]
-                                                    //         .unfocus();
-                                                    //   }
-                                                    // }
                                                     setState(() {
                                                       _inputStatuses[i * 4 +
                                                               j -
@@ -1240,14 +1213,6 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                             FormInputStatus.invalid;
                                       }
 
-                                      // if (formInputStatus ==
-                                      //     FormInputStatus.valid) {
-                                      //   if (i < _focusNodes.length) {
-                                      //     _focusNodes[i].requestFocus();
-                                      //   } else if (i == _focusNodes.length) {
-                                      //     _focusNodes[i - 1].unfocus();
-                                      //   }
-                                      // }
                                       setState(() {
                                         _inputStatuses[i - 1] = formInputStatus;
                                       });

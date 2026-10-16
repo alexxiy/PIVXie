@@ -34,7 +34,4 @@ class TransactionBlockExplorer {
       return null;
     }
   }
-
-  Uri? getUrlFor({required String txid}) =>
-      Uri.tryParse(url.replaceFirst("%5BTXID%5D", txid));
 }

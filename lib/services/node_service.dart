@@ -44,19 +44,14 @@ class NodeService extends ChangeNotifier {
           );
         }
       } else {
-        // update all fields but copy over previously set enabled and trusted states
+        // Update the default, keeping the user's choices for it.
         await DB.instance.put<NodeModel>(
           boxName: DB.boxNameNodeModels,
           key: savedNode.id,
           value: defaultNode.copyWith(
-            enabled: savedNode.enabled,
-            isFailover: savedNode.isFailover,
-            trusted: savedNode.trusted,
             torEnabled: savedNode.torEnabled,
             clearnetEnabled: savedNode.clearnetEnabled,
-            loginName: savedNode.loginName,
             isPrimary: savedNode.isPrimary,
-            forceNoTor: savedNode.forceNoTor,
           ),
         );
       }
@@ -74,20 +69,9 @@ class NodeService extends ChangeNotifier {
     );
     final List<NodeModel> toStore = [];
     for (final node in currentPrimaries) {
-      final updated = node.copyWith(
-        loginName: node.loginName,
-        trusted: node.trusted,
-        isPrimary: false,
-      );
-      toStore.add(updated);
+      toStore.add(node.copyWith(isPrimary: false));
     }
-    toStore.add(
-      node.copyWith(
-        loginName: node.loginName,
-        trusted: node.trusted,
-        isPrimary: true,
-      ),
-    );
+    toStore.add(node.copyWith(isPrimary: true));
 
     for (final node in toStore) {
       await DB.instance.put<NodeModel>(
@@ -146,36 +130,15 @@ class NodeService extends ChangeNotifier {
     return DB.instance.get<NodeModel>(boxName: DB.boxNameNodeModels, key: id);
   }
 
-  List<NodeModel> failoverNodesFor({required CryptoCurrency currency}) {
-    return getNodesFor(currency)
-        .where((e) => e.isFailover && !e.isDown)
-        .toList();
-  }
-
   /// Adds a new node to the database.
   ///
   /// If a node with the same ID already exists, it will be overwritten.
-  Future<void> save(
-    NodeModel node,
-    String? password,
-    bool shouldNotifyListeners,
-  ) async {
-    // Save to database (logic from add()).
+  Future<void> save(NodeModel node, bool shouldNotifyListeners) async {
     await DB.instance.put<NodeModel>(
       boxName: DB.boxNameNodeModels,
       key: node.id,
       value: node,
     );
-
-    // Save password to secure storage.
-    if (password != null) {
-      await secureStorageInterface.write(
-        key: "${node.id}_nodePW",
-        value: password,
-      );
-    } else {
-      await secureStorageInterface.delete(key: "${node.id}_nodePW");
-    }
     if (shouldNotifyListeners) {
       notifyListeners();
     }
@@ -204,35 +167,11 @@ class NodeService extends ChangeNotifier {
     remaining.retainWhere((e) => e.id != nodeToDelete.id);
 
     await DB.instance.delete<NodeModel>(boxName: DB.boxNameNodeModels, key: id);
-    await secureStorageInterface.delete(key: "${id}_nodePW");
 
     if (nodeToDelete.isPrimary) {
       await setPrimaryNodeFor(coin: coin, node: remaining.first);
     }
 
-    if (shouldNotifyListeners) {
-      notifyListeners();
-    }
-  }
-
-  Future<void> setEnabledState(
-    String id,
-    bool enabled,
-    bool shouldNotifyListeners,
-  ) async {
-    final model = DB.instance.get<NodeModel>(
-      boxName: DB.boxNameNodeModels,
-      key: id,
-    )!;
-    await DB.instance.put<NodeModel>(
-      boxName: DB.boxNameNodeModels,
-      key: model.id,
-      value: model.copyWith(
-        enabled: enabled,
-        loginName: model.loginName,
-        trusted: model.trusted,
-      ),
-    );
     if (shouldNotifyListeners) {
       notifyListeners();
     }

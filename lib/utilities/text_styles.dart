@@ -16,23 +16,6 @@ class STextStyles {
   static StackColors _theme(BuildContext context) =>
       Theme.of(context).extension<StackColors>()!;
 
-  static TextStyle sectionLabelMedium12(BuildContext context) {
-    switch (_theme(context).themeId) {
-      case "forest":
-        return GoogleFonts.inter(
-          color: _theme(context).textDark3,
-          fontWeight: FontWeight.w500,
-          fontSize: 12,
-        );
-      default:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark3,
-          fontWeight: FontWeight.w500,
-          fontSize: 14,
-        );
-    }
-  }
-
   static TextStyle pageTitleH1(BuildContext context) {
     switch (_theme(context).themeId) {
       default:
@@ -372,39 +355,6 @@ class STextStyles {
     }
   }
 
-  static TextStyle w500_8(BuildContext context) {
-    switch (_theme(context).themeId) {
-      default:
-        return GoogleFonts.inter(
-          color: _theme(context).textSubtitle1,
-          fontWeight: FontWeight.w500,
-          fontSize: 8,
-        );
-    }
-  }
-
-  static TextStyle w400_16(BuildContext context) {
-    switch (_theme(context).themeId) {
-      default:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w400,
-          fontSize: 16,
-        );
-    }
-  }
-
-  static TextStyle w400_14(BuildContext context) {
-    switch (_theme(context).themeId) {
-      default:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w400,
-          fontSize: 14,
-        );
-    }
-  }
-
   static TextStyle w600_20(BuildContext context) {
     switch (_theme(context).themeId) {
       default:
@@ -499,18 +449,6 @@ class STextStyles {
         return GoogleFonts.inter(
           color: _theme(context).textDark,
           fontWeight: FontWeight.w600,
-          fontSize: 24,
-          height: 24 / 24,
-        );
-    }
-  }
-
-  static TextStyle w500_24(BuildContext context) {
-    switch (_theme(context).themeId) {
-      default:
-        return GoogleFonts.inter(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w500,
           fontSize: 24,
           height: 24 / 24,
         );
@@ -762,17 +700,6 @@ class STextStyles {
     }
   }
 
-  static TextStyle stepIndicator(BuildContext context) {
-    switch (_theme(context).themeId) {
-      default:
-        return GoogleFonts.roboto(
-          color: _theme(context).textDark,
-          fontWeight: FontWeight.w600,
-          fontSize: 8,
-        );
-    }
-  }
-
   static TextStyle numberDefault(BuildContext context) {
     switch (_theme(context).themeId) {
       default:
@@ -780,30 +707,6 @@ class STextStyles {
           color: _theme(context).numberTextDefault,
           fontWeight: FontWeight.w400,
           fontSize: 26,
-        );
-    }
-  }
-
-  static TextStyle datePicker400(BuildContext context) {
-    switch (_theme(context).themeId) {
-      default:
-        return GoogleFonts.inter(
-          letterSpacing: 0.5,
-          color: _theme(context).accentColorDark,
-          fontWeight: FontWeight.w400,
-          fontSize: 12,
-        );
-    }
-  }
-
-  static TextStyle datePicker600(BuildContext context) {
-    switch (_theme(context).themeId) {
-      default:
-        return GoogleFonts.inter(
-          letterSpacing: 0.5,
-          color: _theme(context).accentColorDark,
-          fontWeight: FontWeight.w600,
-          fontSize: 16,
         );
     }
   }

@@ -78,7 +78,6 @@ class DraggableSwitchButtonState extends State<DraggableSwitchButton> {
     widget.controller?.isOn = () => _isOn;
     widget.controller?.activate = () {
       _isOn = !_isOn;
-      // widget.onValueChanged?.call(_isOn);
       valueListener.value = _isOn ? 1.0 : 0.0;
     };
     super.initState();

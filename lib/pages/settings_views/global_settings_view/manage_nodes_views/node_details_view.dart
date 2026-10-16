@@ -17,12 +17,10 @@ import 'package:tuple/tuple.dart';
 
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../providers/global/active_wallet_provider.dart';
-import '../../../../providers/global/secure_store_provider.dart';
 import '../../../../providers/providers.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/enums/sync_type_enum.dart';
-import '../../../../utilities/flutter_secure_storage_interface.dart';
 import '../../../../utilities/test_node_connection.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/tor_plain_net_option_enum.dart';
@@ -56,7 +54,6 @@ class NodeDetailsView extends ConsumerStatefulWidget {
 }
 
 class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
-  late final SecureStorageInterface secureStore;
   late final CryptoCurrency coin;
   late final String nodeId;
   late final String popRouteName;
@@ -100,7 +97,6 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
 
   @override
   initState() {
-    secureStore = ref.read(secureStoreProvider);
     coin = widget.coin;
     nodeId = widget.nodeId;
     popRouteName = widget.popRouteName;
@@ -239,7 +235,6 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
           children: [
             NodeForm(
               node: node,
-              secureStore: secureStore,
               readOnly: isDesktop ? _desktopReadOnly : true,
               coin: coin,
             ),
@@ -295,17 +290,10 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
 
                       final nodeFormData = NodeFormData()
                         ..useSSL = node.useSSL
-                        ..trusted = node.trusted
                         ..name = node.name
                         ..host = node.host
-                        ..login = node.loginName
                         ..port = node.port
-                        ..isFailover = node.isFailover
-                        ..netOption = netOption
-                        ..forceNoTor = node.forceNoTor;
-                      nodeFormData.password = await node.getPassword(
-                        ref.read(secureStoreProvider),
-                      );
+                        ..netOption = netOption;
 
                       if (context.mounted) {
                         final testPassed =
@@ -361,33 +349,19 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                                 port: ref.read(nodeFormDataProvider).port,
                                 name: ref.read(nodeFormDataProvider).name,
                                 useSSL: ref.read(nodeFormDataProvider).useSSL,
-                                trusted: ref.read(nodeFormDataProvider).trusted,
-                                loginName: ref.read(nodeFormDataProvider).login,
-                                isFailover: ref
+                                torEnabled: ref
                                     .read(nodeFormDataProvider)
-                                    .isFailover,
-                                torEnabled:
-                                    ref.read(nodeFormDataProvider).netOption ==
-                                        TorPlainNetworkOption.tor ||
-                                    ref.read(nodeFormDataProvider).netOption ==
-                                        TorPlainNetworkOption.both,
-                                clearnetEnabled:
-                                    ref.read(nodeFormDataProvider).netOption ==
-                                        TorPlainNetworkOption.clear ||
-                                    ref.read(nodeFormDataProvider).netOption ==
-                                        TorPlainNetworkOption.both,
-                                forceNoTor: ref
+                                    .netOption
+                                    ?.allowsTor(),
+                                clearnetEnabled: ref
                                     .read(nodeFormDataProvider)
-                                    .forceNoTor,
+                                    .netOption
+                                    ?.allowsClear(),
                               );
 
                               await ref
                                   .read(nodeServiceChangeNotifierProvider)
-                                  .save(
-                                    editedNode,
-                                    ref.read(nodeFormDataProvider).password,
-                                    true,
-                                  );
+                                  .save(editedNode, true);
                               await _notifyWalletsOfUpdatedNode();
                             }
                           },

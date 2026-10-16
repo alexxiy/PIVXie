@@ -1,5 +1,3 @@
-// TODO MWC
-
 import 'package:flutter_test/flutter_test.dart';
 import 'package:paymint/app_config.dart';
 import 'package:paymint/db/hive/db.dart';
@@ -13,12 +11,9 @@ import '../hive/hive_ce_test_utils.dart';
 void main() {
   bool wasRegistered = false;
   final expectedPrimaryDefaults = AppConfig.coins
-      .where((coin) => coin.identifier != 'firo')
       .map((e) => e.defaultNode(isPrimary: true))
       .toList(growable: false);
-  final expectedDefaultNodeCount =
-      expectedPrimaryDefaults.length +
-      (AppConfig.coins.any((e) => e.identifier == 'firo') ? 4 : 0);
+  final expectedDefaultNodeCount = expectedPrimaryDefaults.length;
 
   setUp(() async {
     await setUpHiveCeTest();
@@ -27,7 +22,6 @@ void main() {
       DB.instance.hive.registerAdapter(NodeModelAdapter());
     }
     await DB.instance.hive.openBox<NodeModel>(DB.boxNameNodeModels);
-    // await DB.instance.hive.openBox<NodeModel>(DB.boxNamePrimaryNodes);
   });
 
   group("Empty nodes DB tests", () {
@@ -54,10 +48,7 @@ void main() {
         name: "btcnode",
         id: "pnodeID",
         useSSL: true,
-        enabled: true,
         coinName: "pivx",
-        isFailover: true,
-        isDown: false,
         torEnabled: true,
         clearnetEnabled: true,
         isPrimary: true,
@@ -101,16 +92,6 @@ void main() {
       expect(fakeStore.interactions, 0);
     });
 
-    test("get failover nodes", () {
-      final fakeStore = FakeSecureStorage();
-      final service = NodeService(secureStorageInterface: fakeStore);
-      final nodes = service.failoverNodesFor(
-        currency: Pivx(CryptoCurrencyNetwork.main),
-      );
-      expect(nodes.isEmpty, true);
-      expect(fakeStore.interactions, 0);
-    });
-
     test("get non existing getNodeById", () {
       final fakeStore = FakeSecureStorage();
       final service = NodeService(secureStorageInterface: fakeStore);
@@ -135,10 +116,7 @@ void main() {
       name: "btcnode",
       id: "pnodeID1",
       useSSL: true,
-      enabled: true,
       coinName: "pivx",
-      isFailover: true,
-      isDown: false,
       torEnabled: true,
       clearnetEnabled: true,
       isPrimary: true,
@@ -149,10 +127,7 @@ void main() {
       name: "btcnode",
       id: "pnodeID2",
       useSSL: true,
-      enabled: true,
       coinName: "pivxTestNet",
-      isFailover: true,
-      isDown: false,
       torEnabled: true,
       clearnetEnabled: true,
       isPrimary: true,
@@ -163,10 +138,7 @@ void main() {
       name: "btcnode",
       id: "pnodeID3",
       useSSL: true,
-      enabled: true,
       coinName: "epicCash",
-      isFailover: true,
-      isDown: false,
       torEnabled: true,
       clearnetEnabled: true,
       isPrimary: true,
@@ -229,35 +201,18 @@ void main() {
       final service = NodeService(secureStorageInterface: fakeStore);
       final nodes = service.nodes;
       final defaultIds = expectedPrimaryDefaults.map((e) => e.id).toSet();
-      final extraFiroIds = service.nodes
-          .where((node) => node.id.startsWith('not_a_real_default_but_temp_'))
-          .map((node) => node.id)
-          .toSet();
 
       expect(nodes.length, expectedDefaultNodeCount);
       expect(nodes.map((node) => node.id).toSet(), containsAll(defaultIds));
-      expect(
-        extraFiroIds.length,
-        AppConfig.coins.any((e) => e.identifier == 'firo') ? 4 : 0,
-      );
       expect(fakeStore.interactions, 0);
     });
 
-    test("add a node without a password", () async {
+    test("add a node", () async {
       final fakeStore = FakeSecureStorage();
       final service = NodeService(secureStorageInterface: fakeStore);
-      await service.save(nodeA, null, true);
+      await service.save(nodeA, true);
       expect(service.nodes.length, expectedDefaultNodeCount + 1);
-      expect(fakeStore.interactions, 1);
-    });
-
-    test("add a node with a password", () async {
-      final fakeStore = FakeSecureStorage();
-      final service = NodeService(secureStorageInterface: fakeStore);
-      await service.save(nodeA, "some password", true);
-      expect(service.nodes.length, expectedDefaultNodeCount + 1);
-      expect(fakeStore.interactions, 1);
-      expect(fakeStore.writes, 1);
+      expect(fakeStore.interactions, 0);
     });
 
     group("Additional nodes in storage tests", () {
@@ -279,18 +234,14 @@ void main() {
         );
       });
 
-      test("edit a node with a password", () async {
+      test("edit a node", () async {
         final fakeStore = FakeSecureStorage();
         final service = NodeService(secureStorageInterface: fakeStore);
         final currentLength = service.nodes.length;
 
-        final editedNode = nodeA.copyWith(
-          name: "Some new kind of name",
-          loginName: null,
-          trusted: null,
-        );
+        final editedNode = nodeA.copyWith(name: "Some new kind of name");
 
-        await service.save(editedNode, "123456", true);
+        await service.save(editedNode, true);
 
         expect(service.nodes.length, currentLength);
 
@@ -298,14 +249,7 @@ void main() {
           service.getNodeById(id: nodeA.id).toString(),
           editedNode.toString(),
         );
-        expect(
-          (await service.getNodeById(id: nodeA.id)!.getPassword(fakeStore))!,
-          "123456",
-        );
-
-        expect(fakeStore.interactions, 2);
-        expect(fakeStore.reads, 1);
-        expect(fakeStore.writes, 1);
+        expect(fakeStore.interactions, 0);
       });
 
       test("delete a node", () async {
@@ -319,23 +263,6 @@ void main() {
           service.nodes.where((element) => element.id == nodeB.id).length,
           0,
         );
-
-        expect(fakeStore.interactions, 1);
-        expect(fakeStore.deletes, 1);
-      });
-
-      test("set enabled", () async {
-        final fakeStore = FakeSecureStorage();
-        final service = NodeService(secureStorageInterface: fakeStore);
-
-        final preString = nodeC.toString();
-
-        await service.setEnabledState(nodeC.id, false, true);
-
-        final updatedNode = service.getNodeById(id: nodeC.id);
-
-        expect(preString == updatedNode.toString(), false);
-        expect(updatedNode!.enabled, false);
 
         expect(fakeStore.interactions, 0);
       });

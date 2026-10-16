@@ -239,8 +239,6 @@ class StackDateRangePicker extends StatelessWidget {
           ),
           child: Container(
             width: middleSeparatorWidth,
-            // height: 1,
-            // color: CFColors.smoke,
           ),
         ),
         Expanded(

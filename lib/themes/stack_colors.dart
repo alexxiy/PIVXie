@@ -1520,41 +1520,6 @@ class StackColors extends ThemeExtension<StackColors> {
     );
   }
 
-  Color colorForStatus(String status) {
-    switch (status) {
-      case "New":
-      case "new":
-      case "Waiting":
-      case "waiting":
-      case "Confirming":
-      case "confirming":
-      case "Exchanging":
-      case "exchanging":
-      case "Sending":
-      case "sending":
-      case "Verifying":
-      case "verifying":
-        return const Color(0xFFD3A90F);
-      case "Finished":
-      case "finished":
-      case "Completed":
-      case "success":
-        return accentColorGreen;
-      case "Failed":
-      case "failed":
-      case "closed":
-      case "expired":
-      case "overdue":
-        return accentColorRed;
-      case "Refunded":
-      case "refunded":
-      case "refund":
-        return textSubtitle2;
-      default:
-        return const Color(0xFFD3A90F);
-    }
-  }
-
   ButtonStyle? getDeleteEnabledButtonStyle(BuildContext context) =>
       Theme.of(context).textButtonTheme.style?.copyWith(
         backgroundColor: MaterialStateProperty.all<Color>(textFieldErrorBG),
@@ -1576,22 +1541,6 @@ class StackColors extends ThemeExtension<StackColors> {
       Theme.of(context).textButtonTheme.style?.copyWith(
         backgroundColor: MaterialStateProperty.all<Color>(
           buttonBackPrimaryDisabled,
-        ),
-      );
-
-  ButtonStyle? getOutlineBlueButtonStyle(BuildContext context) =>
-      Theme.of(context).textButtonTheme.style?.copyWith(
-        backgroundColor: MaterialStateProperty.all<Color>(Colors.transparent),
-        side: MaterialStateProperty.all<BorderSide>(
-          BorderSide(color: customTextButtonEnabledText),
-        ),
-      );
-
-  ButtonStyle? getOutlineBlueButtonDisabledStyle(BuildContext context) =>
-      Theme.of(context).textButtonTheme.style?.copyWith(
-        backgroundColor: MaterialStateProperty.all<Color>(Colors.transparent),
-        side: MaterialStateProperty.all<BorderSide>(
-          BorderSide(color: customTextButtonDisabledText),
         ),
       );
 

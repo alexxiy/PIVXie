@@ -130,6 +130,14 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
 
   PivxBridgeClient get bridge {
     final node = getCurrentNode();
+    // As the warning on opening the wallet says: such a node isn't used.
+    if (prefs.useTor ? !node.torEnabled : !node.clearnetEnabled) {
+      throw PivxBridgeException(
+        prefs.useTor
+            ? "This node is set to be used without Tor"
+            : "This node is set to be used only over Tor",
+      );
+    }
     final key = "${node.host}|${node.port}|${node.useSSL}|${prefs.useTor}";
     if (_client == null || _clientKey != key) {
       _client?.close();
@@ -1077,9 +1085,6 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
   // ===========================================================================
   // Sync progress
 
-  @override
-  bool get reportsSyncProgress => true;
-
   /// Set while [recover] runs: progress then covers the whole 0-100 %
   /// (a rescan or restore has no refresh around it).
   bool _recovering = false;
@@ -1325,10 +1330,6 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
           : a(total - amount.raw.toInt() - (subtractFee ? 0 : fee)),
     );
   }
-
-  /// Download (once, ~50 MB) and load the Sapling proving parameters.
-  Future<void> prepareShieldProver({void Function(double)? onProgress}) =>
-      _ensureProver(onProgress: onProgress);
 
   @override
   Future<void> recoverViewOnly() => recover(isRescan: false);

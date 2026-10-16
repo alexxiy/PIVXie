@@ -21,12 +21,6 @@ class TableView extends StatelessWidget {
   final List<Widget> rows;
   final double rowSpacing;
   final bool shrinkWrap;
-//
-//   @override
-//   State<TableView> createState() => _TableViewState();
-// }
-//
-// class _TableViewState extends State<TableView> {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");

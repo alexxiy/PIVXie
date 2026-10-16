@@ -107,11 +107,6 @@ class _AddressCardState extends ConsumerState<AddressCard> {
               ),
             );
           }
-        } else {
-          //   await DocumentFileSavePlus.saveFile(
-          //       pngBytes,
-          //       "receive_qr_code_${DateTime.now().toLocal().toIso8601String()}.png",
-          //       "image/png");
         }
       } else {
         final tempDir = await getTemporaryDirectory();
@@ -336,18 +331,6 @@ class _AddressCardState extends ConsumerState<AddressCard> {
                       ),
                     ],
                   ),
-                // if (label!.tags != null && label!.tags!.isNotEmpty)
-                //   Wrap(
-                //     spacing: 10,
-                //     runSpacing: 10,
-                //     children: label!.tags!
-                //         .map(
-                //           (e) => AddressTag(
-                //             tag: e,
-                //           ),
-                //         )
-                //         .toList(),
-                //   ),
               ],
             ),
           );

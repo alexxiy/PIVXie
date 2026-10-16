@@ -19,18 +19,8 @@ class AddressUtils {
     'amount',
     'label',
     'message',
-    'tx_amount', // For Monero/Wownero.
-    'tx_payment_id',
-    'recipient_name',
-    'tx_description',
-    'op_return', // For Rosen Bridge and other OP_RETURN protocols.
     'memo', // PIVX shield memo (as in MyPIVXWallet).
-    // TODO [prio=med]: Add more recognized params for other coins.
   };
-
-  static String condenseAddress(String address) {
-    return '${address.substring(0, 5)}...${address.substring(address.length - 5)}';
-  }
 
   /// Return only recognized parameters.
   static Map<String, String> _filterParams(Map<String, String> params) {
@@ -48,34 +38,8 @@ class AddressUtils {
       final u = Uri.parse(uri);
       if (u.hasScheme) {
         result["scheme"] = u.scheme.toLowerCase();
-
-        // Handle different URI formats.
-        if (result["scheme"] == "bitcoin" ||
-            result["scheme"] == "bitcoincash") {
-          result["address"] = u.path;
-        } else if (result["scheme"] == "monero") {
-          // Monero addresses can contain '?' which Uri.parse interprets as query start.
-          final addressEnd = uri.indexOf(
-            '?',
-            7,
-          ); // 7 is the length of "monero:".
-          if (addressEnd != -1) {
-            result["address"] = uri.substring(7, addressEnd);
-          } else {
-            result["address"] = uri.substring(7);
-          }
-        } else {
-          // Default case, treat path as address.
-          result["address"] = u.path;
-        }
-
-        // Parse query parameters.
+        result["address"] = u.path;
         result.addAll(_parseQueryParameters(u.queryParameters));
-
-        // Handle Monero-specific fragment (tx_description).
-        if (u.fragment.isNotEmpty && result["scheme"] == "monero") {
-          result["tx_description"] = Uri.decodeComponent(u.fragment);
-        }
       }
     } catch (e, s) {
       Logging.instance.d(
@@ -97,21 +61,12 @@ class AddressUtils {
       if (recognizedParams.contains(lowerKey)) {
         switch (lowerKey) {
           case 'amount':
-          case 'tx_amount':
             // A plain decimal number. Anything else ("1e3", "1,5") is left
             // out rather than guessed at.
             final amount = value.trim();
             if (RegExp(r"^(\d+\.?\d*|\.\d+)$").hasMatch(amount)) {
               result['amount'] = amount;
             }
-            break;
-          case 'label':
-          case 'recipient_name':
-            result['label'] = value;
-            break;
-          case 'message':
-          case 'tx_description':
-            result['message'] = value;
             break;
           default:
             result[lowerKey] = value;
@@ -128,20 +83,6 @@ class AddressUtils {
   ///
   /// Returns null on failure to parse
   static PaymentUriData? parsePaymentUri(String uri, {Logging? logging}) {
-    // hacky check its not just a bcash, ecash, or xel address
-    final parts = uri.split(":");
-    if (parts.length == 2) {
-      if ([
-        "xel",
-        "bitcoincash",
-        "bchtest",
-        "ecash",
-        "ectest",
-      ].contains(parts.first.toLowerCase())) {
-        return null;
-      }
-    }
-
     try {
       final Map<String, String> parsedData = _parseUri(uri);
 
@@ -155,11 +96,9 @@ class AddressUtils {
       return PaymentUriData(
         scheme: scheme,
         address: parsedData['address']!.trim(),
-        amount: filteredParams['amount'] ?? filteredParams['tx_amount'],
-        label: filteredParams['label'] ?? filteredParams['recipient_name'],
-        message: filteredParams['message'] ?? filteredParams['tx_description'],
-        paymentId: filteredParams['tx_payment_id'],
-        // Specific to Monero
+        amount: filteredParams['amount'],
+        label: filteredParams['label'],
+        message: filteredParams['message'],
         additionalParams: filteredParams,
       );
     } catch (e, s) {
@@ -176,33 +115,10 @@ class AddressUtils {
   ) {
     // Filter unrecognized parameters.
     final filteredParams = _filterParams(params);
-    String uriString;
-
-    // cashaddrs strike again
-    if (address.startsWith("$scheme:")) {
-      uriString = address;
-    } else {
-      uriString = "$scheme:$address";
+    String uriString = "$scheme:$address";
+    if (filteredParams.isNotEmpty) {
+      uriString += Uri(queryParameters: filteredParams).toString();
     }
-
-    if (scheme.toLowerCase() == "monero") {
-      // Handle Monero-specific formatting.
-      if (filteredParams.containsKey("tx_description")) {
-        final description = filteredParams.remove("tx_description")!;
-        if (filteredParams.isNotEmpty) {
-          uriString += Uri(queryParameters: filteredParams).toString();
-        }
-        uriString += "#${Uri.encodeComponent(description)}";
-      } else if (filteredParams.isNotEmpty) {
-        uriString += Uri(queryParameters: filteredParams).toString();
-      }
-    } else {
-      // General case for other cryptocurrencies.
-      if (filteredParams.isNotEmpty) {
-        uriString += Uri(queryParameters: filteredParams).toString();
-      }
-    }
-
     return uriString;
   }
 
@@ -233,136 +149,7 @@ class AddressUtils {
       return AppConfig.coins.firstWhere((e) => e.uriScheme == scheme);
     } else {
       return null;
-      // throw UnsupportedError('Unsupported URI scheme: $scheme');
     }
-  }
-
-  /// Formats an address string to remove any unnecessary prefixes or suffixes.
-  String formatEpicCashAddress(String epicAddress) {
-    // strip http:// or https:// prefixes if the address contains an @ symbol (and is thus an epicbox address)
-    if ((epicAddress.startsWith("http://") ||
-            epicAddress.startsWith("https://")) &&
-        epicAddress.contains("@")) {
-      epicAddress = epicAddress.replaceAll("http://", "");
-      epicAddress = epicAddress.replaceAll("https://", "");
-    }
-    // strip mailto: prefix
-    if (epicAddress.startsWith("mailto:")) {
-      epicAddress = epicAddress.replaceAll("mailto:", "");
-    }
-    // strip / suffix if the address contains an @ symbol (and is thus an epicbox address)
-    if (epicAddress.endsWith("/") && epicAddress.contains("@")) {
-      epicAddress = epicAddress.substring(0, epicAddress.length - 1);
-    }
-    return epicAddress;
-  }
-
-  /// Formats an address string to remove any unnecessary prefixes or suffixes.
-  String formatAddressMwc(String mimblewimblecoinAddress) {
-    // strip http:// or https:// prefixes if the address contains an @ symbol (and is thus an mwcmqs address)
-    if ((mimblewimblecoinAddress.startsWith("http://") ||
-            mimblewimblecoinAddress.startsWith("https://")) &&
-        mimblewimblecoinAddress.contains("@")) {
-      mimblewimblecoinAddress = mimblewimblecoinAddress.replaceAll(
-        "http://",
-        "",
-      );
-      mimblewimblecoinAddress = mimblewimblecoinAddress.replaceAll(
-        "https://",
-        "",
-      );
-    }
-    // strip mailto: prefix
-    if (mimblewimblecoinAddress.startsWith("mailto:")) {
-      mimblewimblecoinAddress = mimblewimblecoinAddress.replaceAll(
-        "mailto:",
-        "",
-      );
-    }
-    // strip / suffix if the address contains an @ symbol (and is thus an mwcmqs address)
-    if (mimblewimblecoinAddress.endsWith("/") &&
-        mimblewimblecoinAddress.contains("@")) {
-      mimblewimblecoinAddress = mimblewimblecoinAddress.substring(
-        0,
-        mimblewimblecoinAddress.length - 1,
-      );
-    }
-    return mimblewimblecoinAddress;
-  }
-
-  /// Formats OP_RETURN hex data for display in tooltip.
-  /// If data matches Rosen Bridge format, shows structured fields.
-  /// Otherwise returns the raw hex with a generic description.
-  static String formatOpReturnTooltip(String hex) {
-    // Rosen Bridge OP_RETURN format:
-    // toChain(1B) + bridgeFee(8B) + networkFee(8B) + addrLen(1B) + toAddress(var)
-    const minRosenLen = 36; // minimum 18 bytes
-    if (hex.length < minRosenLen) {
-      return "Raw OP_RETURN data:\n$hex";
-    }
-
-    try {
-      // Must match @rosen-bridge/rosen-extractor SUPPORTED_CHAINS order.
-      const chains = [
-        'ergo',
-        'cardano',
-        'bitcoin',
-        'ethereum',
-        'binance',
-        'base',
-        'doge',
-        'bitcoin-runes',
-        'firo',
-        'handshake',
-      ];
-
-      final toChainCode = int.parse(hex.substring(0, 2), radix: 16);
-      if (toChainCode >= chains.length) {
-        return "Raw OP_RETURN data:\n$hex";
-      }
-
-      final bridgeFee = BigInt.parse(
-        hex.substring(2, 18),
-        radix: 16,
-      ).toString();
-      final networkFee = BigInt.parse(
-        hex.substring(18, 34),
-        radix: 16,
-      ).toString();
-      final addrLen = int.parse(hex.substring(34, 36), radix: 16);
-      final addrEnd = 36 + addrLen * 2;
-      if (hex.length < addrEnd) {
-        return "Raw OP_RETURN data:\n$hex";
-      }
-      final toAddressHex = hex.substring(36, addrEnd);
-
-      return "Rosen Bridge data\n"
-          "  To chain: ${chains[toChainCode]}\n"
-          "  Bridge fee: $bridgeFee\n"
-          "  Network fee: $networkFee\n"
-          "  To address (hex): $toAddressHex";
-    } catch (_) {
-      return "Raw OP_RETURN data:\n$hex";
-    }
-  }
-
-  static int opReturnOutputVSizeFromHex(String hex) {
-    if (hex.length.isOdd || !RegExp(r'^[0-9a-fA-F]*$').hasMatch(hex)) {
-      throw const FormatException("Invalid OP_RETURN hex");
-    }
-
-    final dataBytes = hex.length ~/ 2;
-    if (dataBytes > 80) {
-      throw FormatException(
-        "OP_RETURN data exceeds 80 byte limit: $dataBytes bytes",
-      );
-    }
-
-    final pushPrefixBytes = dataBytes <= 75 ? 1 : 2;
-    final scriptBytes = 1 + pushPrefixBytes + dataBytes;
-
-    // value(8) + compact script length(1, since max script is 83 bytes) + script
-    return 8 + 1 + scriptBytes;
   }
 }
 
@@ -372,7 +159,6 @@ class PaymentUriData {
   final String? amount;
   final String? label;
   final String? message;
-  final String? paymentId; // Specific to Monero.
   final Map<String, String> additionalParams;
 
   CryptoCurrency? get coin => AddressUtils._getCryptoCurrencyByScheme(
@@ -385,7 +171,6 @@ class PaymentUriData {
     this.amount,
     this.label,
     this.message,
-    this.paymentId,
     required this.additionalParams,
   });
 
@@ -398,7 +183,6 @@ class PaymentUriData {
       "scheme: $scheme, "
       "label: $label, "
       "message: $message, "
-      "paymentId: $paymentId, "
       "additionalParams: $additionalParams"
       " }";
 }

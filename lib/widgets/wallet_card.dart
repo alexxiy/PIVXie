@@ -20,7 +20,6 @@ import '../utilities/constants.dart';
 import '../utilities/show_loading.dart';
 import '../utilities/show_node_tor_settings_mismatch.dart';
 import '../utilities/util.dart';
-import '../wallets/wallet/intermediate/external_wallet.dart';
 import 'conditional_parent.dart';
 import 'rounded_white_container.dart';
 import 'wallet_info_row/wallet_info_row.dart';
@@ -56,14 +55,8 @@ class SimpleWalletCard extends ConsumerWidget {
     }
 
     if (context.mounted) {
-      final Future<void> loadFuture;
-      if (wallet is ExternalWallet) {
-        loadFuture = wallet.init().then((value) async => await (wallet).open());
-      } else {
-        loadFuture = wallet.init();
-      }
       await showLoading(
-        whileFuture: loadFuture,
+        whileFuture: wallet.init(),
         context: context,
         message: 'Opening ${wallet.info.name}',
         rootNavigator: Util.isDesktop,

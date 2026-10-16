@@ -189,15 +189,6 @@ class AboutItem extends StatelessWidget {
                   buttonText,
                   style: STextStyles.desktopTextExtraExtraSmall(context),
                 ),
-              // BlueTextButton(
-              //   text: buttonText,
-              //   onTap: () {
-              //     launchUrl(
-              //       Uri.parse(linkUrl),
-              //       mode: LaunchMode.externalApplication,
-              //     );
-              //   },
-              // ),
             ],
           ),
         ),
@@ -336,7 +327,7 @@ class ScamWarningDialog extends StatelessWidget {
 }
 
 class _Bullet extends StatelessWidget {
-  const _Bullet({super.key, required this.text});
+  const _Bullet({required this.text});
 
   final String text;
 

@@ -1,31 +1,11 @@
 part of 'date_picker.dart';
 
 class _SWDatePicker extends StatefulWidget {
-  const _SWDatePicker({
-    super.key,
-    required this.value,
-    required this.config,
-    this.onValueChanged,
-    this.onDisplayedMonthChanged,
-    this.onCancelTapped,
-    this.onOkTapped,
-  });
+  const _SWDatePicker({required this.value, required this.config});
   final List<DateTime?> value;
-
-  /// Called when the user taps 'OK' button
-  final ValueChanged<List<DateTime?>>? onValueChanged;
-
-  /// Called when the user navigates to a new month/year in the picker.
-  final ValueChanged<DateTime>? onDisplayedMonthChanged;
 
   /// The calendar configurations including action buttons
   final CalendarDatePicker2WithActionButtonsConfig config;
-
-  /// The callback when cancel button is tapped
-  final Function? onCancelTapped;
-
-  /// The callback when ok button is tapped
-  final Function? onOkTapped;
   @override
   State<_SWDatePicker> createState() => _SWDatePickerState();
 }
@@ -96,7 +76,6 @@ class _SWDatePickerState extends State<_SWDatePicker> {
               value: [..._editCache],
               config: widget.config,
               onValueChanged: (values) => _editCache = values,
-              onDisplayedMonthChanged: widget.onDisplayedMonthChanged,
             ),
           ),
           SizedBox(height: widget.config.gapBetweenCalendarAndButtons ?? 10),
@@ -127,7 +106,6 @@ class _SWDatePickerState extends State<_SWDatePicker> {
                         setState(
                           () {
                             _editCache = _values;
-                            widget.onCancelTapped?.call();
                             if ((widget.config.openedFromDialog ?? false) &&
                                 (widget.config.closeDialogOnCancelTapped ??
                                     true)) {
@@ -162,8 +140,6 @@ class _SWDatePickerState extends State<_SWDatePicker> {
                         setState(
                           () {
                             _values = _editCache;
-                            widget.onValueChanged?.call(_values);
-                            widget.onOkTapped?.call();
                             if ((widget.config.openedFromDialog ?? false) &&
                                 (widget.config.closeDialogOnOkTapped ?? true)) {
                               Navigator.pop(context, _values);

@@ -90,16 +90,10 @@ class WalletKeysDesktopPopup extends ConsumerWidget {
 }
 
 class _Mnemonic extends StatelessWidget {
-  const _Mnemonic({
-    super.key,
-    required this.words,
-    required this.walletId,
-    this.clipboardInterface = const ClipboardWrapper(),
-  });
+  const _Mnemonic({required this.words, required this.walletId});
 
   final List<String> words;
   final String walletId;
-  final ClipboardInterface clipboardInterface;
 
   @override
   Widget build(BuildContext context) {
@@ -143,7 +137,7 @@ class _Mnemonic extends StatelessWidget {
                 child: SecondaryButton(
                   label: "Copy",
                   onPressed: () async {
-                    await clipboardInterface.setSecret(words.join(" "));
+                    await const ClipboardWrapper().setSecret(words.join(" "));
                     if (context.mounted) {
                       unawaited(
                         showFloatingFlushBar(

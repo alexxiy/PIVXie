@@ -17,55 +17,11 @@ import '../../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../../widgets/stack_dialog.dart';
 import '../../../../../widgets/wallet_sync_progress.dart';
 
-class RescanningDialog extends StatefulWidget {
-  const RescanningDialog({
-    super.key,
-    this.walletId,
-    // required this.onCancel,
-  });
+class RescanningDialog extends StatelessWidget {
+  const RescanningDialog({super.key, this.walletId});
 
   /// Shows the rescan's progress when set.
   final String? walletId;
-
-  // final VoidCallback onCancel;
-
-  @override
-  State<RescanningDialog> createState() => _RescanningDialogState();
-}
-
-class _RescanningDialogState extends State<RescanningDialog>
-    with TickerProviderStateMixin {
-  late AnimationController? _spinController;
-  late Animation<double> _spinAnimation;
-
-  late final bool isDesktop;
-
-  // late final VoidCallback onCancel;
-  @override
-  void initState() {
-    isDesktop = Util.isDesktop;
-    // onCancel = widget.onCancel;
-
-    _spinController = AnimationController(
-      duration: const Duration(seconds: 2),
-      vsync: this,
-    )..repeat();
-
-    _spinAnimation = CurvedAnimation(
-      parent: _spinController!,
-      curve: Curves.linear,
-    );
-
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    _spinController?.dispose();
-    _spinController = null;
-
-    super.dispose();
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -74,34 +30,19 @@ class _RescanningDialogState extends State<RescanningDialog>
         return false;
       },
       child: ConditionalParent(
-        condition: isDesktop,
+        condition: Util.isDesktop,
         builder: (child) => DesktopDialog(
-          maxHeight: widget.walletId == null ? 150 : 210,
+          maxHeight: walletId == null ? 150 : 210,
           maxWidth: 500,
           child: child,
         ),
         child: StackDialog(
           title: "Rescanning blockchain",
           message: "This may take a while. Please do not exit this screen.",
-          content: widget.walletId == null
+          content: walletId == null
               ? null
-              : WalletSyncProgress(walletId: widget.walletId!),
+              : WalletSyncProgress(walletId: walletId!),
           icon: const RotatingArrows(width: 24, height: 24),
-          // rightButton: TextButton(
-          //   style: Theme.of(context).textButtonTheme.style?.copyWith(
-          //     backgroundColor: MaterialStateProperty.all<Color>(
-          //       CFColors.buttonGray,
-          //     ),
-          //   ),
-          //   child: Text(
-          //     "Cancel",
-          //     style: STextStyles.itemSubtitle12(context),
-          //   ),
-          //   onPressed: () {
-          //     Navigator.of(context).pop();
-          //     onCancel.call();
-          //   },
-          // ),
         ),
       ),
     );

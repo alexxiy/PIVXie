@@ -18,8 +18,6 @@ import 'package:logger/logger.dart';
 
 import 'util.dart';
 
-export 'enums/log_level_enum.dart';
-
 const _kLoggerPortName = "logger_port";
 
 class Logging {

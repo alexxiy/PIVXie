@@ -16,70 +16,21 @@ import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../util.dart';
 import 'amount.dart';
 
-// preserve index order as index is used to store value in preferences
+// Stored in preferences by index: keep the order.
 enum AmountUnit {
   normal(0),
   milli(3),
   micro(6),
-  nano(9),
-  pico(12),
-  femto(15),
-  atto(18),
-  zepto(21),
-  yocto(24),
-  ronto(27),
-  quecto(30);
+  nano(9); // the smallest: "sats" for a coin with 8 decimals
 
   const AmountUnit(this.shift);
   final int shift;
 
-  static List<AmountUnit> valuesForCoin(CryptoCurrency coin) {
-    final remainder = coin.fractionDigits % 3;
-    int n = (coin.fractionDigits ~/ 3) + 1;
-    if (remainder > 0) {
-      n++;
-    }
-
-    return AmountUnit.values.sublist(0, n);
-    //
-    // switch (coin) {
-    //   case Coin.firo:
-    //   case Coin.litecoin:
-    //   case Coin.particl:
-    //   case Coin.peercoin:
-    //   case Coin.namecoin:
-    //   case Coin.bitcoinFrost:
-    //   case Coin.bitcoinFrostTestNet:
-    //   case Coin.bitcoinTestNet:
-    //   case Coin.litecoinTestNet:
-    //   case Coin.bitcoincashTestnet:
-    //   case Coin.dogecoinTestNet:
-    //   case Coin.firoTestNet:
-    //   case Coin.peercoinTestNet:
-    //   case Coin.bitcoin:
-    //   case Coin.bitcoincash:
-    //   case Coin.dogecoin:
-    //   case Coin.eCash:
-    //   case Coin.epicCash:
-    //   case Coin.mimblewimblecoin:
-    //   case Coin.stellar: // TODO: check if this is correct
-    //   case Coin.stellarTestnet:
-    //   case Coin.tezos:
-    //   case Coin.solana:
-    //     return AmountUnit.values.sublist(0, 4);
-    //
-    //   case Coin.monero:
-    //   case Coin.wownero:
-    //     return AmountUnit.values.sublist(0, 5);
-    //
-    //   case Coin.ethereum:
-    //     return AmountUnit.values.sublist(0, 7);
-    //
-    //   case Coin.nano:
-    //   case Coin.banano:
-    //     return AmountUnit.values;
-    // }
-  }
+  /// The units down to the coin's smallest one.
+  static List<AmountUnit> valuesForCoin(CryptoCurrency coin) => AmountUnit
+      .values
+      .where((e) => e.shift - 3 < coin.fractionDigits)
+      .toList();
 }
 
 extension AmountUnitExt on AmountUnit {
@@ -93,8 +44,6 @@ extension AmountUnitExt on AmountUnit {
         return "µ${coin.ticker}";
       case AmountUnit.nano:
         return "sats";
-      default:
-        return "invalid";
     }
   }
 

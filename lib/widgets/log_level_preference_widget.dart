@@ -58,9 +58,7 @@ class _LogLevelPreferenceWidgetState
           divisions: _levels.length - 1,
           value: _sliderValue,
           onChanged: (value) {
-            // setState(() {
             _sliderValue = value;
-            // });
             ref.read(prefsChangeNotifierProvider).logLevel =
                 _levels[_sliderValue.toInt()];
           },

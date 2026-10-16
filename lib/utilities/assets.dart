@@ -76,9 +76,7 @@ class _SVG {
   String get tor => "assets/svg/tor.svg";
   String get circleSliders => "assets/svg/configuration.svg";
   String get circlePlus => "assets/svg/plus-circle.svg";
-  String get circlePlusFilled => "assets/svg/circle-plus-filled.svg";
   String get circleNode => "assets/svg/node-circle.svg";
-  String get circleSun => "assets/svg/sun-circle.svg";
   String get circleArrowRotate => "assets/svg/rotate-circle.svg";
   String get circleLanguage => "assets/svg/language-circle.svg";
   String get circleDollarSign => "assets/svg/dollar-sign-circle.svg";
@@ -89,7 +87,6 @@ class _SVG {
   String get drd => "assets/svg/drd-icon.svg";
   String get plus => "assets/svg/plus.svg";
   String get gear => "assets/svg/gear.svg";
-  String get bell => "assets/svg/bell.svg";
   String get arrowLeft => "assets/svg/arrow-left-fa.svg";
   String get star => "assets/svg/star.svg";
   String get copy => "assets/svg/copy-fa.svg";
@@ -103,7 +100,6 @@ class _SVG {
   String get pending => "assets/svg/pending.svg";
   String get radio => "assets/svg/signal-stream.svg";
   String get arrowRotate => "assets/svg/arrow-rotate.svg";
-  String get arrowsTwoWay => "assets/svg/arrow-rotate2.svg";
   String get alertCircle => "assets/svg/alert-circle.svg";
   String get checkCircle => "assets/svg/circle-check.svg";
   String get clipboard => "assets/svg/clipboard.svg";
@@ -148,9 +144,6 @@ class _SVG {
   String get questionMessage => "assets/svg/message-question.svg";
   String get envelope => "assets/svg/envelope.svg";
   String get share => "assets/svg/share-2.svg";
-  String get anonymize => "assets/svg/tx-icon-anonymize.svg";
-  String get anonymizePending => "assets/svg/tx-icon-anonymize-pending.svg";
-  String get anonymizeFailed => "assets/svg/tx-icon-anonymize-failed.svg";
   String get addressBookDesktop => "assets/svg/address-book-desktop.svg";
   String get aboutDesktop => "assets/svg/about-desktop.svg";
   String get walletDesktop => "assets/svg/wallet-desktop.svg";
@@ -158,8 +151,6 @@ class _SVG {
   String get keys => "assets/svg/keys.svg";
   String get arrowDown => "assets/svg/arrow-down.svg";
   String get file => "assets/svg/file.svg";
-  String get fileUpload => "assets/svg/file-upload.svg";
-  String get txCashFusion => "assets/svg/tx-cashfusion.svg";
 
   String get ellipse1 => "assets/svg/Ellipse-43.svg";
   String get ellipse2 => "assets/svg/Ellipse-42.svg";

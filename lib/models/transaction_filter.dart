@@ -9,7 +9,7 @@
  */
 
 import '../utilities/amount/amount.dart';
-import 'isar/models/blockchain_data/transaction.dart' show TransactionType;
+import 'isar/models/blockchain_data/transaction_type.dart';
 import 'isar/models/blockchain_data/v2/transaction_v2.dart';
 
 /// PIVX history categories the filter can select.

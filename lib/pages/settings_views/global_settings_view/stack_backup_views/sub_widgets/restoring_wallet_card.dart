@@ -100,10 +100,6 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
         );
       case StackRestoringStatus.restoring:
         return const LoadingIndicator();
-      // return SvgPicture.asset(
-      //   Assets.svg.loader,
-      //   color: Theme.of(context).extension<StackColors>()!.accentColorGreen,
-      // );
       case StackRestoringStatus.success:
         return SvgPicture.asset(
           Assets.svg.checkCircle,

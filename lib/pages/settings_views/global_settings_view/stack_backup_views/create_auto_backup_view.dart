@@ -17,7 +17,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:stack_wallet_backup/stack_wallet_backup.dart';
-import 'package:zxcvbn/zxcvbn.dart';
 
 import '../../../../app_config.dart';
 import '../../../../providers/global/prefs_provider.dart';
@@ -29,6 +28,7 @@ import '../../../../utilities/flutter_secure_storage_interface.dart';
 import '../../../../utilities/format.dart';
 import '../../../../utilities/fs.dart';
 import '../../../../utilities/logger.dart';
+import '../../../../utilities/password_rules.dart';
 import '../../../../utilities/show_loading.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
@@ -62,10 +62,8 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
   late final FocusNode passwordFocusNode;
   late final FocusNode passwordRepeatFocusNode;
   late final SWBFileSystem stackFileSystem;
-  final zxcvbn = Zxcvbn();
 
-  String passwordFeedback =
-      "Add another word or two. Uncommon words are better. Use a few words, avoid common phrases. No need for symbols, digits, or uppercase letters.";
+  String passwordFeedback = kPasswordRules;
 
   bool shouldShowPasswordHint = true;
 
@@ -358,42 +356,10 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
                                     ),
                                   ),
                               onChanged: (newValue) {
-                                if (newValue.isEmpty) {
-                                  setState(() {
-                                    passwordFeedback = "";
-                                  });
-                                  return;
-                                }
-                                final result = zxcvbn.evaluate(newValue);
-                                String suggestionsAndTips = "";
-                                for (final sug
-                                    in result.feedback.suggestions!.toSet()) {
-                                  suggestionsAndTips += "$sug\n";
-                                }
-                                suggestionsAndTips += result.feedback.warning!;
-                                String feedback =
-                                    // "Password Strength: ${((result.score! / 4.0) * 100).toInt()}%\n"
-                                    suggestionsAndTips;
-
-                                passwordStrength = result.score! / 4;
-
-                                // hack fix to format back string returned from zxcvbn
-                                if (feedback.contains("phrasesNo need")) {
-                                  feedback = feedback.replaceFirst(
-                                    "phrasesNo need",
-                                    "phrases\nNo need",
-                                  );
-                                }
-
-                                if (feedback.endsWith("\n")) {
-                                  feedback = feedback.substring(
-                                    0,
-                                    feedback.length - 2,
-                                  );
-                                }
-
+                                final check = newPasswordFeedback(newValue);
                                 setState(() {
-                                  passwordFeedback = feedback;
+                                  passwordFeedback = check.feedback;
+                                  passwordStrength = check.strength;
                                 });
                               },
                             ),

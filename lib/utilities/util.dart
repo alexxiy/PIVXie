@@ -8,8 +8,6 @@
  *
  */
 
-import 'dart:convert';
-import 'dart:developer';
 import 'dart:io';
 
 import 'package:device_info_plus/device_info_plus.dart';
@@ -73,23 +71,5 @@ abstract class Util {
       );
     }
     return MaterialColor(color.value, swatch);
-  }
-
-  static void printJson(dynamic json, [String? debugTitle]) {
-    final String result;
-    if (json is Map || json is List) {
-      final spaces = ' ' * 4;
-      final encoder = JsonEncoder.withIndent(spaces);
-      final pretty = encoder.convert(json);
-      result = pretty;
-    } else {
-      result = json.toString();
-    }
-
-    if (debugTitle != null) {
-      log("$debugTitle\n$result");
-    } else {
-      log(result);
-    }
   }
 }

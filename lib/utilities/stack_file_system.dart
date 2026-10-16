@@ -98,61 +98,12 @@ abstract class StackFileSystem {
     }
   }
 
-  static Future<Directory> applicationDriftDirectory() async {
-    final root = await applicationRootDirectory();
-    if (_createSubDirs) {
-      final dir = Directory(path.join(root.path, "drift"));
-      if (!dir.existsSync()) {
-        await dir.create();
-      }
-      return dir;
-    } else {
-      return root;
-    }
-  }
-
-  // Not used in general now. See applicationFiroCacheSQLiteDirectory()
-  // static Future<Directory> applicationSQLiteDirectory() async {
-  //   final root = await applicationRootDirectory();
-  //   if (_createSubDirs) {
-  //     final dir = Directory("${root.path}/sqlite");
-  //     if (!dir.existsSync()) {
-  //       await dir.create();
-  //     }
-  //     return dir;
-  //   } else {
-  //     return root;
-  //   }
-  // }
-
   static Future<Directory> applicationTorDirectory() async {
     final root = await applicationRootDirectory();
     if (_createSubDirs) {
       final dir = Directory(path.join(root.path, "tor"));
       if (!dir.existsSync()) {
         await dir.create();
-      }
-      return dir;
-    } else {
-      return root;
-    }
-  }
-
-  static Future<Directory> applicationMwebdDirectory(String network) async {
-    final root = await applicationRootDirectory();
-    final dir = Directory(path.join(root.path, "mwebd", network));
-    if (!dir.existsSync()) {
-      await dir.create(recursive: true);
-    }
-    return dir;
-  }
-
-  static Future<Directory> applicationFiroCacheSQLiteDirectory() async {
-    final root = await applicationRootDirectory();
-    if (_createSubDirs) {
-      final dir = Directory(path.join(root.path, "sqlite", "firo_cache"));
-      if (!dir.existsSync()) {
-        await dir.create(recursive: true);
       }
       return dir;
     } else {
@@ -171,24 +122,6 @@ abstract class StackFileSystem {
     } else {
       return root;
     }
-  }
-
-  static Future<Directory> applicationXelisDirectory() async {
-    final root = await applicationRootDirectory();
-    final dir = Directory(path.join(root.path, "xelis"));
-    if (!dir.existsSync()) {
-      await dir.create();
-    }
-    return dir;
-  }
-
-  static Future<Directory> applicationXelisTableDirectory() async {
-    final xelis = await applicationXelisDirectory();
-    final dir = Directory(path.join(xelis.path, "table"));
-    if (!dir.existsSync()) {
-      await dir.create();
-    }
-    return dir;
   }
 
   static Future<void> initThemesDir() async {
@@ -222,10 +155,6 @@ abstract class StackFileSystem {
       // TODO check this is correct for macos
       logsDir = Directory(path.join(appDocsDir.path, logsDirName));
     } else if (Platform.isAndroid) {
-      // final dir = await wtfAndroidDocumentsPath();
-      // final logsDirPath = path.join(dir.path, logsDirName);
-      // logsDir = Directory(logsDirPath);
-
       logsDir = Directory(path.join(appDocsDir.path, "logs"));
     } else {
       throw Exception("Unsupported Platform");

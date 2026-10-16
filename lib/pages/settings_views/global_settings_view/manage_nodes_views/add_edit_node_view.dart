@@ -19,13 +19,11 @@ import 'package:uuid/uuid.dart';
 import '../../../../models/node_model.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../providers/global/active_wallet_provider.dart';
-import '../../../../providers/global/secure_store_provider.dart';
 import '../../../../providers/providers.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/enums/sync_type_enum.dart';
-import '../../../../utilities/flutter_secure_storage_interface.dart';
 import '../../../../utilities/test_node_connection.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/tor_plain_net_option_enum.dart';
@@ -41,8 +39,6 @@ import '../../../../widgets/icon_widgets/x_icon.dart';
 import '../../../../widgets/stack_dialog.dart';
 import '../../../../widgets/stack_text_field.dart';
 import '../../../../widgets/textfield_icon_button.dart';
-
-// import 'package:web3dart/web3dart.dart';
 
 enum AddEditNodeViewType { add, edit }
 
@@ -204,14 +200,8 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
     // strip unused path
     final String address = formData.host!;
 
-    final torEnabled =
-        formData.netOption == TorPlainNetworkOption.tor ||
-        formData.netOption == TorPlainNetworkOption.both;
-    final plainEnabled =
-        formData.netOption == TorPlainNetworkOption.clear ||
-        formData.netOption == TorPlainNetworkOption.both;
-
-    final forceNoTor = formData.forceNoTor ?? false;
+    final torEnabled = formData.netOption?.allowsTor() ?? false;
+    final plainEnabled = formData.netOption?.allowsClear() ?? false;
 
     switch (viewType) {
       case AddEditNodeViewType.add:
@@ -221,22 +211,13 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
           name: formData.name!,
           id: const Uuid().v1(),
           useSSL: formData.useSSL!,
-          loginName: formData.login,
-          enabled: true,
           coinName: coin.identifier,
-          isFailover: formData.isFailover!,
-          trusted: formData.trusted!,
-          isDown: false,
           torEnabled: torEnabled,
           clearnetEnabled: plainEnabled,
-          forceNoTor: forceNoTor,
           isPrimary: false,
-          nodeApiSecret: formData.apiSecret,
         );
 
-        await ref
-            .read(nodeServiceChangeNotifierProvider)
-            .save(node, formData.password, true);
+        await ref.read(nodeServiceChangeNotifierProvider).save(node, true);
         await _notifyWalletsOfUpdatedNode();
         if (mounted) {
           Navigator.of(context)
@@ -250,22 +231,13 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
           name: formData.name!,
           id: nodeId!,
           useSSL: formData.useSSL!,
-          loginName: formData.login,
-          enabled: true,
           coinName: coin.identifier,
-          isFailover: formData.isFailover!,
-          trusted: formData.trusted!,
-          isDown: false,
           torEnabled: torEnabled,
           clearnetEnabled: plainEnabled,
-          forceNoTor: forceNoTor,
           isPrimary: formData.isPrimary ?? false,
-          nodeApiSecret: formData.apiSecret,
         );
 
-        await ref
-            .read(nodeServiceChangeNotifierProvider)
-            .save(node, formData.password, true);
+        await ref.read(nodeServiceChangeNotifierProvider).save(node, true);
         await _notifyWalletsOfUpdatedNode();
         if (mounted) {
           Navigator.of(context)
@@ -489,7 +461,6 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
             NodeForm(
               key: Key(node?.id ?? "none"),
               node: node,
-              secureStore: ref.read(secureStoreProvider),
               readOnly: false,
               coin: widget.coin,
               onChanged: (canSave, canTest) {
@@ -583,14 +554,14 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
 }
 
 class NodeFormData {
-  String? name, host, login, password, apiSecret;
+  String? name, host;
   int? port;
-  bool? useSSL, isFailover, trusted, forceNoTor, isPrimary;
+  bool? useSSL, isPrimary;
   TorPlainNetworkOption? netOption;
 
   @override
   String toString() {
-    return "{ name: $name, host: $host, port: $port, useSSL: $useSSL, trusted: $trusted, netOption: $netOption, isPrimary: $isPrimary }";
+    return "{ name: $name, host: $host, port: $port, useSSL: $useSSL, netOption: $netOption, isPrimary: $isPrimary }";
   }
 }
 
@@ -600,14 +571,12 @@ class NodeForm extends ConsumerStatefulWidget {
   const NodeForm({
     super.key,
     this.node,
-    required this.secureStore,
     required this.readOnly,
     required this.coin,
     this.onChanged,
   });
 
   final NodeModel? node;
-  final SecureStorageInterface secureStore;
   final bool readOnly;
   final CryptoCurrency coin;
   final void Function(bool canSave, bool canTestConnection)? onChanged;
@@ -620,36 +589,19 @@ class _NodeFormState extends ConsumerState<NodeForm> {
   late final TextEditingController _nameController;
   late final TextEditingController _hostController;
   late final TextEditingController _portController;
-  late final TextEditingController _passwordController;
-  late final TextEditingController _usernameController;
-  late final TextEditingController _apiSecretController;
 
   final _nameFocusNode = FocusNode();
-  final _passwordFocusNode = FocusNode();
   final _portFocusNode = FocusNode();
   final _hostFocusNode = FocusNode();
-  final _usernameFocusNode = FocusNode();
-  final _apiSecretFocusNode = FocusNode();
 
   bool _useSSL = false;
-  bool _isFailover = false;
-  bool _trusted = false;
-  bool _forceNoTor = false;
   int? port;
-  late bool enableSSLCheckbox;
   late TorPlainNetworkOption netOption;
   bool _isPrimary = false;
 
-  late final bool enableAuthFields;
-
   void Function(bool canSave, bool canTestConnection)? onChanged;
 
-  bool _checkShouldEnableAuthFields(CryptoCurrency coin) {
-    return false;
-  }
-
   bool get canSave {
-    // 65535 is max tcp port
     return _nameController.text.isNotEmpty && canTestConnection;
   }
 
@@ -677,77 +629,72 @@ class _NodeFormState extends ConsumerState<NodeForm> {
     onChanged?.call(canSave, canTestConnection);
     ref.read(nodeFormDataProvider).name = _nameController.text;
     ref.read(nodeFormDataProvider).host = _hostController.text;
-    ref.read(nodeFormDataProvider).login = _usernameController.text.isEmpty
-        ? null
-        : _usernameController.text;
-    ref.read(nodeFormDataProvider).password = _passwordController.text.isEmpty
-        ? null
-        : _passwordController.text;
-    ref.read(nodeFormDataProvider).apiSecret = _apiSecretController.text.isEmpty
-        ? null
-        : _apiSecretController.text;
     ref.read(nodeFormDataProvider).port = port;
     ref.read(nodeFormDataProvider).useSSL = _useSSL;
-    ref.read(nodeFormDataProvider).isFailover = _isFailover;
-    ref.read(nodeFormDataProvider).trusted = _trusted;
     ref.read(nodeFormDataProvider).netOption = netOption;
-    ref.read(nodeFormDataProvider).forceNoTor = _forceNoTor;
-    ref.read(nodeFormDataProvider).host;
     ref.read(nodeFormDataProvider).isPrimary = _isPrimary;
+  }
+
+  /// A port typed into the host ("http://host:3000") moves to the port
+  /// field once the host field is left, not while it is being typed.
+  void _splitPortFromHost() {
+    final text = _hostController.text.trim();
+    String host = text;
+    int? port;
+    final uri = Uri.tryParse(text);
+    if (uri != null && uri.hasScheme && uri.hasPort) {
+      port = uri.port;
+      host = Uri(
+        scheme: uri.scheme,
+        userInfo: uri.userInfo,
+        host: uri.host,
+        path: uri.path,
+        query: uri.hasQuery ? uri.query : null,
+        fragment: uri.fragment.isNotEmpty ? uri.fragment : null,
+      ).toString();
+    } else if (text.contains(":")) {
+      final i = text.lastIndexOf(":");
+      // Not a bare IPv6 address ("fe80::1"); "[::1]:3000" is fine.
+      if (i > 0 && (!text.substring(0, i).contains(":") || text[i - 1] == "]")) {
+        port = int.tryParse(text.substring(i + 1));
+        host = text.substring(0, i);
+      }
+    }
+    if (port == null || port == 0 || !mounted) return;
+    _hostController.text = host;
+    _portController.text = port.toString();
+    _updateState();
+    setState(() {});
   }
 
   @override
   void initState() {
+    _hostFocusNode.addListener(() {
+      if (!_hostFocusNode.hasFocus && !shouldBeReadOnly) _splitPortFromHost();
+    });
     onChanged = widget.onChanged;
     _nameController = TextEditingController();
     _hostController = TextEditingController();
     _portController = TextEditingController();
-    _passwordController = TextEditingController();
-    _usernameController = TextEditingController();
-    _apiSecretController = TextEditingController();
-
-    enableAuthFields = _checkShouldEnableAuthFields(widget.coin);
 
     if (widget.node != null) {
       final node = widget.node!;
-      if (enableAuthFields) {
-        node.getPassword(widget.secureStore).then((value) {
-          if (value is String) {
-            _passwordController.text = value;
-          }
-        });
-      }
-
       _nameController.text = node.name;
       _hostController.text = node.host;
       _portController.text = node.port.toString();
-      _usernameController.text = node.loginName ?? "";
-      _apiSecretController.text = node.nodeApiSecret ?? "";
       _useSSL = node.useSSL;
-      _isFailover = node.isFailover;
-      _trusted = node.trusted ?? false;
-      _forceNoTor = node.forceNoTor ?? false;
-      _isPrimary = node.isPrimary ?? false;
-
-      if (node.torEnabled && !node.clearnetEnabled) {
-        netOption = TorPlainNetworkOption.tor;
-      } else if (node.clearnetEnabled && !node.torEnabled) {
-        netOption = TorPlainNetworkOption.clear;
-      } else {
-        netOption = TorPlainNetworkOption.both;
-      }
-
-      enableSSLCheckbox = true;
+      _isPrimary = node.isPrimary;
+      netOption = TorPlainNetworkOption.fromNodeData(
+        node.torEnabled,
+        node.clearnetEnabled,
+      );
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         // update provider state object so test connection works without having to modify a field in the ui first
         _updateState();
       });
     } else {
-      enableSSLCheckbox = true;
       netOption = TorPlainNetworkOption.both;
-      // default to port 3413
-      // _portController.text = "3413";
     }
 
     super.initState();
@@ -758,16 +705,10 @@ class _NodeFormState extends ConsumerState<NodeForm> {
     _nameController.dispose();
     _hostController.dispose();
     _portController.dispose();
-    _passwordController.dispose();
-    _usernameController.dispose();
-    _apiSecretController.dispose();
 
     _nameFocusNode.dispose();
-    _passwordFocusNode.dispose();
-    _usernameFocusNode.dispose();
     _hostFocusNode.dispose();
     _portFocusNode.dispose();
-    _apiSecretFocusNode.dispose();
     super.dispose();
   }
 
@@ -861,38 +802,6 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                       : null,
                 ),
             onChanged: (newValue) {
-              // parse port hack
-              try {
-                final uri = Uri.parse(newValue);
-                final port = uri.hasPort ? uri.port : 0;
-                if (port != 0) {
-                  _portController.text = port.toString();
-                  final noPortUri = Uri(
-                    scheme: uri.scheme,
-                    userInfo: uri.userInfo,
-                    host: uri.host,
-                    path: uri.path,
-                    query: uri.hasQuery ? uri.query : null,
-                    fragment: uri.fragment.isNotEmpty ? uri.fragment : null,
-                  );
-                  _hostController.text = noPortUri.toString();
-                }
-              } catch (_) {
-                if (newValue.contains(":")) {
-                  final parts = newValue.split(":");
-                  if (parts.isNotEmpty) {
-                    final maybePort = int.tryParse(parts.last);
-                    if (maybePort != null) {
-                      _portController.text = maybePort.toString();
-                      _hostController.text = newValue.substring(
-                        0,
-                        newValue.lastIndexOf(":"),
-                      );
-                    }
-                  }
-                }
-              }
-
               _updateState();
               setState(() {});
             },
@@ -943,103 +852,10 @@ class _NodeFormState extends ConsumerState<NodeForm> {
           ),
         ),
         const SizedBox(height: 8),
-        if (enableAuthFields)
-          ClipRRect(
-            borderRadius: BorderRadius.circular(
-              Constants.size.circularBorderRadius,
-            ),
-            child: TextField(
-              autocorrect: Util.isDesktop ? false : true,
-              enableSuggestions: Util.isDesktop ? false : true,
-              controller: _usernameController,
-              readOnly: shouldBeReadOnly,
-              enabled: enableField(_usernameController),
-              focusNode: _usernameFocusNode,
-              style: STextStyles.field(context),
-              decoration:
-                  standardInputDecoration(
-                    "Login (optional)",
-                    _usernameFocusNode,
-                    context,
-                  ).copyWith(
-                    suffixIcon:
-                        !shouldBeReadOnly && _usernameController.text.isNotEmpty
-                        ? Padding(
-                            padding: const EdgeInsets.only(right: 0),
-                            child: UnconstrainedBox(
-                              child: Row(
-                                children: [
-                                  TextFieldIconButton(
-                                    child: const XIcon(),
-                                    onTap: () async {
-                                      _usernameController.text = "";
-                                      _updateState();
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ),
-                          )
-                        : null,
-                  ),
-              onChanged: (newValue) {
-                _updateState();
-                setState(() {});
-              },
-            ),
-          ),
-        if (enableAuthFields) const SizedBox(height: 8),
-        if (enableAuthFields)
-          ClipRRect(
-            borderRadius: BorderRadius.circular(
-              Constants.size.circularBorderRadius,
-            ),
-            child: TextField(
-              autocorrect: Util.isDesktop ? false : true,
-              enableSuggestions: Util.isDesktop ? false : true,
-              controller: _passwordController,
-              readOnly: shouldBeReadOnly,
-              enabled: enableField(_passwordController),
-              obscureText: true,
-              focusNode: _passwordFocusNode,
-              style: STextStyles.field(context),
-              decoration:
-                  standardInputDecoration(
-                    "Password (optional)",
-                    _passwordFocusNode,
-                    context,
-                  ).copyWith(
-                    suffixIcon:
-                        !shouldBeReadOnly && _passwordController.text.isNotEmpty
-                        ? Padding(
-                            padding: const EdgeInsets.only(right: 0),
-                            child: UnconstrainedBox(
-                              child: Row(
-                                children: [
-                                  TextFieldIconButton(
-                                    child: const XIcon(),
-                                    onTap: () async {
-                                      _passwordController.text = "";
-                                      _updateState();
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ),
-                          )
-                        : null,
-                  ),
-              onChanged: (newValue) {
-                _updateState();
-                setState(() {});
-              },
-            ),
-          ),
-        if (enableAuthFields) const SizedBox(height: 8),
         Row(
           children: [
             GestureDetector(
-              onTap: !shouldBeReadOnly && enableSSLCheckbox
+              onTap: !shouldBeReadOnly
                   ? () {
                       setState(() {
                         _useSSL = !_useSSL;
@@ -1055,7 +871,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                       width: 20,
                       height: 20,
                       child: Checkbox(
-                        fillColor: !shouldBeReadOnly && enableSSLCheckbox
+                        fillColor: !shouldBeReadOnly
                             ? null
                             : MaterialStateProperty.all(
                                 Theme.of(context)
@@ -1064,7 +880,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                               ),
                         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         value: _useSSL,
-                        onChanged: !shouldBeReadOnly && enableSSLCheckbox
+                        onChanged: !shouldBeReadOnly
                             ? (newValue) {
                                 setState(() {
                                   _useSSL = newValue!;
@@ -1082,78 +898,11 @@ class _NodeFormState extends ConsumerState<NodeForm> {
             ),
           ],
         ),
-        const SizedBox(height: 8),
-        Row(
-          children: [
-            GestureDetector(
-              onTap: () {
-                setState(() {
-                  _isFailover = !_isFailover;
-                });
-                if (widget.readOnly) {
-                  ref
-                      .read(nodeServiceChangeNotifierProvider)
-                      .save(
-                        widget.node!.copyWith(
-                          isFailover: _isFailover,
-                          loginName: widget.node!.loginName,
-                          trusted: widget.node!.trusted,
-                        ),
-                        null,
-                        true,
-                      );
-                } else {
-                  _updateState();
-                }
-              },
-              child: Container(
-                color: Colors.transparent,
-                child: Row(
-                  children: [
-                    SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: Checkbox(
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        value: _isFailover,
-                        onChanged: (newValue) {
-                          setState(() {
-                            _isFailover = newValue!;
-                          });
-                          if (widget.readOnly) {
-                            ref
-                                .read(nodeServiceChangeNotifierProvider)
-                                .save(
-                                  widget.node!.copyWith(
-                                    isFailover: _isFailover,
-                                    loginName: widget.node!.loginName,
-                                    trusted: widget.node!.trusted,
-                                  ),
-                                  null,
-                                  true,
-                                );
-                          } else {
-                            _updateState();
-                          }
-                        },
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      "Use as failover",
-                      style: STextStyles.itemSubtitle12(context),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
         const SizedBox(height: 16),
         Row(
           children: [
             RadioTextButton(
-              label: "Only TOR traffic",
+              label: "Only over Tor",
               enabled: !widget.readOnly,
               value: TorPlainNetworkOption.tor,
               groupValue: netOption,
@@ -1170,7 +919,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
         Row(
           children: [
             RadioTextButton(
-              label: "Only non-TOR traffic",
+              label: "Only without Tor",
               enabled: !widget.readOnly,
               value: TorPlainNetworkOption.clear,
               groupValue: netOption,
@@ -1187,7 +936,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
         Row(
           children: [
             RadioTextButton(
-              label: "Allow both",
+              label: "Both",
               enabled: !widget.readOnly,
               value: TorPlainNetworkOption.both,
               groupValue: netOption,

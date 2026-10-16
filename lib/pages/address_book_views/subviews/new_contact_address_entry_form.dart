@@ -13,7 +13,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../providers/providers.dart';
-// import 'package:stackwallet/providers/global/should_show_lockscreen_on_resume_state_provider.dart';
 import '../../../providers/ui/address_book_providers/address_entry_data_provider.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/address_utils.dart';
@@ -68,21 +67,8 @@ class _NewContactAddressEntryFormState
 
   void _onQrTapped() async {
     try {
-      // ref
-      //     .read(shouldShowLockscreenOnResumeStateProvider
-      //         .state)
-      //     .state = false;
       final qrResult = await ref.read(pBarcodeScanner).scan(context: context);
       if (qrResult.rawContent == null) return;
-
-      // Future<void>.delayed(
-      //   const Duration(seconds: 2),
-      //   () => ref
-      //       .read(
-      //           shouldShowLockscreenOnResumeStateProvider
-      //               .state)
-      //       .state = true,
-      // );
 
       final paymentData = AddressUtils.parsePaymentUri(
         qrResult.rawContent!,
@@ -99,11 +85,6 @@ class _NewContactAddressEntryFormState
         _setAddress(qrResult.rawContent);
       }
     } on PlatformException catch (e, s) {
-      // ref
-      //     .read(shouldShowLockscreenOnResumeStateProvider
-      //         .state)
-      //     .state = true;
-
       if (mounted) {
         try {
           await checkCamPermDeniedMobileAndOpenAppSettings(
@@ -232,9 +213,6 @@ class _NewContactAddressEntryFormState
             key: const Key("addAddressBookEntryViewAddressField"),
             readOnly: false,
             autocorrect: false,
-            // inputFormatters: <TextInputFormatter>[
-            //   FilteringTextInputFormatter.allow(RegExp("[a-zA-Z0-9]{34}")),
-            // ],
             toolbarOptions: const ToolbarOptions(
               copy: false,
               cut: false,

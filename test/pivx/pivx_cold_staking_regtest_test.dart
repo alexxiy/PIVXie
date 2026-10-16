@@ -1,7 +1,8 @@
 // Cold staking as the owner, against a regtest node that also runs the
 // staker: delegate with pivxColdStakeScript, see the bridge list the
 // delegated outputs under the owner address, withdraw one with
-// PivxColdStakeInput, and let the node stake the other.
+// PivxColdStakeInput, let the node stake the other, and give it all
+// back to the node.
 //
 // Run on the build VM:
 //   PIVX_BRIDGE=http://127.0.0.1:3000 \
@@ -13,7 +14,7 @@ import 'dart:typed_data';
 
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:flutter_test/flutter_test.dart';
-import 'package:paymint/models/isar/models/blockchain_data/transaction.dart';
+import 'package:paymint/models/isar/models/blockchain_data/transaction_type.dart';
 import 'package:paymint/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:paymint/utilities/extensions/extensions.dart';
 import 'package:paymint/wallets/api/pivx/pivx_bridge_client.dart';
@@ -292,6 +293,55 @@ void main() {
         ours.fold(BigInt.zero, (p, o) => p + o.value) -
             BigInt.from(4000 * _coin),
       );
+
+      // Hand the coins back to the node, or every run drains it by 5000:
+      // once the stake is mature, the owner spends everything to it.
+      await _cli(["delegatorremove", owner.toString()]);
+      var coins = <Map<String, dynamic>>[];
+      for (var i = 0; i < 20; i++) {
+        await _cli(["generate", "10"]);
+        coins = await bridge.utxo(owner.toString());
+        if (coins.every((u) => (u["confirmations"] as int) > 100)) break;
+      }
+      final inputs = <coinlib.Input>[];
+      var total = BigInt.zero;
+      for (final u in coins) {
+        final txid = u["txid"] as String;
+        final vout = u["vout"] as int;
+        final out = pivxVerifiedOutputs(txid, await bridge.rawTx(txid))[vout];
+        total += out.value;
+        inputs.add(
+          pivxIsColdStakeScript(out.script.toHex)
+              ? PivxColdStakeInput(
+                  prevOut: _outpoint(txid, vout),
+                  publicKey: key.pubkey,
+                  prevScript: out.script,
+                )
+              : coinlib.P2PKHInput(
+                  prevOut: _outpoint(txid, vout),
+                  publicKey: key.pubkey,
+                ),
+        );
+      }
+      final node = coinlib.Address.fromString(
+        await _cli(["getnewaddress"]),
+        params,
+      );
+      var refund = coinlib.Transaction(
+        version: 1,
+        inputs: inputs,
+        outputs: [
+          coinlib.Output.fromAddress(
+            total - BigInt.from(10000 * (inputs.length + 1)),
+            node,
+          ),
+        ],
+      );
+      for (var i = 0; i < inputs.length; i++) {
+        refund = refund.signLegacy(inputN: i, key: key);
+      }
+      expect(await bridge.sendTx(refund.toHex()), refund.txid);
+      await _cli(["generate", "1"]);
     },
     skip: skip,
     timeout: const Timeout(Duration(minutes: 10)),

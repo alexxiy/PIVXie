@@ -116,12 +116,26 @@ class PivxBridgeClient {
 
   static const _timeout = Duration(seconds: 60);
 
-  ({InternetAddress host, int port})? get _proxy =>
-      useTor ? TorService.sharedInstance.getProxyInfo() : null;
+  /// Tor's proxy for this client, read for every request: it throws while
+  /// Tor is on but not connected, so nothing goes out without it.
+  ({InternetAddress host, int port})? get _proxy {
+    if (useTor) return TorService.sharedInstance.getProxyInfo();
+    _refuseDirectUnderTor();
+    return null;
+  }
+
+  /// A client made before Tor was turned on (still held by a running sync)
+  /// must not go on without it.
+  static void _refuseDirectUnderTor() {
+    if (AppConfig.hasFeature(AppFeature.tor) && Prefs.instance.useTor) {
+      throw PivxBridgeException("Tor was turned on");
+    }
+  }
 
   /// One client for all requests, so connections (TLS sessions, Tor
   /// streams) are kept alive and reused instead of set up per call.
   HttpClient? _httpClient;
+  ({InternetAddress host, int port})? _httpProxy;
 
   /// Last request start or end (wall clock, so it also covers time the
   /// app was frozen in the background).
@@ -129,16 +143,20 @@ class PivxBridgeClient {
 
   /// After a pause, pooled connections may be dead (sleep, network
   /// change) and a request on one hangs until the timeout, so start a
-  /// fresh client. Running requests still finish on the old one.
+  /// fresh client; likewise when Tor restarted on another port. Running
+  /// requests still finish on the old one.
   HttpClient get _http {
     final now = DateTime.now();
+    final proxy = _proxy;
     if (_httpClient != null &&
-        now.difference(_lastActivity) > const Duration(seconds: 20)) {
+        (proxy != _httpProxy ||
+            now.difference(_lastActivity) > const Duration(seconds: 20))) {
       _httpClient!.close();
       _httpClient = null;
     }
     _lastActivity = now;
-    return _httpClient ??= _newHttpClient(_proxy);
+    _httpProxy = proxy;
+    return _httpClient ??= _newHttpClient(proxy);
   }
 
   static HttpClient _newHttpClient(({InternetAddress host, int port})? proxy) {
@@ -160,9 +178,11 @@ class PivxBridgeClient {
   }
 
   /// Android 17 needs the user's permission to reach a bridge on the
-  /// local network (over Tor the proxy connects, not the app).
-  Future<void> _localNetworkReady() =>
-      useTor ? Future.value() : LocalNetworkAccess.ensure(baseUri.host);
+  /// local network (over Tor the proxy connects, not the app, and the
+  /// host isn't looked up).
+  Future<void> _localNetworkReady() async {
+    if (_proxy == null) await LocalNetworkAccess.ensure(baseUri.host);
+  }
 
   Future<({int code, String body})> _send(
     String method,
@@ -602,7 +622,10 @@ class PivxBridgeClient {
     ({InternetAddress host, int port})? proxy,
     void Function(int received, int? total)? onProgress,
   }) async {
-    if (proxy == null) await LocalNetworkAccess.ensure(url.host);
+    if (proxy == null) {
+      _refuseDirectUnderTor();
+      await LocalNetworkAccess.ensure(url.host);
+    }
     final client = _newHttpClient(proxy);
     final tmp = File("${file.path}.part");
     try {

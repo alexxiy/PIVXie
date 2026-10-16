@@ -16,15 +16,15 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../app_config.dart';
 import '../../notifications/show_flush_bar.dart';
+import '../../providers/desktop/storage_crypto_handler_provider.dart';
+import '../../themes/stack_colors.dart';
+import '../../utilities/assets.dart';
+import '../../utilities/constants.dart';
 import '../../utilities/show_loading.dart';
+import '../../utilities/text_styles.dart';
 import '../../widgets/desktop/desktop_dialog.dart';
-import '../../../../providers/desktop/storage_crypto_handler_provider.dart';
-import '../../../../themes/stack_colors.dart';
-import '../../../../utilities/assets.dart';
-import '../../../../utilities/constants.dart';
-import '../../../../utilities/text_styles.dart';
-import '../../../../widgets/desktop/primary_button.dart';
-import '../../../../widgets/stack_text_field.dart';
+import '../../widgets/desktop/primary_button.dart';
+import '../../widgets/stack_text_field.dart';
 
 class DesktopUnlockAppDialog extends ConsumerStatefulWidget {
   const DesktopUnlockAppDialog({super.key});

@@ -57,11 +57,6 @@ const AddressSchema = CollectionSchema(
       name: r'walletId',
       type: IsarType.string,
     ),
-    r'zSafeFrost': PropertySchema(
-      id: 8,
-      name: r'zSafeFrost',
-      type: IsarType.bool,
-    ),
   },
 
   estimateSize: _addressEstimateSize,
@@ -115,14 +110,7 @@ const AddressSchema = CollectionSchema(
       ],
     ),
   },
-  links: {
-    r'transactions': LinkSchema(
-      id: -20231914767662480,
-      name: r'transactions',
-      target: r'Transaction',
-      single: false,
-    ),
-  },
+  links: {},
   embeddedSchemas: {r'DerivationPath': DerivationPathSchema},
 
   getId: _addressGetId,
@@ -180,7 +168,6 @@ void _addressSerialize(
   writer.writeByte(offsets[5], object.type.index);
   writer.writeString(offsets[6], object.value);
   writer.writeString(offsets[7], object.walletId);
-  writer.writeBool(offsets[8], object.zSafeFrost);
 }
 
 Address _addressDeserialize(
@@ -206,7 +193,6 @@ Address _addressDeserialize(
         AddressType.p2pkh,
     value: reader.readString(offsets[6]),
     walletId: reader.readString(offsets[7]),
-    zSafeFrost: reader.readBoolOrNull(offsets[8]),
   );
   object.id = id;
   return object;
@@ -243,8 +229,6 @@ P _addressDeserializeProp<P>(
       return (reader.readString(offset)) as P;
     case 7:
       return (reader.readString(offset)) as P;
-    case 8:
-      return (reader.readBoolOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
   }
@@ -320,17 +304,11 @@ Id _addressGetId(Address object) {
 }
 
 List<IsarLinkBase<dynamic>> _addressGetLinks(Address object) {
-  return [object.transactions];
+  return [];
 }
 
 void _addressAttach(IsarCollection<dynamic> col, Id id, Address object) {
   object.id = id;
-  object.transactions.attach(
-    col,
-    col.isar.collection<Transaction>(),
-    r'transactions',
-    id,
-  );
 }
 
 extension AddressByIndex on IsarCollection<Address> {
@@ -1609,32 +1587,6 @@ extension AddressQueryFilter
       );
     });
   }
-
-  QueryBuilder<Address, Address, QAfterFilterCondition> zSafeFrostIsNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const FilterCondition.isNull(property: r'zSafeFrost'),
-      );
-    });
-  }
-
-  QueryBuilder<Address, Address, QAfterFilterCondition> zSafeFrostIsNotNull() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        const FilterCondition.isNotNull(property: r'zSafeFrost'),
-      );
-    });
-  }
-
-  QueryBuilder<Address, Address, QAfterFilterCondition> zSafeFrostEqualTo(
-    bool? value,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.addFilterCondition(
-        FilterCondition.equalTo(property: r'zSafeFrost', value: value),
-      );
-    });
-  }
 }
 
 extension AddressQueryObject
@@ -1649,67 +1601,7 @@ extension AddressQueryObject
 }
 
 extension AddressQueryLinks
-    on QueryBuilder<Address, Address, QFilterCondition> {
-  QueryBuilder<Address, Address, QAfterFilterCondition> transactions(
-    FilterQuery<Transaction> q,
-  ) {
-    return QueryBuilder.apply(this, (query) {
-      return query.link(q, r'transactions');
-    });
-  }
-
-  QueryBuilder<Address, Address, QAfterFilterCondition>
-  transactionsLengthEqualTo(int length) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'transactions', length, true, length, true);
-    });
-  }
-
-  QueryBuilder<Address, Address, QAfterFilterCondition> transactionsIsEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'transactions', 0, true, 0, true);
-    });
-  }
-
-  QueryBuilder<Address, Address, QAfterFilterCondition>
-  transactionsIsNotEmpty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'transactions', 0, false, 999999, true);
-    });
-  }
-
-  QueryBuilder<Address, Address, QAfterFilterCondition>
-  transactionsLengthLessThan(int length, {bool include = false}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'transactions', 0, true, length, include);
-    });
-  }
-
-  QueryBuilder<Address, Address, QAfterFilterCondition>
-  transactionsLengthGreaterThan(int length, {bool include = false}) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(r'transactions', length, include, 999999, true);
-    });
-  }
-
-  QueryBuilder<Address, Address, QAfterFilterCondition>
-  transactionsLengthBetween(
-    int lower,
-    int upper, {
-    bool includeLower = true,
-    bool includeUpper = true,
-  }) {
-    return QueryBuilder.apply(this, (query) {
-      return query.linkLength(
-        r'transactions',
-        lower,
-        includeLower,
-        upper,
-        includeUpper,
-      );
-    });
-  }
-}
+    on QueryBuilder<Address, Address, QFilterCondition> {}
 
 extension AddressQuerySortBy on QueryBuilder<Address, Address, QSortBy> {
   QueryBuilder<Address, Address, QAfterSortBy> sortByDerivationIndex() {
@@ -1781,18 +1673,6 @@ extension AddressQuerySortBy on QueryBuilder<Address, Address, QSortBy> {
   QueryBuilder<Address, Address, QAfterSortBy> sortByWalletIdDesc() {
     return QueryBuilder.apply(this, (query) {
       return query.addSortBy(r'walletId', Sort.desc);
-    });
-  }
-
-  QueryBuilder<Address, Address, QAfterSortBy> sortByZSafeFrost() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'zSafeFrost', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Address, Address, QAfterSortBy> sortByZSafeFrostDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'zSafeFrost', Sort.desc);
     });
   }
 }
@@ -1882,18 +1762,6 @@ extension AddressQuerySortThenBy
       return query.addSortBy(r'walletId', Sort.desc);
     });
   }
-
-  QueryBuilder<Address, Address, QAfterSortBy> thenByZSafeFrost() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'zSafeFrost', Sort.asc);
-    });
-  }
-
-  QueryBuilder<Address, Address, QAfterSortBy> thenByZSafeFrostDesc() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addSortBy(r'zSafeFrost', Sort.desc);
-    });
-  }
 }
 
 extension AddressQueryWhereDistinct
@@ -1943,12 +1811,6 @@ extension AddressQueryWhereDistinct
   }) {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'walletId', caseSensitive: caseSensitive);
-    });
-  }
-
-  QueryBuilder<Address, Address, QDistinct> distinctByZSafeFrost() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addDistinctBy(r'zSafeFrost');
     });
   }
 }
@@ -2007,12 +1869,6 @@ extension AddressQueryProperty
   QueryBuilder<Address, String, QQueryOperations> walletIdProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'walletId');
-    });
-  }
-
-  QueryBuilder<Address, bool?, QQueryOperations> zSafeFrostProperty() {
-    return QueryBuilder.apply(this, (query) {
-      return query.addPropertyName(r'zSafeFrost');
     });
   }
 }

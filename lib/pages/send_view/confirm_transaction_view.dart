@@ -428,10 +428,6 @@ class _ConfirmTransactionViewState
                 .background,
             leading: AppBarBackButton(
               onPressed: () async {
-                // if (FocusScope.of(context).hasFocus) {
-                //   FocusScope.of(context).unfocus();
-                //   await Future<void>.delayed(Duration(milliseconds: 50));
-                // }
                 Navigator.of(context).pop();
               },
             ),
@@ -781,39 +777,6 @@ class _ConfirmTransactionViewState
                           ],
                         ),
                       ),
-                      // Container(
-                      //   height: 1,
-                      //   color: Theme.of(context)
-                      //       .extension<StackColors>()!
-                      //       .background,
-                      // ),
-                      // Padding(
-                      //   padding: const EdgeInsets.all(12),
-                      //   child: Column(
-                      //     mainAxisSize: MainAxisSize.min,
-                      //     crossAxisAlignment: CrossAxisAlignment.start,
-                      //     children: [
-                      //       Text(
-                      //         "Note",
-                      //         style: STextStyles.desktopTextExtraExtraSmall(
-                      //             context),
-                      //       ),
-                      //       const SizedBox(
-                      //         height: 2,
-                      //       ),
-                      //       Text(
-                      //         transactionInfo["note"] as String,
-                      //         style: STextStyles.desktopTextExtraExtraSmall(
-                      //                 context)
-                      //             .copyWith(
-                      //           color: Theme.of(context)
-                      //               .extension<StackColors>()!
-                      //               .textDark,
-                      //         ),
-                      //       )
-                      //     ],
-                      //   ),
-                      // ),
                     ],
                   ),
                 ),

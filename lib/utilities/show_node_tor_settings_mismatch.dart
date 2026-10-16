@@ -50,9 +50,13 @@ Future<bool> checkShowNodeTorSettingsMismatch({
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  "Attention! Node connection issue detected. "
-                  "The current node will not sync due to its connectivity settings. "
-                  "Please adjust the node settings or enable/disable TOR.",
+                  prefs.useTor
+                      ? "Tor is on, but this wallet's node is set to be used "
+                            "without Tor, so the wallet won't sync. Change the "
+                            "node's settings, or turn Tor off."
+                      : "This wallet's node is set to be used only over Tor, "
+                            "and Tor is off, so the wallet won't sync. Change "
+                            "the node's settings, or turn Tor on.",
                   style: STextStyles.w600_16(context),
                 ),
                 SizedBox(height: Util.isDesktop ? 32 : 24),

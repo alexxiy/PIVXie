@@ -65,7 +65,6 @@ abstract final class AppDataWipe {
     }
     // Whatever deleting by wallet left (rows of wallets deleted earlier).
     await isar.writeTxn(() async {
-      await isar.transactions.clear();
       await isar.transactionV2s.clear();
       await isar.transactionNotes.clear();
       await isar.utxos.clear();

@@ -10,9 +10,6 @@
 
 export 'address_label.dart';
 export 'blockchain_data/address.dart';
-export 'blockchain_data/input.dart';
-export 'blockchain_data/output.dart';
-export 'blockchain_data/transaction.dart';
+export 'blockchain_data/transaction_type.dart';
 export 'blockchain_data/utxo.dart';
-export 'log.dart';
 export 'transaction_note.dart';

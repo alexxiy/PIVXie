@@ -231,7 +231,6 @@ class SecureStorageWrapper implements SecureStorageInterface {
     WindowsOptions? wOptions,
   }) async {
     if (_isDesktop) {
-      // return (_store as DesktopSecureStore).deleteAll();
       throw UnimplementedError();
     } else {
       return await (_store as FlutterSecureStorage).deleteAll(

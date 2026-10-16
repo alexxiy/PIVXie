@@ -31,10 +31,7 @@ void main() {
       name: name,
       id: id,
       useSSL: true,
-      enabled: true,
       coinName: 'PIVX',
-      isFailover: false,
-      isDown: false,
       torEnabled: true,
       clearnetEnabled: true,
       isPrimary: true,
@@ -202,9 +199,8 @@ void main() {
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 100));
 
-      expect(platformOverrides.secureStorage.reads, 1);
+      expect(platformOverrides.secureStorage.reads, 0);
       expect(platformOverrides.connectionInvocations, hasLength(1));
-      expect(platformOverrides.connectionInvocations.single.password, isNull);
       expect(platformOverrides.connectionInvocations.single.host, '127.0.0.1');
 
       verifyNever(

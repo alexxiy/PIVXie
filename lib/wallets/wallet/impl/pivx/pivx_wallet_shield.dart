@@ -612,9 +612,6 @@ extension _PivxShield on PivxWallet {
     final output = File("${dir.path}/sapling-output.params");
     final spend = File("${dir.path}/sapling-spend.params");
 
-    final proxy = bridge.useTor
-        ? TorService.sharedInstance.getProxyInfo()
-        : null;
     final sources = [bridge.baseUri.toString(), "https://pivxla.bz"];
     // Sizes of the files whose hashes the prover checks.
     for (final (file, name, size, weight, base) in [
@@ -629,7 +626,10 @@ extension _PivxShield on PivxWallet {
             Uri.parse("$src/$name"),
             file,
             maxBytes: size,
-            proxy: proxy,
+            // Per file: Tor may have been turned on meanwhile.
+            proxy: bridge.useTor
+                ? TorService.sharedInstance.getProxyInfo()
+                : null,
             onProgress: (r, _) => onProgress(base + weight * r / size),
           );
           lastError = null;

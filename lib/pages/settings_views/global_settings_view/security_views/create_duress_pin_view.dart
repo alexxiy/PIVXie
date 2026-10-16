@@ -3,18 +3,18 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../notifications/show_flush_bar.dart';
+import '../../../../providers/global/prefs_provider.dart';
+import '../../../../providers/global/secure_store_provider.dart';
+import '../../../../themes/stack_colors.dart';
+import '../../../../utilities/assets.dart';
+import '../../../../utilities/flutter_secure_storage_interface.dart';
+import '../../../../utilities/text_styles.dart';
+import '../../../../widgets/background.dart';
+import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../../../widgets/custom_pin_put/custom_pin_put.dart';
 import '../../../pinpad_views/lock_screen_view.dart';
 import 'security_view.dart';
-import '../../../../../notifications/show_flush_bar.dart';
-import '../../../../../providers/global/prefs_provider.dart';
-import '../../../../../providers/global/secure_store_provider.dart';
-import '../../../../../themes/stack_colors.dart';
-import '../../../../../utilities/assets.dart';
-import '../../../../../utilities/flutter_secure_storage_interface.dart';
-import '../../../../../utilities/text_styles.dart';
-import '../../../../../widgets/background.dart';
-import '../../../../../widgets/custom_buttons/app_bar_icon_button.dart';
-import '../../../../../widgets/custom_pin_put/custom_pin_put.dart';
 
 class CreateDuressPinView extends ConsumerStatefulWidget {
   const CreateDuressPinView({super.key});

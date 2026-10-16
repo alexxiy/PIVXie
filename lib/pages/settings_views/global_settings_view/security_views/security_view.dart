@@ -267,17 +267,6 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                           ),
                         ),
                         onPressed: null,
-                        //     () {
-                        //   final useBio =
-                        //       ref.read(prefsChangeNotifierProvider).useBiometrics;
-                        //
-                        //   debugPrint("useBio: $useBio");
-                        //   ref.read(prefsChangeNotifierProvider).useBiometrics =
-                        //       !useBio;
-                        //
-                        //   debugPrint(
-                        //       "useBio set to: ${ref.read(prefsChangeNotifierProvider).useBiometrics}");
-                        // },
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 8),
                           child: Row(

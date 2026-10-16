@@ -15,12 +15,8 @@ class NodeConnectionTestInvocation {
     required this.cryptoCurrency,
     required this.name,
     required this.host,
-    required this.login,
-    required this.password,
     required this.port,
     required this.useSSL,
-    required this.isFailover,
-    required this.trusted,
     required this.netOption,
   });
 
@@ -32,12 +28,8 @@ class NodeConnectionTestInvocation {
       cryptoCurrency: cryptoCurrency,
       name: nodeFormData.name,
       host: nodeFormData.host,
-      login: nodeFormData.login,
-      password: nodeFormData.password,
       port: nodeFormData.port,
       useSSL: nodeFormData.useSSL,
-      isFailover: nodeFormData.isFailover,
-      trusted: nodeFormData.trusted,
       netOption: nodeFormData.netOption,
     );
   }
@@ -45,12 +37,8 @@ class NodeConnectionTestInvocation {
   final CryptoCurrency cryptoCurrency;
   final String? name;
   final String? host;
-  final String? login;
-  final String? password;
   final int? port;
   final bool? useSSL;
-  final bool? isFailover;
-  final bool? trusted;
   final TorPlainNetworkOption? netOption;
 }
 

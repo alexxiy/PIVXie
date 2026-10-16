@@ -12,7 +12,6 @@ import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
 import 'package:logger/logger.dart';
-import 'package:uuid/uuid.dart';
 
 import '../app_config.dart';
 import '../db/hive/db.dart';
@@ -20,7 +19,6 @@ import '../services/event_bus/events/global/tor_status_changed_event.dart';
 import '../services/event_bus/global_event_bus.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 import 'amount/amount_unit.dart';
-import 'constants.dart';
 import 'enums/backup_frequency_type.dart';
 import 'enums/languages_enum.dart';
 import 'enums/sync_type_enum.dart';
@@ -45,14 +43,10 @@ class Prefs extends ChangeNotifier {
       _biometricsDuress = await _getBiometricsDuress();
       _language = await _getPreferredLanguage();
       _showFavoriteWallets = await _getShowFavoriteWallets();
-      _wifiOnly = await _getUseWifiOnly();
       _syncType = await _getSyncType();
       _walletIdsSyncOnStartup = await _getWalletIdsSyncOnStartup();
-      _currentNotificationId = await _getCurrentNotificationIndex();
       _lastUnlocked = await _getLastUnlocked();
-      _lastUnlockedTimeout = await _getLastUnlockedTimeout();
       _showTestNetCoins = await _getShowTestNetCoins();
-      _torKillswitch = await _getTorKillswitch();
       _isAutoBackupEnabled = await _getIsAutoBackupEnabled();
       _autoBackupLocation = await _getAutoBackupLocation();
       _backupFrequencyType = await _getBackupFrequencyType();
@@ -61,9 +55,6 @@ class Prefs extends ChangeNotifier {
       _gotoWalletOnStartup = await _getGotoWalletOnStartup();
       _startupWalletId = await _getStartupWalletId();
       _externalCalls = await _getHasExternalCalls();
-      _familiarity = await _getHasFamiliarity();
-      _userId = await _getUserId();
-      _signupEpoch = await _getSignupEpoch();
       _enableCoinControl = await _getEnableCoinControl();
       _enableSystemBrightness = await _getEnableSystemBrightness();
       _themeId = await _getThemeId();
@@ -93,32 +84,6 @@ class Prefs extends ChangeNotifier {
 
   // last timestamp user unlocked wallet
 
-  int _lastUnlockedTimeout = 60;
-
-  int get lastUnlockedTimeout => _lastUnlockedTimeout;
-
-  set lastUnlockedTimeout(int lastUnlockedTimeout) {
-    if (_lastUnlockedTimeout != lastUnlockedTimeout) {
-      DB.instance.put<dynamic>(
-        boxName: DB.boxNamePrefs,
-        key: "lastUnlockedTimeout",
-        value: lastUnlockedTimeout,
-      );
-      _lastUnlockedTimeout = lastUnlockedTimeout;
-      notifyListeners();
-    }
-  }
-
-  Future<int> _getLastUnlockedTimeout() async {
-    return (DB.instance.get<dynamic>(
-          boxName: DB.boxNamePrefs,
-          key: "lastUnlockedTimeout",
-        )) as int? ??
-        60;
-  }
-
-  // last timestamp user unlocked wallet
-
   int _lastUnlocked = 0;
 
   int get lastUnlocked => _lastUnlocked;
@@ -139,41 +104,6 @@ class Prefs extends ChangeNotifier {
     return await DB.instance.get<dynamic>(
           boxName: DB.boxNamePrefs,
           key: "lastUnlocked",
-        ) as int? ??
-        0;
-  }
-
-  // notification index
-
-  late int _currentNotificationId;
-
-  int get currentNotificationId => _currentNotificationId;
-
-  /// Bumps the shared OS-notification id counter and returns the id it
-  /// allocated. The bump happens synchronously before the persist is awaited,
-  /// so concurrent callers each get a distinct id — use the returned value,
-  /// not a later read of [currentNotificationId], which by the time this
-  /// completes may already belong to another caller.
-  Future<int> incrementCurrentNotificationIndex() async {
-    if (_currentNotificationId <= Constants.notificationsMax) {
-      _currentNotificationId++;
-    } else {
-      _currentNotificationId = 0;
-    }
-    final int id = _currentNotificationId;
-    await DB.instance.put<dynamic>(
-      boxName: DB.boxNamePrefs,
-      key: "currentNotificationId",
-      value: _currentNotificationId,
-    );
-    notifyListeners();
-    return id;
-  }
-
-  Future<int> _getCurrentNotificationIndex() async {
-    return await DB.instance.get<dynamic>(
-          boxName: DB.boxNamePrefs,
-          key: "currentNotificationId",
         ) as int? ??
         0;
   }
@@ -232,32 +162,6 @@ class Prefs extends ChangeNotifier {
         ) as int? ??
         SyncingType.allWalletsOnStartup.index;
     return SyncingType.values[index];
-  }
-
-  // wifi only
-
-  bool _wifiOnly = false;
-
-  bool get wifiOnly => _wifiOnly;
-
-  set wifiOnly(bool wifiOnly) {
-    if (_wifiOnly != wifiOnly) {
-      DB.instance.put<dynamic>(
-        boxName: DB.boxNamePrefs,
-        key: "wifiOnly",
-        value: wifiOnly,
-      );
-      _wifiOnly = wifiOnly;
-      notifyListeners();
-    }
-  }
-
-  Future<bool> _getUseWifiOnly() async {
-    return await DB.instance.get<dynamic>(
-          boxName: DB.boxNamePrefs,
-          key: "wifiOnly",
-        ) as bool? ??
-        false;
   }
 
   // show favorites
@@ -466,58 +370,6 @@ class Prefs extends ChangeNotifier {
           key: "biometricsDuress",
         ) as bool? ??
         false;
-  }
-
-  // familiarity
-
-  int _familiarity = 0;
-
-  int get familiarity => _familiarity;
-
-  set familiarity(int familiarity) {
-    if (_familiarity != familiarity) {
-      DB.instance.put<dynamic>(
-        boxName: DB.boxNamePrefs,
-        key: "familiarity",
-        value: familiarity,
-      );
-      _familiarity = familiarity;
-      notifyListeners();
-    }
-  }
-
-  Future<int> _getHasFamiliarity() async {
-    return await DB.instance.get<dynamic>(
-          boxName: DB.boxNamePrefs,
-          key: "familiarity",
-        ) as int? ??
-        0;
-  }
-
-  // tor
-
-  bool _torKillswitch = true;
-
-  bool get torKillSwitch => _torKillswitch;
-
-  set torKillSwitch(bool torKillswitch) {
-    if (_torKillswitch != torKillswitch) {
-      DB.instance.put<dynamic>(
-        boxName: DB.boxNamePrefs,
-        key: "torKillswitch",
-        value: torKillswitch,
-      );
-      _torKillswitch = torKillswitch;
-      notifyListeners();
-    }
-  }
-
-  Future<bool> _getTorKillswitch() async {
-    return await DB.instance.get<dynamic>(
-          boxName: DB.boxNamePrefs,
-          key: "torKillswitch",
-        ) as bool? ??
-        true;
   }
 
   // show testnet coins
@@ -805,59 +657,7 @@ class Prefs extends ChangeNotifier {
     return true;
   }
 
-  String? _userId;
-  String? get userID => _userId;
-
-  Future<String?> _getUserId() async {
-    String? userID = await DB.instance.get<dynamic>(
-      boxName: DB.boxNamePrefs,
-      key: "userID",
-    ) as String?;
-    if (userID == null) {
-      userID = const Uuid().v4();
-      await saveUserID(userID);
-    }
-    return userID;
-  }
-
-  Future<void> saveUserID(String userId) async {
-    _userId = userId;
-    await DB.instance.put<dynamic>(
-      boxName: DB.boxNamePrefs,
-      key: "userID",
-      value: _userId,
-    );
-    // notifyListeners();
-  }
-
-  int? _signupEpoch;
-  int? get signupEpoch => _signupEpoch;
-
-  Future<int?> _getSignupEpoch() async {
-    int? signupEpoch = await DB.instance.get<dynamic>(
-      boxName: DB.boxNamePrefs,
-      key: "signupEpoch",
-    ) as int?;
-    if (signupEpoch == null) {
-      signupEpoch =
-          DateTime.now().millisecondsSinceEpoch ~/
-          Duration.millisecondsPerSecond;
-      await saveSignupEpoch(signupEpoch);
-    }
-    return signupEpoch;
-  }
-
-  Future<void> saveSignupEpoch(int signupEpoch) async {
-    _signupEpoch = signupEpoch;
-    await DB.instance.put<dynamic>(
-      boxName: DB.boxNamePrefs,
-      key: "signupEpoch",
-      value: _signupEpoch,
-    );
-    // notifyListeners();
-  }
-
-  // show testnet coins
+  // coin control
 
   bool _enableCoinControl = false;
 
@@ -1018,7 +818,9 @@ class Prefs extends ChangeNotifier {
             key: "amountUnitFor${coin.identifier}",
           ) as int? ??
           0; // 0 is "normal"
-      _amountUnits[coin] = AmountUnit.values[unitIndex];
+      _amountUnits[coin] = unitIndex < AmountUnit.values.length
+          ? AmountUnit.values[unitIndex]
+          : AmountUnit.normal;
     }
   }
 

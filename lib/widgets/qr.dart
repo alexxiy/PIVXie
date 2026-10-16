@@ -20,11 +20,6 @@ class QR extends StatelessWidget {
         padding: padding ?? const EdgeInsets.all(10),
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
-        // backgroundColor:
-        // Theme.of(context).extension<StackColors>()!.background,
-        // foregroundColor: Theme.of(context)
-        //     .extension<StackColors>()!
-        //     .accentColorDark,
       ),
     );
   }

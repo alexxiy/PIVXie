@@ -202,7 +202,10 @@ void main() {
         final block = jsonDecode(await _cli(["getblock", hash, "1"])) as Map;
         for (final txid in (block["tx"] as List).cast<String>()) {
           final raw = await bridge.rawTx(txid);
-          final values = pivxVerifiedOutputValues(txid, raw);
+          final values = pivxVerifiedOutputs(
+            txid,
+            raw,
+          ).map((e) => e.value).toList();
           final node =
               jsonDecode(await _cli(["getrawtransaction", txid, "1"])) as Map;
           expect(values, [
@@ -227,7 +230,7 @@ void main() {
               as String;
       final raw = await bridge.rawTx(txid);
       final tampered = "${raw.substring(0, raw.length - 2)}ff";
-      expect(() => pivxVerifiedOutputValues(txid, tampered), throwsException);
+      expect(() => pivxVerifiedOutputs(txid, tampered), throwsException);
     },
     skip: skip,
     timeout: const Timeout(Duration(minutes: 3)),

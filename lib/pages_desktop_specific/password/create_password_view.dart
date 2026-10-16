@@ -13,7 +13,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:zxcvbn/zxcvbn.dart';
 
 import '../../notifications/show_flush_bar.dart';
 import '../../providers/desktop/storage_crypto_handler_provider.dart';
@@ -23,6 +22,7 @@ import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/flutter_secure_storage_interface.dart';
+import '../../utilities/password_rules.dart';
 import '../../utilities/show_loading.dart';
 import '../../utilities/text_styles.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -52,10 +52,8 @@ class _CreatePasswordViewState extends ConsumerState<CreatePasswordView> {
 
   late final FocusNode passwordFocusNode;
   late final FocusNode passwordRepeatFocusNode;
-  final zxcvbn = Zxcvbn();
 
-  String passwordFeedback =
-      "Add another word or two. Uncommon words are better. Use a few words, avoid common phrases. No need for symbols, digits, or uppercase letters.";
+  String passwordFeedback = kPasswordRules;
   bool shouldShowPasswordHint = true;
   bool hidePassword = true;
   double passwordStrength = 0.0;
@@ -78,6 +76,17 @@ class _CreatePasswordViewState extends ConsumerState<CreatePasswordView> {
         showFloatingFlushBar(
           type: FlushBarType.warning,
           message: "A password is required",
+          context: context,
+        ),
+      );
+      return;
+    }
+    final missing = passwordMissing(passphrase);
+    if (missing != null) {
+      unawaited(
+        showFloatingFlushBar(
+          type: FlushBarType.warning,
+          message: missing,
           context: context,
         ),
       );
@@ -302,40 +311,10 @@ class _CreatePasswordViewState extends ConsumerState<CreatePasswordView> {
                           ),
                         ),
                         onChanged: (newValue) {
-                          if (newValue.isEmpty) {
-                            setState(() {
-                              passwordFeedback = "";
-                            });
-                            return;
-                          }
-                          final result = zxcvbn.evaluate(newValue);
-                          String suggestionsAndTips = "";
-                          for (final sug
-                              in result.feedback.suggestions!.toSet()) {
-                            suggestionsAndTips += "$sug\n";
-                          }
-                          suggestionsAndTips += result.feedback.warning!;
-                          String feedback =
-                              // "Password Strength: ${((result.score! / 4.0) * 100).toInt()}%\n"
-                              suggestionsAndTips;
-
-                          passwordStrength = result.score! / 4;
-
-                          // hack fix to format back string returned from zxcvbn
-                          if (feedback.contains("phrasesNo need")) {
-                            feedback = feedback.replaceFirst(
-                              "phrasesNo need",
-                              "phrases\nNo need",
-                            );
-                          }
-
-                          if (feedback.endsWith("\n")) {
-                            feedback =
-                                feedback.substring(0, feedback.length - 2);
-                          }
-
+                          final check = newPasswordFeedback(newValue);
                           setState(() {
-                            passwordFeedback = feedback;
+                            passwordFeedback = check.feedback;
+                            passwordStrength = check.strength;
                           });
                         },
                       ),
@@ -437,13 +416,16 @@ class _CreatePasswordViewState extends ConsumerState<CreatePasswordView> {
                                         child: MouseRegion(
                                           cursor: SystemMouseCursors.click,
                                           child: SvgPicture.asset(
-                                            fieldsMatch && passwordStrength == 1
+                                            fieldsMatch && passwordMissing(passwordController.text) == null
                                                 ? Assets.svg.checkCircle
                                                 : hidePassword
                                                     ? Assets.svg.eye
                                                     : Assets.svg.eyeSlash,
                                             color: fieldsMatch &&
-                                                    passwordStrength == 1
+                                                    passwordMissing(
+                                                          passwordController.text,
+                                                        ) ==
+                                                        null
                                                 ? Theme.of(context)
                                                     .extension<StackColors>()!
                                                     .accentColorGreen

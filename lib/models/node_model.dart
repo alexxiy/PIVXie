@@ -11,12 +11,14 @@
 import 'package:hive_ce/hive.dart';
 
 import '../utilities/default_nodes.dart';
-import '../utilities/flutter_secure_storage_interface.dart';
 
 part 'type_adaptors/node_model.g.dart';
 
 // @HiveType(typeId: 12)
 class NodeModel {
+  // Field numbers 5, 6, 8, 9, 10, 13 and 15 belonged to settings for other
+  // coins' nodes; the adapter skips them in older records.
+
   // @HiveField(0)
   final String id;
   // @HiveField(1)
@@ -27,28 +29,14 @@ class NodeModel {
   final String name;
   // @HiveField(4)
   final bool useSSL;
-  // @HiveField(5)
-  final String? loginName;
-  // @HiveField(6)
-  final bool enabled;
   // @HiveField(7)
   final String coinName;
-  // @HiveField(8)
-  final bool isFailover;
-  // @HiveField(9)
-  final bool isDown;
-  // @HiveField(10)
-  final bool? trusted;
   // @HiveField(11)
   final bool torEnabled;
   // @HiveField(12)
   final bool clearnetEnabled;
-  // @HiveField(13)
-  final bool forceNoTor;
   // @HiveField(14)
   final bool isPrimary;
-  // @HiveField(15)
-  final String? nodeApiSecret;
 
   NodeModel({
     required this.host,
@@ -56,17 +44,10 @@ class NodeModel {
     required this.name,
     required this.id,
     required this.useSSL,
-    required this.enabled,
     required this.coinName,
-    required this.isFailover,
-    required this.isDown,
     required this.torEnabled,
     required this.clearnetEnabled,
     required this.isPrimary,
-    this.forceNoTor = false,
-    this.loginName,
-    this.trusted,
-    this.nodeApiSecret,
   });
 
   NodeModel copyWith({
@@ -74,17 +55,10 @@ class NodeModel {
     int? port,
     String? name,
     bool? useSSL,
-    required String? loginName,
-    bool? enabled,
     String? coinName,
-    bool? isFailover,
-    bool? isDown,
-    required bool? trusted,
     bool? torEnabled,
-    bool? forceNoTor,
     bool? clearnetEnabled,
     bool? isPrimary,
-    String? nodeApiSecret,
   }) {
     return NodeModel(
       host: host ?? this.host,
@@ -92,23 +66,11 @@ class NodeModel {
       name: name ?? this.name,
       id: id,
       useSSL: useSSL ?? this.useSSL,
-      loginName: loginName,
-      enabled: enabled ?? this.enabled,
       coinName: coinName ?? this.coinName,
-      isFailover: isFailover ?? this.isFailover,
-      isDown: isDown ?? this.isDown,
-      trusted: trusted,
       torEnabled: torEnabled ?? this.torEnabled,
       clearnetEnabled: clearnetEnabled ?? this.clearnetEnabled,
-      forceNoTor: forceNoTor ?? this.forceNoTor,
       isPrimary: isPrimary ?? this.isPrimary,
-      nodeApiSecret: nodeApiSecret ?? this.nodeApiSecret,
     );
-  }
-
-  /// convenience getter to retrieve login password
-  Future<String?> getPassword(SecureStorageInterface secureStorage) async {
-    return await secureStorage.read(key: "${id}_nodePW");
   }
 
   Map<String, dynamic> toMap() {
@@ -118,17 +80,10 @@ class NodeModel {
     map['name'] = name;
     map['id'] = id;
     map['useSSL'] = useSSL;
-    map['loginName'] = loginName;
-    map['enabled'] = enabled;
     map['coinName'] = coinName;
-    map['isFailover'] = isFailover;
-    map['isDown'] = isDown;
-    map['trusted'] = trusted;
     map['torEnabled'] = torEnabled;
     map['clearEnabled'] = clearnetEnabled;
-    map['forceNoTor'] = forceNoTor;
     map['isPrimary'] = isPrimary;
-    map['nodeApiSecret'] = nodeApiSecret;
     return map;
   }
 

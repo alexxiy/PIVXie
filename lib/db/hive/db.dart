@@ -10,56 +10,19 @@
 
 import 'dart:isolate';
 
-import 'package:hive_ce/hive.dart' show Box;
 import 'package:hive_ce/src/hive_impl.dart';
 import 'package:mutex/mutex.dart';
 
-import '../../app_config.dart';
 import '../../models/node_model.dart';
-import '../../services/wallets_service.dart';
 import '../../utilities/logger.dart';
-import '../../wallets/crypto_currency/crypto_currency.dart';
 
 class DB {
   final hive = HiveImpl();
 
-  // legacy (required for migrations)
-  @Deprecated("Left over for migration from old versions of Stack Wallet")
-  static const String boxNameAddressBook = "addressBook";
-  static const String boxNameAllWalletsData = "wallets";
-  static const String boxNameFavoriteWallets = "favoriteWallets";
-  static const String boxNamePrimaryNodesDeprecated = "primaryNodes";
-
-  // in use
-  // TODO: migrate
   static const String boxNameNodeModels = "nodeModels";
-  /// Boxes of the removed in-app notification feed; deleted on start.
-  static const _legacyNotificationBoxes = [
-    "notificationModels",
-    "watchedTxNotificationModels",
-  ];
   static const String boxNameWalletsToDeleteOnStart = "walletsToDeleteOnStart";
   static const String boxNamePriceCache = "priceAPIPrice24hCache";
-
-  // in use (keep for now)
-  static const String boxNameDBInfo = "dbInfo";
   static const String boxNamePrefs = "prefs";
-  static const String boxNameOneTimeDialogsShown = "oneTimeDialogsShown";
-
-  String _boxNameTxCache({required CryptoCurrency currency}) =>
-      "${currency.identifier}_txCache";
-
-  Box<NodeModel>? _boxNodeModels;
-  Box<NodeModel>? _boxPrimaryNodes;
-  Box<dynamic>? _boxAllWalletsData;
-  Box<String>? _boxFavoriteWallets;
-  Box<dynamic>? _boxPrefs;
-  Box<dynamic>? _boxDBInfo;
-  // Box<String>? _boxDesktopData;
-
-  final Map<String, Box<dynamic>> _walletBoxes = {};
-
-  final Map<String, Box<dynamic>> _txCacheBoxes = {};
 
   // mutex for stack backup
   final mutex = Mutex();
@@ -81,111 +44,12 @@ class DB {
 
   // open hive boxes
   Future<void> init() async {
-    if (hive.isBoxOpen(boxNameDBInfo)) {
-      _boxDBInfo = hive.box<dynamic>(boxNameDBInfo);
-    } else {
-      _boxDBInfo = await hive.openBox<dynamic>(boxNameDBInfo);
-    }
-    await hive.openBox<String>(boxNameWalletsToDeleteOnStart);
-
-    if (hive.isBoxOpen(boxNamePrefs)) {
-      _boxPrefs = hive.box<dynamic>(boxNamePrefs);
-    } else {
-      _boxPrefs = await hive.openBox<dynamic>(boxNamePrefs);
-    }
-
-    if (hive.isBoxOpen(boxNameNodeModels)) {
-      _boxNodeModels = hive.box<NodeModel>(boxNameNodeModels);
-    } else {
-      _boxNodeModels = await hive.openBox<NodeModel>(boxNameNodeModels);
-    }
-
-    if (hive.isBoxOpen(boxNameAllWalletsData)) {
-      _boxAllWalletsData = hive.box<dynamic>(boxNameAllWalletsData);
-    } else {
-      _boxAllWalletsData = await hive.openBox<dynamic>(boxNameAllWalletsData);
-    }
-
-    for (final name in _legacyNotificationBoxes) {
-      try {
-        await hive.deleteBoxFromDisk(name);
-      } catch (_) {}
-    }
-    _boxFavoriteWallets = await hive.openBox<String>(boxNameFavoriteWallets);
-
     await Future.wait([
+      hive.openBox<String>(boxNameWalletsToDeleteOnStart),
+      hive.openBox<dynamic>(boxNamePrefs),
+      hive.openBox<NodeModel>(boxNameNodeModels),
       hive.openBox<dynamic>(boxNamePriceCache),
-      _loadWalletBoxes(),
     ]);
-  }
-
-  Future<void> _loadWalletBoxes() async {
-    final names = _boxAllWalletsData!.get("names") as Map? ?? {};
-    names.removeWhere((name, dyn) {
-      final jsonObject = Map<String, dynamic>.from(dyn as Map);
-      try {
-        AppConfig.getCryptoCurrencyFor(jsonObject["coin"] as String);
-        return false;
-      } catch (e, s) {
-        Logging.instance.e(
-          "Error, ${jsonObject["coin"]} does not exist, $name wallet cannot be loaded",
-          error: e,
-          stackTrace: s,
-        );
-        return true;
-      }
-    });
-    final mapped = Map<String, dynamic>.from(names).map(
-      (name, dyn) => MapEntry(
-        name,
-        WalletInfo.fromJson(Map<String, dynamic>.from(dyn as Map)),
-      ),
-    );
-
-    for (final entry in mapped.entries) {
-      if (hive.isBoxOpen(entry.value.walletId)) {
-        _walletBoxes[entry.value.walletId] = hive.box<dynamic>(
-          entry.value.walletId,
-        );
-      } else {
-        _walletBoxes[entry.value.walletId] = await hive.openBox<dynamic>(
-          entry.value.walletId,
-        );
-      }
-    }
-  }
-
-  Future<Box<dynamic>> getTxCacheBox({required CryptoCurrency currency}) async {
-    if (_txCacheBoxes[currency.identifier]?.isOpen != true) {
-      _txCacheBoxes.remove(currency.identifier);
-    }
-    return _txCacheBoxes[currency.identifier] ??= await hive.openBox<dynamic>(
-      _boxNameTxCache(currency: currency),
-    );
-  }
-
-  Future<void> closeTxCacheBox({required CryptoCurrency currency}) async {
-    await _txCacheBoxes[currency.identifier]?.close();
-  }
-
-  /// Clear all cached transactions for the specified coin
-  Future<void> clearSharedTransactionCache({
-    required CryptoCurrency currency,
-  }) async {
-    await deleteAll<dynamic>(boxName: _boxNameTxCache(currency: currency));
-  }
-
-  /////////////////////////////////////////
-
-  Future<void> addWalletBox({required String walletId}) async {
-    if (_walletBoxes[walletId] != null) {
-      throw Exception("Attempted overwrite of existing wallet box!");
-    }
-    _walletBoxes[walletId] = await hive.openBox<dynamic>(walletId);
-  }
-
-  Future<void> removeWalletBox({required String walletId}) async {
-    _walletBoxes.remove(walletId);
   }
 
   ///////////////////////////////////////////
@@ -243,30 +107,16 @@ class DB {
   ///////////////////////////////////////////////////////////////////////////
   Future<bool> deleteEverything() async {
     try {
-      await DB.instance.deleteBoxFromDisk(boxName: DB.boxNameAddressBook);
-      await DB.instance.deleteBoxFromDisk(boxName: "debugInfoBox");
       await DB.instance.deleteBoxFromDisk(boxName: DB.boxNameNodeModels);
-      await DB.instance.deleteBoxFromDisk(boxName: DB.boxNameAllWalletsData);
-      await DB.instance.deleteBoxFromDisk(boxName: DB.boxNameFavoriteWallets);
       await DB.instance.deleteBoxFromDisk(boxName: DB.boxNamePrefs);
       await DB.instance.deleteBoxFromDisk(
         boxName: DB.boxNameWalletsToDeleteOnStart,
       );
       await DB.instance.deleteBoxFromDisk(boxName: DB.boxNamePriceCache);
-      await DB.instance.deleteBoxFromDisk(boxName: DB.boxNameDBInfo);
-      await DB.instance.deleteBoxFromDisk(boxName: "theme");
       return true;
     } catch (e, s) {
       Logging.instance.e("$e $s", error: e, stackTrace: s);
       return false;
     }
   }
-}
-
-abstract class DBKeys {
-  static const String cachedBalance = "cachedBalance";
-  static const String cachedBalanceSecondary = "cachedBalanceSecondary";
-  static const String isFavorite = "isFavorite";
-  static const String id = "id";
-  static const String storedChainHeight = "storedChainHeight";
 }

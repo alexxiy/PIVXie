@@ -44,14 +44,14 @@ Future<bool> testNodeConnection({
   if (read(prefsChangeNotifierProvider).useTor) {
     if (formData.netOption! == TorPlainNetworkOption.clear) {
       Logging.instance.w(
-        "This node is configured for non-TOR only but TOR is enabled",
+        "This node is set to be used without Tor, and Tor is on",
       );
       return false;
     }
   } else {
     if (formData.netOption! == TorPlainNetworkOption.tor) {
       Logging.instance.w(
-        "This node is configured for TOR only but TOR is disabled",
+        "This node is set to be used only over Tor, and Tor is off",
       );
       return false;
     }

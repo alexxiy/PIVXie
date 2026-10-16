@@ -27,7 +27,6 @@ import '../../../utilities/show_node_tor_settings_mismatch.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
-import '../../../wallets/wallet/intermediate/external_wallet.dart';
 import '../../../widgets/coin_card.dart';
 import '../../../widgets/conditional_parent.dart';
 import '../../wallet_view/wallet_view.dart';
@@ -139,16 +138,8 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
             return;
           }
 
-          final Future<void> loadFuture;
-          if (wallet is ExternalWallet) {
-            loadFuture = wallet.init().then(
-              (value) async => await (wallet).open(),
-            );
-          } else {
-            loadFuture = wallet.init();
-          }
           await showLoading(
-            whileFuture: loadFuture,
+            whileFuture: wallet.init(),
             context: context,
             message: 'Opening ${wallet.info.name}',
             rootNavigator: Util.isDesktop,

@@ -22,24 +22,17 @@ class NodeModelAdapter extends TypeAdapter<NodeModel> {
       name: fields[3] as String,
       id: fields[0] as String,
       useSSL: fields[4] as bool,
-      enabled: fields[6] as bool,
-      loginName: fields[5] as String?,
       coinName: fields[7] as String,
-      isFailover: fields[8] as bool,
-      isDown: fields[9] as bool,
-      trusted: fields[10] as bool?,
       torEnabled: fields[11] as bool? ?? true,
       clearnetEnabled: fields[12] as bool? ?? true,
-      forceNoTor: fields[13] as bool? ?? false,
       isPrimary: fields[14] as bool? ?? false,
-      nodeApiSecret: fields[15] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, NodeModel obj) {
     writer
-      ..writeByte(16)
+      ..writeByte(9)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -50,28 +43,14 @@ class NodeModelAdapter extends TypeAdapter<NodeModel> {
       ..write(obj.name)
       ..writeByte(4)
       ..write(obj.useSSL)
-      ..writeByte(5)
-      ..write(obj.loginName)
-      ..writeByte(6)
-      ..write(obj.enabled)
       ..writeByte(7)
       ..write(obj.coinName)
-      ..writeByte(8)
-      ..write(obj.isFailover)
-      ..writeByte(9)
-      ..write(obj.isDown)
-      ..writeByte(10)
-      ..write(obj.trusted)
       ..writeByte(11)
       ..write(obj.torEnabled)
       ..writeByte(12)
       ..write(obj.clearnetEnabled)
-      ..writeByte(13)
-      ..write(obj.forceNoTor)
       ..writeByte(14)
-      ..write(obj.isPrimary)
-      ..writeByte(15)
-      ..write(obj.nodeApiSecret);
+      ..write(obj.isPrimary);
   }
 
   @override

@@ -15,7 +15,3 @@ import '../../utilities/enums/fee_rate_type_enum.dart';
 final feeRateTypeMobileStateProvider = StateProvider.autoDispose<FeeRateType>(
   (_) => FeeRateType.average,
 );
-
-final feeRateTypeDesktopStateProvider = StateProvider<FeeRateType>(
-  (_) => FeeRateType.average,
-);

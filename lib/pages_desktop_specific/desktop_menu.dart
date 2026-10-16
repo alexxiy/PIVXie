@@ -234,15 +234,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                         label: "Exit",
                         value: 7,
                         onChanged: (_) {
-                          // // todo: save stuff/ notify before exit?
-                          // if (AppConfig.coins
-                          //     .where((e) => e is Monero || e is Wownero)
-                          //     .isNotEmpty) {
-                          //   // hack to insta kill because xmr/wow native lib code sucks
                           exit(0);
-                          //   } else {
-                          //     SystemNavigator.pop();
-                          //   }
                         },
                         controller: controllers[5],
                         isExpandedInitially: !_isMinimized,

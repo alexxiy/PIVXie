@@ -26,7 +26,6 @@ class MockedFunctions extends Mock {
 void main() {
   testWidgets('test returns Contact Address Entry', (widgetTester) async {
     final service = MockAddressBookService();
-    const applicationThemesDirectoryPath = "";
 
     when(service.getContactById("default")).thenAnswer(
       (realInvocation) => ContactEntry(

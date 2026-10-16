@@ -137,18 +137,10 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
         // if (_cameraId >= 0) {
         await _cameraWindowsPlugin.dispose(_cameraId);
         Logging.instance.d("Windows Camera stopped with ID: $_cameraId");
-        // } else {
-        //   Logging.instance.log("Windows Camera ID is null. Cannot dispose.",
-        //       level: LogLevel.Error);
-        // }
       } else if (Platform.isMacOS) {
         // if (_macOSDeviceId != null) {
         await CameraMacOS.instance.stopImageStream();
         Logging.instance.d("macOS Camera stopped with ID: $_macOSDeviceId");
-        // } else {
-        //   Logging.instance.log("macOS Camera ID is null. Cannot stop.",
-        //       level: LogLevel.Error);
-        // }
       }
     } catch (e, s) {
       Logging.instance.e(
@@ -189,9 +181,6 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
           base64Image = base64Encode(img.encodePng(image));
         }
         if (base64Image == null || base64Image.isEmpty) {
-          // Logging.instance
-          //     .log("Failed to capture image", level: LogLevel.Error);
-          // Spammy.
           await Future<void>.delayed(Duration(milliseconds: _imageDelayInMs));
           continue;
         }
@@ -222,23 +211,11 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
             Navigator.of(context).pop(scanResult);
           }
           break;
-        } else {
-          // Logging.instance.log("No QR code found in the image");
-          // if (mounted) {
-          //   widget.onSnackbar("No QR code found in the image.");
-          // }
-          // Spammy.
         }
 
         await Future<void>.delayed(Duration(milliseconds: _imageDelayInMs));
-      } catch (e) {
-        // Logging.instance.log("Failed to capture and scan image", error: e, stackTrace: s,);
-        // Spammy.
-
-        // if (mounted) {
-        //   widget.onSnackbar(
-        //       "Error capturing or scanning the image. Please try again.");
-        // }
+      } catch (_) {
+        // Not logged: it would fill the log, frame after frame.
       }
     }
   }
@@ -265,9 +242,8 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
         return null;
       }
       return qrDecode.text;
-    } catch (e) {
-      // Logging.instance.log("Failed to decode QR code", error: e, stackTrace: s,);
-      // Spammy.
+    } catch (_) {
+      // No QR code in this frame (not logged: there are many).
       return null;
     }
   }

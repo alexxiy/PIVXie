@@ -36,8 +36,6 @@ class Pivx extends Bip39HDCurrency {
         _id = "pivxTestNet";
         _name = "tPIVX";
         _ticker = "tPIV";
-      default:
-        throw Exception("Unsupported network: $network");
     }
   }
 
@@ -71,9 +69,6 @@ class Pivx extends Bip39HDCurrency {
   int get minCoinbaseConfirms => 101;
 
   @override
-  bool get torSupport => true;
-
-  @override
   List<DerivePathType> get supportedDerivationPathTypes => [
     DerivePathType.bip44,
   ];
@@ -90,8 +85,6 @@ class Pivx extends Bip39HDCurrency {
           // regtest
           "7445589c4c8e52b105247b13373e5ee325856aa05d53f429e59ea46b7149ae3f",
         ];
-      default:
-        throw Exception("Unsupported network: $network");
     }
   }
 
@@ -102,8 +95,6 @@ class Pivx extends Bip39HDCurrency {
       case CryptoCurrencyNetwork.test:
         // PIVX testnet reuses the mainnet genesis block.
         return "0000041e482b9b9691d98eefb48473405c0b8ec31b76df3797c74a78680ef818";
-      default:
-        throw Exception("Unsupported network: $network");
     }
   }
 
@@ -123,8 +114,6 @@ class Pivx extends Bip39HDCurrency {
         return Uint8List.fromList([0x01, 0xb9, 0xa2]);
       case CryptoCurrencyNetwork.test:
         return Uint8List.fromList([0x01, 0xb9, 0xb1]);
-      default:
-        throw Exception("Unsupported network: $network");
     }
   }
 
@@ -148,8 +137,6 @@ class Pivx extends Bip39HDCurrency {
         return 63;
       case CryptoCurrencyNetwork.test:
         return 73;
-      default:
-        throw Exception("Unsupported network: $network");
     }
   }
 
@@ -160,8 +147,6 @@ class Pivx extends Bip39HDCurrency {
         return "ps";
       case CryptoCurrencyNetwork.test:
         return "ptestsapling";
-      default:
-        throw Exception("Unsupported network: $network");
     }
   }
 
@@ -196,8 +181,6 @@ class Pivx extends Bip39HDCurrency {
           minOutput: dustLimit.raw,
           feePerKb: BigInt.from(10000),
         );
-      default:
-        throw Exception("Unsupported network: $network");
     }
   }
 
@@ -214,15 +197,11 @@ class Pivx extends Bip39HDCurrency {
         coinType = "119";
       case CryptoCurrencyNetwork.test:
         coinType = "1";
-      default:
-        throw Exception("Unsupported network: $network");
     }
 
     switch (derivePathType) {
       case DerivePathType.bip44:
         return "m/44'/$coinType'/$account'/$chain/$index";
-      default:
-        throw Exception("DerivePathType $derivePathType not supported");
     }
   }
 
@@ -238,8 +217,6 @@ class Pivx extends Bip39HDCurrency {
           version: networkParams.p2pkhPrefix,
         );
         return (address: addr, addressType: AddressType.p2pkh);
-      default:
-        throw Exception("DerivePathType $derivePathType not supported");
     }
   }
 
@@ -303,10 +280,7 @@ class Pivx extends Bip39HDCurrency {
           name: DefaultNodes.defaultName,
           id: DefaultNodes.buildId(this),
           useSSL: false,
-          enabled: true,
           coinName: identifier,
-          isFailover: true,
-          isDown: false,
           torEnabled: true,
           clearnetEnabled: true,
           isPrimary: isPrimary,
@@ -318,16 +292,11 @@ class Pivx extends Bip39HDCurrency {
           name: DefaultNodes.defaultName,
           id: DefaultNodes.buildId(this),
           useSSL: false,
-          enabled: true,
           coinName: identifier,
-          isFailover: true,
-          isDown: false,
           torEnabled: true,
           clearnetEnabled: true,
           isPrimary: isPrimary,
         );
-      default:
-        throw Exception("Unsupported network: $network");
     }
   }
 
@@ -365,10 +334,6 @@ class Pivx extends Bip39HDCurrency {
         return Uri.parse("https://explorer.pivx.org/#/tx/$txid");
       case CryptoCurrencyNetwork.test:
         return Uri.parse("https://testnet.rockdev.org/tx/$txid");
-      default:
-        throw Exception(
-          "Unsupported network for defaultBlockExplorer(): $network",
-        );
     }
   }
 }

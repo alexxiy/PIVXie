@@ -1,4 +1,3 @@
-import 'dart:convert';
 
 import 'package:isar_community/isar.dart';
 
@@ -87,38 +86,6 @@ class InputV2 {
         ..innerRedeemScriptAsm = innerRedeemScriptAsm
         ..coinbase = coinbase
         ..walletOwns = walletOwns;
-
-  static InputV2 fromElectrumxJson({
-    required Map<String, dynamic> json,
-    required OutpointV2? outpoint,
-    required List<String> addresses,
-    required String valueStringSats,
-    required String? coinbase,
-    required bool walletOwns,
-  }) {
-    final dynamicWitness = json["witness"] ?? json["txinwitness"];
-
-    final String? witness;
-    if (dynamicWitness is Map || dynamicWitness is List) {
-      witness = jsonEncode(dynamicWitness);
-    } else if (dynamicWitness is String) {
-      witness = dynamicWitness;
-    } else {
-      witness = null;
-    }
-
-    return InputV2()
-      ..scriptSigHex = json["scriptSig"]?["hex"] as String?
-      ..scriptSigAsm = json["scriptSig"]?["asm"] as String?
-      ..sequence = json["sequence"] as int?
-      ..outpoint = outpoint
-      ..addresses = List.unmodifiable(addresses)
-      ..valueStringSats = valueStringSats
-      ..witness = witness
-      ..innerRedeemScriptAsm = json["innerRedeemscriptAsm"] as String?
-      ..coinbase = coinbase
-      ..walletOwns = walletOwns;
-  }
 
   InputV2 copyWith({
     String? scriptSigHex,

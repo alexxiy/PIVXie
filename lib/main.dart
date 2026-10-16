@@ -27,10 +27,8 @@ import 'package:path_provider/path_provider.dart';
 import 'package:window_size/window_size.dart';
 
 import 'app_config.dart';
-import 'db/db_version_migration.dart';
 import 'db/hive/db.dart';
 import 'db/isar/main_db.dart';
-import 'models/models.dart';
 import 'models/node_model.dart';
 import 'pages/already_running_view.dart';
 import 'pages/home_view/home_view.dart';
@@ -44,7 +42,6 @@ import 'pages_desktop_specific/password/desktop_login_view.dart';
 import 'providers/desktop/storage_crypto_handler_provider.dart';
 import 'providers/global/auto_swb_service_provider.dart';
 import 'providers/global/base_currencies_provider.dart';
-// import 'package:stackwallet/providers/global/has_authenticated_start_state_provider.dart';
 import 'providers/providers.dart';
 import 'route_generator.dart';
 import 'services/locale_service.dart';
@@ -54,7 +51,6 @@ import 'themes/theme_providers.dart';
 import 'themes/theme_service.dart';
 import 'utilities/constants.dart';
 import 'utilities/enums/backup_frequency_type.dart';
-import 'utilities/flutter_secure_storage_interface.dart';
 import 'utilities/logger.dart';
 import 'utilities/ui_stall_watch.dart';
 import 'utilities/prefs.dart';
@@ -105,21 +101,6 @@ void main(List<String> args) async {
     }
   }
 
-  // FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
-
-  // Registering Transaction Model Adapters
-  DB.instance.hive.registerAdapter(TransactionDataAdapter());
-  DB.instance.hive.registerAdapter(TransactionChunkAdapter());
-  DB.instance.hive.registerAdapter(TransactionAdapter());
-  DB.instance.hive.registerAdapter(InputAdapter());
-  DB.instance.hive.registerAdapter(OutputAdapter());
-
-  // Registering Utxo Model Adapters
-  DB.instance.hive.registerAdapter(UtxoDataAdapter());
-  DB.instance.hive.registerAdapter(UtxoObjectAdapter());
-  DB.instance.hive.registerAdapter(StatusAdapter());
-
-  // node model adapter
   DB.instance.hive.registerAdapter(NodeModelAdapter());
 
   if (Platform.isLinux || Platform.isMacOS) {
@@ -137,7 +118,6 @@ void main(List<String> args) async {
   );
 
   try {
-    await DB.instance.hive.openBox<dynamic>(DB.boxNameDBInfo);
     await DB.instance.hive.openBox<dynamic>(DB.boxNamePrefs);
   } on FileSystemException catch (e) {
     if (e.osError?.errorCode == 11 || e.message.contains('lock failed')) {
@@ -211,36 +191,6 @@ void main(List<String> args) async {
   }
   await StackFileSystem.initThemesDir();
 
-  // Desktop migrate handled elsewhere (currently desktop_login_view.dart)
-  if (!Util.isDesktop) {
-    final int dbVersion =
-        DB.instance.get<dynamic>(
-          boxName: DB.boxNameDBInfo,
-          key: "hive_data_version",
-        ) as int? ??
-        0;
-    if (dbVersion < Constants.currentDataVersion) {
-      try {
-        await DbVersionMigrator().migrate(
-          dbVersion,
-          secureStore: const SecureStorageWrapper(
-            store: kMobileSecureStorage,
-            isDesktop: false,
-          ),
-        );
-      } catch (e, s) {
-        Logging.instance.w(
-          "Cannot migrate mobile database",
-          error: e,
-          stackTrace: s,
-        );
-      }
-    }
-  }
-
-  // SystemChrome.setEnabledSystemUIMode(SystemUiMode.manual,
-  //     overlays: [SystemUiOverlay.bottom]);
-
   await loadCoinlibFuture;
 
   await MainDB.instance.initMainDB();
@@ -309,8 +259,6 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       ? MobileAppPrivacy()
       : null;
 
-  // late final Wallets _wallets;
-  // late final Prefs _prefs;
   late final NodeService _nodeService;
 
   late final Completer<void> loadingCompleter;
@@ -328,9 +276,6 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
 
     await DB.instance.init();
     await ref.read(prefsChangeNotifierProvider).init();
-
-    final familiarity = ref.read(prefsChangeNotifierProvider).familiarity + 1;
-    ref.read(prefsChangeNotifierProvider).familiarity = familiarity;
 
     if (Util.isDesktop) {
       _desktopHasPassword = await ref
@@ -462,7 +407,6 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
           await goToRestoreSWB(ref.read(openedFromSWBFileStringStateProvider)!);
           ref.read(openedFromSWBFileStringStateProvider.notifier).state = null;
         }
-        // ref.read(shouldShowLockscreenOnResumeStateProvider.notifier).state = false;
       }
     });
 
@@ -553,32 +497,6 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
                 null;
           }
         }
-        // if (ref.read(hasAuthenticatedOnStartStateProvider) &&
-        //     ref.read(shouldShowLockscreenOnResumeStateProvider)) {
-        //   final now = DateTime.now().toUtc().millisecondsSinceEpoch ~/ 1000;
-        //
-        //   if (now - _prefs.lastUnlocked > _prefs.lastUnlockedTimeout) {
-        //     ref.read(shouldShowLockscreenOnResumeStateProvider.notifier).state =
-        //         false;
-        //     Navigator.of(navigatorKey.currentContext!).push(
-        //       MaterialPageRoute<dynamic>(
-        //         builder: (_) => LockscreenView(
-        //           routeOnSuccess: "",
-        //           popOnSuccess: true,
-        //           biometricsAuthenticationTitle: "Unlock Stack",
-        //           biometricsLocalizedReason:
-        //               "Unlock your stack wallet using biometrics",
-        //           biometricsCancelButtonString: "Cancel",
-        //           onSuccess: () {
-        //             ref
-        //                 .read(shouldShowLockscreenOnResumeStateProvider.state)
-        //                 .state = true;
-        //           },
-        //         ),
-        //       ),
-        //     );
-        //   }
-        // }
         break;
       case AppLifecycleState.detached:
         break;
@@ -591,15 +509,8 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
   Future<AppExitResponse> didRequestAppExit() async {
     debugPrint("didRequestAppExit called");
     if (Platform.isMacOS || Platform.isWindows || Platform.isLinux) {
-      // Monero will cause app to stop responding if in the middle of doing
-      // things like a scan on the c++ side of things.
-
-      // On macOS, mwebd fails to shut down, hanging the app on close.
-      //
-      // Exiting is a hack fix for this issue.
-
-      // await ref.read(pMwebService).shutdown();
-      // Something like the above would probably be prudent to make.
+      // Close at once: running syncs and native work (a shield scan, Tor)
+      // would otherwise keep the app open after its window is gone.
       exit(0);
     }
     return AppExitResponse.exit;
@@ -665,10 +576,6 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
-    // ref.listen(shouldShowLockscreenOnResumeStateProvider, (previous, next) {
-    //   Logging.instance.log("shouldShowLockscreenOnResumeStateProvider set to: $next",
-    //       addToDebugMessagesDB: false);
-    // });
 
     if (Platform.isAndroid) {
       ref.listen(
@@ -690,12 +597,6 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
         brightness: colorScheme.brightness,
         fontFamily: GoogleFonts.inter().fontFamily,
         unselectedWidgetColor: colorScheme.radioButtonBorderDisabled,
-        // textTheme: GoogleFonts.interTextTheme().copyWith(
-        //   button: STextStyles.button(context),
-        //   subtitle1: STextStyles.field(context).copyWith(
-        //     color: colorScheme.textDark,
-        //   ),
-        // ),
         radioTheme: const RadioThemeData(
           splashRadius: 0,
           materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -708,8 +609,6 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
             // splashFactory: NoSplash.splashFactory,
             overlayColor: MaterialStateProperty.all(colorScheme.splash),
             minimumSize: MaterialStateProperty.all<Size>(const Size(46, 46)),
-            // textStyle: MaterialStateProperty.all<TextStyle>(
-            //     STextStyles.button(context)),
             foregroundColor: MaterialStateProperty.all(
               colorScheme.buttonTextSecondary,
             ),
@@ -760,8 +659,6 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
             vertical: 6,
             horizontal: 12,
           ),
-          // labelStyle: STextStyles.fieldLabel(context),
-          // hintStyle: STextStyles.fieldLabel(context),
           enabledBorder: _buildOutlineInputBorder(
             colorScheme.textFieldDefaultBG,
           ),
@@ -808,11 +705,8 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
               future: load(false),
               builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
                 if (snapshot.connectionState == ConnectionState.done) {
-                  // FlutterNativeSplash.remove();
                   if (ref.read(pAllWalletsInfo).isNotEmpty ||
                       ref.read(prefsChangeNotifierProvider).hasPin) {
-                    // return HomeView();
-
                     String? startupWalletId;
                     if (ref
                         .read(prefsChangeNotifierProvider)

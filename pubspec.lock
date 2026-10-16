@@ -404,23 +404,6 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.0.1"
-  dart_bs58check:
-    dependency: "direct main"
-    description:
-      path: "."
-      ref: bed60e43e4e509ea45bb097e6caee9f8293ddf98
-      resolved-ref: bed60e43e4e509ea45bb097e6caee9f8293ddf98
-      url: "https://github.com/cypherstack/dart-bs58check"
-    source: git
-    version: "3.0.2"
-  dart_numerics:
-    dependency: "direct main"
-    description:
-      name: dart_numerics
-      sha256: "47408d4890551636204851325e5649bf1a1616ebc325184c36722a1716cbaba4"
-      url: "https://pub.dev"
-    source: hosted
-    version: "0.0.6"
   dart_style:
     dependency: transitive
     description:
@@ -679,7 +662,7 @@ packages:
     source: hosted
     version: "3.0.3"
   flutter_secure_storage_platform_interface:
-    dependency: transitive
+    dependency: "direct dev"
     description:
       name: flutter_secure_storage_platform_interface
       sha256: "64951127f001f546891c86f414972bf49ef2c4c8a4c92c65f5790cc0c9100045"
@@ -801,7 +784,7 @@ packages:
     source: hosted
     version: "0.15.7"
   http:
-    dependency: "direct main"
+    dependency: transitive
     description:
       name: http
       sha256: "87721a4a50b19c7f1d49001e51409bddc46303966ce89a65af4f4e6004896412"

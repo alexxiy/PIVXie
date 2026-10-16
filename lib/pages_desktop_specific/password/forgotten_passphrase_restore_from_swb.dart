@@ -170,13 +170,6 @@ class _ForgottenPassphraseRestoreFromSWBState
           );
         },
       );
-      // await Navigator.of(context).push(
-      //   RouteGenerator.getRoute(
-      //     builder: (_) => StackRestoreProgressView(
-      //       jsonString: jsonString,
-      //     ),
-      //   ),
-      // );
     }
   }
 

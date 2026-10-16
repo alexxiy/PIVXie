@@ -33,10 +33,7 @@ void main() {
       name: name,
       id: id,
       useSSL: true,
-      enabled: true,
       coinName: 'PIVX',
-      isFailover: false,
-      isDown: false,
       torEnabled: true,
       clearnetEnabled: true,
       isPrimary: true,
@@ -197,7 +194,6 @@ void main() {
       name: 'Some other node name',
     );
     final platformOverrides = await createPlatformTestOverrides(
-      secureStorageEntries: {'node id_nodePW': 'fake-node-password'},
       connectionResult: true,
     );
 
@@ -229,12 +225,8 @@ void main() {
     await tester.tap(find.widgetWithText(TextButton, 'Connect'));
     await tester.pumpAndSettle();
 
-    expect(platformOverrides.secureStorage.reads, 1);
+    expect(platformOverrides.secureStorage.reads, 0);
     expect(platformOverrides.connectionInvocations, hasLength(1));
-    expect(
-      platformOverrides.connectionInvocations.single.password,
-      'fake-node-password',
-    );
     expect(platformOverrides.connectionInvocations.single.host, '127.0.0.1');
 
     verify(
@@ -246,51 +238,47 @@ void main() {
     ).called(1);
   });
 
-  testWidgets(
-    'Connect failure stays inside fake seam with missing stored password',
-    (tester) async {
-      final mockWallets = MockWallets();
-      final mockPrefs = MockPrefs();
-      final mockNodeService = MockNodeService();
-      final node = buildNode(id: 'node id', name: 'Stack Default');
-      final otherPrimary = buildNode(
-        id: 'some node id',
-        name: 'Some other node name',
-      );
-      final platformOverrides = await createPlatformTestOverrides(
-        connectionResult: false,
-      );
+  testWidgets('Connect failure stays inside fake seam', (tester) async {
+    final mockWallets = MockWallets();
+    final mockPrefs = MockPrefs();
+    final mockNodeService = MockNodeService();
+    final node = buildNode(id: 'node id', name: 'Stack Default');
+    final otherPrimary = buildNode(
+      id: 'some node id',
+      name: 'Some other node name',
+    );
+    final platformOverrides = await createPlatformTestOverrides(
+      connectionResult: false,
+    );
 
-      stubCommonProviders(
-        wallets: mockWallets,
-        prefs: mockPrefs,
-        nodeService: mockNodeService,
-        node: node,
-        primaryNode: otherPrimary,
-      );
+    stubCommonProviders(
+      wallets: mockWallets,
+      prefs: mockPrefs,
+      nodeService: mockNodeService,
+      node: node,
+      primaryNode: otherPrimary,
+    );
 
-      await pumpSubject(
-        tester,
-        wallets: mockWallets,
-        prefs: mockPrefs,
-        nodeService: mockNodeService,
-        extraOverrides: platformOverrides.overrides,
-      );
+    await pumpSubject(
+      tester,
+      wallets: mockWallets,
+      prefs: mockPrefs,
+      nodeService: mockNodeService,
+      extraOverrides: platformOverrides.overrides,
+    );
 
-      await tester.tap(find.widgetWithText(TextButton, 'Connect'));
-      await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(TextButton, 'Connect'));
+    await tester.pumpAndSettle();
 
-      expect(platformOverrides.secureStorage.reads, 1);
-      expect(platformOverrides.connectionInvocations, hasLength(1));
-      expect(platformOverrides.connectionInvocations.single.password, isNull);
+    expect(platformOverrides.secureStorage.reads, 0);
+    expect(platformOverrides.connectionInvocations, hasLength(1));
 
-      verifyNever(
-        mockNodeService.setPrimaryNodeFor(
-          coin: pivx,
-          node: anyNamed('node'),
-          shouldNotifyListeners: anyNamed('shouldNotifyListeners'),
-        ),
-      );
-    },
-  );
+    verifyNever(
+      mockNodeService.setPrimaryNodeFor(
+        coin: pivx,
+        node: anyNamed('node'),
+        shouldNotifyListeners: anyNamed('shouldNotifyListeners'),
+      ),
+    );
+  });
 }

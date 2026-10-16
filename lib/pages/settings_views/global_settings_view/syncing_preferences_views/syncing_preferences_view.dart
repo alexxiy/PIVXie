@@ -18,7 +18,6 @@ import '../../../../utilities/enums/sync_type_enum.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
-import '../../../../widgets/custom_buttons/draggable_switch_button.dart';
 import '../../../../widgets/rounded_white_container.dart';
 import 'syncing_options_view.dart';
 
@@ -120,61 +119,6 @@ class SyncingPreferencesView extends ConsumerWidget {
                                   ],
                                 ),
                               ),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          RoundedWhiteContainer(
-                            child: Consumer(
-                              builder: (_, ref, __) {
-                                return RawMaterialButton(
-                                  // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
-                                  materialTapTargetSize:
-                                      MaterialTapTargetSize.shrinkWrap,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(
-                                      Constants.size.circularBorderRadius,
-                                    ),
-                                  ),
-                                  onPressed: null,
-                                  child: Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 8,
-                                    ),
-                                    child: Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          "AutoSync only on Wi-Fi",
-                                          style: STextStyles.titleBold12(
-                                            context,
-                                          ),
-                                          textAlign: TextAlign.left,
-                                        ),
-                                        SizedBox(
-                                          height: 20,
-                                          width: 40,
-                                          child: DraggableSwitchButton(
-                                            isOn: ref.watch(
-                                              prefsChangeNotifierProvider
-                                                  .select(
-                                                    (value) => value.wifiOnly,
-                                                  ),
-                                            ),
-                                            onValueChanged: (newValue) {
-                                              ref
-                                                  .read(
-                                                    prefsChangeNotifierProvider,
-                                                  )
-                                                  .wifiOnly = newValue;
-                                            },
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              },
                             ),
                           ),
                         ],

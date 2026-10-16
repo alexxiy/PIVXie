@@ -110,23 +110,12 @@ class MockNodeService extends _i1.Mock implements _i3.NodeService {
           as _i4.NodeModel?);
 
   @override
-  List<_i4.NodeModel> failoverNodesFor({
-    required _i6.CryptoCurrency? currency,
-  }) => (super.noSuchMethod(
-    Invocation.method(#failoverNodesFor, [], {#currency: currency}),
-    returnValue: <_i4.NodeModel>[],
-  ) as List<_i4.NodeModel>);
-
-  @override
-  _i5.Future<void> save(
-    _i4.NodeModel? node,
-    String? password,
-    bool? shouldNotifyListeners,
-  ) => (super.noSuchMethod(
-    Invocation.method(#save, [node, password, shouldNotifyListeners]),
-    returnValue: _i5.Future<void>.value(),
-    returnValueForMissingStub: _i5.Future<void>.value(),
-  ) as _i5.Future<void>);
+  _i5.Future<void> save(_i4.NodeModel? node, bool? shouldNotifyListeners) =>
+      (super.noSuchMethod(
+        Invocation.method(#save, [node, shouldNotifyListeners]),
+        returnValue: _i5.Future<void>.value(),
+        returnValueForMissingStub: _i5.Future<void>.value(),
+      ) as _i5.Future<void>);
 
   @override
   _i5.Future<void> delete(String? id, bool? shouldNotifyListeners) =>
@@ -135,17 +124,6 @@ class MockNodeService extends _i1.Mock implements _i3.NodeService {
         returnValue: _i5.Future<void>.value(),
         returnValueForMissingStub: _i5.Future<void>.value(),
       ) as _i5.Future<void>);
-
-  @override
-  _i5.Future<void> setEnabledState(
-    String? id,
-    bool? enabled,
-    bool? shouldNotifyListeners,
-  ) => (super.noSuchMethod(
-    Invocation.method(#setEnabledState, [id, enabled, shouldNotifyListeners]),
-    returnValue: _i5.Future<void>.value(),
-    returnValueForMissingStub: _i5.Future<void>.value(),
-  ) as _i5.Future<void>);
 
   @override
   void addListener(_i7.VoidCallback? listener) => super.noSuchMethod(

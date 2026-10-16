@@ -60,28 +60,11 @@ class _DesktopAddressListState extends ConsumerState<DesktopAddressList> {
             (q) => q
                 .subTypeEqualTo(AddressSubType.change)
                 .or()
-                .subTypeEqualTo(AddressSubType.receiving)
-                .or()
-                .subTypeEqualTo(AddressSubType.paynymReceive)
-                .or()
-                .subTypeEqualTo(AddressSubType.paynymNotification),
+                .subTypeEqualTo(AddressSubType.receiving),
           )
           .and()
           .not()
           .typeEqualTo(AddressType.nonWallet)
-          .and()
-          .group(
-            (q) => q
-                .group(
-                  (q2) => q2
-                      .typeEqualTo(AddressType.frostMS)
-                      .and()
-                      .zSafeFrostEqualTo(true),
-                )
-                .or()
-                .not()
-                .typeEqualTo(AddressType.frostMS),
-          )
           .sortByDerivationIndex()
           .idProperty()
           .findAllSync();
@@ -122,28 +105,11 @@ class _DesktopAddressListState extends ConsumerState<DesktopAddressList> {
           (q) => q
               .subTypeEqualTo(AddressSubType.change)
               .or()
-              .subTypeEqualTo(AddressSubType.receiving)
-              .or()
-              .subTypeEqualTo(AddressSubType.paynymReceive)
-              .or()
-              .subTypeEqualTo(AddressSubType.paynymNotification),
+              .subTypeEqualTo(AddressSubType.receiving),
         )
         .and()
         .not()
         .typeEqualTo(AddressType.nonWallet)
-        .and()
-        .group(
-          (q) => q
-              .group(
-                (q2) => q2
-                    .typeEqualTo(AddressType.frostMS)
-                    .and()
-                    .zSafeFrostEqualTo(true),
-              )
-              .or()
-              .not()
-              .typeEqualTo(AddressType.frostMS),
-        )
         .sortByDerivationIndex()
         .idProperty()
         .findAllSync();

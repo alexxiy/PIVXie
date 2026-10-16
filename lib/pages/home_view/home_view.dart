@@ -19,7 +19,6 @@ import '../../app_config.dart';
 import '../../providers/global/prefs_provider.dart';
 import '../../providers/ui/home_view_index_provider.dart';
 import '../../route_generator.dart';
-import '../../services/event_bus/events/global/tor_connection_status_changed_event.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/idle_monitor.dart';
@@ -61,8 +60,6 @@ class _HomeViewState extends ConsumerState<HomeView> {
   DateTime? _cachedTime;
 
   bool _exitEnabled = false;
-
-  late TorConnectionStatus _currentSyncStatus;
 
   IdleMonitor? _idleMonitor;
 
@@ -130,7 +127,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
   }
 
   Future<bool> _onWillPop() async {
-    // go to home view when tapping back on the main exchange view
+    // Back from another tab returns to the wallets first.
     if (ref.read(homeViewPageIndexStateProvider) != 0) {
       ref.read(homeViewPageIndexStateProvider.notifier).state = 0;
       return false;
@@ -168,16 +165,6 @@ class _HomeViewState extends ConsumerState<HomeView> {
     _exitEnabled = false;
     return exit;
   }
-
-  // void _loadSimplexData() {
-  //   // unawaited future
-  //   if (ref.read(prefsChangeNotifierProvider).externalCalls) {
-  //     _buyDataLoadingService.loadAll(ref);
-  //   } else {
-  //     Logging.instance.log("User does not want to use external calls",
-  //         level: LogLevel.Info);
-  //   }
-  // }
 
   bool _lock = false;
 
@@ -238,10 +225,6 @@ class _HomeViewState extends ConsumerState<HomeView> {
     _pageController = PageController();
     _rotateIconController = RotateIconController();
     _children = [const WalletsView()];
-
-    // WidgetsBinding.instance.addPostFrameCallback((timeStamp) {
-    //   showOneTimeTorHasBeenAddedDialogIfRequired(context);
-    // });
 
     _idleMonitor?.attach();
 
@@ -356,8 +339,6 @@ class _HomeViewState extends ConsumerState<HomeView> {
                       height: 20,
                     ),
                     onPressed: () {
-                      //todo: check if print needed
-                      // debugPrint("main view settings tapped");
                       Navigator.of(context)
                           .pushNamed(GlobalSettingsView.routeName);
                     },
@@ -377,13 +358,6 @@ class _HomeViewState extends ConsumerState<HomeView> {
                         next,
                       ) {
                         if (next >= 0 && next < _children.length) {
-                          // if (next == 1) {
-                          //   _exchangeDataLoadingService.loadAll(ref);
-                          // }
-                          // if (next == 2) {
-                          //   _buyDataLoadingService.loadAll(ref);
-                          // }
-
                           _lock = true;
                           _animateToPage(next).then((value) => _lock = false);
                         }

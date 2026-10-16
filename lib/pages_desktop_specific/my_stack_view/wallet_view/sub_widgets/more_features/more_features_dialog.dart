@@ -9,11 +9,9 @@
  */
 
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../../../providers/providers.dart';
 import '../../../../../themes/stack_colors.dart';
@@ -253,11 +251,9 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
 
 class _MoreFeaturesItem extends StatefulWidget {
   const _MoreFeaturesItem({
-    super.key,
     required this.label,
     required this.detail,
     required this.icon,
-    this.isSvgFile = false,
     this.onPressed,
   });
 
@@ -267,9 +263,8 @@ class _MoreFeaturesItem extends StatefulWidget {
   final String label;
   final String detail;
 
-  /// SVG path (asset, or file with [isSvgFile]) or [IconData].
+  /// SVG asset path or [IconData].
   final Object icon;
-  final bool isSvgFile;
   final Future<void> Function()? onPressed;
 
   @override
@@ -302,22 +297,11 @@ class _MoreFeaturesItemState extends State<_MoreFeaturesItem> {
             height: _MoreFeaturesItem.iconSizeBG,
             radiusMultiplier: _MoreFeaturesItem.iconSizeBG,
             child: Center(
-              child: widget.isSvgFile
-                  ? SvgPicture.file(
-                      File(widget.icon as String),
-                      width: _MoreFeaturesItem.iconSize,
-                      height: _MoreFeaturesItem.iconSize,
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .settingsIconIcon,
-                    )
-                  : walletFeatureIcon(
-                      widget.icon,
-                      _MoreFeaturesItem.iconSize,
-                      Theme.of(context)
-                          .extension<StackColors>()!
-                          .settingsIconIcon,
-                    ),
+              child: walletFeatureIcon(
+                widget.icon,
+                _MoreFeaturesItem.iconSize,
+                Theme.of(context).extension<StackColors>()!.settingsIconIcon,
+              ),
             ),
           ),
           const SizedBox(width: 16),
@@ -338,7 +322,7 @@ class _MoreFeaturesItemState extends State<_MoreFeaturesItem> {
 }
 
 class _MoreFeaturesItemBase extends StatelessWidget {
-  const _MoreFeaturesItemBase({super.key, required this.child, this.onPressed});
+  const _MoreFeaturesItemBase({required this.child, this.onPressed});
 
   final Widget child;
   final VoidCallback? onPressed;

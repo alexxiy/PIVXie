@@ -25,15 +25,11 @@ import '../models/tx_data.dart';
 import 'impl/pivx_wallet.dart';
 import 'wallet_mixin_interfaces/mnemonic_interface.dart';
 import 'wallet_mixin_interfaces/multi_address_interface.dart';
-import 'wallet_mixin_interfaces/private_key_interface.dart';
 import 'wallet_mixin_interfaces/view_only_option_interface.dart';
 
 abstract class Wallet<T extends CryptoCurrency> {
   // default to Transaction class. For TransactionV2 set to 2
   int get isarTransactionVersion => 1;
-
-  // whether the wallet currently supports multiple recipients per tx
-  bool get supportsMultiRecipient => false;
 
   Wallet(this.cryptoCurrency);
 
@@ -78,12 +74,6 @@ abstract class Wallet<T extends CryptoCurrency> {
 
   bool _isConnected = false;
 
-  void xmrAndWowSyncSpecificFunctionThatShouldBeGottenRidOfInTheFuture(
-    bool flag,
-  ) {
-    _isConnected = flag;
-  }
-
   //============================================================================
   // ========== Wallet Info Convenience Getters ================================
 
@@ -117,7 +107,6 @@ abstract class Wallet<T extends CryptoCurrency> {
     required Prefs prefs,
     String? mnemonic,
     String? mnemonicPassphrase,
-    String? privateKey,
     ViewOnlyWalletData? viewOnlyData,
   }) async {
     // TODO: rework soon?
@@ -146,13 +135,6 @@ abstract class Wallet<T extends CryptoCurrency> {
       await secureStorageInterface.write(
         key: mnemonicPassphraseKey(walletId: walletInfo.walletId),
         value: mnemonicPassphrase!,
-      );
-    }
-
-    if (wallet is PrivateKeyInterface) {
-      await secureStorageInterface.write(
-        key: privateKeyKey(walletId: walletInfo.walletId),
-        value: privateKey!,
       );
     }
 
@@ -211,8 +193,6 @@ abstract class Wallet<T extends CryptoCurrency> {
       "${walletId}_mnemonicPassphrase";
 
   // secure storage key
-  static String privateKeyKey({required String walletId}) =>
-      "${walletId}_privateKey";
 
   // secure storage key
   static String getViewOnlyWalletDataSecStoreKey({required String walletId}) =>
@@ -436,11 +416,6 @@ abstract class Wallet<T extends CryptoCurrency> {
     );
   }
 
-  /// A wallet that reports its own progress through the history step (the
-  /// long one, e.g. a shield scan) with [reportSyncProgress] instead of the
-  /// fixed steps.
-  bool get reportsSyncProgress => false;
-
   /// Progress (0..1) of [updateTransactions] / [updateUTXOs] during a
   /// refresh: 30 % to 80 % of the whole.
   @protected
@@ -498,18 +473,10 @@ abstract class Wallet<T extends CryptoCurrency> {
         }
       }
       _fireRefreshPercentChange(0.3);
-      final fetchFuture = updateTransactions();
-      if (!reportsSyncProgress) _fireRefreshPercentChange(0.6);
-      final utxosRefreshFuture = updateUTXOs();
-      if (!reportsSyncProgress) _fireRefreshPercentChange(0.65);
-      // Wait for both: awaiting one at a time left the other's error
-      // unhandled when the first failed.
-      await Future.wait([utxosRefreshFuture, fetchFuture]);
-      if (!reportsSyncProgress) _fireRefreshPercentChange(0.70);
-
-      _fireRefreshPercentChange(0.80);
-
-      // await getAllTxsToWatch();
+      // Both report their progress with [reportSyncProgress]. Waiting for
+      // both: awaiting one at a time left the other's error unhandled when
+      // the first failed.
+      await Future.wait([updateTransactions(), updateUTXOs()]);
 
       _fireRefreshPercentChange(0.90);
 

@@ -18,7 +18,6 @@ import 'package:tuple/tuple.dart';
 import '../pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import '../pages/settings_views/global_settings_view/manage_nodes_views/node_details_view.dart';
 import '../providers/global/active_wallet_provider.dart';
-import '../providers/global/secure_store_provider.dart';
 import '../providers/providers.dart';
 import '../themes/stack_colors.dart';
 import '../utilities/assets.dart';
@@ -243,20 +242,7 @@ class NodeOptionsSheet extends ConsumerWidget {
                         onPressed: status == "Connected"
                             ? null
                             : () async {
-                                final pw = await node.getPassword(
-                                  ref.read(secureStoreProvider),
-                                );
                                 if (context.mounted) {
-                                  final TorPlainNetworkOption netOption;
-                                  if (node.torEnabled &&
-                                      !node.clearnetEnabled) {
-                                    netOption = TorPlainNetworkOption.tor;
-                                  } else if (node.clearnetEnabled &&
-                                      !node.torEnabled) {
-                                    netOption = TorPlainNetworkOption.clear;
-                                  } else {
-                                    netOption = TorPlainNetworkOption.both;
-                                  }
                                   final canConnect =
                                       await ref.read(
                                         testNodeConnectionProvider,
@@ -265,13 +251,13 @@ class NodeOptionsSheet extends ConsumerWidget {
                                         nodeFormData: NodeFormData()
                                           ..name = node.name
                                           ..host = node.host
-                                          ..login = node.loginName
-                                          ..password = pw
                                           ..port = node.port
                                           ..useSSL = node.useSSL
-                                          ..isFailover = node.isFailover
-                                          ..netOption = netOption
-                                          ..trusted = node.trusted,
+                                          ..netOption =
+                                              TorPlainNetworkOption.fromNodeData(
+                                                node.torEnabled,
+                                                node.clearnetEnabled,
+                                              ),
                                         cryptoCurrency: coin,
                                       );
                                   if (!canConnect) {

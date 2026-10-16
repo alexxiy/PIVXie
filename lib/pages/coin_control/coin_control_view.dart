@@ -268,12 +268,6 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
 
-    final minConfirms = ref
-        .watch(pWallets)
-        .getWallet(widget.walletId)
-        .cryptoCurrency
-        .minConfirms;
-
     final coin = ref.watch(pWalletCoin(widget.walletId));
     final currentHeight = ref.watch(pWalletChainHeight(widget.walletId));
 

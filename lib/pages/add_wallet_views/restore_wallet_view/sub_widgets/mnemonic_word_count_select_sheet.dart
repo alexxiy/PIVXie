@@ -61,9 +61,6 @@ class MnemonicWordCountSelectSheet extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 36),
-                // Expanded(
-                //   child: SingleChildScrollView(
-                //     child:
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -98,9 +95,6 @@ class MnemonicWordCountSelectSheet extends ConsumerWidget {
                               child: Row(
                                 crossAxisAlignment: CrossAxisAlignment.center,
                                 children: [
-                                  // Column(
-                                  //   mainAxisAlignment: MainAxisAlignment.start,
-                                  //   children: [
                                   SizedBox(
                                     width: 20,
                                     height: 20,
@@ -124,8 +118,6 @@ class MnemonicWordCountSelectSheet extends ConsumerWidget {
                                       },
                                     ),
                                   ),
-                                  //   ],
-                                  // ),
                                   const SizedBox(width: 12),
                                   Text(
                                     "${lengthOptions[i]} words",
@@ -142,8 +134,6 @@ class MnemonicWordCountSelectSheet extends ConsumerWidget {
                     const SizedBox(height: 8),
                   ],
                 ),
-                // ),
-                // )
               ],
             ),
           ),

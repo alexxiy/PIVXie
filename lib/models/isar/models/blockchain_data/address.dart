@@ -8,18 +8,12 @@
  *
  */
 
-import 'dart:convert';
-
 import 'package:isar_community/isar.dart';
-
-import '../../../../exceptions/address/address_exception.dart';
-import 'crypto_currency_address.dart';
-import 'transaction.dart';
 
 part 'address.g.dart';
 
 @Collection(accessor: "addresses")
-class Address extends CryptoCurrencyAddress {
+class Address {
   Address({
     required this.walletId,
     required this.value,
@@ -28,7 +22,6 @@ class Address extends CryptoCurrencyAddress {
     required this.derivationPath,
     required this.type,
     required this.subType,
-    this.zSafeFrost,
     this.otherData,
   });
 
@@ -55,27 +48,6 @@ class Address extends CryptoCurrencyAddress {
 
   late final String? otherData;
 
-  final transactions = IsarLinks<Transaction>();
-
-  late final bool? zSafeFrost;
-
-  int derivationChain() {
-    if (subType == AddressSubType.receiving) {
-      return 0; // 0 for receiving (external)
-    } else if (subType == AddressSubType.change) {
-      return 1; // 1 for change (internal)
-    } else {
-      throw AddressException("Could not imply derivation chain value");
-    }
-  }
-
-  bool isPaynymAddress() =>
-      subType == AddressSubType.paynymNotification ||
-      subType == AddressSubType.paynymSend ||
-      subType == AddressSubType.paynymReceive;
-
-  /// If called on an [Address] already stored in the DB be sure to update the
-  /// [transactions] Isar Links if required
   Address copyWith({
     String? walletId,
     String? value,
@@ -84,7 +56,6 @@ class Address extends CryptoCurrencyAddress {
     AddressType? type,
     AddressSubType? subType,
     DerivationPath? derivationPath,
-    bool? zSafeFrost,
     String? otherData,
   }) {
     return Address(
@@ -95,7 +66,6 @@ class Address extends CryptoCurrencyAddress {
       type: type ?? this.type,
       subType: subType ?? this.subType,
       derivationPath: derivationPath ?? this.derivationPath,
-      zSafeFrost: zSafeFrost ?? this.zSafeFrost,
       otherData: otherData ?? this.otherData,
     );
   }
@@ -110,52 +80,13 @@ class Address extends CryptoCurrencyAddress {
       "derivationIndex: $derivationIndex, "
       "type: ${type.name}, "
       "subType: ${subType.name}, "
-      "transactionsLength: ${transactions.length} "
       "derivationPath: $derivationPath, "
-      "zSafeFrost: $zSafeFrost, "
       "otherData: $otherData, "
       "}";
-
-  String toJsonString() {
-    final Map<String, dynamic> result = {
-      "walletId": walletId,
-      "value": value,
-      "publicKey": publicKey,
-      "derivationIndex": derivationIndex,
-      "type": type.name,
-      "subType": subType.name,
-      "derivationPath": derivationPath?.value,
-      "zSafeFrost": zSafeFrost,
-      "otherData": otherData,
-    };
-    return jsonEncode(result);
-  }
-
-  static Address fromJsonString(String jsonString, {String? overrideWalletId}) {
-    final json = jsonDecode(jsonString);
-    final derivationPathString = json["derivationPath"] as String?;
-
-    final DerivationPath? derivationPath =
-        derivationPathString == null ? null : DerivationPath();
-    if (derivationPath != null) {
-      derivationPath.value = derivationPathString!;
-    }
-
-    return Address(
-      walletId: overrideWalletId ?? json["walletId"] as String,
-      value: json["value"] as String,
-      publicKey: List<int>.from(json["publicKey"] as List),
-      derivationIndex: json["derivationIndex"] as int,
-      derivationPath: derivationPath,
-      type: AddressType.values.byName(json["type"] as String),
-      subType: AddressSubType.values.byName(json["subType"] as String),
-      zSafeFrost: json["zSafeFrost"] as bool?,
-      otherData: json["otherData"] as String?,
-    );
-  }
 }
 
-// do not modify unless you know what the consequences are
+// Stored by index: the values of other coins only keep the indexes of the
+// ones PIVXie uses. Append new values, never insert or remove.
 enum AddressType {
   p2pkh,
   p2sh,
@@ -179,55 +110,15 @@ enum AddressType {
   mweb,
   pivxShield;
 
-  String get readableName {
-    switch (this) {
-      case AddressType.p2pkh:
-        return "P2PKH";
-      case AddressType.p2sh:
-        return "Wrapped segwit";
-      case AddressType.p2wpkh:
-        return "P2WPKH (segwit)";
-      case AddressType.cryptonote:
-        return "Cryptonote";
-      case AddressType.mimbleWimble:
-        return "Mimble Wimble";
-      case AddressType.unknown:
-        return "Unknown";
-      case AddressType.nonWallet:
-        return "Non wallet/unknown";
-      case AddressType.ethereum:
-        return "Ethereum";
-      case AddressType.nano:
-        return "Nano";
-      case AddressType.banano:
-        return "Banano";
-      case AddressType.spark:
-        return "Spark";
-      case AddressType.stellar:
-        return "Stellar";
-      case AddressType.tezos:
-        return "Tezos";
-      case AddressType.frostMS:
-        return "FrostMS";
-      case AddressType.solana:
-        return "Solana";
-      case AddressType.p2tr:
-        return "P2TR (taproot)";
-      case AddressType.cardanoShelley:
-        return "Cardano Shelley";
-      case AddressType.xelis:
-        return "Xelis";
-      case AddressType.fact0rn:
-        return "FACT0RN";
-      case AddressType.mweb:
-        return "MWEB";
-      case AddressType.pivxShield:
-        return "Shield";
-    }
-  }
+  String get readableName => switch (this) {
+    AddressType.p2pkh => "P2PKH",
+    AddressType.pivxShield => "Shield",
+    AddressType.nonWallet => "Non wallet/unknown",
+    _ => "Unknown",
+  };
 }
 
-// do not modify
+// Stored by index, like [AddressType].
 enum AddressSubType {
   receiving,
   change,
@@ -237,33 +128,17 @@ enum AddressSubType {
   unknown,
   nonWallet;
 
-  String get prettyName {
-    switch (this) {
-      case AddressSubType.receiving:
-        return "Receiving";
-      case AddressSubType.change:
-        return "Change";
-      case AddressSubType.paynymNotification:
-        return "PayNym Notification";
-      case AddressSubType.paynymSend:
-        return "PayNym Send";
-      case AddressSubType.paynymReceive:
-        return "PayNym Receiving";
-      case AddressSubType.unknown:
-        return "Unknown";
-      case AddressSubType.nonWallet:
-        return "Non wallet/unknown";
-    }
-  }
+  String get prettyName => switch (this) {
+    AddressSubType.receiving => "Receiving",
+    AddressSubType.change => "Change",
+    AddressSubType.nonWallet => "Non wallet/unknown",
+    _ => "Unknown",
+  };
 }
 
 @Embedded(inheritance: false)
 class DerivationPath {
   late final String value;
-
-  List<String> getComponents() => value.split("/");
-
-  String getPurpose() => getComponents()[1];
 
   @override
   toString() => value;

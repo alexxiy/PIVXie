@@ -113,7 +113,6 @@ import 'pages/wallets_view/wallets_view.dart';
 import 'pages_desktop_specific/address_book_view/desktop_address_book.dart';
 import 'pages_desktop_specific/addresses/desktop_wallet_addresses_view.dart';
 import 'pages_desktop_specific/coin_control/desktop_coin_control_view.dart';
-// import 'package:stackwallet/pages_desktop_specific/desktop_exchange/desktop_all_buys_view.dart';
 import 'pages_desktop_specific/desktop_home_view.dart';
 import 'pages_desktop_specific/my_stack_view/my_stack_view.dart';
 import 'pages_desktop_specific/my_stack_view/wallet_view/desktop_wallet_view.dart';
@@ -1050,8 +1049,6 @@ class RouteGenerator {
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
-      // exchange steps
-
       case PivxColdStakingView.routeName:
         if (args is String) {
           return getRoute(
@@ -1385,15 +1382,6 @@ class RouteGenerator {
             UnlockWalletKeysDesktop(walletId: args),
             RouteSettings(name: settings.name),
           );
-          // return getRoute(
-          //   shouldUseMaterialRoute: useMaterialPageRoute,
-          //   builder: (_) => WalletKeysDesktopPopup(
-          //     words: args,
-          //   ),
-          //   settings: RouteSettings(
-          //     name: settings.name,
-          //   ),
-          // );
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
@@ -1403,15 +1391,6 @@ class RouteGenerator {
             DesktopDeleteWalletDialog(walletId: args),
             RouteSettings(name: settings.name),
           );
-          // return getRoute(
-          //   shouldUseMaterialRoute: useMaterialPageRoute,
-          //   builder: (_) => WalletKeysDesktopPopup(
-          //     words: args,
-          //   ),
-          //   settings: RouteSettings(
-          //     name: settings.name,
-          //   ),
-          // );
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
@@ -1421,15 +1400,6 @@ class RouteGenerator {
             DesktopAttentionDeleteWallet(walletId: args),
             RouteSettings(name: settings.name),
           );
-          // return getRoute(
-          //   shouldUseMaterialRoute: useMaterialPageRoute,
-          //   builder: (_) => WalletKeysDesktopPopup(
-          //     words: args,
-          //   ),
-          //   settings: RouteSettings(
-          //     name: settings.name,
-          //   ),
-          // );
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
@@ -1439,15 +1409,6 @@ class RouteGenerator {
             DeleteWalletKeysPopup(walletId: args.item1, words: args.item2),
             RouteSettings(name: settings.name),
           );
-          // return getRoute(
-          //   shouldUseMaterialRoute: useMaterialPageRoute,
-          //   builder: (_) => WalletKeysDesktopPopup(
-          //     words: args,
-          //   ),
-          //   settings: RouteSettings(
-          //     name: settings.name,
-          //   ),
-          // );
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
@@ -1457,15 +1418,6 @@ class RouteGenerator {
             QRCodeDesktopPopupContent(value: args),
             RouteSettings(name: settings.name),
           );
-          // return getRoute(
-          //   shouldUseMaterialRoute: useMaterialPageRoute,
-          //   builder: (_) => QRCodeDesktopPopupContent(
-          //     value: args,
-          //   ),
-          //   settings: RouteSettings(
-          //     name: settings.name,
-          //   ),
-          // );
         }
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 

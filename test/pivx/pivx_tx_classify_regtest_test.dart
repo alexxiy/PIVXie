@@ -19,7 +19,7 @@ import 'package:bip39/bip39.dart' as bip39;
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:flutter_libpivxshield/flutter_libpivxshield.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:paymint/models/isar/models/blockchain_data/transaction.dart';
+import 'package:paymint/models/isar/models/blockchain_data/transaction_type.dart';
 import 'package:paymint/models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'package:paymint/utilities/enums/derive_path_type_enum.dart';
 import 'package:paymint/utilities/extensions/extensions.dart';

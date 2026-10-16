@@ -158,11 +158,7 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
   }
 
   final Map<DesktopMenuItemId, Widget> contentViews = {
-    DesktopMenuItemId.myStack: Container(
-      // key: Key("desktopStackHomeKey"),
-      // onGenerateRoute: RouteGenerator.generateRoute,
-      // initialRoute: MyStackView.routeName,
-    ),
+    DesktopMenuItemId.myStack: Container(),
     DesktopMenuItemId.addressBook: const Navigator(
       key: Key("desktopAddressBookHomeKey"),
       onGenerateRoute: RouteGenerator.generateRoute,
@@ -244,10 +240,6 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
                 ],
               ),
             ),
-            // Expanded(
-            //   child: contentViews[
-            //       ref.watch(currentDesktopMenuItemProvider)]!,
-            // ),
           ],
         ),
       ),

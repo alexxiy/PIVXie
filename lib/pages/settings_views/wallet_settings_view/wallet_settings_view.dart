@@ -69,10 +69,8 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
   late final EventBus eventBus;
 
   late WalletSyncStatus _currentSyncStatus;
-  // late NodeConnectionStatus _currentNodeStatus;
 
   late StreamSubscription<dynamic> _syncStatusSubscription;
-  // late StreamSubscription _nodeStatusSubscription;
 
   late final VoidCallback _walletBackupPressed;
 
@@ -141,7 +139,6 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
     coin = widget.coin;
 
     _currentSyncStatus = widget.initialSyncStatus;
-    // _currentNodeStatus = widget.initialNodeStatus;
 
     eventBus = widget.eventBus != null
         ? widget.eventBus!
@@ -197,7 +194,6 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
 
   @override
   void dispose() {
-    // _nodeStatusSubscription.cancel();
     _syncStatusSubscription.cancel();
     super.dispose();
   }
@@ -274,17 +270,6 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
                 );
               },
             ),
-            // const SizedBox(
-            //   height: 8,
-            // ),
-            // SettingsListButton(
-            //   iconAssetName: Assets.svg.ellipsis,
-            //   title: "Debug Info",
-            //   onPressed: () {
-            //     Navigator.of(context)
-            //         .pushNamed(DebugView.routeName);
-            //   },
-            // ),
           ],
         ),
       ),
@@ -293,7 +278,7 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
 }
 
 class _WalletSettingsViewBody extends StatelessWidget {
-  const _WalletSettingsViewBody({super.key, required this.children});
+  const _WalletSettingsViewBody({required this.children});
 
   final List<Widget> children;
 

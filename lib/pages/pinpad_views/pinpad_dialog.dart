@@ -123,10 +123,6 @@ class _PinpadDialogState extends ConsumerState<PinpadDialog> {
       )) {
         unawaited(_onUnlock());
       }
-      // leave this commented to enable pin fall back should biometrics not work properly
-      // else {
-      //   Navigator.pop(context);
-      // }
     }
   }
 
@@ -190,7 +186,6 @@ class _PinpadDialogState extends ConsumerState<PinpadDialog> {
 
   @override
   dispose() {
-    // _shakeController.dispose();
     _pinTextController.removeListener(_onPinChangedAutologinCheck);
     super.dispose();
   }

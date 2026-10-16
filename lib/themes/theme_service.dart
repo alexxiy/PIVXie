@@ -19,7 +19,6 @@ import 'package:isar_community/isar.dart';
 import '../app_config.dart';
 import '../db/isar/main_db.dart';
 import '../models/isar/stack_theme.dart';
-import '../networking/http.dart';
 import '../utilities/logger.dart';
 import '../utilities/stack_file_system.dart';
 
@@ -33,13 +32,10 @@ class ThemeService {
   static ThemeService? _instance;
   static ThemeService get instance => _instance ??= ThemeService._();
 
-
   MainDB? _db;
   MainDB get db => _db!;
 
   void init(MainDB db) => _db ??= db;
-
-  HTTP client = HTTP();
 
   Future<void> install({required Uint8List themeArchiveData}) async {
     final themesDir = StackFileSystem.themesDir!;
@@ -84,29 +80,6 @@ class ThemeService {
     await db.isar.writeTxn(() async {
       await db.isar.stackThemes.put(theme);
     });
-  }
-
-  Future<void> remove({required String themeId}) async {
-    final themesDir = StackFileSystem.themesDir!;
-    final isarId = await db.isar.stackThemes
-        .where()
-        .themeIdEqualTo(themeId)
-        .idProperty()
-        .findFirst();
-    if (isarId != null) {
-      await db.isar.writeTxn(() async {
-        await db.isar.stackThemes.delete(isarId);
-      });
-      final dir = Directory("${themesDir.path}/$themeId");
-      if (dir.existsSync()) {
-        await dir.delete(recursive: true);
-      }
-    } else {
-      Logging.instance.w(
-        "Failed to delete theme $themeId",
-        stackTrace: StackTrace.current,
-      );
-    }
   }
 
   Future<void> checkDefaultThemesOnStartup() async {
@@ -178,7 +151,4 @@ class ThemeService {
 
   StackTheme? getTheme({required String themeId}) =>
       db.isar.stackThemes.where().themeIdEqualTo(themeId).findFirstSync();
-
-  List<StackTheme> get installedThemes =>
-      db.isar.stackThemes.where().findAllSync();
 }

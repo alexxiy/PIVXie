@@ -550,12 +550,6 @@ class _TransactionSearchViewState
                     ),
                   ),
                 ),
-                // // regex to validate a crypto amount with 8 decimal places
-                // TextInputFormatter.withFunction((oldValue, newValue) =>
-                //     RegExp(r'^([0-9]*[,.]?[0-9]{0,8}|[,.][0-9]{0,8})$')
-                //             .hasMatch(newValue.text)
-                //         ? newValue
-                //         : oldValue),
               ],
               style: isDesktop
                   ? STextStyles.desktopTextExtraSmall(context).copyWith(
@@ -694,33 +688,6 @@ class _TransactionSearchViewState
                 },
               ),
             ),
-            // Expanded(
-            //   child: SizedBox(
-            //     height: 48,
-            //     child: TextButton(
-            //       onPressed: () async {
-            //         if (FocusScope.of(context).hasFocus) {
-            //           FocusScope.of(context).unfocus();
-            //           await Future<void>.delayed(
-            //               const Duration(milliseconds: 75));
-            //         }
-            //         if (mounted) {
-            //           Navigator.of(context).pop();
-            //         }
-            //       },
-            //       style: Theme.of(context)
-            //           .extension<StackColors>()!
-            //           .getSecondaryEnabledButtonColor(context),
-            //       child: Text(
-            //         "Cancel",
-            //         style: STextStyles.button(context).copyWith(
-            //             color: Theme.of(context)
-            //                 .extension<StackColors>()!
-            //                 .accentColorDark),
-            //       ),
-            //     ),
-            //   ),
-            // ),
             const SizedBox(width: 16),
             Expanded(
               child: PrimaryButton(
@@ -731,23 +698,6 @@ class _TransactionSearchViewState
                 label: "Save",
               ),
             ),
-            // Expanded(
-            //   child: SizedBox(
-            //     height: 48,
-            //     child: TextButton(
-            //       style: Theme.of(context)
-            //           .extension<StackColors>()!
-            //           .getPrimaryEnabledButtonColor(context),
-            //       onPressed: () async {
-            //         await _onApplyPressed();
-            //       },
-            //       child: Text(
-            //         "Save",
-            //         style: STextStyles.button(context),
-            //       ),
-            //     ),
-            //   ),
-            // ),
             if (isDesktop) const SizedBox(width: 32),
           ],
         ),

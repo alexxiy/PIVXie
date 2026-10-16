@@ -413,59 +413,6 @@ const kNames = {
   "exuberant collar",
 };
 
-const k1 = [
-  "talented",
-  "honorable",
-  "rustic",
-  "tested",
-  "motionless",
-  "draconian",
-  "disturbed",
-  "whispering",
-  "mindless",
-  "bewildered",
-  "judicious",
-  "synonymous",
-  "meek",
-  "possible",
-  "imperfect",
-  "frantic",
-  "grouchy",
-  "zany",
-  "erratic",
-  "exuberant",
-];
-
-const k2 = [
-  "year",
-  "experience",
-  "notebook",
-  "class",
-  "shake",
-  "ray",
-  "ring",
-  "cat",
-  "van",
-  "twist",
-  "shade",
-  "trick",
-  "prose",
-  "spot",
-  "bat",
-  "oatmeal",
-  "suggestion",
-  "invention",
-  "letters",
-  "collar",
-];
-
-// void gen() {
-//   for (int i = 0; i < k1.length; i++) {
-//     for (int j = 0; j < k2.length; j++) {
-//       print("\"${k1[i]} ${k2[j]}\",");
-//     }
-//   }
-// }
 class NameGenerator {
   Set<String> usedNames = {};
   Set<String> availableNames = {...kNames};
