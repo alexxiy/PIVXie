@@ -1063,6 +1063,23 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     await updateBalance();
   }
 
+  /// The user's freezes, unfreezes and coin names, for a backup (see
+  /// [restoreUserCoinFlags]).
+  Future<List<Map<String, dynamic>>> userCoinFlags() async => [
+    for (final u in await mainDB.getUTXOs(walletId).findAll())
+      if (u.isBlocked || u.userUnfroze || u.name.isNotEmpty)
+        pivxCoinFlagsToJson(u),
+  ];
+
+  /// Put the coin flags of a backup ([userCoinFlags]) back on the coins
+  /// found again, e.g. once a restored wallet has synced.
+  Future<void> restoreUserCoinFlags(List<dynamic> flags) async {
+    final kept = pivxCoinFlagsFromJson(flags, walletId);
+    if (kept.isEmpty) return;
+    await _restoreUserCoinState(kept);
+    await updateBalance();
+  }
+
   Future<void> _restoreUserCoinState(Map<String, UTXO> kept) =>
       _utxoLock.protect(() async {
         final rows = <UTXO>[];
@@ -2078,6 +2095,43 @@ pivxUsedAddresses({
 
 /// `txid:vout`, as masternode ids are written.
 String pivxOutpointKey(String txid, int vout) => "$txid:$vout";
+
+/// A coin's flags the user set in coin control (frozen, unfrozen after
+/// the wallet froze it, its name), as kept in a backup.
+Map<String, dynamic> pivxCoinFlagsToJson(UTXO u) => {
+  "txid": u.txid,
+  "vout": u.vout,
+  "frozen": u.isBlocked,
+  if (u.blockedReason != null) "reason": u.blockedReason,
+  if (u.name.isNotEmpty) "name": u.name,
+};
+
+/// [pivxCoinFlagsToJson] read back, by outpoint, as the coin rows
+/// [PivxWallet]'s rescan keeps (only the flags are set). Entries that
+/// aren't readable are left out.
+Map<String, UTXO> pivxCoinFlagsFromJson(List<dynamic> json, String walletId) {
+  final result = <String, UTXO>{};
+  for (final e in json) {
+    if (e is! Map) continue;
+    final txid = e["txid"], vout = e["vout"];
+    if (txid is! String || vout is! int) continue;
+    final reason = e["reason"], name = e["name"];
+    result[pivxOutpointKey(txid, vout)] = UTXO(
+      walletId: walletId,
+      txid: txid,
+      vout: vout,
+      value: 0,
+      name: name is String ? name : "",
+      isBlocked: e["frozen"] == true,
+      blockedReason: reason is String ? reason : null,
+      isCoinbase: false,
+      blockHash: null,
+      blockHeight: null,
+      blockTime: null,
+    );
+  }
+  return result;
+}
 
 /// Transparent outputs a send may spend: confirmed, not already being
 /// spent, not frozen, no shield note rows. Delegated outputs only with

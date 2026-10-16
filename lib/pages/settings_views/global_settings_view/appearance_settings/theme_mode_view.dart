@@ -40,6 +40,19 @@ void setThemeMode(BuildContext context, WidgetRef ref, AppThemeMode mode) {
   if (theme != null) ref.read(themeProvider.notifier).state = theme;
 }
 
+/// Show the theme the preferences ask for, e.g. after restoring a backup
+/// changed them.
+void applyThemePrefs(BuildContext context, WidgetRef ref) {
+  final prefs = ref.read(prefsChangeNotifierProvider);
+  final themeId = !prefs.enableSystemBrightness
+      ? prefs.themeId
+      : MediaQuery.platformBrightnessOf(context) == Brightness.dark
+      ? prefs.systemBrightnessDarkThemeId
+      : prefs.systemBrightnessLightThemeId;
+  final theme = ref.read(pThemeService).getTheme(themeId: themeId);
+  if (theme != null) ref.read(themeProvider.notifier).state = theme;
+}
+
 /// Title and subtitle of each [AppThemeMode].
 const kThemeModeTexts = {
   AppThemeMode.system: (

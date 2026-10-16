@@ -35,6 +35,7 @@ import '../../../../../widgets/icon_widgets/addressbook_icon.dart';
 import '../../../../../widgets/loading_indicator.dart';
 import '../../../../../widgets/rounded_container.dart';
 import '../../../../home_view/home_view.dart';
+import '../../appearance_settings/theme_mode_view.dart';
 import '../dialogs/cancel_stack_restore_dialog.dart';
 import '../helpers/restore_create_backup.dart';
 import '../restore_from_encrypted_string_view.dart';
@@ -163,6 +164,9 @@ class _StackRestoreProgressViewState
       _restoreEnded = true;
       uiState.removeListener(onChange);
     }
+    // The backup's theme. A cancelled restore puts this device's settings
+    // back, and its theme never changed.
+    if (mounted && finished != false) applyThemePrefs(context, ref);
     Logging.instance.i("SWB restore ended: $finished, done: ${uiState.done}");
 
     // Every step has its result (all ticks, or some failed): the restore

@@ -34,6 +34,8 @@ import '../../../../../notifications/show_flush_bar.dart';
 import '../../../../../services/address_book_service.dart';
 import '../../../../../services/node_service.dart';
 import '../../../../../services/wallets.dart';
+import '../../../../../themes/theme_service.dart';
+import '../../../../../utilities/amount/amount_unit.dart';
 import '../../../../../utilities/enums/stack_restoring_status.dart';
 import '../../../../../utilities/enums/sync_type_enum.dart';
 import '../../../../../utilities/flutter_secure_storage_interface.dart';
@@ -257,6 +259,21 @@ abstract class SWB {
       prefs['autoBackupLocation'] = _prefs.autoBackupLocation;
       prefs['backupFrequencyType'] = _prefs.backupFrequencyType.toString();
       prefs['lastAutoBackup'] = _prefs.lastAutoBackup.toString();
+      prefs['enableCoinControl'] = _prefs.enableCoinControl;
+      prefs['amountUnits'] = {
+        for (final coin in AppConfig.coins)
+          coin.identifier: _prefs.amountUnit(coin).name,
+      };
+      prefs['maxDecimals'] = {
+        for (final coin in AppConfig.coins)
+          coin.identifier: _prefs.maxDecimals(coin),
+      };
+      prefs['themeId'] = _prefs.themeId;
+      prefs['enableSystemBrightness'] = _prefs.enableSystemBrightness;
+      prefs['systemBrightnessLightThemeId'] =
+          _prefs.systemBrightnessLightThemeId;
+      prefs['systemBrightnessDarkThemeId'] = _prefs.systemBrightnessDarkThemeId;
+      prefs['hideBlockExplorerWarning'] = _prefs.hideBlockExplorerWarning;
 
       backupJson['prefs'] = prefs;
 
@@ -276,6 +293,7 @@ abstract class SWB {
         backupWallet['name'] = wallet.info.name;
         backupWallet['id'] = wallet.walletId;
         backupWallet['isFavorite'] = wallet.info.isFavourite;
+        backupWallet['favouriteOrderIndex'] = wallet.info.favouriteOrderIndex;
         backupWallet['otherDataJsonString'] = wallet.info.otherDataJsonString;
 
         // Masternode private keys live in secure storage, not otherData.
@@ -286,6 +304,10 @@ abstract class SWB {
             if (key != null) keys[mn.id] = key;
           }
           if (keys.isNotEmpty) backupWallet['pivxMasternodeKeys'] = keys;
+
+          // Coin control: frozen, unfrozen and named coins.
+          final coinFlags = await wallet.userCoinFlags();
+          if (coinFlags.isNotEmpty) backupWallet['coinFlags'] = coinFlags;
         }
 
         if (wallet is ViewOnlyOptionInterface && wallet.isViewOnly) {
@@ -473,6 +495,11 @@ abstract class SWB {
 
       await restoringFuture;
 
+      // On the coins found by the restore (older backups have none).
+      if (wallet is PivxWallet && walletbackup['coinFlags'] is List) {
+        await wallet.restoreUserCoinFlags(walletbackup['coinFlags'] as List);
+      }
+
       final currentAddress = await wallet.getCurrentReceivingAddress();
 
       await wallet.exit();
@@ -638,6 +665,18 @@ abstract class SWB {
 
     final Map<String, WalletRestoreState> walletStates = {};
 
+    // Favourites restored come after this device's, in their order.
+    final favouriteOrder = swbFavouriteOrder(
+      wallets,
+      after:
+          await MainDB.instance.isar.walletInfo
+              .where()
+              .sortByFavouriteOrderIndexDesc()
+              .favouriteOrderIndexProperty()
+              .findFirst() ??
+          -1,
+    );
+
     for (final walletbackup in wallets) {
       // check if cancel was requested and restore previous state
       if (_checkShouldCancel(preRestoreState, secureStorageInterface)) {
@@ -679,6 +718,7 @@ abstract class SWB {
         restoreHeight: walletbackup['restoreHeight'] as int? ?? 0,
         otherDataJsonString: otherData == null ? null : jsonEncode(otherData),
         cachedChainHeight: walletbackup['storedChainHeight'] as int? ?? 0,
+        favouriteOrderIndex: favouriteOrder[walletbackup] ?? -1,
       );
 
       var node = nodeService.getPrimaryNodeFor(currency: coin);
@@ -896,6 +936,53 @@ abstract class SWB {
     // Auto backup stays as set up on this device: its folder and key are
     // local (the key isn't in the file), so turning it on from a backup
     // left it without a key.
+
+    // Older backups have none of these: this device's settings stay.
+    if (prefs['enableCoinControl'] is bool) {
+      _prefs.enableCoinControl = prefs['enableCoinControl'] as bool;
+    }
+    if (prefs['hideBlockExplorerWarning'] is bool) {
+      _prefs.hideBlockExplorerWarning =
+          prefs['hideBlockExplorerWarning'] as bool;
+    }
+    if (prefs['amountUnits'] is Map) {
+      final units = prefs['amountUnits'] as Map;
+      for (final coin in AppConfig.coins) {
+        final unit = AmountUnit.values.asNameMap()[units[coin.identifier]];
+        if (unit != null && AmountUnit.valuesForCoin(coin).contains(unit)) {
+          _prefs.updateAmountUnit(coin: coin, amountUnit: unit);
+        }
+      }
+    }
+    if (prefs['maxDecimals'] is Map) {
+      final decimals = prefs['maxDecimals'] as Map;
+      for (final coin in AppConfig.coins) {
+        final n = decimals[coin.identifier];
+        // Prefs' own upper bound.
+        if (n is int && n >= 0 && n <= 18) {
+          _prefs.updateMaxDecimals(coin: coin, maxDecimals: n);
+        }
+      }
+    }
+    // Only themes installed here (the app's own light and dark ones).
+    Future<String?> theme(String key) async {
+      final id = prefs[key];
+      return id is String &&
+              await ThemeService.instance.verifyInstalled(themeId: id)
+          ? id
+          : null;
+    }
+
+    if (await theme('themeId') case final id?) _prefs.themeId = id;
+    if (await theme('systemBrightnessLightThemeId') case final id?) {
+      _prefs.systemBrightnessLightThemeId = id;
+    }
+    if (await theme('systemBrightnessDarkThemeId') case final id?) {
+      _prefs.systemBrightnessDarkThemeId = id;
+    }
+    if (prefs['enableSystemBrightness'] is bool) {
+      _prefs.enableSystemBrightness = prefs['enableSystemBrightness'] as bool;
+    }
   }
 
   static Future<void> _restoreAddressBook(
@@ -962,3 +1049,28 @@ NodeModel _nodeFromBackup(Map<String, dynamic> node) => NodeModel(
   clearnetEnabled: node['clearEnabled'] as bool? ?? true,
   isPrimary: node['isPrimary'] as bool? ?? false,
 );
+
+/// Favourite order for the backed up [wallets] (their JSON maps) that are
+/// favourites: numbered from [after] + 1, in their order in the backup
+/// (older backups only say which are favourites: their order in the
+/// file). Wallets that aren't favourites aren't in the result.
+Map<Object, int> swbFavouriteOrder(
+  List<dynamic> wallets, {
+  required int after,
+}) {
+  final favourites = <({int position, int order, Object wallet})>[];
+  for (final (i, w) in wallets.indexed) {
+    if (w is! Map) continue;
+    final index = w['favouriteOrderIndex'];
+    if (index is int ? index < 0 : w['isFavorite'] != true) continue;
+    favourites.add((position: i, order: index is int ? index : i, wallet: w));
+  }
+  favourites.sort(
+    (a, b) => a.order != b.order
+        ? a.order.compareTo(b.order)
+        : a.position.compareTo(b.position),
+  );
+  return Map.identity()..addAll({
+    for (final (k, f) in favourites.indexed) f.wallet: after + 1 + k,
+  });
+}
