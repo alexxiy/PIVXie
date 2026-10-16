@@ -170,6 +170,19 @@ void main() {
         isEmpty,
       );
 
+      // A wallet with a thousand masternodes: too many ids for the
+      // request, the answer still holds only theirs.
+      final others = [
+        for (var i = 1; i < 1000; i++) "${"$i".padLeft(64, "0")}-0",
+      ];
+      final many = await bridge.budgetVotes(
+        name,
+        masternodeIds: [...others, mnId],
+      );
+      expect(many.single["mnId"], mnId);
+      expect(many.single["Vote"], "YES");
+      expect(await bridge.budgetVotes(name, masternodeIds: others), isEmpty);
+
       // A changed vote within the hour is refused (Core's
       // BUDGET_VOTE_UPDATE_MIN): the app checks this before voting.
       final again = await bridge.budgetRawVote(

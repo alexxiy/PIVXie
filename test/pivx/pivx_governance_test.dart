@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:paymint/pages/pivx_governance/pivx_governance_widgets.dart';
 import 'package:paymint/utilities/amount/amount.dart';
 import 'package:paymint/utilities/extensions/extensions.dart';
 import 'package:paymint/wallets/crypto_currency/crypto_currency.dart';
@@ -160,5 +161,55 @@ void main() {
       ),
       isNull,
     );
+  });
+
+  group("the wallet's masternodes on a proposal", () {
+    PivxMasternode mn(String label, int vout, {String? service}) =>
+        PivxMasternode(
+          label: label,
+          address: "yEmYNvwwNPqwcxEcj6uFf2dvdoKAyXsWLz",
+          txid: "ab" * 32,
+          vout: vout,
+          createdAt: 0,
+          service: service,
+        );
+
+    test("are searched by alias or server address", () {
+      final m = mn("MN-Frankfurt", 0, service: "[2a01:4f8::1]:51472");
+      expect(pivxMasternodeMatches(m, ""), isTrue);
+      expect(pivxMasternodeMatches(m, " frank "), isTrue);
+      expect(pivxMasternodeMatches(m, "2A01:4F8"), isTrue);
+      expect(pivxMasternodeMatches(m, "51472"), isTrue);
+      expect(pivxMasternodeMatches(m, "berlin"), isFalse);
+      // Not started yet: no server address.
+      expect(pivxMasternodeMatches(mn("MN2", 1), "127.0"), isFalse);
+    });
+
+    test("are listed latest vote first, then those without a vote", () {
+      final a = mn("A", 0);
+      final b = mn("B", 1);
+      final c = mn("C", 2);
+      final d = mn("D", 3);
+      final votes = {
+        b.id: PivxMasternodeVote(vote: PivxVote.yes, time: 100),
+        c.id: PivxMasternodeVote(vote: PivxVote.no, time: 200),
+        // Voted in the same second as B: the wallet's order.
+        d.id: PivxMasternodeVote(vote: PivxVote.yes, time: 100),
+      };
+      expect(
+        [
+          for (final m in pivxByLatestVote([d, a, b, c], votes)) m.label,
+        ],
+        ["C", "D", "B", "A"],
+      );
+    });
+
+    test("short lists show every vote, long ones two and Show all", () {
+      expect(
+        [for (var n = 0; n <= 5; n++) pivxVotesShownOf(n)],
+        [0, 1, 2, 3, 2, 2],
+      );
+      expect(pivxVotesShownOf(1000), 2);
+    });
   });
 }

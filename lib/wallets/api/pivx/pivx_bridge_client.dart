@@ -544,22 +544,32 @@ class PivxBridgeClient {
       ? jsonEncode(values)
       : values.join(",");
 
+  /// Most masternodes picked by the bridge's filter: each adds ~100
+  /// bytes to the query string, and a request line over 8 KB is refused
+  /// by reverse proxies such as nginx.
+  static const _kVoteFilterMax = 50;
+
   /// `getbudgetvotes` of the proposal [name], only the votes of
   /// [masternodeIds] (`txid-vout`).
   Future<List<Map<String, dynamic>>> budgetVotes(
     String name, {
     required Iterable<String> masternodeIds,
   }) async {
-    final ids = masternodeIds.toList();
+    final ids = masternodeIds.toSet();
     if (ids.isEmpty) return const [];
-    final match = ids.map((id) => ".mnId == ${jsonEncode(id)}").join(" or ");
     final json = await _getJson("/getbudgetvotes", {
       "params": _params([name]),
-      "filter": "[.[] | select($match)]",
+      // More masternodes: all the proposal's votes (one per masternode
+      // that voted), ours picked here.
+      if (ids.length <= _kVoteFilterMax)
+        "filter":
+            "[.[] | select("
+            "${ids.map((id) => ".mnId == ${jsonEncode(id)}").join(" or ")})]",
     });
     return [
       if (json is List)
-        for (final e in json) Map<String, dynamic>.from(e as Map),
+        for (final e in json)
+          if (ids.contains((e as Map)["mnId"])) Map<String, dynamic>.from(e),
     ];
   }
 

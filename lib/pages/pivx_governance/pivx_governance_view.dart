@@ -596,11 +596,14 @@ class _ProposalCard extends ConsumerWidget {
     final colors = Theme.of(context).extension<StackColors>()!;
     final fmt = ref.watch(pAmountFormatter(wallet.cryptoCurrency));
     final p = proposal;
-    final labels = {for (final m in wallet.masternodes) m.id: m.label};
-    final myVotes = [
-      for (final e in (votes ?? const {}).entries)
-        if (labels[e.key] != null) (label: labels[e.key]!, vote: e.value.vote),
+    final masternodes = wallet.masternodes;
+    final myVotes = votes ?? const <String, PivxMasternodeVote>{};
+    // Latest first: a few of them, the rest behind "Show all".
+    final voted = [
+      for (final m in pivxByLatestVote(masternodes, myVotes))
+        if (myVotes[m.id] != null) m,
     ];
+    final votesShown = pivxVotesShownOf(voted.length);
     final startsLater = p.blockStart > governance.nextSuperblock;
     int paid(List<PivxProposalPayout> payouts) =>
         payouts.where((e) => e.state == PivxPayoutState.paid).length;
@@ -661,14 +664,24 @@ class _ProposalCard extends ConsumerWidget {
             nays: p.nays,
             netYesPercent: governance.netYesPercent(p),
           ),
-          if (myVotes.isNotEmpty) ...[
+          if (voted.isNotEmpty) ...[
             const SizedBox(height: 10),
             Wrap(
               spacing: 6,
               runSpacing: 6,
               children: [
-                for (final v in myVotes)
-                  PivxVoteChip(label: v.label, vote: v.vote),
+                for (final m in voted.take(votesShown))
+                  PivxVoteChip(label: m.label, vote: myVotes[m.id]!.vote),
+                if (votesShown < voted.length)
+                  PivxShowAllChip(
+                    count: masternodes.length,
+                    onTap: () => showPivxMasternodeVotesSheet(
+                      context,
+                      wallet: wallet,
+                      proposalName: p.name,
+                      votes: myVotes,
+                    ),
+                  ),
               ],
             ),
           ],

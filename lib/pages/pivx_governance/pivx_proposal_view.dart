@@ -11,6 +11,7 @@ import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
+import '../../widgets/custom_buttons/blue_text_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/rounded_white_container.dart';
@@ -68,14 +69,9 @@ class _PivxProposalViewState extends ConsumerState<PivxProposalView> {
       current = const {};
     }
     if (!mounted) return;
-    final done = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Theme.of(context).extension<StackColors>()!.popupBG,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (_) => _VoteSheet(
+    final done = await showPivxSheet<bool>(
+      context,
+      (_) => _VoteSheet(
         wallet: _wallet,
         proposal: _proposal,
         vote: vote,
@@ -405,14 +401,50 @@ class _PivxProposalViewState extends ConsumerState<PivxProposalView> {
                                     );
                                   }
                                   final votes = snapshot.data;
+                                  final ordered = votes == null
+                                      ? masternodes
+                                      : pivxByLatestVote(masternodes, votes);
+                                  final shown = pivxVotesShownOf(
+                                    ordered.length,
+                                  );
+                                  final more =
+                                      votes != null && shown < ordered.length;
                                   return Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
                                     children: [
-                                      for (final mn in masternodes)
-                                        _MasternodeVoteRow(
+                                      if (more) ...[
+                                        PivxVoteCounts(
+                                          masternodes: masternodes,
+                                          votes: votes,
+                                        ),
+                                        const SizedBox(height: 4),
+                                      ],
+                                      for (final mn in ordered.take(shown))
+                                        PivxMasternodeVoteRow(
                                           wallet: wallet,
                                           masternode: mn,
                                           vote: votes?[mn.id],
                                           loading: votes == null,
+                                        ),
+                                      if (more)
+                                        Align(
+                                          alignment: Alignment.centerLeft,
+                                          child: Padding(
+                                            padding: const EdgeInsets.only(
+                                              top: 6,
+                                            ),
+                                            child: PivxShowAllChip(
+                                              count: ordered.length,
+                                              onTap: () =>
+                                                  showPivxMasternodeVotesSheet(
+                                                    context,
+                                                    wallet: wallet,
+                                                    proposalName: p.name,
+                                                    votes: votes,
+                                                  ),
+                                            ),
+                                          ),
                                         ),
                                     ],
                                   );
@@ -481,66 +513,6 @@ class _PivxProposalViewState extends ConsumerState<PivxProposalView> {
   }
 }
 
-class _MasternodeVoteRow extends StatelessWidget {
-  const _MasternodeVoteRow({
-    required this.wallet,
-    required this.masternode,
-    required this.vote,
-    required this.loading,
-  });
-
-  final PivxWallet wallet;
-  final PivxMasternode masternode;
-  final PivxMasternodeVote? vote;
-  final bool loading;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).extension<StackColors>()!;
-    final v = vote;
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(masternode.label, style: STextStyles.w600_14(context)),
-                const SizedBox(height: 2),
-                Text(
-                  loading
-                      ? "Checking…"
-                      : v == null
-                      ? "Not voted"
-                      : v.canChange
-                      ? "Voted ${_ago(v.time)}"
-                      : "Voted ${_ago(v.time)} · can change in "
-                            "~${pivxDuration(v.changeableAt.difference(DateTime.now()).inSeconds)}",
-                  style: STextStyles.w500_12(context)
-                      .copyWith(color: colors.textSubtitle1),
-                ),
-              ],
-            ),
-          ),
-          if (v != null)
-            PivxPill(
-              text: v.vote == PivxVote.yes ? "Yes" : "No",
-              color: pivxVoteColor(v.vote, colors),
-            )
-          else
-            PivxMasternodeStatusTag(wallet: wallet, masternode: masternode),
-        ],
-      ),
-    );
-  }
-}
-
-String _ago(int time) {
-  final seconds = DateTime.now().millisecondsSinceEpoch ~/ 1000 - time;
-  return "${pivxDuration(seconds < 0 ? 0 : seconds)} ago";
-}
-
 enum _Result { pending, running, done, failed }
 
 /// Pick the masternodes that vote [vote], then sign and relay one vote
@@ -570,12 +542,16 @@ class _VoteSheetState extends State<_VoteSheet> {
   };
   final _results = <String, (_Result, String?)>{};
   bool _running = false;
+  String _query = "";
 
   bool get _finished =>
       _results.isNotEmpty &&
       _results.values.every(
         (r) => r.$1 == _Result.done || r.$1 == _Result.failed,
       );
+
+  int _count(_Result result) =>
+      _results.values.where((r) => r.$1 == result).length;
 
   /// Why [m] can't cast this vote now, or null.
   String? _blockedReason(PivxMasternode m) {
@@ -629,87 +605,126 @@ class _VoteSheetState extends State<_VoteSheet> {
     final voteColor = pivxVoteColor(widget.vote, colors);
     final secondary = STextStyles.w500_12(context)
         .copyWith(color: colors.textSubtitle1);
-    final anyDone = _results.values.any((r) => r.$1 == _Result.done);
+    final done = _count(_Result.done);
+    final failed = _count(_Result.failed);
+    final many = _masternodes.length > kPivxManyMasternodes;
+    final shown = [
+      for (final m in _masternodes)
+        if (pivxMasternodeMatches(m, _query)) m,
+    ];
+    // What "Select all" picks: the listed ones that can cast this vote.
+    final selectable = [
+      for (final m in shown)
+        if (_blockedReason(m) == null) m.id,
+    ];
+    final allSelected = selectable.every(_selected.contains);
 
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+    return PivxSheetLayout(
+      fullHeight: many,
+      header: [
+        Row(
           children: [
-            Center(
-              child: Container(
-                width: 60,
-                height: 4,
-                decoration: BoxDecoration(
-                  color: colors.textFieldDefaultBG,
-                  borderRadius: BorderRadius.circular(4),
-                ),
+            Icon(
+              yes ? Icons.thumb_up_alt_rounded : Icons.thumb_down_alt_rounded,
+              color: voteColor,
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                "Vote ${yes ? "Yes" : "No"}",
+                style: STextStyles.pageTitleH2(context),
               ),
             ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Icon(
-                  yes
-                      ? Icons.thumb_up_alt_rounded
-                      : Icons.thumb_down_alt_rounded,
-                  color: voteColor,
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    "Vote ${yes ? "Yes" : "No"}",
-                    style: STextStyles.pageTitleH2(context),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 4),
-            Text(
-              widget.proposal.name,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: secondary,
-            ),
-            const SizedBox(height: 16),
-            Flexible(
-              child: ListView(
-                shrinkWrap: true,
-                children: [for (final m in _masternodes) _row(context, m)],
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              "Each masternode signs its vote with its private key. A vote "
-              "can be changed once an hour.",
-              style: secondary,
-            ),
-            const SizedBox(height: 16),
-            if (_finished)
-              PrimaryButton(
-                label: "Done",
-                onPressed: () => Navigator.of(context).pop(anyDone),
-              )
-            else
-              PrimaryButton(
-                label: _running
-                    ? "Voting…"
-                    : _selected.isEmpty
-                    ? "Select a masternode"
-                    : "Vote ${yes ? "Yes" : "No"} with ${_selected.length} "
-                          "masternode${_selected.length == 1 ? "" : "s"}",
-                enabled: !_running && _selected.isNotEmpty,
-                onPressed: _run,
-              ),
           ],
         ),
-      ),
+        const SizedBox(height: 4),
+        Text(
+          widget.proposal.name,
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
+          style: secondary,
+        ),
+        if (many) ...[
+          const SizedBox(height: 12),
+          PivxMasternodeSearchField(
+            onChanged: (q) => setState(() => _query = q),
+          ),
+          const SizedBox(height: 4),
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  "${_selected.length} of ${_masternodes.length} selected",
+                  style: secondary,
+                ),
+              ),
+              if (_results.isEmpty && selectable.isNotEmpty)
+                CustomTextButton(
+                  text: allSelected ? "Select none" : "Select all",
+                  onTap: () => setState(
+                    () => allSelected
+                        ? _selected.removeAll(selectable)
+                        : _selected.addAll(selectable),
+                  ),
+                ),
+            ],
+          ),
+        ],
+        const SizedBox(height: 12),
+      ],
+      list: shown.isEmpty
+          ? pivxNoMasternodeMatches(context, _query)
+          : ListView.builder(
+              shrinkWrap: !many,
+              itemCount: shown.length,
+              itemBuilder: (context, i) => _row(context, shown[i], many),
+            ),
+      footer: [
+        const SizedBox(height: 8),
+        if (many && _results.isNotEmpty) ...[
+          Text.rich(
+            TextSpan(
+              children: [
+                TextSpan(text: "$done of ${_results.length} accepted"),
+                if (failed > 0)
+                  TextSpan(
+                    text: " · $failed failed",
+                    style: TextStyle(color: colors.textError),
+                  ),
+              ],
+            ),
+            style: STextStyles.w600_12(context),
+          ),
+          const SizedBox(height: 4),
+        ],
+        Text(
+          "Each masternode signs its vote with its private key. A vote "
+          "can be changed once an hour.",
+          style: secondary,
+        ),
+        const SizedBox(height: 16),
+        if (_finished)
+          PrimaryButton(
+            label: "Done",
+            onPressed: () => Navigator.of(context).pop(done > 0),
+          )
+        else
+          PrimaryButton(
+            label: _running
+                ? "Voting… ${done + failed} of ${_results.length}"
+                : _selected.isEmpty
+                ? "Select a masternode"
+                : "Vote ${yes ? "Yes" : "No"} with ${_selected.length} "
+                      "masternode${_selected.length == 1 ? "" : "s"}",
+            enabled: !_running && _selected.isNotEmpty,
+            onPressed: _run,
+          ),
+      ],
     );
   }
 
-  Widget _row(BuildContext context, PivxMasternode m) {
+  /// [showService]: the server's address too (a long list, searched by it).
+  Widget _row(BuildContext context, PivxMasternode m, bool showService) {
     final colors = Theme.of(context).extension<StackColors>()!;
     final blocked = _blockedReason(m);
     final result = _results[m.id];
@@ -752,6 +767,9 @@ class _VoteSheetState extends State<_VoteSheet> {
         trailing = Icon(Icons.error_rounded, color: colors.textError);
         subtitle = result!.$2;
         subtitleColor = colors.textError;
+    }
+    if (showService && m.service != null) {
+      subtitle = subtitle == null ? m.service : "${m.service} · $subtitle";
     }
 
     return Padding(
