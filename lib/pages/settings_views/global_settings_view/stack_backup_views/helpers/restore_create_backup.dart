@@ -545,13 +545,36 @@ abstract class SWB {
     uiState?.nodes = StackRestoringStatus.success;
   }
 
+  /// Returns false when the restore was cancelled.
   static Future<bool?> restoreStackWalletJSON(
     String jsonBackup,
     StackRestoringUIState? uiState,
     SecureStorageInterface secureStorageInterface,
   ) async {
     if (!Platform.isLinux) await WakelockPlus.enable();
+    try {
+      return await _restoreStackWalletJSON(
+        jsonBackup,
+        uiState,
+        secureStorageInterface,
+      );
+    } finally {
+      // Also after a cancel or an error, or the screen stays on until the
+      // app is closed.
+      try {
+        if (!Platform.isLinux) await WakelockPlus.disable();
+      } catch (e, s) {
+        // Not worth failing a restore whose wallets are all in.
+        Logging.instance.w("SWB restore: wakelock", error: e, stackTrace: s);
+      }
+    }
+  }
 
+  static Future<bool?> _restoreStackWalletJSON(
+    String jsonBackup,
+    StackRestoringUIState? uiState,
+    SecureStorageInterface secureStorageInterface,
+  ) async {
     Logging.instance.d("SWB creating temp backup");
     final preRestoreJSON = await createStackWalletJSON(
       secureStorage: secureStorageInterface,
@@ -722,12 +745,6 @@ abstract class SWB {
       await status;
     }
 
-    try {
-      if (!Platform.isLinux) await WakelockPlus.disable();
-    } catch (e, s) {
-      // Not worth failing a restore whose wallets are all in.
-      Logging.instance.w("SWB restore: wakelock", error: e, stackTrace: s);
-    }
     // check if cancel was requested and restore previous state
     if (_checkShouldCancel(preRestoreState, secureStorageInterface)) {
       return false;
