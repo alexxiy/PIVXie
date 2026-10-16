@@ -20,9 +20,7 @@ class WalletSummary extends StatelessWidget {
     required this.initialSyncStatus,
     this.aspectRatio = 2.0,
     this.minHeight = 100.0,
-    this.minWidth = 200.0,
     this.maxHeight = 250.0,
-    this.maxWidth = 400.0,
   });
 
   final String walletId;
@@ -30,28 +28,26 @@ class WalletSummary extends StatelessWidget {
 
   final double aspectRatio;
   final double minHeight;
-  final double minWidth;
   final double maxHeight;
-  final double maxWidth;
 
   @override
   Widget build(BuildContext context) {
-    return AspectRatio(
-      aspectRatio: aspectRatio,
-      child: ConstrainedBox(
-        constraints: BoxConstraints(
-          minHeight: minHeight,
-          minWidth: minWidth,
-          maxHeight: maxHeight,
-          maxWidth: minWidth,
-        ),
-        child: LayoutBuilder(
-          builder: (_, constraints) => Stack(
+    // The height follows the width only up to maxHeight. Otherwise on a
+    // tablet, and in landscape above all, the card fills the screen and
+    // pushes the balance and transactions out of sight.
+    return LayoutBuilder(
+      builder: (_, constraints) {
+        final width = constraints.maxWidth;
+        final height = (width / aspectRatio).clamp(minHeight, maxHeight);
+        return SizedBox(
+          width: width,
+          height: height,
+          child: Stack(
             children: [
               CoinCard(
                 walletId: walletId,
-                width: constraints.maxWidth,
-                height: constraints.maxHeight,
+                width: width,
+                height: height,
                 isFavorite: false,
               ),
               Positioned.fill(
@@ -65,8 +61,8 @@ class WalletSummary extends StatelessWidget {
               ),
             ],
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

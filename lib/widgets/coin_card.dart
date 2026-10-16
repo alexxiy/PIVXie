@@ -41,87 +41,84 @@ class CoinCard extends ConsumerWidget {
         ? ref.watch(coinCardFavoritesProvider(coin)) != null
         : ref.watch(coinCardProvider(coin)) != null;
 
-    return Stack(
-      children: [
-        if (hasCardImageBg)
-          Container(
-            width: width,
-            height: height,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(
-                Constants.size.circularBorderRadius,
-              ),
-              image: DecorationImage(
-                fit: BoxFit.cover,
-                image: FileImage(
-                  File(
-                    (isFavorite)
-                        ? ref.watch(coinCardFavoritesProvider(coin))!
-                        : ref.watch(coinCardProvider(coin))!,
+    // The ellipses are sized from the width alone, so a card whose height
+    // is capped (tablet, landscape) would let them paint outside it.
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(Constants.size.circularBorderRadius),
+      child: Stack(
+        children: [
+          if (hasCardImageBg)
+            Container(
+              width: width,
+              height: height,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(
+                  Constants.size.circularBorderRadius,
+                ),
+                image: DecorationImage(
+                  fit: BoxFit.cover,
+                  image: FileImage(
+                    File(
+                      (isFavorite)
+                          ? ref.watch(coinCardFavoritesProvider(coin))!
+                          : ref.watch(coinCardProvider(coin))!,
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-        if (!hasCardImageBg)
-          Container(
-            width: width,
-            height: height,
-            decoration: BoxDecoration(
-              color: ref.watch(pCoinColor(coin)),
-              borderRadius: BorderRadius.circular(
-                Constants.size.circularBorderRadius,
+          if (!hasCardImageBg)
+            Container(
+              width: width,
+              height: height,
+              decoration: BoxDecoration(
+                color: ref.watch(pCoinColor(coin)),
+                borderRadius: BorderRadius.circular(
+                  Constants.size.circularBorderRadius,
+                ),
               ),
             ),
-          ),
-        if (!hasCardImageBg)
-          Column(
-            children: [
-              const Spacer(),
-              SizedBox(
-                height: width * 0.3,
-                child: Row(
-                  children: [
-                    const Spacer(
-                      flex: 9,
-                    ),
-                    SvgPicture.asset(
-                      Assets.svg.ellipse2,
-                      height: width * 0.3,
-                    ),
-                    // ),
-                    const Spacer(
-                      flex: 2,
-                    ),
-                  ],
+          if (!hasCardImageBg)
+            Column(
+              children: [
+                const Spacer(),
+                SizedBox(
+                  height: width * 0.3,
+                  child: Row(
+                    children: [
+                      const Spacer(flex: 9),
+                      SvgPicture.asset(
+                        Assets.svg.ellipse2,
+                        height: width * 0.3,
+                      ),
+                      // ),
+                      const Spacer(flex: 2),
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          ),
-        if (!hasCardImageBg)
-          Row(
-            children: [
-              const Spacer(
-                flex: 5,
-              ),
-              SizedBox(
-                width: width * 0.45,
-                child: Column(
-                  children: [
-                    SvgPicture.asset(
-                      Assets.svg.ellipse1,
-                      width: width * 0.45,
-                    ),
-                    const Spacer(),
-                  ],
+              ],
+            ),
+          if (!hasCardImageBg)
+            Row(
+              children: [
+                const Spacer(flex: 5),
+                SizedBox(
+                  width: width * 0.45,
+                  child: Column(
+                    children: [
+                      SvgPicture.asset(
+                        Assets.svg.ellipse1,
+                        width: width * 0.45,
+                      ),
+                      const Spacer(),
+                    ],
+                  ),
                 ),
-              ),
-              const Spacer(
-                flex: 1,
-              ),
-            ],
-          ),
-      ],
+                const Spacer(flex: 1),
+              ],
+            ),
+        ],
+      ),
     );
   }
 }
