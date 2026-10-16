@@ -538,23 +538,21 @@ class _DelegationRow extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
+                    // The pill moves under the amount when both don't fit
+                    // (e.g. a split stake of 500.66666667 PIV on a phone).
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 4,
+                      crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
-                        Flexible(
-                          child: Text(
-                            amount,
-                            style: STextStyles.w600_14(context),
-                          ),
-                        ),
-                        if (delegation.isReward) ...[
-                          const SizedBox(width: 8),
+                        Text(amount, style: STextStyles.w600_14(context)),
+                        if (delegation.isReward)
                           PivxPill(
                             text: reward == null
                                 ? "Reward"
                                 : "+$reward latest stake",
                             color: colors.accentColorGreen,
                           ),
-                        ],
                       ],
                     ),
                     const SizedBox(height: 2),
