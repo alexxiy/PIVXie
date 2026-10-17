@@ -72,150 +72,152 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
           padding: isDesktop
               ? const EdgeInsets.fromLTRB(24, 24, 24, 0)
               : const EdgeInsets.only(left: 16, right: 16, top: 10, bottom: 0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (!isDesktop)
-                Center(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .textFieldDefaultBG,
-                      borderRadius: BorderRadius.circular(
-                        Constants.size.circularBorderRadius,
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (!isDesktop)
+                  Center(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textFieldDefaultBG,
+                        borderRadius: BorderRadius.circular(
+                          Constants.size.circularBorderRadius,
+                        ),
                       ),
+                      width: 60,
+                      height: 4,
                     ),
-                    width: 60,
-                    height: 4,
+                  ),
+                if (!isDesktop) const SizedBox(height: 36),
+                Padding(
+                  padding: const EdgeInsets.only(left: 8.0),
+                  child: Text(
+                    "Wallet balance",
+                    style: isDesktop
+                        ? STextStyles.desktopH3(context)
+                        : STextStyles.pageTitleH2(context),
+                    textAlign: TextAlign.left,
                   ),
                 ),
-              if (!isDesktop) const SizedBox(height: 36),
-              Padding(
-                padding: const EdgeInsets.only(left: 8.0),
-                child: Text(
-                  "Wallet balance",
-                  style: isDesktop
-                      ? STextStyles.desktopH3(context)
-                      : STextStyles.pageTitleH2(context),
-                  textAlign: TextAlign.left,
+                const SizedBox(height: 24),
+                BalanceSelector(
+                  title: "Total balance",
+                  coin: coin,
+                  balance: balance.total + balancePrivate.total,
+                  onPressed: () {
+                    ref.read(showTotalBalanceProvider.notifier).state = true;
+                    Navigator.of(context).pop();
+                  },
+                  onChanged: (_) {
+                    ref.read(showTotalBalanceProvider.notifier).state = true;
+                    Navigator.of(context).pop();
+                  },
+                  value: _BalanceType.total,
+                  groupValue: _bal,
                 ),
-              ),
-              const SizedBox(height: 24),
-              BalanceSelector(
-                title: "Total balance",
-                coin: coin,
-                balance: balance.total + balancePrivate.total,
-                onPressed: () {
-                  ref.read(showTotalBalanceProvider.notifier).state = true;
-                  Navigator.of(context).pop();
-                },
-                onChanged: (_) {
-                  ref.read(showTotalBalanceProvider.notifier).state = true;
-                  Navigator.of(context).pop();
-                },
-                value: _BalanceType.total,
-                groupValue: _bal,
-              ),
-              const SizedBox(height: 12),
-              BalanceSelector(
-                title: "Available transparent balance",
-                coin: coin,
-                balance: balance.spendable,
-                onPressed: () {
-                  ref.read(walletBalanceToggleStateProvider.notifier).state =
-                      WalletBalanceToggleState.available;
-                  ref.read(publicPrivateBalanceStateProvider.notifier).state =
-                      BalanceType.public;
-                  ref.read(showTotalBalanceProvider.notifier).state = false;
-                  Navigator.of(context).pop();
-                },
-                onChanged: (_) {
-                  ref.read(walletBalanceToggleStateProvider.notifier).state =
-                      WalletBalanceToggleState.available;
-                  ref.read(publicPrivateBalanceStateProvider.notifier).state =
-                      BalanceType.public;
-                  ref.read(showTotalBalanceProvider.notifier).state = false;
-                  Navigator.of(context).pop();
-                },
-                value: _BalanceType.available,
-                groupValue: _bal,
-              ),
-              const SizedBox(height: 12),
-              BalanceSelector(
-                title: "Full transparent balance",
-                coin: coin,
-                balance: balance.total,
-                onPressed: () {
-                  ref.read(walletBalanceToggleStateProvider.notifier).state =
-                      WalletBalanceToggleState.full;
-                  ref.read(publicPrivateBalanceStateProvider.notifier).state =
-                      BalanceType.public;
-                  ref.read(showTotalBalanceProvider.notifier).state = false;
-                  Navigator.of(context).pop();
-                },
-                onChanged: (_) {
-                  ref.read(walletBalanceToggleStateProvider.notifier).state =
-                      WalletBalanceToggleState.full;
-                  ref.read(publicPrivateBalanceStateProvider.notifier).state =
-                      BalanceType.public;
-                  ref.read(showTotalBalanceProvider.notifier).state = false;
-                  Navigator.of(context).pop();
-                },
-                value: _BalanceType.full,
-                groupValue: _bal,
-              ),
-              const SizedBox(height: 12),
-              BalanceSelector(
-                title: "Available shielded balance",
-                coin: coin,
-                balance: balancePrivate.spendable,
-                onPressed: () {
-                  ref.read(walletBalanceToggleStateProvider.notifier).state =
-                      WalletBalanceToggleState.available;
-                  ref.read(publicPrivateBalanceStateProvider.notifier).state =
-                      BalanceType.private;
-                  ref.read(showTotalBalanceProvider.notifier).state = false;
-                  Navigator.of(context).pop();
-                },
-                onChanged: (_) {
-                  ref.read(walletBalanceToggleStateProvider.notifier).state =
-                      WalletBalanceToggleState.available;
-                  ref.read(publicPrivateBalanceStateProvider.notifier).state =
-                      BalanceType.private;
-                  ref.read(showTotalBalanceProvider.notifier).state = false;
-                  Navigator.of(context).pop();
-                },
-                value: _BalanceType.privateAvailable,
-                groupValue: _bal,
-              ),
-              const SizedBox(height: 12),
-              BalanceSelector(
-                title: "Full shielded balance",
-                coin: coin,
-                balance: balancePrivate.total,
-                onPressed: () {
-                  ref.read(walletBalanceToggleStateProvider.notifier).state =
-                      WalletBalanceToggleState.full;
-                  ref.read(publicPrivateBalanceStateProvider.notifier).state =
-                      BalanceType.private;
-                  ref.read(showTotalBalanceProvider.notifier).state = false;
-                  Navigator.of(context).pop();
-                },
-                onChanged: (_) {
-                  ref.read(walletBalanceToggleStateProvider.notifier).state =
-                      WalletBalanceToggleState.full;
-                  ref.read(publicPrivateBalanceStateProvider.notifier).state =
-                      BalanceType.private;
-                  ref.read(showTotalBalanceProvider.notifier).state = false;
-                  Navigator.of(context).pop();
-                },
-                value: _BalanceType.privateFull,
-                groupValue: _bal,
-              ),
-              const SizedBox(height: 40),
-            ],
+                const SizedBox(height: 12),
+                BalanceSelector(
+                  title: "Available transparent balance",
+                  coin: coin,
+                  balance: balance.spendable,
+                  onPressed: () {
+                    ref.read(walletBalanceToggleStateProvider.notifier).state =
+                        WalletBalanceToggleState.available;
+                    ref.read(publicPrivateBalanceStateProvider.notifier).state =
+                        BalanceType.public;
+                    ref.read(showTotalBalanceProvider.notifier).state = false;
+                    Navigator.of(context).pop();
+                  },
+                  onChanged: (_) {
+                    ref.read(walletBalanceToggleStateProvider.notifier).state =
+                        WalletBalanceToggleState.available;
+                    ref.read(publicPrivateBalanceStateProvider.notifier).state =
+                        BalanceType.public;
+                    ref.read(showTotalBalanceProvider.notifier).state = false;
+                    Navigator.of(context).pop();
+                  },
+                  value: _BalanceType.available,
+                  groupValue: _bal,
+                ),
+                const SizedBox(height: 12),
+                BalanceSelector(
+                  title: "Full transparent balance",
+                  coin: coin,
+                  balance: balance.total,
+                  onPressed: () {
+                    ref.read(walletBalanceToggleStateProvider.notifier).state =
+                        WalletBalanceToggleState.full;
+                    ref.read(publicPrivateBalanceStateProvider.notifier).state =
+                        BalanceType.public;
+                    ref.read(showTotalBalanceProvider.notifier).state = false;
+                    Navigator.of(context).pop();
+                  },
+                  onChanged: (_) {
+                    ref.read(walletBalanceToggleStateProvider.notifier).state =
+                        WalletBalanceToggleState.full;
+                    ref.read(publicPrivateBalanceStateProvider.notifier).state =
+                        BalanceType.public;
+                    ref.read(showTotalBalanceProvider.notifier).state = false;
+                    Navigator.of(context).pop();
+                  },
+                  value: _BalanceType.full,
+                  groupValue: _bal,
+                ),
+                const SizedBox(height: 12),
+                BalanceSelector(
+                  title: "Available shielded balance",
+                  coin: coin,
+                  balance: balancePrivate.spendable,
+                  onPressed: () {
+                    ref.read(walletBalanceToggleStateProvider.notifier).state =
+                        WalletBalanceToggleState.available;
+                    ref.read(publicPrivateBalanceStateProvider.notifier).state =
+                        BalanceType.private;
+                    ref.read(showTotalBalanceProvider.notifier).state = false;
+                    Navigator.of(context).pop();
+                  },
+                  onChanged: (_) {
+                    ref.read(walletBalanceToggleStateProvider.notifier).state =
+                        WalletBalanceToggleState.available;
+                    ref.read(publicPrivateBalanceStateProvider.notifier).state =
+                        BalanceType.private;
+                    ref.read(showTotalBalanceProvider.notifier).state = false;
+                    Navigator.of(context).pop();
+                  },
+                  value: _BalanceType.privateAvailable,
+                  groupValue: _bal,
+                ),
+                const SizedBox(height: 12),
+                BalanceSelector(
+                  title: "Full shielded balance",
+                  coin: coin,
+                  balance: balancePrivate.total,
+                  onPressed: () {
+                    ref.read(walletBalanceToggleStateProvider.notifier).state =
+                        WalletBalanceToggleState.full;
+                    ref.read(publicPrivateBalanceStateProvider.notifier).state =
+                        BalanceType.private;
+                    ref.read(showTotalBalanceProvider.notifier).state = false;
+                    Navigator.of(context).pop();
+                  },
+                  onChanged: (_) {
+                    ref.read(walletBalanceToggleStateProvider.notifier).state =
+                        WalletBalanceToggleState.full;
+                    ref.read(publicPrivateBalanceStateProvider.notifier).state =
+                        BalanceType.private;
+                    ref.read(showTotalBalanceProvider.notifier).state = false;
+                    Navigator.of(context).pop();
+                  },
+                  value: _BalanceType.privateFull,
+                  groupValue: _bal,
+                ),
+                const SizedBox(height: 40),
+              ],
+            ),
           ),
         ),
       ),

@@ -120,10 +120,12 @@ class ThemeModeView extends ConsumerWidget {
           ),
           title: Text("Theme", style: STextStyles.navBarTitle(context)),
         ),
-        body: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [for (final mode in AppThemeMode.values) option(mode)],
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [for (final mode in AppThemeMode.values) option(mode)],
+            ),
           ),
         ),
       ),

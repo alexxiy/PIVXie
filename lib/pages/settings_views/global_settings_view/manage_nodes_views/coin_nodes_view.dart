@@ -67,21 +67,13 @@ class _CoinNodesViewState extends ConsumerState<CoinNodesView> {
           children: [
             Row(
               children: [
-                const SizedBox(
-                  width: 32,
-                ),
+                const SizedBox(width: 32),
                 SvgPicture.file(
-                  File(
-                    ref.watch(
-                      coinIconProvider(widget.coin),
-                    ),
-                  ),
+                  File(ref.watch(coinIconProvider(widget.coin))),
                   width: 24,
                   height: 24,
                 ),
-                const SizedBox(
-                  width: 12,
-                ),
+                const SizedBox(width: 12),
                 Text(
                   "${widget.coin.prettyName} nodes",
                   style: STextStyles.desktopH3(context),
@@ -98,18 +90,16 @@ class _CoinNodesViewState extends ConsumerState<CoinNodesView> {
               ],
             ),
             Padding(
-              padding: const EdgeInsets.only(
-                left: 32,
-                right: 32,
-              ),
+              padding: const EdgeInsets.only(left: 32, right: 32),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
                     "${widget.coin.prettyName} nodes",
                     style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                      color:
-                          Theme.of(context).extension<StackColors>()!.textDark3,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textDark3,
                     ),
                     textAlign: TextAlign.left,
                   ),
@@ -130,9 +120,7 @@ class _CoinNodesViewState extends ConsumerState<CoinNodesView> {
                 ],
               ),
             ),
-            const SizedBox(
-              width: 12,
-            ),
+            const SizedBox(width: 12),
             Flexible(
               child: Padding(
                 padding: const EdgeInsets.all(20),
@@ -150,8 +138,9 @@ class _CoinNodesViewState extends ConsumerState<CoinNodesView> {
     } else {
       return Background(
         child: Scaffold(
-          backgroundColor:
-              Theme.of(context).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(context)
+              .extension<StackColors>()!
+              .background,
           appBar: AppBar(
             leading: AppBarBackButton(
               onPressed: () {
@@ -164,19 +153,16 @@ class _CoinNodesViewState extends ConsumerState<CoinNodesView> {
             ),
             actions: [
               Padding(
-                padding: const EdgeInsets.only(
-                  top: 10,
-                  bottom: 10,
-                  right: 10,
-                ),
+                padding: const EdgeInsets.only(top: 10, bottom: 10, right: 10),
                 child: AspectRatio(
                   aspectRatio: 1,
                   child: AppBarIconButton(
                     key: const Key("manageNodesAddNewNodeButtonKey"),
                     size: 36,
                     shadows: const [],
-                    color:
-                        Theme.of(context).extension<StackColors>()!.background,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .background,
                     icon: SvgPicture.asset(
                       Assets.svg.plus,
                       color: Theme.of(context)
@@ -201,16 +187,14 @@ class _CoinNodesViewState extends ConsumerState<CoinNodesView> {
               ),
             ],
           ),
-          body: Padding(
-            padding: const EdgeInsets.only(
-              top: 12,
-              left: 12,
-              right: 12,
-            ),
-            child: SingleChildScrollView(
-              child: NodesList(
-                coin: widget.coin,
-                popBackToRoute: CoinNodesView.routeName,
+          body: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.only(top: 12, left: 12, right: 12),
+              child: SingleChildScrollView(
+                child: NodesList(
+                  coin: widget.coin,
+                  popBackToRoute: CoinNodesView.routeName,
+                ),
               ),
             ),
           ),

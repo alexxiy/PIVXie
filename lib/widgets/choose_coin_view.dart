@@ -74,56 +74,60 @@ class _ChooseCoinViewState extends ConsumerState<ChooseCoinView> {
           ),
           title: Text(widget.title, style: STextStyles.navBarTitle(context)),
         ),
-        body: Padding(
-          padding: const EdgeInsets.only(top: 12, left: 12, right: 12),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                ...coins.map((coin) {
-                  return Padding(
-                    padding: const EdgeInsets.all(4),
-                    child: RoundedWhiteContainer(
-                      padding: const EdgeInsets.all(0),
-                      child: RawMaterialButton(
-                        // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(
-                            Constants.size.circularBorderRadius,
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.only(top: 12, left: 12, right: 12),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  ...coins.map((coin) {
+                    return Padding(
+                      padding: const EdgeInsets.all(4),
+                      child: RoundedWhiteContainer(
+                        padding: const EdgeInsets.all(0),
+                        child: RawMaterialButton(
+                          // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(
+                              Constants.size.circularBorderRadius,
+                            ),
                           ),
-                        ),
-                        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        onPressed: () {
-                          Navigator.of(context)
-                              .pushNamed(widget.nextRouteName, arguments: coin);
-                        },
-                        child: Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: Row(
-                            children: [
-                              SvgPicture.file(
-                                File(ref.watch(coinIconProvider(coin))),
-                                width: 24,
-                                height: 24,
-                              ),
-                              const SizedBox(width: 12),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    "${coin.prettyName} ${widget.coinAdditional}",
-                                    style: STextStyles.titleBold12(context),
-                                  ),
-                                ],
-                              ),
-                            ],
+                          materialTapTargetSize:
+                              MaterialTapTargetSize.shrinkWrap,
+                          onPressed: () {
+                            Navigator.of(
+                              context,
+                            ).pushNamed(widget.nextRouteName, arguments: coin);
+                          },
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Row(
+                              children: [
+                                SvgPicture.file(
+                                  File(ref.watch(coinIconProvider(coin))),
+                                  width: 24,
+                                  height: 24,
+                                ),
+                                const SizedBox(width: 12),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      "${coin.prettyName} ${widget.coinAdditional}",
+                                      style: STextStyles.titleBold12(context),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  );
-                }),
-              ],
+                    );
+                  }),
+                ],
+              ),
             ),
           ),
         ),

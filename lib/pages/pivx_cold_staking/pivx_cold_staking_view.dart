@@ -619,23 +619,25 @@ class _Sheet extends StatelessWidget {
         borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       ),
       padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
-      child: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(title, style: STextStyles.pageTitleH2(context)),
-            if (subtitle != null) ...[
-              const SizedBox(height: 4),
-              Text(
-                subtitle!,
-                style: STextStyles.w500_12(context)
-                    .copyWith(color: colors.textSubtitle1),
-              ),
+      child: SafeArea(
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(title, style: STextStyles.pageTitleH2(context)),
+              if (subtitle != null) ...[
+                const SizedBox(height: 4),
+                Text(
+                  subtitle!,
+                  style: STextStyles.w500_12(context)
+                      .copyWith(color: colors.textSubtitle1),
+                ),
+              ],
+              const SizedBox(height: 12),
+              ...children,
             ],
-            const SizedBox(height: 12),
-            ...children,
-          ],
+          ),
         ),
       ),
     );

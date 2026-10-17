@@ -25,9 +25,7 @@ import 'stack_text_field.dart';
 import 'textfield_icon_button.dart';
 
 class EmojiSelectSheet extends ConsumerStatefulWidget {
-  const EmojiSelectSheet({
-    super.key,
-  });
+  const EmojiSelectSheet({super.key});
 
   final double horizontalPadding = 24;
   final double emojiSize = 24;
@@ -56,13 +54,7 @@ class _EmojiSelectSheetState extends ConsumerState<EmojiSelectSheet> {
     text = text.toLowerCase();
 
     return Emoji.all()
-        .where(
-          (e) => e.keywords
-              .where(
-                (e) => e.contains(text),
-              )
-              .isNotEmpty,
-        )
+        .where((e) => e.keywords.where((e) => e.contains(text)).isNotEmpty)
         .toList(growable: false);
   }
 
@@ -94,9 +86,7 @@ class _EmojiSelectSheetState extends ConsumerState<EmojiSelectSheet> {
       builder: (child) => Container(
         decoration: BoxDecoration(
           color: Theme.of(context).extension<StackColors>()!.popupBG,
-          borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(20),
-          ),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         ),
         child: LimitedBox(
           maxHeight: maxHeight,
@@ -107,7 +97,7 @@ class _EmojiSelectSheetState extends ConsumerState<EmojiSelectSheet> {
               top: 10,
               bottom: 0,
             ),
-            child: child,
+            child: SafeArea(child: child),
           ),
         ),
       ),
@@ -130,10 +120,7 @@ class _EmojiSelectSheetState extends ConsumerState<EmojiSelectSheet> {
                 height: 4,
               ),
             ),
-          if (!isDesktop)
-            const SizedBox(
-              height: 36,
-            ),
+          if (!isDesktop) const SizedBox(height: 36),
           Text(
             "Select emoji",
             style: isDesktop
@@ -141,9 +128,7 @@ class _EmojiSelectSheetState extends ConsumerState<EmojiSelectSheet> {
                 : STextStyles.pageTitleH2(context),
             textAlign: TextAlign.left,
           ),
-          SizedBox(
-            height: isDesktop ? 16 : 12,
-          ),
+          SizedBox(height: isDesktop ? 16 : 12),
           Material(
             color: Colors.transparent,
             child: ClipRRect(
@@ -159,49 +144,48 @@ class _EmojiSelectSheetState extends ConsumerState<EmojiSelectSheet> {
                   setState(() => _searchTerm = newString);
                 },
                 style: STextStyles.field(context),
-                decoration: standardInputDecoration(
-                  "Search",
-                  _searchFocusNode,
-                  context,
-                ).copyWith(
-                  prefixIcon: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 16,
-                    ),
-                    child: SvgPicture.asset(
-                      Assets.svg.search,
-                      width: 16,
-                      height: 16,
-                    ),
-                  ),
-                  suffixIcon: _searchController.text.isNotEmpty
-                      ? Padding(
-                          padding: const EdgeInsets.only(right: 0),
-                          child: UnconstrainedBox(
-                            child: Row(
-                              children: [
-                                TextFieldIconButton(
-                                  child: const XIcon(),
-                                  onTap: () async {
-                                    setState(() {
-                                      _searchController.text = "";
-                                      _searchTerm = "";
-                                    });
-                                  },
+                decoration:
+                    standardInputDecoration(
+                      "Search",
+                      _searchFocusNode,
+                      context,
+                    ).copyWith(
+                      prefixIcon: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 16,
+                        ),
+                        child: SvgPicture.asset(
+                          Assets.svg.search,
+                          width: 16,
+                          height: 16,
+                        ),
+                      ),
+                      suffixIcon: _searchController.text.isNotEmpty
+                          ? Padding(
+                              padding: const EdgeInsets.only(right: 0),
+                              child: UnconstrainedBox(
+                                child: Row(
+                                  children: [
+                                    TextFieldIconButton(
+                                      child: const XIcon(),
+                                      onTap: () async {
+                                        setState(() {
+                                          _searchController.text = "";
+                                          _searchTerm = "";
+                                        });
+                                      },
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
-                          ),
-                        )
-                      : null,
-                ),
+                              ),
+                            )
+                          : null,
+                    ),
               ),
             ),
           ),
-          SizedBox(
-            height: isDesktop ? 28 : 16,
-          ),
+          SizedBox(height: isDesktop ? 28 : 16),
           Expanded(
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -246,9 +230,7 @@ class _EmojiSelectSheetState extends ConsumerState<EmojiSelectSheet> {
               ],
             ),
           ),
-          SizedBox(
-            height: isDesktop ? 20 : 24,
-          ),
+          SizedBox(height: isDesktop ? 20 : 24),
           if (isDesktop)
             Row(
               mainAxisAlignment: MainAxisAlignment.end,

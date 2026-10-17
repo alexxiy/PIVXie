@@ -112,180 +112,182 @@ class NodeOptionsSheet extends ConsumerWidget {
             top: 10,
             bottom: 0,
           ),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textFieldDefaultBG,
-                      borderRadius: BorderRadius.circular(
-                        Constants.size.circularBorderRadius,
-                      ),
-                    ),
-                    width: 60,
-                    height: 4,
-                  ),
-                ),
-                const SizedBox(height: 36),
-                Text(
-                  "Node options",
-                  style: STextStyles.pageTitleH2(context),
-                  textAlign: TextAlign.left,
-                ),
-                RoundedWhiteContainer(
-                  padding: const EdgeInsets.symmetric(vertical: 38),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color:
-                              node.id.startsWith(
-                                DefaultNodes.defaultNodeIdPrefix,
-                              )
-                              ? Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.textSubtitle4
-                              : Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .infoItemIcons
-                                    .withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(100),
+          child: SafeArea(
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textFieldDefaultBG,
+                        borderRadius: BorderRadius.circular(
+                          Constants.size.circularBorderRadius,
                         ),
-                        child: Center(
-                          child: SvgPicture.asset(
-                            Assets.svg.node,
-                            height: 15,
-                            width: 19,
+                      ),
+                      width: 60,
+                      height: 4,
+                    ),
+                  ),
+                  const SizedBox(height: 36),
+                  Text(
+                    "Node options",
+                    style: STextStyles.pageTitleH2(context),
+                    textAlign: TextAlign.left,
+                  ),
+                  RoundedWhiteContainer(
+                    padding: const EdgeInsets.symmetric(vertical: 38),
+                    child: Row(
+                      children: [
+                        Container(
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
                             color:
                                 node.id.startsWith(
                                   DefaultNodes.defaultNodeIdPrefix,
                                 )
-                                ? Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.accentColorDark
-                                : Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.infoItemIcons,
+                                ? Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textSubtitle4
+                                : Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .infoItemIcons
+                                      .withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(100),
+                          ),
+                          child: Center(
+                            child: SvgPicture.asset(
+                              Assets.svg.node,
+                              height: 15,
+                              width: 19,
+                              color:
+                                  node.id.startsWith(
+                                    DefaultNodes.defaultNodeIdPrefix,
+                                  )
+                                  ? Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .accentColorDark
+                                  : Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .infoItemIcons,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              node.name,
+                              style: STextStyles.titleBold12(context),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(status, style: STextStyles.label(context)),
+                          ],
+                        ),
+                        const Spacer(),
+                        SvgPicture.asset(
+                          Assets.svg.network,
+                          color: status == "Connected"
+                              ? Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .accentColorGreen
+                              : Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .buttonBackSecondary,
+                          width: 18,
+                        ),
+                      ],
+                    ),
+                  ),
+                  Row(
+                    children: [
+                      // if (!node.id.startsWith("default"))
+                      Expanded(
+                        child: TextButton(
+                          style: Theme.of(context)
+                              .extension<StackColors>()!
+                              .getSecondaryEnabledButtonStyle(context),
+                          onPressed: () {
+                            Navigator.pop(context);
+                            Navigator.of(context).pushNamed(
+                              NodeDetailsView.routeName,
+                              arguments: Tuple3(coin, node.id, popBackToRoute),
+                            );
+                          },
+                          child: Text(
+                            "Details",
+                            style: STextStyles.button(context).copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .accentColorDark,
+                            ),
                           ),
                         ),
                       ),
+                      // if (!node.id.startsWith("default"))
                       const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            node.name,
-                            style: STextStyles.titleBold12(context),
+                      Expanded(
+                        child: TextButton(
+                          style: status == "Connected"
+                              ? Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .getPrimaryDisabledButtonStyle(context)
+                              : Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .getPrimaryEnabledButtonStyle(context),
+                          onPressed: status == "Connected"
+                              ? null
+                              : () async {
+                                  if (context.mounted) {
+                                    final canConnect =
+                                        await ref.read(
+                                          testNodeConnectionProvider,
+                                        )(
+                                          context: context,
+                                          nodeFormData: NodeFormData()
+                                            ..name = node.name
+                                            ..host = node.host
+                                            ..port = node.port
+                                            ..useSSL = node.useSSL
+                                            ..netOption =
+                                                TorPlainNetworkOption.fromNodeData(
+                                                  node.torEnabled,
+                                                  node.clearnetEnabled,
+                                                ),
+                                          cryptoCurrency: coin,
+                                        );
+                                    if (!canConnect) {
+                                      return;
+                                    }
+
+                                    await ref
+                                        .read(nodeServiceChangeNotifierProvider)
+                                        .setPrimaryNodeFor(
+                                          coin: coin,
+                                          node: node,
+                                          shouldNotifyListeners: true,
+                                        );
+
+                                    await _notifyWalletsOfUpdatedNode(ref);
+                                  }
+                                },
+                          child: Text(
+                            // status == "Connected" ? "Disconnect" : "Connect",
+                            "Connect",
+                            style: STextStyles.button(context),
                           ),
-                          const SizedBox(height: 2),
-                          Text(status, style: STextStyles.label(context)),
-                        ],
-                      ),
-                      const Spacer(),
-                      SvgPicture.asset(
-                        Assets.svg.network,
-                        color: status == "Connected"
-                            ? Theme.of(
-                                context,
-                              ).extension<StackColors>()!.accentColorGreen
-                            : Theme.of(
-                                context,
-                              ).extension<StackColors>()!.buttonBackSecondary,
-                        width: 18,
+                        ),
                       ),
                     ],
                   ),
-                ),
-                Row(
-                  children: [
-                    // if (!node.id.startsWith("default"))
-                    Expanded(
-                      child: TextButton(
-                        style: Theme.of(context)
-                            .extension<StackColors>()!
-                            .getSecondaryEnabledButtonStyle(context),
-                        onPressed: () {
-                          Navigator.pop(context);
-                          Navigator.of(context).pushNamed(
-                            NodeDetailsView.routeName,
-                            arguments: Tuple3(coin, node.id, popBackToRoute),
-                          );
-                        },
-                        child: Text(
-                          "Details",
-                          style: STextStyles.button(context).copyWith(
-                            color: Theme.of(
-                              context,
-                            ).extension<StackColors>()!.accentColorDark,
-                          ),
-                        ),
-                      ),
-                    ),
-                    // if (!node.id.startsWith("default"))
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: TextButton(
-                        style: status == "Connected"
-                            ? Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .getPrimaryDisabledButtonStyle(context)
-                            : Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .getPrimaryEnabledButtonStyle(context),
-                        onPressed: status == "Connected"
-                            ? null
-                            : () async {
-                                if (context.mounted) {
-                                  final canConnect =
-                                      await ref.read(
-                                        testNodeConnectionProvider,
-                                      )(
-                                        context: context,
-                                        nodeFormData: NodeFormData()
-                                          ..name = node.name
-                                          ..host = node.host
-                                          ..port = node.port
-                                          ..useSSL = node.useSSL
-                                          ..netOption =
-                                              TorPlainNetworkOption.fromNodeData(
-                                                node.torEnabled,
-                                                node.clearnetEnabled,
-                                              ),
-                                        cryptoCurrency: coin,
-                                      );
-                                  if (!canConnect) {
-                                    return;
-                                  }
-
-                                  await ref
-                                      .read(nodeServiceChangeNotifierProvider)
-                                      .setPrimaryNodeFor(
-                                        coin: coin,
-                                        node: node,
-                                        shouldNotifyListeners: true,
-                                      );
-
-                                  await _notifyWalletsOfUpdatedNode(ref);
-                                }
-                              },
-                        child: Text(
-                          // status == "Connected" ? "Disconnect" : "Connect",
-                          "Connect",
-                          style: STextStyles.button(context),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-              ],
+                  const SizedBox(height: 24),
+                ],
+              ),
             ),
           ),
         ),

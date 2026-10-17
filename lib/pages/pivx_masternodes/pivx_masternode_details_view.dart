@@ -269,41 +269,43 @@ class _PivxMasternodeDetailsViewState
           borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         ),
         padding: const EdgeInsets.fromLTRB(16, 24, 16, 24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              "Host on masternode.space",
-              style: STextStyles.pageTitleH2(context),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              "Give masternode.space these three values when you order "
-              "hosting for this masternode. Your collateral never leaves "
-              "this wallet.",
-              style: STextStyles.itemSubtitle(context),
-            ),
-            const SizedBox(height: 16),
-            _row("Collateral transaction", mn.txid),
-            const SizedBox(height: 8),
-            _row("Output index", "${mn.vout}"),
-            const SizedBox(height: 8),
-            _row("Masternode private key", key),
-            const SizedBox(height: 16),
-            SecondaryButton(
-              label: "Copy all",
-              onPressed: () => _copy(all, "Hosting details copied"),
-            ),
-            const SizedBox(height: 8),
-            PrimaryButton(
-              label: "Open masternode.space",
-              onPressed: () => launchUrl(
-                Uri.parse(_kMasternodeSpaceUrl),
-                mode: LaunchMode.externalApplication,
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                "Host on masternode.space",
+                style: STextStyles.pageTitleH2(context),
               ),
-            ),
-          ],
+              const SizedBox(height: 8),
+              Text(
+                "Give masternode.space these three values when you order "
+                "hosting for this masternode. Your collateral never leaves "
+                "this wallet.",
+                style: STextStyles.itemSubtitle(context),
+              ),
+              const SizedBox(height: 16),
+              _row("Collateral transaction", mn.txid),
+              const SizedBox(height: 8),
+              _row("Output index", "${mn.vout}"),
+              const SizedBox(height: 8),
+              _row("Masternode private key", key),
+              const SizedBox(height: 16),
+              SecondaryButton(
+                label: "Copy all",
+                onPressed: () => _copy(all, "Hosting details copied"),
+              ),
+              const SizedBox(height: 8),
+              PrimaryButton(
+                label: "Open masternode.space",
+                onPressed: () => launchUrl(
+                  Uri.parse(_kMasternodeSpaceUrl),
+                  mode: LaunchMode.externalApplication,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

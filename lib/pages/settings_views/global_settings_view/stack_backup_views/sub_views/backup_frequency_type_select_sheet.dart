@@ -18,9 +18,7 @@ import '../../../../../utilities/enums/backup_frequency_type.dart';
 import '../../../../../utilities/text_styles.dart';
 
 class BackupFrequencyTypeSelectSheet extends ConsumerWidget {
-  const BackupFrequencyTypeSelectSheet({
-    super.key,
-  });
+  const BackupFrequencyTypeSelectSheet({super.key});
 
   String prettyFrequencyType(BackupFrequencyType type) {
     switch (type) {
@@ -44,9 +42,7 @@ class BackupFrequencyTypeSelectSheet extends ConsumerWidget {
       child: Container(
         decoration: BoxDecoration(
           color: Theme.of(context).extension<StackColors>()!.popupBG,
-          borderRadius: const BorderRadius.vertical(
-            top: Radius.circular(20),
-          ),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         ),
         child: Padding(
           padding: const EdgeInsets.only(
@@ -55,113 +51,109 @@ class BackupFrequencyTypeSelectSheet extends ConsumerWidget {
             top: 10,
             bottom: 0,
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .textFieldDefaultBG,
-                    borderRadius: BorderRadius.circular(
-                      Constants.size.circularBorderRadius,
+          child: SafeArea(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textFieldDefaultBG,
+                      borderRadius: BorderRadius.circular(
+                        Constants.size.circularBorderRadius,
+                      ),
                     ),
+                    width: 60,
+                    height: 4,
                   ),
-                  width: 60,
-                  height: 4,
                 ),
-              ),
-              const SizedBox(
-                height: 36,
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Auto Backup frequency",
-                    style: STextStyles.pageTitleH2(context),
-                    textAlign: TextAlign.left,
-                  ),
-                  const SizedBox(
-                    height: 24,
-                  ),
-                  for (int i = 0; i < BackupFrequencyType.values.length; i++)
-                    Column(
-                      children: [
-                        GestureDetector(
-                          onTap: () {
-                            final state = ref
-                                .read(prefsChangeNotifierProvider)
-                                .backupFrequencyType;
-                            if (state != BackupFrequencyType.values[i]) {
-                              ref
-                                      .read(prefsChangeNotifierProvider)
-                                      .backupFrequencyType =
-                                  BackupFrequencyType.values[i];
-                            }
+                const SizedBox(height: 36),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Auto Backup frequency",
+                      style: STextStyles.pageTitleH2(context),
+                      textAlign: TextAlign.left,
+                    ),
+                    const SizedBox(height: 24),
+                    for (int i = 0; i < BackupFrequencyType.values.length; i++)
+                      Column(
+                        children: [
+                          GestureDetector(
+                            onTap: () {
+                              final state = ref
+                                  .read(prefsChangeNotifierProvider)
+                                  .backupFrequencyType;
+                              if (state != BackupFrequencyType.values[i]) {
+                                ref
+                                        .read(prefsChangeNotifierProvider)
+                                        .backupFrequencyType =
+                                    BackupFrequencyType.values[i];
+                              }
 
-                            Navigator.of(context).pop();
-                          },
-                          child: Container(
-                            color: Colors.transparent,
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                SizedBox(
-                                  width: 20,
-                                  height: 20,
-                                  child: Radio(
-                                    activeColor: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .radioButtonIconEnabled,
-                                    value: BackupFrequencyType.values[i],
-                                    groupValue: ref.watch(
-                                      prefsChangeNotifierProvider.select(
-                                        (value) => value.backupFrequencyType,
-                                      ),
-                                    ),
-                                    onChanged: (x) {
-                                      ref
-                                              .read(prefsChangeNotifierProvider)
-                                              .backupFrequencyType =
-                                          BackupFrequencyType.values[i];
-                                      Navigator.of(context).pop();
-                                    },
-                                  ),
-                                ),
-                                const SizedBox(
-                                  width: 12,
-                                ),
-                                Flexible(
-                                  child: Column(
-                                    children: [
-                                      Text(
-                                        prettyFrequencyType(
-                                          BackupFrequencyType.values[i],
+                              Navigator.of(context).pop();
+                            },
+                            child: Container(
+                              color: Colors.transparent,
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: Radio(
+                                      activeColor: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .radioButtonIconEnabled,
+                                      value: BackupFrequencyType.values[i],
+                                      groupValue: ref.watch(
+                                        prefsChangeNotifierProvider.select(
+                                          (value) => value.backupFrequencyType,
                                         ),
-                                        style: STextStyles.titleBold12(context),
-                                        textAlign: TextAlign.left,
                                       ),
-                                    ],
+                                      onChanged: (x) {
+                                        ref
+                                                .read(
+                                                  prefsChangeNotifierProvider,
+                                                )
+                                                .backupFrequencyType =
+                                            BackupFrequencyType.values[i];
+                                        Navigator.of(context).pop();
+                                      },
+                                    ),
                                   ),
-                                ),
-                              ],
+                                  const SizedBox(width: 12),
+                                  Flexible(
+                                    child: Column(
+                                      children: [
+                                        Text(
+                                          prettyFrequencyType(
+                                            BackupFrequencyType.values[i],
+                                          ),
+                                          style: STextStyles.titleBold12(
+                                            context,
+                                          ),
+                                          textAlign: TextAlign.left,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(
-                          height: 20,
-                        ),
-                      ],
-                    ),
-                  const SizedBox(
-                    height: 24,
-                  ),
-                ],
-              ),
-            ],
+                          const SizedBox(height: 20),
+                        ],
+                      ),
+                    const SizedBox(height: 24),
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
       ),

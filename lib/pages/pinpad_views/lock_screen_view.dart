@@ -371,7 +371,6 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
   Widget get _body => Background(
     child: SafeArea(
       child: Scaffold(
-        extendBodyBehindAppBar: true,
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         appBar: AppBar(
           leading: widget.showBackButton

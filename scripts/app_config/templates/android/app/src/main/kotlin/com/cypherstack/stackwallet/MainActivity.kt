@@ -1,5 +1,6 @@
 package com.place.holder
 
+import androidx.activity.enableEdgeToEdge
 import androidx.annotation.NonNull;
 import io.flutter.embedding.android.FlutterFragmentActivity
 import android.content.Intent
@@ -38,6 +39,10 @@ class MainActivity: FlutterFragmentActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Draw behind the status and navigation bars on every Android
+        // version, as Android 15 and later always do. Flutter tells the
+        // screens how much room the bars take (SafeArea).
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         handleOpenFile(intent)
     }
