@@ -1,0 +1,1 @@
+The app now uses the full screen, behind the status and navigation bars, on every Android version. Menus that slide up from the bottom no longer tuck their last option under the navigation bar, and the PIN screen title is no longer cut off on smaller phones.
