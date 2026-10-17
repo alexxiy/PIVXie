@@ -1,0 +1,1 @@
+Fixes connecting to PIVXie's server, and to other servers with Let's Encrypt certificates, on older Android versions, where the connection test said the server was unreachable.
