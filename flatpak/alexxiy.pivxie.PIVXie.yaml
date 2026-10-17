@@ -2,10 +2,10 @@
 #
 # Put next to this file before building:
 #   bundle/            the Linux release bundle (build/linux/x64/release/bundle)
-#   me.pivxie.PIVXie.png  a 512x512 app icon (asset_sources/icon/pivxie/icon.png, resized)
+#   alexxiy.pivxie.PIVXie.png  a 512x512 app icon (asset_sources/icon/pivxie/icon.png, resized)
 #
-#   flatpak-builder --user --install build-dir me.pivxie.PIVXie.yaml
-app-id: me.pivxie.PIVXie
+#   flatpak-builder --user --install build-dir alexxiy.pivxie.PIVXie.yaml
+app-id: alexxiy.pivxie.PIVXie
 runtime: org.freedesktop.Platform
 runtime-version: '26.08'
 sdk: org.freedesktop.Sdk
@@ -34,12 +34,12 @@ modules:
       - cp -r bundle/lib bundle/data /app/lib/pivxie/
       # Wrapper so the Flatpak command resolves to the binary.
       - install -Dm755 pivxie.sh /app/bin/pivxie
-      - install -Dm644 me.pivxie.PIVXie.desktop
-          /app/share/applications/me.pivxie.PIVXie.desktop
-      - install -Dm644 me.pivxie.PIVXie.metainfo.xml
-          /app/share/metainfo/me.pivxie.PIVXie.metainfo.xml
-      - install -Dm644 me.pivxie.PIVXie.png
-          /app/share/icons/hicolor/512x512/apps/me.pivxie.PIVXie.png
+      - install -Dm644 alexxiy.pivxie.PIVXie.desktop
+          /app/share/applications/alexxiy.pivxie.PIVXie.desktop
+      - install -Dm644 alexxiy.pivxie.PIVXie.metainfo.xml
+          /app/share/metainfo/alexxiy.pivxie.PIVXie.metainfo.xml
+      - install -Dm644 alexxiy.pivxie.PIVXie.png
+          /app/share/icons/hicolor/512x512/apps/alexxiy.pivxie.PIVXie.png
     sources:
       - type: dir
         path: .

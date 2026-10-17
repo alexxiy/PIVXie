@@ -289,7 +289,7 @@ jobs:
           sudo apt-get install -y imagemagick
           tar -xzf "pivxie-${VERSION}-linux-x86_64.tar.gz" -C flatpak/
           convert asset_sources/icon/pivxie/icon.png -resize 512x512 \
-            flatpak/me.pivxie.PIVXie.png
+            flatpak/alexxiy.pivxie.PIVXie.png
 
       - name: Install Flatpak tools
         run: |
@@ -315,14 +315,14 @@ jobs:
         run: |
           flatpak-builder --user --force-clean \
             --repo=flatpak-repo \
-            build-flatpak flatpak/me.pivxie.PIVXie.yaml
+            build-flatpak flatpak/alexxiy.pivxie.PIVXie.yaml
 
       - name: Bundle Flatpak
         run: |
           flatpak build-bundle flatpak-repo \
             --runtime-repo=https://flathub.org/repo/flathub.flatpakrepo \
             "pivxie-${VERSION}-x86_64.flatpak" \
-            me.pivxie.PIVXie
+            alexxiy.pivxie.PIVXie
 
       - uses: actions/upload-artifact@v7
         with:
