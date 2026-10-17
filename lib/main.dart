@@ -30,6 +30,7 @@ import 'app_config.dart';
 import 'db/hive/db.dart';
 import 'db/isar/main_db.dart';
 import 'models/node_model.dart';
+import 'networking/trusted_roots.dart';
 import 'pages/already_running_view.dart';
 import 'pages/home_view/home_view.dart';
 import 'pages/home_view/payment_links.dart';
@@ -67,6 +68,7 @@ final openedFromSWBFileStringStateProvider = StateProvider<String?>(
 // miscellaneous box for later use
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
+  trustBundledRootCertificates();
 
   if (Util.isDesktop && args.length == 2 && args.first == "-d") {
     StackFileSystem.setDesktopOverrideDir(args.last);
