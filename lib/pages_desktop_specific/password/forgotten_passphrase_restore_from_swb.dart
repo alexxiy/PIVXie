@@ -202,9 +202,13 @@ class _ForgottenPassphraseRestoreFromSWBState
           onPressed: () async {
             await (ref.read(secureStoreProvider).store as DesktopSecureStore)
                 .close();
-            ref.refresh(secureStoreProvider);
             await ref.read(storageCryptoHandlerProvider).deleteBox();
-            ref.refresh(storageCryptoHandlerProvider);
+            // The password just set is gone, and so is its key. Both are
+            // made again from the next password: a store kept from here
+            // would go on encrypting with the deleted key, and after a
+            // restart nothing it wrote (recovery phrases) could be read.
+            ref.invalidate(storageCryptoHandlerProvider);
+            ref.invalidate(secureStoreProvider);
             await DB.instance.init();
             if (mounted) {
               Navigator.of(

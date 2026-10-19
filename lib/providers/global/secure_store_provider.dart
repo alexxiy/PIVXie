@@ -16,7 +16,9 @@ import '../desktop/storage_crypto_handler_provider.dart';
 
 final secureStoreProvider = Provider<SecureStorageInterface>((ref) {
   if (Util.isDesktop) {
-    final handler = ref.read(storageCryptoHandlerProvider).handler;
+    // Watched: a new password service means a new key, and the store must
+    // never keep encrypting with the old one (nothing could read it later).
+    final handler = ref.watch(storageCryptoHandlerProvider).handler;
     return SecureStorageWrapper(
       store: DesktopSecureStore(handler),
       isDesktop: true,
