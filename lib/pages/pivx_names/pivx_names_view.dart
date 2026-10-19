@@ -278,7 +278,8 @@ class _PivxNamesViewState extends ConsumerState<PivxNamesView> {
           else
             PrimaryButton(
               label: action,
-              buttonHeight: ButtonHeight.m,
+              // On phones as high as Check above it.
+              buttonHeight: Util.isDesktop ? ButtonHeight.m : null,
               onPressed: onTap,
             ),
         ],

@@ -12,10 +12,10 @@ import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
 import '../../widgets/background.dart';
-import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/custom_buttons/blue_text_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
+import '../../widgets/page_app_bar.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../pivx_masternodes/pivx_masternodes_view.dart';
 import 'pivx_create_proposal_view.dart';
@@ -215,10 +215,7 @@ class _PivxGovernanceViewState extends ConsumerState<PivxGovernanceView> {
     return Background(
       child: Scaffold(
         backgroundColor: colors.background,
-        appBar: AppBar(
-          leading: AppBarBackButton(
-            onPressed: () => Navigator.of(context).pop(),
-          ),
+        appBar: PageAppBar(
           title: Text("Governance", style: STextStyles.navBarTitle(context)),
         ),
         body: SafeArea(

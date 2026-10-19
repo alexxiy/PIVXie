@@ -10,10 +10,10 @@ import '../../utilities/text_styles.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
 import '../../widgets/background.dart';
-import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/custom_buttons/blue_text_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
+import '../../widgets/page_app_bar.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../pivx_masternodes/pivx_masternodes_view.dart';
 import 'pivx_governance_widgets.dart';
@@ -141,10 +141,8 @@ class _PivxProposalViewState extends ConsumerState<PivxProposalView> {
       child: Background(
         child: Scaffold(
           backgroundColor: colors.background,
-          appBar: AppBar(
-            leading: AppBarBackButton(
-              onPressed: () => Navigator.of(context).pop(_voted),
-            ),
+          appBar: PageAppBar(
+            onBack: () => Navigator.of(context).pop(_voted),
             title: Text("Proposal", style: STextStyles.navBarTitle(context)),
           ),
           body: SafeArea(

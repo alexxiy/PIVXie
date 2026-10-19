@@ -13,11 +13,11 @@ import '../../utilities/show_loading.dart';
 import '../../utilities/text_styles.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
 import '../../widgets/background.dart';
-import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/custom_buttons/blue_text_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/icon_buttons.dart';
+import '../../widgets/page_app_bar.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/secret_screen.dart';
 import '../../widgets/stack_dialog.dart';
@@ -351,10 +351,7 @@ class _PivxMasternodeDetailsViewState
     return Background(
       child: Scaffold(
         backgroundColor: colors.background,
-        appBar: AppBar(
-          leading: AppBarBackButton(
-            onPressed: () => Navigator.of(context).pop(),
-          ),
+        appBar: PageAppBar(
           title: Text(
             mn == null || mn.label.isEmpty ? "Masternode" : mn.label,
             style: STextStyles.navBarTitle(context),

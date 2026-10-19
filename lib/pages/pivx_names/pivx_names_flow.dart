@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../providers/global/barcode_scanner_provider.dart';
 import '../../providers/global/wallets_provider.dart';
 import '../../route_generator.dart';
 import '../../services/pivx_name/pivx_names_protocol.dart';
@@ -13,16 +14,20 @@ import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/amount/amount_formatter.dart';
 import '../../utilities/amount/amount_unit.dart';
+import '../../utilities/constants.dart';
 import '../../utilities/show_loading.dart';
 import '../../utilities/text_styles.dart';
+import '../../utilities/util.dart';
 import '../../wallets/models/tx_data.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
 import '../../widgets/background.dart';
 import '../../widgets/desktop/desktop_page_column.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/icon_widgets/clipboard_icon.dart';
+import '../../widgets/icon_widgets/qrcode_icon.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_text_field.dart';
+import '../../widgets/toggle.dart';
 import '../send_view/confirm_transaction_view.dart';
 import '../send_view/sub_widgets/building_transaction_dialog.dart';
 import '../send_view/sub_widgets/pivx_funding_card.dart';
@@ -199,11 +204,19 @@ class PivxNamesTargetView extends ConsumerStatefulWidget {
       _PivxNamesTargetViewState();
 }
 
+/// What the target screen's text field takes.
+enum _Input { key, price, address }
+
 class _PivxNamesTargetViewState extends ConsumerState<PivxNamesTargetView> {
   final _text = TextEditingController();
   final _focus = FocusNode();
 
+  /// The address picked from the wallet's own.
   String? _target;
+
+  /// The name points to an address typed in (in [_text]) instead of one of
+  /// the wallet's.
+  bool _custom = false;
   String? _ownKey;
   BigInt? _cost;
   String? _costError;
@@ -271,19 +284,35 @@ class _PivxNamesTargetViewState extends ConsumerState<PivxNamesTargetView> {
 
   String get _newOwner => _text.text.trim().toLowerCase();
 
+  /// The bare address in [raw]: a scanned or pasted "pivx:<address>?..."
+  /// link gives its address. Lowercase, as the registry keeps it (QR codes
+  /// often spell bech32 in capitals).
+  static String _addressIn(String raw) {
+    var text = raw.trim().split("\n").first;
+    if (text.contains(":")) text = text.substring(text.indexOf(":") + 1);
+    return text.split("?").first.trim().toLowerCase();
+  }
+
+  /// Where the name will point: the picked or the typed address.
+  String? get _destination => _custom ? _addressIn(_text.text) : _target;
+
   /// Why the input can't be used yet (null: it can).
   String? get _error {
     switch (_flow.op) {
       case PivxNamesOp.reg:
       case PivxNamesOp.upd:
       case PivxNamesOp.buy:
-        final target = _target;
+        final target = _destination;
         if (target == null) return "Choose an address";
+        if (target.isEmpty) return "";
         if (target == _flow.currentAddress) {
           return "${_flow.name} already points to this address.";
         }
         if (!isValidPivxNamesTarget(target)) {
-          return "A name can only point to a shield address.";
+          return target.startsWith("ps1")
+              ? "That isn't a valid shield address. Check it for typos."
+              : "A name can only point to a shield address. It starts with "
+                    "\"ps1\".";
         }
         return null;
       case PivxNamesOp.chg:
@@ -320,7 +349,19 @@ class _PivxNamesTargetViewState extends ConsumerState<PivxNamesTargetView> {
   Future<void> _paste() async {
     final data = await Clipboard.getData(Clipboard.kTextPlain);
     final text = data?.text?.trim();
-    if (text != null && text.isNotEmpty) _text.text = text;
+    if (text == null || text.isEmpty) return;
+    _text.text = _custom ? _addressIn(text) : text;
+  }
+
+  Future<void> _scan() async {
+    if (FocusScope.of(context).hasFocus) {
+      FocusScope.of(context).unfocus();
+      await Future<void>.delayed(const Duration(milliseconds: 75));
+    }
+    if (!mounted) return;
+    final result = await ref.read(pBarcodeScanner).scan(context: context);
+    final raw = result.rawContent?.trim();
+    if (raw != null && raw.isNotEmpty) _text.text = _addressIn(raw);
   }
 
   Future<void> _next() async {
@@ -328,7 +369,7 @@ class _PivxNamesTargetViewState extends ConsumerState<PivxNamesTargetView> {
       context,
       _wallet,
       _flow,
-      target: _flow.op.hasTarget ? _target : null,
+      target: _flow.op.hasTarget ? _destination : null,
       newOwner: _flow.op == PivxNamesOp.chg ? _newOwner : null,
       priceSats: _flow.op == PivxNamesOp.lst
           ? parsePivxNamesPrice(_text.text, shift: _shift)
@@ -338,7 +379,12 @@ class _PivxNamesTargetViewState extends ConsumerState<PivxNamesTargetView> {
     await _openPayment(context, payment);
   }
 
-  Widget _field({required String hint, Widget? suffix, bool price = false}) {
+  Widget _field({
+    required String hint,
+    Widget? suffix,
+    _Input input = _Input.key,
+  }) {
+    final price = input == _Input.price;
     final colors = Theme.of(context).extension<StackColors>()!;
     final error = _touched ? _error : null;
     return Column(
@@ -366,9 +412,16 @@ class _PivxNamesTargetViewState extends ConsumerState<PivxNamesTargetView> {
               keyboardType: price
                   ? const TextInputType.numberWithOptions(decimal: true)
                   : TextInputType.text,
-              inputFormatters: price
-                  ? [FilteringTextInputFormatter.allow(RegExp(r"[0-9.]"))]
-                  : [FilteringTextInputFormatter.allow(RegExp(r"[0-9a-fA-F]"))],
+              inputFormatters: switch (input) {
+                _Input.price => [
+                  FilteringTextInputFormatter.allow(RegExp(r"[0-9.]")),
+                ],
+                _Input.key => [
+                  FilteringTextInputFormatter.allow(RegExp(r"[0-9a-fA-F]")),
+                ],
+                // Pasted links are cut to their address when used.
+                _Input.address => null,
+              },
               style: STextStyles.field(context),
               decoration: standardInputDecoration(
                 hint,
@@ -408,8 +461,9 @@ class _PivxNamesTargetViewState extends ConsumerState<PivxNamesTargetView> {
     final (String heading, String text) = switch (op) {
       PivxNamesOp.reg || PivxNamesOp.buy => (
         "Where should ${_flow.name} point?",
-        "Choose one of your shield addresses. Anyone who pays "
-            "${_flow.name} pays this address, and you can change it later.",
+        "Choose one of your shield addresses, or enter another one. Anyone "
+            "who pays ${_flow.name} pays this address, and you can change it "
+            "later.",
       ),
       PivxNamesOp.upd => (
         "Choose the new destination",
@@ -459,6 +513,53 @@ class _PivxNamesTargetViewState extends ConsumerState<PivxNamesTargetView> {
                     Text(text, style: secondary),
                     const SizedBox(height: 16),
                     if (op.hasTarget) ...[
+                      SizedBox(
+                        height: 48,
+                        child: Toggle(
+                          onColor: Util.isDesktop
+                              ? colors.rateTypeToggleDesktopColorOn
+                              : colors.popupBG,
+                          onText: "My addresses",
+                          offColor: Util.isDesktop
+                              ? colors.rateTypeToggleDesktopColorOff
+                              : colors.textFieldDefaultBG,
+                          offText: "Another address",
+                          isOn: _custom,
+                          onValueChanged: (custom) => setState(() {
+                            _custom = custom;
+                            _touched = false;
+                          }),
+                          decoration: BoxDecoration(
+                            color: Colors.transparent,
+                            borderRadius: BorderRadius.circular(
+                              Constants.size.circularBorderRadius,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+                    if (op.hasTarget && _custom)
+                      _field(
+                        hint: "Shield address",
+                        input: _Input.address,
+                        suffix: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              tooltip: "Paste",
+                              onPressed: _paste,
+                              icon: const ClipboardIcon(),
+                            ),
+                            IconButton(
+                              tooltip: "Scan QR code",
+                              onPressed: _scan,
+                              icon: const QrCodeIcon(),
+                            ),
+                          ],
+                        ),
+                      )
+                    else if (op.hasTarget) ...[
                       PivxOwnAddressField(
                         walletId: _flow.walletId,
                         value: _target,
@@ -505,7 +606,7 @@ class _PivxNamesTargetViewState extends ConsumerState<PivxNamesTargetView> {
                     if (op == PivxNamesOp.lst) ...[
                       _field(
                         hint: "Price",
-                        price: true,
+                        input: _Input.price,
                         suffix: Padding(
                           padding: const EdgeInsets.only(right: 14, top: 14),
                           child: Text(

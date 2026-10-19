@@ -14,9 +14,9 @@ import '../../utilities/text_styles.dart';
 import '../../wallets/models/tx_data.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
 import '../../widgets/background.dart';
-import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/custom_buttons/blue_text_button.dart';
 import '../../widgets/desktop/primary_button.dart';
+import '../../widgets/page_app_bar.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/secret_screen.dart';
 import '../../widgets/stack_text_field.dart';
@@ -398,10 +398,7 @@ class _PivxCreateMasternodeViewState
     return Background(
       child: Scaffold(
         backgroundColor: colors.background,
-        appBar: AppBar(
-          leading: AppBarBackButton(
-            onPressed: () => Navigator.of(context).pop(),
-          ),
+        appBar: PageAppBar(
           title: Text(
             widget.existing ? "Add existing masternode" : "Create masternode",
             style: STextStyles.navBarTitle(context),

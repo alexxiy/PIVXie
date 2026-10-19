@@ -16,10 +16,10 @@ import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/models/tx_data.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
 import '../../widgets/background.dart';
-import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/custom_buttons/blue_text_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/middle_ellipsis_text.dart';
+import '../../widgets/page_app_bar.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../pivx_governance/pivx_governance_widgets.dart';
 import '../pivx_masternodes/pivx_masternodes_view.dart';
@@ -294,10 +294,7 @@ class _PivxColdStakingViewState extends ConsumerState<PivxColdStakingView> {
     return Background(
       child: Scaffold(
         backgroundColor: colors.background,
-        appBar: AppBar(
-          leading: AppBarBackButton(
-            onPressed: () => Navigator.of(context).pop(),
-          ),
+        appBar: PageAppBar(
           title: Text("Cold staking", style: STextStyles.navBarTitle(context)),
           actions: [
             IconButton(

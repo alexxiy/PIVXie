@@ -257,8 +257,11 @@ class _PivxNamesMyNamesViewState extends ConsumerState<PivxNamesMyNamesView> {
                               own
                                   ? "Points to "
                                         "${pivxAddressTitle(walletId, address)}"
-                                  : "Points to an address outside this "
-                                        "wallet",
+                                  // Possibly one of this phrase's that the
+                                  // wallet hasn't made yet (after a
+                                  // restore): not "outside the wallet".
+                                  : "Points to an address not on this "
+                                        "wallet's list",
                               style: secondary,
                             ),
                             const SizedBox(height: 2),

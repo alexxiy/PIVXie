@@ -25,6 +25,7 @@ import '../../utilities/amount/amount_formatter.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/constants.dart';
 import '../../utilities/text_styles.dart';
+import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
@@ -40,6 +41,7 @@ import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/expandable2.dart';
 import '../../widgets/icon_widgets/x_icon.dart';
+import '../../widgets/page_app_bar.dart';
 import '../../widgets/rounded_container.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/toggle.dart';
@@ -318,25 +320,38 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
               .background,
           appBar: AppBar(
             automaticallyImplyLeading: false,
+            // Also opened in the desktop window: sized like PageAppBar.
+            toolbarHeight: PageAppBar.height,
+            leadingWidth: PageAppBar.leadingWidth,
+            actionsPadding: PageAppBar.actionsPadding,
             leading: _isSearching
                 ? null
                 : widget.type == CoinControlViewType.use &&
                       _selectedAvailable.isNotEmpty
-                ? AppBarIconButton(
-                    icon: XIcon(
-                      width: 24,
-                      height: 24,
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .topNavIconPrimary,
+                ? Padding(
+                    padding: Util.isDesktop
+                        ? const EdgeInsets.symmetric(
+                            vertical: 20,
+                            horizontal: 24,
+                          )
+                        : EdgeInsets.zero,
+                    child: AppBarIconButton(
+                      icon: XIcon(
+                        width: 24,
+                        height: 24,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .topNavIconPrimary,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _selectedAvailable.clear();
+                        });
+                      },
                     ),
-                    onPressed: () {
-                      setState(() {
-                        _selectedAvailable.clear();
-                      });
-                    },
                   )
-                : AppBarBackButton(
+                : PageAppBar.backButton(
+                    context,
                     onPressed: () {
                       unawaited(_refreshBalance());
                       Navigator.of(context).pop(

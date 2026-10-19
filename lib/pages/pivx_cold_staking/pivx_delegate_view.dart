@@ -16,12 +16,12 @@ import '../../utilities/text_styles.dart';
 import '../../wallets/models/tx_data.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
 import '../../widgets/background.dart';
-import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/custom_buttons/blue_text_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/icon_buttons.dart';
 import '../../widgets/icon_widgets/clipboard_icon.dart';
 import '../../widgets/icon_widgets/qrcode_icon.dart';
+import '../../widgets/page_app_bar.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_text_field.dart';
 import '../pivx_governance/pivx_governance_widgets.dart';
@@ -455,10 +455,7 @@ class _PivxDelegateViewState extends ConsumerState<PivxDelegateView> {
     return Background(
       child: Scaffold(
         backgroundColor: colors.background,
-        appBar: AppBar(
-          leading: AppBarBackButton(
-            onPressed: () => Navigator.of(context).pop(),
-          ),
+        appBar: PageAppBar(
           title: Text(
             _delegating ? "Delegate more" : "Start cold staking",
             style: STextStyles.navBarTitle(context),

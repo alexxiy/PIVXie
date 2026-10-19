@@ -19,10 +19,10 @@ import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
-import '../../widgets/desktop/desktop_app_bar.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/icon_widgets/x_icon.dart';
+import '../../widgets/page_app_bar.dart';
 import '../../widgets/stack_dialog.dart';
 import '../../widgets/stack_text_field.dart';
 import '../../widgets/textfield_icon_button.dart';
@@ -198,19 +198,7 @@ enum PivxNamesSection {
 /// The Names header, laid out like the wallet's: back, the PIVX.name
 /// logo and [title], then the info button and the menu. [section] is the
 /// open section (its menu entry replaces the screen with another one).
-// On desktop the headers take the desktop app bar's compact height: the
-// back button there comes with padding for it, and is squeezed in a
-// regular app bar.
-double get _barHeight =>
-    Util.isDesktop ? kDesktopAppBarHeightCompact : kToolbarHeight;
-
-double? get _leadingWidth => Util.isDesktop ? 90 : null;
-
-Widget _backButton(BuildContext context) => AppBarBackButton(
-  isCompact: Util.isDesktop,
-  onPressed: () => Navigator.of(context).pop(),
-);
-
+/// Sized like [PageAppBar].
 class PivxNamesAppBar extends StatelessWidget implements PreferredSizeWidget {
   const PivxNamesAppBar({
     super.key,
@@ -224,7 +212,7 @@ class PivxNamesAppBar extends StatelessWidget implements PreferredSizeWidget {
   final PivxNamesSection? section;
 
   @override
-  Size get preferredSize => Size.fromHeight(_barHeight);
+  Size get preferredSize => Size.fromHeight(PageAppBar.height);
 
   Future<void> _menu(BuildContext button) async {
     final colors = Theme.of(button).extension<StackColors>()!;
@@ -294,9 +282,9 @@ class PivxNamesAppBar extends StatelessWidget implements PreferredSizeWidget {
       child: AspectRatio(aspectRatio: 1, child: child),
     );
     return AppBar(
-      toolbarHeight: _barHeight,
-      leadingWidth: _leadingWidth,
-      leading: _backButton(context),
+      toolbarHeight: PageAppBar.height,
+      leadingWidth: PageAppBar.leadingWidth,
+      leading: PageAppBar.backButton(context),
       titleSpacing: 0,
       title: Row(
         children: [
@@ -356,17 +344,15 @@ class PivxNamesAppBar extends StatelessWidget implements PreferredSizeWidget {
 }
 
 /// A flow screen's header: back and [title].
-AppBar pivxNamesFlowAppBar(BuildContext context, String title) => AppBar(
-  toolbarHeight: _barHeight,
-  leadingWidth: _leadingWidth,
-  leading: _backButton(context),
-  titleSpacing: 0,
-  title: Text(
-    title,
-    style: STextStyles.navBarTitle(context),
-    overflow: TextOverflow.ellipsis,
-  ),
-);
+PreferredSizeWidget pivxNamesFlowAppBar(BuildContext context, String title) =>
+    PageAppBar(
+      titleSpacing: 0,
+      title: Text(
+        title,
+        style: STextStyles.navBarTitle(context),
+        overflow: TextOverflow.ellipsis,
+      ),
+    );
 
 // =============================================================================
 // How it works
