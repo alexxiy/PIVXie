@@ -167,11 +167,13 @@ typedef PivxNamesIncoming = ({
   String memo,
 });
 
+/// Where a withdrawal is (TX_REFUND_* of the registrar).
 enum PivxNamesRefundStatus {
   waiting(0, "Waiting"),
   queued(1, "Queued"),
-  paid(2, "Paid"),
-  error(3, "Error");
+  sending(2, "Sending"),
+  paid(3, "Paid"),
+  error(4, "Error");
 
   const PivxNamesRefundStatus(this.code, this.label);
 
@@ -280,6 +282,24 @@ class PivxNamesRegistrar {
     "PIVX.name sent an answer the app doesn't understand",
   );
 
+  /// [_call] for the signed requests the registrar takes within a minute
+  /// of their nonce: its "Request timeout" means this device's clock is
+  /// off.
+  Future<Object?> _timed(String path, Map<String, dynamic> body) async {
+    try {
+      return await _call(path, body);
+    } on PivxNamesException catch (e) {
+      if (e.fromServer && e.message == "Request timeout") {
+        throw const PivxNamesException(
+          "PIVX.name turned the request down because this device's clock "
+          "is off. Set the right time and try again.",
+          fromServer: true,
+        );
+      }
+      rethrow;
+    }
+  }
+
   /// The registrar's payment address, checked against [service] (network,
   /// address rule). Asked once; a failure is asked again next time.
   Future<PivxNamesPaymentInfo> paymentInfo() async {
@@ -317,9 +337,18 @@ class PivxNamesRegistrar {
     );
   }
 
+  /// The lookup path of [name]. Names from the registrar's own lists go
+  /// there too, so one that isn't a name never reaches a URL.
+  static String _checkPath(String name) {
+    if (!isValidPivxName(name)) {
+      throw PivxNamesException("$name isn't a valid PIVX name");
+    }
+    return "check/$name";
+  }
+
   /// Whether [name] is free, taken or for sale.
   Future<PivxNamesAvailability> check(String name) async {
-    final r = await _call("check/$name", {"with_pubkey": true});
+    final r = await _call(_checkPath(name), {"with_pubkey": true});
     if (r is! Map || r["exists"] is! bool) _malformed();
     final price = _sats(r["price"]);
     if (r["exists"] == false) {
@@ -336,7 +365,7 @@ class PivxNamesRegistrar {
   /// The payment carrying [memo] for [name], once the registrar has seen
   /// it.
   Future<PivxNamesProgress> progressByMemo(String name, String memo) async {
-    final r = await _call("check/$name", {
+    final r = await _call(_checkPath(name), {
       "reg_id": base64.encode(utf8.encode(memo)),
     });
     return _progress(r);
@@ -344,7 +373,7 @@ class PivxNamesRegistrar {
 
   /// Where the payment [txId] for [name] is.
   Future<PivxNamesProgress> progressByTxId(String name, String txId) async {
-    final r = await _call("check/$name", {"tx_id": txId});
+    final r = await _call(_checkPath(name), {"tx_id": txId});
     return _progress(r);
   }
 
@@ -485,7 +514,7 @@ class PivxNamesRegistrar {
     required int nonce,
     required String signature,
   }) async {
-    final r = await _call("balance", {
+    final r = await _timed("balance", {
       "action": "withdraw",
       "pubkey": pubkey,
       "address": address,
@@ -513,13 +542,13 @@ class PivxNamesRegistrar {
     for (final t in r.items) {
       final status = _int(t["status"]);
       items.add((
-        name: "${t["domain_name"] ?? ""}",
-        op: "${t["op"] ?? ""}",
+        name: _text(t["domain_name"]),
+        op: _text(t["op"]),
         confirmations: _int(t["confirmations"]) ?? 0,
         status: PivxNamesTxStatus.fromCode(status),
         rawStatus: status,
-        txId: "${t["tx_id"] ?? ""}",
-        memo: "${t["memo"] ?? ""}",
+        txId: _txId(t["tx_id"]),
+        memo: _text(t["memo"]),
       ));
     }
     return (count: r.count, items: items);
@@ -543,8 +572,8 @@ class PivxNamesRegistrar {
             ? null
             : DateTime.fromMillisecondsSinceEpoch(date * 1000, isUtc: true),
         amount: _sats(t["amount"]) ?? BigInt.zero,
-        fee: "${t["fee"] ?? ""}".replaceAll("%", ""),
-        txId: "${t["tx_id"] ?? ""}",
+        fee: _text(t["fee"]).replaceAll("%", ""),
+        txId: _txId(t["tx_id"]),
         status: PivxNamesRefundStatus.fromCode(status),
         rawStatus: status,
       ));
@@ -559,7 +588,7 @@ class PivxNamesRegistrar {
     int nonce,
     String signature,
   ) async {
-    final r = await _call("transactions", {
+    final r = await _timed("transactions", {
       "type": type,
       "pubkey": pubkey,
       "page": page,
@@ -581,6 +610,26 @@ class PivxNamesRegistrar {
 }
 
 int? _int(Object? v) => v is int ? v : int.tryParse("${v ?? ""}");
+
+/// Server text of a history entry, safe to show (no control or direction
+/// characters). A memo is up to 512 bytes, so nothing is cut.
+String _text(Object? v) => v == null
+    ? ""
+    : "$v"
+          .replaceAll(
+            RegExp(
+              r"[\u0000-\u001f\u007f-\u009f\u200e\u200f\u202a-\u202e"
+              r"\u2066-\u2069]",
+            ),
+            " ",
+          )
+          .trim();
+
+/// A transaction id, or "" for anything that isn't one.
+String _txId(Object? v) {
+  final s = "${v ?? ""}".toLowerCase();
+  return RegExp(r"^[0-9a-f]{64}$").hasMatch(s) ? s : "";
+}
 
 /// An amount in satoshis: an integer, or a decimal string the registrar's
 /// database may write with a fraction (".00000000").

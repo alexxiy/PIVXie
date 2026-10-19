@@ -851,8 +851,10 @@ class _PivxNamesPaymentViewState extends ConsumerState<PivxNamesPaymentView> {
                     const SizedBox(height: 6),
                     Text(
                       "Your wallet makes this payment to PIVX.name with the "
-                      "memo inside. The memo is encrypted: only PIVX.name "
-                      "can read it.",
+                      "memo inside. The memo is the command, and PIVX.name "
+                      "acts on it once the payment is confirmed. PIVX.name "
+                      "publishes its viewing key, so anyone can read the "
+                      "memo, but there's nothing secret in it.",
                       style: STextStyles.itemSubtitle(context),
                     ),
                     const SizedBox(height: 16),

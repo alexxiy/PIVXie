@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../providers/global/wallets_provider.dart';
+import '../../services/pivx_name/pivx_name.dart';
 import '../../services/pivx_name/pivx_names_protocol.dart';
 import '../../services/pivx_name/pivx_names_registrar.dart';
 import '../../themes/stack_colors.dart';
@@ -390,7 +391,11 @@ class _PivxNamesTransactionsViewState
           },
           txId: t.txId,
           memo: t.memo,
-          onTap: t.status == null || t.status!.isFinal || t.txId.isEmpty
+          onTap:
+              t.status == null ||
+                  t.status!.isFinal ||
+                  t.txId.isEmpty ||
+                  !isValidPivxName(t.name)
               ? null
               : () => _open(
                   PivxNamesTracked(

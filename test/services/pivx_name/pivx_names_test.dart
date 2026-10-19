@@ -580,7 +580,7 @@ void main() {
                     "amount": "95000000",
                     "fee": "5%",
                     "tx_id": "ef" * 32,
-                    "status": 2,
+                    "status": 3,
                   },
                 ],
               };
@@ -605,6 +605,18 @@ void main() {
       expect(refund.amount, BigInt.from(95000000));
       expect(refund.fee, "5");
       expect(refund.status, PivxNamesRefundStatus.paid);
+      // TX_REFUND_* of the registrar's config.php.
+      expect(
+        [for (var i = 0; i <= 5; i++) PivxNamesRefundStatus.fromCode(i)],
+        [
+          PivxNamesRefundStatus.waiting,
+          PivxNamesRefundStatus.queued,
+          PivxNamesRefundStatus.sending,
+          PivxNamesRefundStatus.paid,
+          PivxNamesRefundStatus.error,
+          null,
+        ],
+      );
     });
 
     test("errors", () async {
@@ -632,6 +644,80 @@ void main() {
         ),
       );
       await expectLater(r.check("x.pivx"), throwsA(isA<PivxNamesException>()));
+    });
+
+    test("history text is cleaned, odd txids dropped", () async {
+      routes["transactions"] = (body) => {
+        "count": 1,
+        "tx": [
+          {
+            "domain_name": "ali\u202ece.pivx",
+            "op": "UPD\n",
+            "confirmations": "7",
+            "status": "1",
+            "tx_id": "AB" * 32,
+            "memo": "PiNS:1:UPD:\u2066x",
+          },
+          {"domain_name": "bob.pivx", "tx_id": "zz", "status": 9},
+        ],
+      };
+      final r = registrar();
+      final items = (await r.incoming(
+        pubkey: liveOwnerKey,
+        page: 1,
+        nonce: 1760000000,
+        signature: "sig",
+      )).items;
+      expect(items[0].name, "ali ce.pivx");
+      expect(items[0].op, "UPD");
+      expect(items[0].confirmations, 7);
+      expect(items[0].status, PivxNamesTxStatus.pendingProof);
+      expect(items[0].txId, "ab" * 32);
+      expect(items[0].memo, "PiNS:1:UPD: x");
+      expect(items[1].txId, "");
+      expect(items[1].status, PivxNamesTxStatus.rejected);
+      // Not a name: never put in a lookup path.
+      await expectLater(
+        r.progressByTxId(items[0].name, items[0].txId),
+        throwsA(isA<PivxNamesException>()),
+      );
+      await expectLater(
+        r.progressByMemo("../balance", "m"),
+        throwsA(isA<PivxNamesException>()),
+      );
+      expect(calls, ["POST transactions"]);
+    });
+
+    test("a clock that is off is named", () async {
+      routes["transactions"] = (_) => jsonEncode({
+        "error": {"error_message": "Request timeout"},
+      });
+      routes["balance"] = routes["transactions"]!;
+      final r = registrar();
+      final clock = isA<PivxNamesException>().having(
+        (e) => e.message,
+        "message",
+        contains("clock"),
+      );
+      await expectLater(
+        r.refunds(
+          pubkey: liveOwnerKey,
+          page: 1,
+          nonce: 1760000000,
+          signature: "sig",
+        ),
+        throwsA(clock),
+      );
+      await expectLater(
+        r.withdraw(
+          pubkey: liveOwnerKey,
+          address: "ps1",
+          amount: BigInt.one,
+          nonce: 1760000000,
+          signature: "sig",
+        ),
+        throwsA(clock),
+      );
     });
 
     test("statuses", () {
