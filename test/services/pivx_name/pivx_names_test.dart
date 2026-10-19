@@ -162,8 +162,15 @@ void main() {
         "PiNS:1:WDR:$key:$liveTarget:95000000:1760000000",
       );
       expect(
-        pivxNamesHistoryMessage(type: "ref", pubkey: key, page: 2, count: 10),
-        "ref:$key:2:10",
+        pivxNamesHistoryMessage(
+          marker: "PiNS",
+          type: "ref",
+          pubkey: key,
+          page: 2,
+          count: 10,
+          nonce: 1760000000,
+        ),
+        "PiNS:1:TXS:ref:$key:2:10:1760000000",
       );
     });
 
@@ -550,6 +557,7 @@ void main() {
       routes["transactions"] = (body) {
         expect(body!["count"], 10);
         expect(body["signature"], "sig");
+        expect(body["nonce"], 1760000000);
         return body["type"] == "in"
             ? {
                 "count": 1,
@@ -581,6 +589,7 @@ void main() {
       final incoming = await r.incoming(
         pubkey: liveOwnerKey,
         page: 1,
+        nonce: 1760000000,
         signature: "sig",
       );
       expect(incoming.items.single.status, PivxNamesTxStatus.queuedProof);
@@ -588,6 +597,7 @@ void main() {
       final refunds = await r.refunds(
         pubkey: liveOwnerKey,
         page: 1,
+        nonce: 1760000000,
         signature: "sig",
       );
       final refund = refunds.items.single;

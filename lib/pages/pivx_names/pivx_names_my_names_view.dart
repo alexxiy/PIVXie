@@ -10,6 +10,7 @@ import '../../services/pivx_name/pivx_names_protocol.dart';
 import '../../services/pivx_name/pivx_names_registrar.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/text_styles.dart';
+import '../../utilities/util.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
 import '../../widgets/background.dart';
 import '../../widgets/desktop/primary_button.dart';
@@ -115,6 +116,126 @@ class _PivxNamesMyNamesViewState extends ConsumerState<PivxNamesMyNamesView> {
     if (ok && mounted) await _start(_flow(d, PivxNamesOp.ult));
   }
 
+  /// What can be done with [d], in a sheet: the price or unlisting while
+  /// it's on sale, else its destination, owner or listing.
+  Future<void> _manage(PivxNamesDomain d) async {
+    final colors = Theme.of(context).extension<StackColors>()!;
+    final listed = d.price > BigInt.zero;
+    final actions = <_Action>[
+      if (listed) ...[
+        (
+          icon: PivxNamesIcons.price,
+          label: "Change sell price",
+          note: "Listed for ${pivxNamesAmount(d.price, ref, _wallet)}",
+          run: () => _start(_flow(d, PivxNamesOp.lst, listedPrice: d.price)),
+        ),
+        (
+          icon: PivxNamesIcons.unlist,
+          label: "Unlist",
+          note: "Take it off the marketplace",
+          run: () => _unlist(d),
+        ),
+      ] else ...[
+        (
+          icon: PivxNamesIcons.destination,
+          label: "Change destination",
+          note: "Point it to another shield address",
+          run: () => _start(_flow(d, PivxNamesOp.upd)),
+        ),
+        (
+          icon: PivxNamesIcons.owner,
+          label: "Change owner",
+          note: "Give it to someone else's public key",
+          run: () => _start(_flow(d, PivxNamesOp.chg)),
+        ),
+        (
+          icon: PivxNamesIcons.list,
+          label: "List on marketplace",
+          note: "Put it up for sale",
+          run: () => _start(_flow(d, PivxNamesOp.lst)),
+        ),
+      ],
+    ];
+    final picked = await showModalBottomSheet<_Action>(
+      context: context,
+      backgroundColor: colors.popupBG,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 20, 16, 12),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              PivxNamesNameText(
+                d.name,
+                style: STextStyles.pageTitleH2(context),
+              ),
+              const SizedBox(height: 12),
+              for (final a in actions)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: _actionTile(a),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+    // Once the sheet is gone, so that the flow opens over this page.
+    if (picked != null && mounted) await picked.run();
+  }
+
+  Widget _actionTile(_Action a) {
+    final colors = Theme.of(context).extension<StackColors>()!;
+    final color = a.icon == PivxNamesIcons.unlist
+        ? colors.textError
+        : colors.accentColorBlue;
+    return RoundedWhiteContainer(
+      padding: EdgeInsets.zero,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(8),
+        onTap: () => Navigator.of(context).pop(a),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Row(
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                alignment: Alignment.center,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.12),
+                  shape: BoxShape.circle,
+                ),
+                child: PivxNamesIcon(a.icon, size: 18, color: color),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(a.label, style: STextStyles.w600_14(context)),
+                    const SizedBox(height: 2),
+                    Text(
+                      a.note,
+                      style: STextStyles.w500_12(context)
+                          .copyWith(color: colors.textSubtitle1),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Icon(Icons.chevron_right_rounded, color: colors.textSubtitle1),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _keyCard() {
     final colors = Theme.of(context).extension<StackColors>()!;
     final key = _key;
@@ -189,31 +310,6 @@ class _PivxNamesMyNamesViewState extends ConsumerState<PivxNamesMyNamesView> {
         .copyWith(color: colors.textSubtitle1);
     final walletId = widget.walletId;
     final inFlight = PivxNamesInFlight.of(walletId, d.name);
-    Widget action(String label, VoidCallback onTap) => SecondaryButton(
-      label: label,
-      buttonHeight: ButtonHeight.m,
-      padding: const EdgeInsets.symmetric(horizontal: 14),
-      onPressed: onTap,
-    );
-    final actions = listed
-        ? [
-            action(
-              "Change sell price",
-              () => _start(_flow(d, PivxNamesOp.lst, listedPrice: d.price)),
-            ),
-            action("Unlist", () => _unlist(d)),
-          ]
-        : [
-            action(
-              "Change destination",
-              () => _start(_flow(d, PivxNamesOp.upd)),
-            ),
-            action("Change owner", () => _start(_flow(d, PivxNamesOp.chg))),
-            action(
-              "List on marketplace",
-              () => _start(_flow(d, PivxNamesOp.lst)),
-            ),
-          ];
     return Padding(
       padding: const EdgeInsets.only(bottom: 10),
       child: RoundedWhiteContainer(
@@ -287,10 +383,24 @@ class _PivxNamesMyNamesViewState extends ConsumerState<PivxNamesMyNamesView> {
             if (inFlight != null)
               PivxNamesInFlightNote(tracked: inFlight)
             else
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: [for (final a in actions) IntrinsicWidth(child: a)],
+              Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(minWidth: 160),
+                  child: IntrinsicWidth(
+                    child: SecondaryButton(
+                      label: "Manage",
+                      icon: PivxNamesIcon(
+                        PivxNamesIcons.manage,
+                        size: 18,
+                        color: colors.buttonTextSecondary,
+                      ),
+                      iconSpacing: 8,
+                      buttonHeight: Util.isDesktop ? ButtonHeight.m : null,
+                      padding: const EdgeInsets.symmetric(horizontal: 20),
+                      onPressed: () => _manage(d),
+                    ),
+                  ),
+                ),
               ),
           ],
         ),
@@ -370,3 +480,10 @@ class _PivxNamesMyNamesViewState extends ConsumerState<PivxNamesMyNamesView> {
     );
   }
 }
+
+typedef _Action = ({
+  String icon,
+  String label,
+  String note,
+  FutureOr<void> Function() run,
+});

@@ -501,13 +501,14 @@ class PivxNamesRegistrar {
   }
 
   /// The commands [pubkey] paid for, newest first. [signature] signs
-  /// [pivxNamesHistoryMessage] with type "in".
+  /// [pivxNamesHistoryMessage] with type "in" and [nonce].
   Future<PivxNamesPage<PivxNamesIncoming>> incoming({
     required String pubkey,
     required int page,
+    required int nonce,
     required String signature,
   }) async {
-    final r = await _history("in", pubkey, page, signature);
+    final r = await _history("in", pubkey, page, nonce, signature);
     final items = <PivxNamesIncoming>[];
     for (final t in r.items) {
       final status = _int(t["status"]);
@@ -525,13 +526,14 @@ class PivxNamesRegistrar {
   }
 
   /// The withdrawals [pubkey] asked for, newest first. [signature] signs
-  /// [pivxNamesHistoryMessage] with type "ref".
+  /// [pivxNamesHistoryMessage] with type "ref" and [nonce].
   Future<PivxNamesPage<PivxNamesRefund>> refunds({
     required String pubkey,
     required int page,
+    required int nonce,
     required String signature,
   }) async {
-    final r = await _history("ref", pubkey, page, signature);
+    final r = await _history("ref", pubkey, page, nonce, signature);
     final items = <PivxNamesRefund>[];
     for (final t in r.items) {
       final date = _int(t["date"]);
@@ -554,6 +556,7 @@ class PivxNamesRegistrar {
     String type,
     String pubkey,
     int page,
+    int nonce,
     String signature,
   ) async {
     final r = await _call("transactions", {
@@ -561,6 +564,7 @@ class PivxNamesRegistrar {
       "pubkey": pubkey,
       "page": page,
       "count": kPivxNamesHistoryPageSize,
+      "nonce": nonce,
       "signature": signature,
     });
     if (r is! Map) _malformed();

@@ -87,18 +87,22 @@ class _PivxNamesTransactionsViewState
     try {
       final wallet = _wallet;
       final identity = await wallet.namesIdentity();
+      final nonce = pivxNamesNonce();
       final signature = await identity.sign(
         pivxNamesHistoryMessage(
+          marker: _registrar.service.marker,
           type: refunds ? "ref" : "in",
           pubkey: identity.publicKey,
           page: page,
           count: kPivxNamesHistoryPageSize,
+          nonce: nonce,
         ),
       );
       if (refunds) {
         final list = await _registrar.refunds(
           pubkey: identity.publicKey,
           page: page,
+          nonce: nonce,
           signature: signature,
         );
         if (!mounted || request != _request) return;
@@ -107,6 +111,7 @@ class _PivxNamesTransactionsViewState
         final list = await _registrar.incoming(
           pubkey: identity.publicKey,
           page: page,
+          nonce: nonce,
           signature: signature,
         );
         if (!mounted || request != _request) return;

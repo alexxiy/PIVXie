@@ -123,13 +123,17 @@ String pivxNamesWithdrawMessage({
 }) => "$marker:1:WDR:$pubkey:$address:$amountSats:$nonce";
 
 /// The message that proves the history request ([type] "in" or "ref")
-/// comes from the key's owner.
+/// comes from the key's owner. Shaped like a withdrawal (TXS, no memo's
+/// operation), and with the time: the registrar takes it within a minute,
+/// so a request somebody has seen can't be replayed later.
 String pivxNamesHistoryMessage({
+  required String marker,
   required String type,
   required String pubkey,
   required int page,
   required int count,
-}) => "$type:$pubkey:$page:$count";
+  required int nonce,
+}) => "$marker:1:TXS:$type:$pubkey:$page:$count:$nonce";
 
 /// Whether [command] plus its signature fits a shielded memo.
 bool pivxNamesCommandFits(String command) =>
