@@ -56,6 +56,7 @@ import 'utilities/logger.dart';
 import 'utilities/ui_stall_watch.dart';
 import 'utilities/prefs.dart';
 import 'utilities/stack_file_system.dart';
+import 'utilities/text_styles.dart';
 import 'utilities/util.dart';
 import 'wallets/isar/providers/all_wallets_info_provider.dart';
 
@@ -592,6 +593,8 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
         highlightColor: colorScheme.highlight,
         brightness: colorScheme.brightness,
         fontFamily: GoogleFonts.inter().fontFamily,
+        textTheme: kTextThemeFontFeatures,
+        primaryTextTheme: kTextThemeFontFeatures,
         unselectedWidgetColor: colorScheme.radioButtonBorderDisabled,
         radioTheme: const RadioThemeData(
           splashRadius: 0,
