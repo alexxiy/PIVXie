@@ -62,6 +62,12 @@ import 'pages/pivx_governance/pivx_proposal_view.dart';
 import 'pages/pivx_masternodes/pivx_create_masternode_view.dart';
 import 'pages/pivx_masternodes/pivx_masternode_details_view.dart';
 import 'pages/pivx_masternodes/pivx_masternodes_view.dart';
+import 'pages/pivx_names/pivx_names_balance_view.dart';
+import 'pages/pivx_names/pivx_names_marketplace_view.dart';
+import 'pages/pivx_names/pivx_names_my_names_view.dart';
+import 'pages/pivx_names/pivx_names_status_view.dart';
+import 'pages/pivx_names/pivx_names_transactions_view.dart';
+import 'pages/pivx_names/pivx_names_view.dart';
 import 'pages/settings_views/global_settings_view/appearance_settings/appearance_view.dart';
 import 'pages/settings_views/global_settings_view/appearance_settings/theme_mode_view.dart';
 import 'pages/settings_views/global_settings_view/currency_view.dart';
@@ -1066,6 +1072,74 @@ class RouteGenerator {
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) =>
                 DesktopPageColumn(child: PivxDelegateView(walletId: args)),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case PivxNamesView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) =>
+                DesktopPageColumn(child: PivxNamesView(walletId: args)),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case PivxNamesMyNamesView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) =>
+                DesktopPageColumn(child: PivxNamesMyNamesView(walletId: args)),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case PivxNamesBalanceView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) =>
+                DesktopPageColumn(child: PivxNamesBalanceView(walletId: args)),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case PivxNamesTransactionsView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => DesktopPageColumn(
+              child: PivxNamesTransactionsView(walletId: args),
+            ),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case PivxNamesMarketplaceView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) => DesktopPageColumn(
+              child: PivxNamesMarketplaceView(walletId: args),
+            ),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case PivxNamesStatusView.routeName:
+        if (args is PivxNamesTracked) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) =>
+                DesktopPageColumn(child: PivxNamesStatusView(tracked: args)),
             settings: RouteSettings(name: settings.name),
           );
         }

@@ -27,6 +27,7 @@ import '../../providers/wallet/public_private_balance_state_provider.dart';
 import '../../services/event_bus/events/global/node_connection_status_changed_event.dart';
 import '../../services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import '../../services/event_bus/global_event_bus.dart';
+import '../../services/pivx_name/pivx_names_registrar.dart';
 import '../../themes/coin_icon_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount.dart';
@@ -42,6 +43,8 @@ import '../../wallets/wallet/impl/pivx_wallet.dart';
 import '../address_book_views/address_book_view.dart';
 import '../pivx_cold_staking/pivx_cold_staking_view.dart';
 import '../pivx_governance/pivx_governance_view.dart';
+import '../pivx_names/pivx_names_common.dart';
+import '../pivx_names/pivx_names_view.dart';
 import '../pivx_masternodes/pivx_masternodes_view.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
 import '../../widgets/background.dart';
@@ -712,6 +715,19 @@ class _WalletViewState extends ConsumerState<WalletView> {
                       onTap: () {
                         Navigator.of(context).pushNamed(
                           PivxGovernanceView.routeName,
+                          arguments: widget.walletId,
+                        );
+                      },
+                    ),
+                  if (!viewOnly &&
+                      wallet is PivxWallet &&
+                      PivxNamesService.forCoin(coin) != null)
+                    WalletNavigationBarItemData(
+                      label: "Names",
+                      icon: const PivxNamesLogo(size: 20, small: true),
+                      onTap: () {
+                        Navigator.of(context).pushNamed(
+                          PivxNamesView.routeName,
                           arguments: widget.walletId,
                         );
                       },

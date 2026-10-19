@@ -231,8 +231,8 @@ class PivxFundingCard extends ConsumerWidget {
   }
 }
 
-/// One of the wallet's transparent addresses, picked from a sheet that
-/// can also create a new one.
+/// One of the wallet's transparent (or, with [shield], shield)
+/// addresses, picked from a sheet that can also create a new one.
 class PivxOwnAddressField extends ConsumerWidget {
   const PivxOwnAddressField({
     super.key,
@@ -240,6 +240,8 @@ class PivxOwnAddressField extends ConsumerWidget {
     required this.value,
     required this.onChanged,
     this.tags = const {},
+    this.shield = false,
+    this.placeholder = "…",
   });
 
   final String walletId;
@@ -248,9 +250,15 @@ class PivxOwnAddressField extends ConsumerWidget {
 
   /// A short note per address, e.g. "owns your delegations".
   final Map<String, String> tags;
+  final bool shield;
+
+  /// Shown while no address is picked.
+  final String placeholder;
 
   Future<void> _pick(BuildContext context, PivxWallet wallet) async {
-    final addresses = await wallet.ownTransparentAddresses();
+    final addresses = shield
+        ? await wallet.ownShieldAddresses()
+        : await wallet.ownTransparentAddresses();
     if (!context.mounted) return;
     final picked = await showModalBottomSheet<String>(
       backgroundColor: Colors.transparent,
@@ -262,7 +270,9 @@ class PivxOwnAddressField extends ConsumerWidget {
         addresses: addresses,
         current: value,
         tags: tags,
-        onNew: wallet.newReceivingAddress,
+        onNew: shield
+            ? wallet.generateNewShieldAddress
+            : wallet.newReceivingAddress,
       ),
     );
     if (picked != null) onChanged(picked);
@@ -286,7 +296,7 @@ class PivxOwnAddressField extends ConsumerWidget {
             children: [
               Expanded(
                 child: address == null
-                    ? Text("…", style: STextStyles.w600_14(context))
+                    ? Text(placeholder, style: STextStyles.w600_14(context))
                     : Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -328,6 +338,7 @@ String pivxAddressTitle(String walletId, String address) {
     walletId,
   );
   if (a == null) return "Address";
+  if (a.type == AddressType.pivxShield) return "Shield #${a.derivationIndex}";
   return a.subType == AddressSubType.change
       ? "Change #${a.derivationIndex}"
       : "Receiving #${a.derivationIndex}";

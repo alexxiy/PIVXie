@@ -166,7 +166,7 @@ class PivxNameResolver {
     this.service, {
     PivxNameTransport? transport,
     this.recheckDelay = const Duration(seconds: 5),
-  }) : _transport = transport ?? _httpTransport;
+  }) : _transport = transport ?? pivxNameHttpTransport;
 
   /// Lookups for [coin] with the app's network settings (Tor), or null when
   /// [coin] has no name service.
@@ -510,7 +510,10 @@ Map<String, dynamic>? _decodeObject(String body) {
 
 /// Server-supplied text made safe to show: control and direction-changing
 /// characters removed, and cut short (the field is sized by whoever sent it).
-String? _clean(Object? text) {
+String? _clean(Object? text) => cleanPivxNameServerText(text);
+
+/// [_clean], for the other PIVX.name clients.
+String? cleanPivxNameServerText(Object? text) {
   if (text is! String || text.isEmpty) return null;
   final s = text
       .replaceAll(
@@ -531,7 +534,7 @@ const _maxBody = 256 * 1024;
 
 /// Requests over Tor when the app uses it. With Tor on but not connected,
 /// [TorService.getProxyInfo] throws, so nothing leaves without it.
-Future<PivxNameResponse> _httpTransport(
+Future<PivxNameResponse> pivxNameHttpTransport(
   String method,
   Uri url, {
   String? body,

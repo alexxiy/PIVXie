@@ -20,6 +20,7 @@ import '../../../../models/keys/view_only_wallet_data.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../pages/coin_control/coin_control_view.dart';
 import '../../../../providers/providers.dart';
+import '../../../../services/pivx_name/pivx_names_registrar.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/amount/amount.dart';
 import '../../../../utilities/assets.dart';
@@ -36,6 +37,8 @@ import '../../../../widgets/static_overflow_row/static_overflow_row.dart';
 import '../../../coin_control/desktop_coin_control_view.dart';
 import '../../../../pages/pivx_cold_staking/pivx_cold_staking_view.dart';
 import '../../../../pages/pivx_governance/pivx_governance_view.dart';
+import '../../../../pages/pivx_names/pivx_names_common.dart';
+import '../../../../pages/pivx_names/pivx_names_view.dart';
 import '../../../../pages/pivx_masternodes/pivx_masternodes_view.dart';
 import '../../../../wallets/wallet/impl/pivx_wallet.dart';
 import 'more_features/more_features_dialog.dart';
@@ -54,6 +57,7 @@ enum WalletFeature {
     "Governance",
     "Budget proposals: follow them and vote with your masternodes",
   ),
+  names("Names", "Register a PIVX name, and manage or sell your names"),
   privatize(
     "Privatize funds",
     "Move your whole transparent balance to your shield balance",
@@ -67,9 +71,12 @@ enum WalletFeature {
   const WalletFeature(this.label, this.description);
 }
 
-/// A feature's icon: an SVG asset path or a Material [IconData].
+/// A feature's icon: an SVG asset path, a Material [IconData] or a widget
+/// (drawn as it is).
 Widget walletFeatureIcon(Object icon, double size, Color color) =>
-    icon is IconData
+    icon is Widget
+    ? SizedBox(width: size, height: size, child: icon)
+    : icon is IconData
     ? Icon(icon, size: size, color: color)
     : SvgPicture.asset(icon as String, width: size, height: size, color: color);
 
@@ -235,6 +242,14 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
           WalletFeature.coldStaking,
           Icons.ac_unit_rounded,
           () => _push(PivxColdStakingView.routeName),
+        ),
+      if (wallet is PivxWallet &&
+          !isViewOnly &&
+          PivxNamesService.forCoin(wallet.cryptoCurrency) != null)
+        (
+          WalletFeature.names,
+          const PivxNamesLogo(small: true),
+          () => _push(PivxNamesView.routeName),
         ),
       if (wallet is PivxWallet && wallet.supportsShield && !isViewOnly)
         (WalletFeature.privatize, Icons.shield_rounded, _onPrivatizePressed),

@@ -28,6 +28,7 @@ import '../../../utilities/extensions/extensions.dart';
 import '../../../utilities/flutter_secure_storage_interface.dart';
 import '../../../services/event_bus/events/global/refresh_percent_changed_event.dart';
 import '../../../services/event_bus/global_event_bus.dart';
+import '../../../services/pivx_name/pivx_names_identity.dart';
 import '../../../services/tor_service.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/stack_file_system.dart';
@@ -47,6 +48,7 @@ import 'pivx/pivx_tx_parser.dart';
 part 'pivx/pivx_cold_staking.dart';
 part 'pivx/pivx_governance.dart';
 part 'pivx/pivx_masternodes.dart';
+part 'pivx/pivx_names.dart';
 part 'pivx/pivx_wallet_shield.dart';
 
 /// Which account of its recovery phrase a PIVX wallet is, in
