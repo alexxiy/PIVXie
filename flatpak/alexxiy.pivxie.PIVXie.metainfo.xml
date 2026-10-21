@@ -17,6 +17,7 @@
       <li>Cold staking: delegate PIV to a staker while the coins stay yours</li>
       <li>Masternodes: set up, start and follow your masternodes</li>
       <li>Governance: vote on budget proposals and submit your own</li>
+      <li>PIVX Name: register, manage, sell and buy names like yourname.pivx</li>
       <li>Encrypted backups, PIN lock and optional Tor</li>
     </ul>
   </description>
@@ -24,6 +25,7 @@
   <url type="homepage">https://pivxie.me</url>
   <content_rating type="oars-1.1"/>
   <releases>
+    <release version="1.1.1" date="2026-10-20"/>
     <release version="1.1.0" date="2026-10-19"/>
     <release version="1.0.2" date="2026-10-17"/>
     <release version="1.0.1" date="2026-10-17"/>

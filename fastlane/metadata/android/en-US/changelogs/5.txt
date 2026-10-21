@@ -1,0 +1,1 @@
+PIVX Name: the balance page now shows the smallest amount PIVX.name pays out, and Withdraw stays off until your balance reaches it, so a withdrawal no longer fails after you tap it. Withdrawals that PIVX.name is still sending, or is sending again on their own, now show as Queued.

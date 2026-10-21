@@ -1,1 +1,1 @@
-Private PIVX wallet with SHIELD transactions, cold staking and masternodes.
+Private PIVX wallet: SHIELD, cold staking, masternodes and PIVX names.
