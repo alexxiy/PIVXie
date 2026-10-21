@@ -534,6 +534,8 @@ void main() {
       final balance = await r.balance(liveOwnerKey);
       expect(balance.balance, BigInt.from(250000000));
       expect(balance.feePercent, kPivxNamesDefaultRefundFee);
+      // An older registrar: no minimum.
+      expect(balance.minWithdrawal, BigInt.zero);
       await r.withdraw(
         pubkey: liveOwnerKey,
         address: liveTarget,
@@ -551,6 +553,27 @@ void main() {
         ),
         throwsA(isA<PivxNamesException>()),
       );
+    });
+
+    test("minimum withdrawal", () async {
+      Object? served;
+      routes["balance"] = (_) => {
+        "balance": "40000000",
+        "fee": 5,
+        "min_withdrawal": served,
+      };
+      final r = registrar();
+      Future<BigInt> minimum(Object? value) async {
+        served = value;
+        return (await r.balance(liveOwnerKey)).minWithdrawal;
+      }
+
+      // 0.5 PIVX after the 5% fee, rounded up.
+      expect(await minimum(52631579), BigInt.from(52631579));
+      expect(await minimum("52631579"), BigInt.from(52631579));
+      for (final odd in [null, "abc", -1, "0.5", 1.5, <int>[]]) {
+        expect(await minimum(odd), BigInt.zero, reason: "$odd");
+      }
     });
 
     test("history", () async {
@@ -607,16 +630,25 @@ void main() {
       expect(refund.status, PivxNamesRefundStatus.paid);
       // TX_REFUND_* of the registrar's config.php.
       expect(
-        [for (var i = 0; i <= 5; i++) PivxNamesRefundStatus.fromCode(i)],
+        [for (var i = 0; i <= 6; i++) PivxNamesRefundStatus.fromCode(i)],
         [
           PivxNamesRefundStatus.waiting,
           PivxNamesRefundStatus.queued,
           PivxNamesRefundStatus.sending,
           PivxNamesRefundStatus.paid,
           PivxNamesRefundStatus.error,
+          PivxNamesRefundStatus.solo,
           null,
         ],
       );
+      // As the web app: everything still on its way reads as queued.
+      for (final s in [
+        PivxNamesRefundStatus.queued,
+        PivxNamesRefundStatus.sending,
+        PivxNamesRefundStatus.solo,
+      ]) {
+        expect(s.label, "Queued");
+      }
     });
 
     test("errors", () async {

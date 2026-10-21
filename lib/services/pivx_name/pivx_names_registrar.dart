@@ -171,9 +171,17 @@ typedef PivxNamesIncoming = ({
 enum PivxNamesRefundStatus {
   waiting(0, "Waiting"),
   queued(1, "Queued"),
-  sending(2, "Sending"),
+
+  /// Being sent: still on its way, so it reads as queued, as on the web.
+  sending(2, "Queued"),
   paid(3, "Paid"),
-  error(4, "Error");
+
+  /// The amount went back to the balance.
+  error(4, "Error"),
+
+  /// Retried on its own after a payout batch the node refused: still on
+  /// its way.
+  solo(5, "Queued");
 
   const PivxNamesRefundStatus(this.code, this.label);
 
@@ -202,9 +210,14 @@ typedef PivxNamesRefund = ({
 
 typedef PivxNamesPage<T> = ({int count, List<T> items});
 
-/// Refunded payments the user can withdraw, and the service fee a
-/// withdrawal pays (percent).
-typedef PivxNamesBalance = ({BigInt balance, double feePercent});
+/// Refunded payments the user can withdraw, the service fee a withdrawal
+/// pays (percent), and the least balance a withdrawal may ask for, fee
+/// included (zero: no minimum).
+typedef PivxNamesBalance = ({
+  BigInt balance,
+  double feePercent,
+  BigInt minWithdrawal,
+});
 
 const kPivxNamesDefaultRefundFee = 5.0;
 
@@ -497,11 +510,17 @@ class PivxNamesRegistrar {
     final balance = _sats(r["balance"]);
     if (balance == null) _malformed();
     final fee = double.tryParse("${r["fee"]}");
+    // Payouts cost the registrar a network fee each, so it refuses small
+    // ones. An older registrar doesn't say: no minimum, as on the web.
+    final minimum = _sats(r["min_withdrawal"]);
     return (
       balance: balance,
       feePercent: fee != null && fee >= 0 && fee < 100
           ? fee
           : kPivxNamesDefaultRefundFee,
+      minWithdrawal: minimum != null && minimum > BigInt.zero
+          ? minimum
+          : BigInt.zero,
     );
   }
 

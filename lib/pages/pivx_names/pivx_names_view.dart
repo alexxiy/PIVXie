@@ -22,7 +22,7 @@ import 'pivx_names_common.dart';
 import 'pivx_names_flow.dart';
 import 'pivx_names_in_flight.dart';
 
-/// PIVX Names (pivx.name): look a name up and register it, or buy it when
+/// PIVX Name (pivx.name): look a name up and register it, or buy it when
 /// it's for sale. The menu leads to the user's names, balance and
 /// transactions, and to the marketplace.
 class PivxNamesView extends ConsumerStatefulWidget {

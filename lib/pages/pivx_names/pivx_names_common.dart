@@ -328,7 +328,7 @@ class PivxNamesAppBar extends StatelessWidget implements PreferredSizeWidget {
       actions: [
         action(
           AppBarIconButton(
-            semanticsLabel: "About PIVX Names",
+            semanticsLabel: "About PIVX Name",
             size: 36,
             shadows: const [],
             color: colors.background,
@@ -550,7 +550,7 @@ class _InfoDialogState extends State<_InfoDialog> {
                 children: [
                   const PivxNamesLogo(size: 28),
                   const SizedBox(width: 10),
-                  Text("PIVX Names", style: STextStyles.w600_16(context)),
+                  Text("PIVX Name", style: STextStyles.w600_16(context)),
                   const Spacer(),
                   Text(
                     "${_slide + 1} / ${_slides.length}",
