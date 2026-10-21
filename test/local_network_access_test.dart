@@ -6,7 +6,7 @@ import 'package:paymint/utilities/local_network_access.dart';
 void main() {
   test("local network addresses", () async {
     for (final host in [
-      "192.168.1.27",
+      "192.168.1.101",
       "10.0.0.5",
       "172.16.0.1",
       "172.31.255.1",

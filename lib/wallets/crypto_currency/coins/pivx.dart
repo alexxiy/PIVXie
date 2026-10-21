@@ -286,7 +286,7 @@ class Pivx extends Bip39HDCurrency {
         );
       case CryptoCurrencyNetwork.test:
         return NodeModel(
-          host: "http://192.168.1.27:3000",
+          host: "http://192.168.1.101:3000",
           port: 3000,
           name: DefaultNodes.defaultName,
           id: DefaultNodes.buildId(this),
