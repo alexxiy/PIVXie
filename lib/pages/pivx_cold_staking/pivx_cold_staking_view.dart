@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../models/isar/models/isar_models.dart';
 import '../../providers/global/wallets_provider.dart';
@@ -16,6 +15,7 @@ import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/models/tx_data.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
 import '../../widgets/background.dart';
+import '../../widgets/block_explorer_link.dart';
 import '../../widgets/custom_buttons/blue_text_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/middle_ellipsis_text.dart';
@@ -234,12 +234,13 @@ class _PivxColdStakingViewState extends ConsumerState<PivxColdStakingView> {
                 title: "Transaction",
                 value: d.utxo.txid,
                 openTooltip: "Open in the block explorer",
-                onOpen: () => launchUrl(
+                onOpen: () => openInBlockExplorer(
+                  context,
+                  ref,
                   getBlockExplorerTransactionUrlFor(
                     coin: coin,
                     txid: d.utxo.txid,
                   ),
-                  mode: LaunchMode.externalApplication,
                 ),
               ),
               const SizedBox(height: 12),

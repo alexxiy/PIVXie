@@ -16,7 +16,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:tuple/tuple.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../models/isar/models/blockchain_data/transaction_type.dart';
 import '../../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
@@ -37,16 +36,14 @@ import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/wallet/impl/pivx/pivx_tx_parser.dart';
 import '../../../../widgets/icon_buttons.dart';
 import '../../../../widgets/background.dart';
+import '../../../../widgets/block_explorer_link.dart';
 import '../../../../widgets/conditional_parent.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/custom_buttons/blue_text_button.dart';
 import '../../../../widgets/custom_buttons/simple_copy_button.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
-import '../../../../widgets/desktop/primary_button.dart';
-import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/rounded_white_container.dart';
-import '../../../../widgets/stack_dialog.dart';
 import '../../sub_widgets/tx_icon.dart';
 import '../edit_note_view.dart';
 
@@ -1259,154 +1256,6 @@ class _TxidDetailItem extends ConsumerStatefulWidget {
 }
 
 class _TxidDetailItemState extends ConsumerState<_TxidDetailItem> {
-  Future<bool> showExplorerWarning(String explorer) async {
-    final outsideTor = ref.read(prefsChangeNotifierProvider).useTor
-        ? "\n\nYour browser opens it outside of Tor."
-        : "";
-    final warningMessage =
-        "You are about to view this transaction in a block explorer. "
-        "The explorer may log your IP address and link it to the "
-        "transaction. Only proceed if you trust $explorer.$outsideTor";
-
-    final bool? shouldContinue = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (_) {
-        if (!Util.isDesktop) {
-          return StackDialog(
-            title: "Attention",
-            message: warningMessage,
-            icon: Row(
-              children: [
-                Consumer(
-                  builder: (_, ref, __) {
-                    return Checkbox(
-                      value: ref.watch(
-                        prefsChangeNotifierProvider.select(
-                          (value) => value.hideBlockExplorerWarning,
-                        ),
-                      ),
-                      onChanged: (value) {
-                        if (value is bool) {
-                          ref
-                                  .read(prefsChangeNotifierProvider)
-                                  .hideBlockExplorerWarning =
-                              value;
-                          setState(() {});
-                        }
-                      },
-                    );
-                  },
-                ),
-                Text(
-                  "Never show again",
-                  style: STextStyles.smallMed14(context),
-                ),
-              ],
-            ),
-            leftButton: TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(false);
-              },
-              child: Text(
-                "Cancel",
-                style: STextStyles.button(context).copyWith(
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .accentColorDark,
-                ),
-              ),
-            ),
-            rightButton: TextButton(
-              style: Theme.of(context)
-                  .extension<StackColors>()!
-                  .getPrimaryEnabledButtonStyle(context),
-              onPressed: () {
-                Navigator.of(context).pop(true);
-              },
-              child: Text("Continue", style: STextStyles.button(context)),
-            ),
-          );
-        } else {
-          return DesktopDialog(
-            maxWidth: 550,
-            maxHeight: 300,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 20),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text("Attention", style: STextStyles.desktopH2(context)),
-                      Row(
-                        children: [
-                          Consumer(
-                            builder: (_, ref, __) {
-                              return Checkbox(
-                                value: ref.watch(
-                                  prefsChangeNotifierProvider.select(
-                                    (value) => value.hideBlockExplorerWarning,
-                                  ),
-                                ),
-                                onChanged: (value) {
-                                  if (value is bool) {
-                                    ref
-                                            .read(prefsChangeNotifierProvider)
-                                            .hideBlockExplorerWarning =
-                                        value;
-                                    setState(() {});
-                                  }
-                                },
-                              );
-                            },
-                          ),
-                          Text(
-                            "Never show again",
-                            style: STextStyles.smallMed14(context),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    warningMessage,
-                    style: STextStyles.desktopTextSmall(context),
-                  ),
-                  const SizedBox(height: 35),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      SecondaryButton(
-                        width: 200,
-                        buttonHeight: ButtonHeight.l,
-                        label: "Cancel",
-                        onPressed: () {
-                          Navigator.of(context, rootNavigator: true).pop(false);
-                        },
-                      ),
-                      const SizedBox(width: 20),
-                      PrimaryButton(
-                        width: 200,
-                        buttonHeight: ButtonHeight.l,
-                        label: "Continue",
-                        onPressed: () {
-                          Navigator.of(context, rootNavigator: true).pop(true);
-                        },
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          );
-        }
-      },
-    );
-    return shouldContinue ?? false;
-  }
-
   @override
   Widget build(BuildContext context) {
     final isDesktop = Util.isDesktop;
@@ -1451,47 +1300,14 @@ class _TxidDetailItemState extends ConsumerState<_TxidDetailItem> {
                 const SizedBox(height: 8),
                 CustomTextButton(
                   text: "Open in block explorer",
-                  onTap: () async {
-                    final uri = getBlockExplorerTransactionUrlFor(
+                  onTap: () => openInBlockExplorer(
+                    context,
+                    ref,
+                    getBlockExplorerTransactionUrlFor(
                       coin: widget.coin,
                       txid: widget.txid,
-                    );
-
-                    if (ref
-                            .read(prefsChangeNotifierProvider)
-                            .hideBlockExplorerWarning ==
-                        false) {
-                      final shouldContinue = await showExplorerWarning(
-                        "${uri.scheme}://${uri.host}",
-                      );
-
-                      if (!shouldContinue || !context.mounted) {
-                        return;
-                      }
-                    }
-
-                    try {
-                      await launchUrl(
-                        uri,
-                        mode: LaunchMode.externalApplication,
-                      );
-                    } catch (_) {
-                      if (context.mounted) {
-                        unawaited(
-                          showDialog<void>(
-                            context: context,
-                            builder: (_) => StackOkDialog(
-                              title: "Could not open in block explorer",
-                              message:
-                                  "Failed to open "
-                                  "\"${uri.toString()}\"",
-                              maxWidth: Util.isDesktop ? 400 : null,
-                            ),
-                          ),
-                        );
-                      }
-                    }
-                  },
+                    ),
+                  ),
                 ),
               ],
             ),

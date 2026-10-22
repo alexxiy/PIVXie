@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../providers/global/wallets_provider.dart';
 import '../../themes/stack_colors.dart';
@@ -10,6 +9,7 @@ import '../../utilities/text_styles.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
 import '../../widgets/background.dart';
+import '../../widgets/block_explorer_link.dart';
 import '../../widgets/custom_buttons/blue_text_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
@@ -355,13 +355,13 @@ class _PivxProposalViewState extends ConsumerState<PivxProposalView> {
                                             .targetBlockTimeSeconds,
                                         onOpen: payout.txid == null
                                             ? null
-                                            : () => launchUrl(
+                                            : () => openInBlockExplorer(
+                                                context,
+                                                ref,
                                                 getBlockExplorerTransactionUrlFor(
                                                   coin: wallet.cryptoCurrency,
                                                   txid: payout.txid!,
                                                 ),
-                                                mode: LaunchMode
-                                                    .externalApplication,
                                               ),
                                       ),
                                   ],
@@ -461,12 +461,14 @@ class _PivxProposalViewState extends ConsumerState<PivxProposalView> {
                               title: "Payment address",
                               value: p.paymentAddress,
                               openTooltip: "Open in the block explorer",
-                              onOpen: () => launchUrl(
+                              onOpen: () => openInBlockExplorer(
+                                context,
+                                ref,
                                 getBlockExplorerAddressUrlFor(
                                   coin: wallet.cryptoCurrency,
                                   address: p.paymentAddress,
                                 ),
-                                mode: LaunchMode.externalApplication,
+                                what: "address",
                               ),
                             ),
                             PivxCopyRow(title: "Proposal hash", value: p.hash),
