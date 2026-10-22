@@ -60,13 +60,18 @@ class DPS {
     }
 
     try {
-      _handler = await StorageCryptoHandler.fromNewPassphrase(
+      final handler = await StorageCryptoHandler.fromNewPassphrase(
         passphrase,
         kLatestBlobVersion,
       );
 
-      await _put(key: _kKeyBlobKey, value: await _handler!.getKeyBlob());
+      // The blob says that a password exists, so it's saved last: if a
+      // write fails, there's no password yet and setting one again works.
+      // (A blob without its version would be read as version 1 and never
+      // open again.) The handler is kept only once both are saved.
       await _updateStoredKeyBlobVersion(kLatestBlobVersion);
+      await _put(key: _kKeyBlobKey, value: await handler.getKeyBlob());
+      _handler = handler;
     } catch (e, s) {
       Logging.instance.e(
         "${_getMessageFromException(e)}\n$s",
@@ -101,8 +106,17 @@ class DPS {
       if (blobVersion < kLatestBlobVersion) {
         // update blob
         await _handler!.resetPassphrase(passphrase, kLatestBlobVersion);
-        await _put(key: _kKeyBlobKey, value: await _handler!.getKeyBlob());
-        await _updateStoredKeyBlobVersion(kLatestBlobVersion);
+        try {
+          await _put(key: _kKeyBlobKey, value: await _handler!.getKeyBlob());
+          await _updateStoredKeyBlobVersion(kLatestBlobVersion);
+        } catch (e, s) {
+          // The password is right: log in all the same.
+          Logging.instance.w(
+            "DPS: key blob upgrade not saved",
+            error: e,
+            stackTrace: s,
+          );
+        }
       }
     } catch (e, s) {
       Logging.instance.e(
@@ -155,8 +169,8 @@ class DPS {
 
       final blobVersion = await _getStoredKeyBlobVersion();
       await _handler!.resetPassphrase(passphraseNew, blobVersion);
+      // The same version: only the blob changes.
       await _put(key: _kKeyBlobKey, value: await _handler!.getKeyBlob());
-      await _updateStoredKeyBlobVersion(blobVersion);
 
       // successfully updated passphrase
       return true;
@@ -191,6 +205,8 @@ class DPS {
       await box.put(key, value);
     } catch (e, s) {
       Logging.instance.f("DPS failed put($key): ", error: e, stackTrace: s);
+      // Not saved: the caller must not go on as if it were.
+      rethrow;
     } finally {
       await box?.close();
     }
