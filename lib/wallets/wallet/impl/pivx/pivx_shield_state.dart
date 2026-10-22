@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import '../../../../utilities/logger.dart';
 import '../../../../utilities/stack_file_system.dart';
 
 /// Per-wallet PIVX Shield (Sapling) state, mirroring what
@@ -150,12 +151,30 @@ class PivxShieldState {
   }) async {
     final f = await _file(walletId);
     if (!f.existsSync()) return null;
-    final json = jsonDecode(await f.readAsString()) as Map<String, dynamic>;
-    if (json["version"] != version) return null;
-    return PivxShieldState.fromJson(json, extfvk: extfvk);
+    try {
+      final json = jsonDecode(await f.readAsString()) as Map<String, dynamic>;
+      if (json["version"] != version) return null;
+      return PivxShieldState.fromJson(json, extfvk: extfvk);
+    } catch (e) {
+      // Everything in it comes from the chain again: scan anew.
+      Logging.instance.w("PIVX shield: unreadable state of $walletId: $e");
+      return null;
+    }
   }
 
-  Future<void> save(String walletId) async {
+  /// Per wallet: the save running. The next one waits for it, as both
+  /// write the same temporary file.
+  static final _saving = <String, Future<void>>{};
+
+  Future<void> save(String walletId) {
+    final next = (_saving[walletId] ?? Future<void>.value())
+        .catchError((_) {})
+        .then((_) => _write(walletId));
+    _saving[walletId] = next;
+    return next;
+  }
+
+  Future<void> _write(String walletId) async {
     final f = await _file(walletId);
     final tmp = File("${f.path}.tmp");
     await tmp.writeAsString(jsonEncode(toJson()), flush: true);
