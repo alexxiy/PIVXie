@@ -21,6 +21,7 @@ import '../../../../../utilities/assets.dart';
 import '../../../../../utilities/flutter_secure_storage_interface.dart';
 import '../../../../../utilities/text_styles.dart';
 import '../../../../../widgets/background.dart';
+import '../../../../../widgets/center_or_scroll.dart';
 import '../../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../../widgets/custom_pin_put/custom_pin_put.dart';
 import '../../../../pinpad_views/lock_screen_view.dart';
@@ -104,181 +105,186 @@ class _ChangePinViewState extends ConsumerState<ChangePinView> {
             physics: const NeverScrollableScrollPhysics(),
             children: [
               // page 1
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Center(
-                    child: Text(
-                      "Create new PIN",
-                      style: STextStyles.pageTitleH1(context),
+              CenterOrScroll(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Center(
+                      child: Text(
+                        "Create new PIN",
+                        style: STextStyles.pageTitleH1(context),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 52),
-                  CustomPinPut(
-                    fieldsCount: pinCount,
-                    eachFieldHeight: 12,
-                    eachFieldWidth: 12,
-                    textStyle: STextStyles.label(context).copyWith(fontSize: 1),
-                    focusNode: _pinPutFocusNode1,
-                    controller: _pinPutController1,
-                    useNativeKeyboard: false,
-                    obscureText: "",
-                    inputDecoration: InputDecoration(
-                      border: InputBorder.none,
-                      enabledBorder: InputBorder.none,
-                      focusedBorder: InputBorder.none,
-                      disabledBorder: InputBorder.none,
-                      errorBorder: InputBorder.none,
-                      focusedErrorBorder: InputBorder.none,
-                      fillColor:
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.background,
-                      counterText: "",
+                    const SizedBox(height: 52),
+                    CustomPinPut(
+                      fieldsCount: pinCount,
+                      eachFieldHeight: 12,
+                      eachFieldWidth: 12,
+                      textStyle: STextStyles.label(context)
+                          .copyWith(fontSize: 1),
+                      focusNode: _pinPutFocusNode1,
+                      controller: _pinPutController1,
+                      useNativeKeyboard: false,
+                      obscureText: "",
+                      inputDecoration: InputDecoration(
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        disabledBorder: InputBorder.none,
+                        errorBorder: InputBorder.none,
+                        focusedErrorBorder: InputBorder.none,
+                        fillColor: Theme.of(context)
+                            .extension<StackColors>()!
+                            .background,
+                        counterText: "",
+                      ),
+                      isRandom: ref
+                          .read(prefsChangeNotifierProvider)
+                          .randomizePIN,
+                      submittedFieldDecoration: _pinPutDecoration,
+                      selectedFieldDecoration: _pinPutDecoration,
+                      followingFieldDecoration: _pinPutDecoration,
+                      onSubmit: (String pin) async {
+                        // The duress PIN would win at the lock screen, hiding
+                        // every other wallet. Not checked in duress mode: a
+                        // refusal there would confirm a guess of the real PIN.
+                        final takenByDuress =
+                            !ref.read(pDuress) &&
+                            pin == await _secureStore.read(key: kDuressPinKey);
+                        if (!context.mounted) return;
+                        if (pin.length < 4 || takenByDuress) {
+                          if (takenByDuress) _pinPutController1.clear();
+                          unawaited(
+                            showFloatingFlushBar(
+                              type: FlushBarType.warning,
+                              message: takenByDuress
+                                  ? "That's your duress PIN. Pick a different one."
+                                  : "PIN not long enough!",
+                              iconAsset: Assets.svg.alertCircle,
+                              context: context,
+                            ),
+                          );
+                        } else {
+                          _pageController.nextPage(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.linear,
+                          );
+                        }
+                      },
                     ),
-                    isRandom:
-                        ref.read(prefsChangeNotifierProvider).randomizePIN,
-                    submittedFieldDecoration: _pinPutDecoration,
-                    selectedFieldDecoration: _pinPutDecoration,
-                    followingFieldDecoration: _pinPutDecoration,
-                    onSubmit: (String pin) async {
-                      // The duress PIN would win at the lock screen, hiding
-                      // every other wallet. Not checked in duress mode: a
-                      // refusal there would confirm a guess of the real PIN.
-                      final takenByDuress =
-                          !ref.read(pDuress) &&
-                          pin == await _secureStore.read(key: kDuressPinKey);
-                      if (!context.mounted) return;
-                      if (pin.length < 4 || takenByDuress) {
-                        if (takenByDuress) _pinPutController1.clear();
-                        unawaited(
-                          showFloatingFlushBar(
-                            type: FlushBarType.warning,
-                            message: takenByDuress
-                                ? "That's your duress PIN. Pick a different one."
-                                : "PIN not long enough!",
-                            iconAsset: Assets.svg.alertCircle,
-                            context: context,
-                          ),
-                        );
-                      } else {
-                        _pageController.nextPage(
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.linear,
-                        );
-                      }
-                    },
-                  ),
-                ],
+                  ],
+                ),
               ),
 
               // page 2
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Center(
-                    child: Text(
-                      "Confirm new PIN",
-                      style: STextStyles.pageTitleH1(context),
+              CenterOrScroll(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Center(
+                      child: Text(
+                        "Confirm new PIN",
+                        style: STextStyles.pageTitleH1(context),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 52),
-                  CustomPinPut(
-                    fieldsCount: pinCount,
-                    eachFieldHeight: 12,
-                    eachFieldWidth: 12,
-                    textStyle: STextStyles.infoSmall(context).copyWith(
-                      color:
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.textSubtitle3,
-                      fontSize: 1,
-                    ),
-                    focusNode: _pinPutFocusNode2,
-                    controller: _pinPutController2,
-                    useNativeKeyboard: false,
-                    obscureText: "",
-                    inputDecoration: InputDecoration(
-                      border: InputBorder.none,
-                      enabledBorder: InputBorder.none,
-                      focusedBorder: InputBorder.none,
-                      disabledBorder: InputBorder.none,
-                      errorBorder: InputBorder.none,
-                      focusedErrorBorder: InputBorder.none,
-                      fillColor:
-                          Theme.of(
-                            context,
-                          ).extension<StackColors>()!.background,
-                      counterText: "",
-                    ),
-                    isRandom:
-                        ref.read(prefsChangeNotifierProvider).randomizePIN,
-                    submittedFieldDecoration: _pinPutDecoration,
-                    selectedFieldDecoration: _pinPutDecoration,
-                    followingFieldDecoration: _pinPutDecoration,
-                    onSubmit: (String pin) async {
-                      if (_pinPutController1.text == _pinPutController2.text) {
-                        final isDuress = ref.read(pDuress);
+                    const SizedBox(height: 52),
+                    CustomPinPut(
+                      fieldsCount: pinCount,
+                      eachFieldHeight: 12,
+                      eachFieldWidth: 12,
+                      textStyle: STextStyles.infoSmall(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textSubtitle3,
+                        fontSize: 1,
+                      ),
+                      focusNode: _pinPutFocusNode2,
+                      controller: _pinPutController2,
+                      useNativeKeyboard: false,
+                      obscureText: "",
+                      inputDecoration: InputDecoration(
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        disabledBorder: InputBorder.none,
+                        errorBorder: InputBorder.none,
+                        focusedErrorBorder: InputBorder.none,
+                        fillColor: Theme.of(context)
+                            .extension<StackColors>()!
+                            .background,
+                        counterText: "",
+                      ),
+                      isRandom: ref
+                          .read(prefsChangeNotifierProvider)
+                          .randomizePIN,
+                      submittedFieldDecoration: _pinPutDecoration,
+                      selectedFieldDecoration: _pinPutDecoration,
+                      followingFieldDecoration: _pinPutDecoration,
+                      onSubmit: (String pin) async {
+                        if (_pinPutController1.text ==
+                            _pinPutController2.text) {
+                          final isDuress = ref.read(pDuress);
 
-                        if (isDuress) {
-                          await _secureStore.write(
-                            key: kDuressPinKey,
-                            value: pin,
-                          );
+                          if (isDuress) {
+                            await _secureStore.write(
+                              key: kDuressPinKey,
+                              value: pin,
+                            );
+                          } else {
+                            // This should never fail as we are overwriting the existing pin
+                            assert(
+                              (await _secureStore.read(key: kPinKey)) != null,
+                            );
+                            await _secureStore.write(key: kPinKey, value: pin);
+                          }
+
+                          if (context.mounted) {
+                            unawaited(
+                              showFloatingFlushBar(
+                                type: FlushBarType.success,
+                                // The same in duress mode, which this must
+                                // not give away.
+                                message: "New PIN is set up",
+                                context: context,
+                                iconAsset: Assets.svg.check,
+                              ),
+                            );
+
+                            await Future<void>.delayed(
+                              const Duration(milliseconds: 1200),
+                            );
+
+                            if (context.mounted) {
+                              Navigator.of(context).popUntil(
+                                ModalRoute.withName(SecurityView.routeName),
+                              );
+                            }
+                          }
                         } else {
-                          // This should never fail as we are overwriting the existing pin
-                          assert(
-                            (await _secureStore.read(key: kPinKey)) != null,
-                          );
-                          await _secureStore.write(key: kPinKey, value: pin);
-                        }
-
-                        if (context.mounted) {
                           unawaited(
-                            showFloatingFlushBar(
-                              type: FlushBarType.success,
-                              // The same in duress mode, which this must
-                              // not give away.
-                              message: "New PIN is set up",
-                              context: context,
-                              iconAsset: Assets.svg.check,
+                            _pageController.animateTo(
+                              0,
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.linear,
                             ),
                           );
 
-                          await Future<void>.delayed(
-                            const Duration(milliseconds: 1200),
+                          unawaited(
+                            showFloatingFlushBar(
+                              type: FlushBarType.warning,
+                              message: "PIN codes do not match. Try again.",
+                              context: context,
+                              iconAsset: Assets.svg.alertCircle,
+                            ),
                           );
 
-                          if (context.mounted) {
-                            Navigator.of(context).popUntil(
-                              ModalRoute.withName(SecurityView.routeName),
-                            );
-                          }
+                          _pinPutController1.text = '';
+                          _pinPutController2.text = '';
                         }
-                      } else {
-                        unawaited(
-                          _pageController.animateTo(
-                            0,
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.linear,
-                          ),
-                        );
-
-                        unawaited(
-                          showFloatingFlushBar(
-                            type: FlushBarType.warning,
-                            message: "PIN codes do not match. Try again.",
-                            context: context,
-                            iconAsset: Assets.svg.alertCircle,
-                          ),
-                        );
-
-                        _pinPutController1.text = '';
-                        _pinPutController2.text = '';
-                      }
-                    },
-                  ),
-                ],
+                      },
+                    ),
+                  ],
+                ),
               ),
             ],
           ),

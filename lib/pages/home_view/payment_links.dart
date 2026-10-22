@@ -332,9 +332,10 @@ Future<T?> _chooseOne<T>(
   if (desktop) {
     return showDialog<T>(
       context: context,
+      // Up to the screen's height; the options scroll beyond it.
       builder: (context) => DesktopDialog(
         maxWidth: 450,
-        maxHeight: double.infinity,
+        maxHeight: null,
         child: Padding(
           padding: const EdgeInsets.only(left: 32, bottom: 32),
           child: Column(
@@ -349,11 +350,19 @@ Future<T?> _chooseOne<T>(
                 ],
               ),
               const SizedBox(height: 12),
-              for (final o in options)
-                Padding(
-                  padding: const EdgeInsets.only(right: 32, bottom: 8),
-                  child: option(context, o),
+              Flexible(
+                child: ListView(
+                  shrinkWrap: true,
+                  padding: const EdgeInsets.only(right: 32),
+                  children: [
+                    for (final o in options)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: option(context, o),
+                      ),
+                  ],
                 ),
+              ),
             ],
           ),
         ),
@@ -375,11 +384,18 @@ Future<T?> _chooseOne<T>(
           children: [
             Text(title, style: STextStyles.pageTitleH2(context)),
             const SizedBox(height: 16),
-            for (final o in options)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: option(context, o),
+            Flexible(
+              child: ListView(
+                shrinkWrap: true,
+                children: [
+                  for (final o in options)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: option(context, o),
+                    ),
+                ],
               ),
+            ),
           ],
         ),
       ),

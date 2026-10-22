@@ -23,6 +23,7 @@ import '../../utilities/flutter_secure_storage_interface.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
 import '../../widgets/background.dart';
+import '../../widgets/center_or_scroll.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/custom_pin_put/custom_pin_put.dart';
 import '../../widgets/loading_indicator.dart';
@@ -131,219 +132,226 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
                 physics: const NeverScrollableScrollPhysics(),
                 children: [
                   // page 1
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        "Create a PIN",
-                        style: STextStyles.pageTitleH1(context),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        "This PIN protects access to your wallet.",
-                        style: STextStyles.subtitle(context),
-                      ),
-                      const SizedBox(height: 36),
-                      CustomPinPut(
-                        fieldsCount: pinCount,
-                        eachFieldHeight: 12,
-                        eachFieldWidth: 12,
-                        textStyle: STextStyles.label(context)
-                            .copyWith(fontSize: 1),
-                        focusNode: _pinPutFocusNode1,
-                        controller: _pinPutController1,
-                        useNativeKeyboard: false,
-                        obscureText: "",
-                        inputDecoration: InputDecoration(
-                          border: InputBorder.none,
-                          enabledBorder: InputBorder.none,
-                          focusedBorder: InputBorder.none,
-                          disabledBorder: InputBorder.none,
-                          errorBorder: InputBorder.none,
-                          focusedErrorBorder: InputBorder.none,
-                          fillColor: Theme.of(context)
-                              .extension<StackColors>()!
-                              .background,
-                          counterText: "",
+                  CenterOrScroll(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "Create a PIN",
+                          style: STextStyles.pageTitleH1(context),
                         ),
-                        isRandom: ref
-                            .read(prefsChangeNotifierProvider)
-                            .randomizePIN,
-                        submittedFieldDecoration: _pinPutDecoration,
-                        selectedFieldDecoration: _pinPutDecoration,
-                        followingFieldDecoration: _pinPutDecoration,
-                        onPinLengthChanged: (newLength) {
-                          setState(() {
-                            pinCount = newLength;
-                          });
-                        },
-                        onSubmit: (String pin) {
-                          if (pin.length < 4) {
-                            showFloatingFlushBar(
-                              type: FlushBarType.warning,
-                              message: "PIN not long enough!",
-                              iconAsset: Assets.svg.alertCircle,
-                              context: context,
-                            );
-                          } else {
-                            _pageController.nextPage(
-                              duration: const Duration(milliseconds: 300),
-                              curve: Curves.linear,
-                            );
-                          }
-                        },
-                      ),
-                    ],
+                        const SizedBox(height: 8),
+                        Text(
+                          "This PIN protects access to your wallet.",
+                          style: STextStyles.subtitle(context),
+                        ),
+                        const SizedBox(height: 36),
+                        CustomPinPut(
+                          fieldsCount: pinCount,
+                          eachFieldHeight: 12,
+                          eachFieldWidth: 12,
+                          textStyle: STextStyles.label(context)
+                              .copyWith(fontSize: 1),
+                          focusNode: _pinPutFocusNode1,
+                          controller: _pinPutController1,
+                          useNativeKeyboard: false,
+                          obscureText: "",
+                          inputDecoration: InputDecoration(
+                            border: InputBorder.none,
+                            enabledBorder: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                            disabledBorder: InputBorder.none,
+                            errorBorder: InputBorder.none,
+                            focusedErrorBorder: InputBorder.none,
+                            fillColor: Theme.of(context)
+                                .extension<StackColors>()!
+                                .background,
+                            counterText: "",
+                          ),
+                          isRandom: ref
+                              .read(prefsChangeNotifierProvider)
+                              .randomizePIN,
+                          submittedFieldDecoration: _pinPutDecoration,
+                          selectedFieldDecoration: _pinPutDecoration,
+                          followingFieldDecoration: _pinPutDecoration,
+                          onPinLengthChanged: (newLength) {
+                            setState(() {
+                              pinCount = newLength;
+                            });
+                          },
+                          onSubmit: (String pin) {
+                            if (pin.length < 4) {
+                              showFloatingFlushBar(
+                                type: FlushBarType.warning,
+                                message: "PIN not long enough!",
+                                iconAsset: Assets.svg.alertCircle,
+                                context: context,
+                              );
+                            } else {
+                              _pageController.nextPage(
+                                duration: const Duration(milliseconds: 300),
+                                curve: Curves.linear,
+                              );
+                            }
+                          },
+                        ),
+                      ],
+                    ),
                   ),
 
                   // page 2
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        "Confirm PIN",
-                        style: STextStyles.pageTitleH1(context),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        "This PIN protects access to your wallet.",
-                        style: STextStyles.subtitle(context),
-                      ),
-                      const SizedBox(height: 36),
-                      CustomPinPut(
-                        fieldsCount: pinCount,
-                        eachFieldHeight: 12,
-                        eachFieldWidth: 12,
-                        textStyle: STextStyles.infoSmall(context).copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textSubtitle3,
-                          fontSize: 1,
+                  CenterOrScroll(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          "Confirm PIN",
+                          style: STextStyles.pageTitleH1(context),
                         ),
-                        focusNode: _pinPutFocusNode2,
-                        controller: _pinPutController2,
-                        useNativeKeyboard: false,
-                        obscureText: "",
-                        inputDecoration: InputDecoration(
-                          border: InputBorder.none,
-                          enabledBorder: InputBorder.none,
-                          focusedBorder: InputBorder.none,
-                          disabledBorder: InputBorder.none,
-                          errorBorder: InputBorder.none,
-                          focusedErrorBorder: InputBorder.none,
-                          fillColor: Theme.of(context)
-                              .extension<StackColors>()!
-                              .background,
-                          counterText: "",
+                        const SizedBox(height: 8),
+                        Text(
+                          "This PIN protects access to your wallet.",
+                          style: STextStyles.subtitle(context),
                         ),
-                        submittedFieldDecoration: _pinPutDecoration.copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .infoItemIcons,
-                          border: Border.all(
-                            width: 1,
+                        const SizedBox(height: 36),
+                        CustomPinPut(
+                          fieldsCount: pinCount,
+                          eachFieldHeight: 12,
+                          eachFieldWidth: 12,
+                          textStyle: STextStyles.infoSmall(context).copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textSubtitle3,
+                            fontSize: 1,
+                          ),
+                          focusNode: _pinPutFocusNode2,
+                          controller: _pinPutController2,
+                          useNativeKeyboard: false,
+                          obscureText: "",
+                          inputDecoration: InputDecoration(
+                            border: InputBorder.none,
+                            enabledBorder: InputBorder.none,
+                            focusedBorder: InputBorder.none,
+                            disabledBorder: InputBorder.none,
+                            errorBorder: InputBorder.none,
+                            focusedErrorBorder: InputBorder.none,
+                            fillColor: Theme.of(context)
+                                .extension<StackColors>()!
+                                .background,
+                            counterText: "",
+                          ),
+                          submittedFieldDecoration: _pinPutDecoration.copyWith(
                             color: Theme.of(context)
                                 .extension<StackColors>()!
                                 .infoItemIcons,
+                            border: Border.all(
+                              width: 1,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .infoItemIcons,
+                            ),
                           ),
-                        ),
-                        selectedFieldDecoration: _pinPutDecoration,
-                        followingFieldDecoration: _pinPutDecoration,
-                        isRandom: ref
-                            .read(prefsChangeNotifierProvider)
-                            .randomizePIN,
-                        onSubmit: (String pin) async {
-                          if (_saving) return;
-                          if (_pinPutController1.text ==
-                              _pinPutController2.text) {
-                            setState(() => _saving = true);
-                            try {
-                              // ask if want to use biometrics
-                              final bool useBiometrics = await biometrics
-                                  .authenticate(
-                                    cancelButtonText: "SKIP",
-                                    localizedReason: "You can use your fingerprint to unlock the wallet and confirm transactions.",
-                                    title: "Enable fingerprint authentication",
-                                  );
+                          selectedFieldDecoration: _pinPutDecoration,
+                          followingFieldDecoration: _pinPutDecoration,
+                          isRandom: ref
+                              .read(prefsChangeNotifierProvider)
+                              .randomizePIN,
+                          onSubmit: (String pin) async {
+                            if (_saving) return;
+                            if (_pinPutController1.text ==
+                                _pinPutController2.text) {
+                              setState(() => _saving = true);
+                              try {
+                                // ask if want to use biometrics
+                                final bool useBiometrics = await biometrics
+                                    .authenticate(
+                                      cancelButtonText: "SKIP",
+                                      localizedReason: "You can use your fingerprint to unlock the wallet and confirm transactions.",
+                                      title:
+                                          "Enable fingerprint authentication",
+                                    );
 
-                              assert(
-                                ref.read(prefsChangeNotifierProvider).hasPin ==
-                                    false,
-                              );
+                                assert(
+                                  ref
+                                          .read(prefsChangeNotifierProvider)
+                                          .hasPin ==
+                                      false,
+                                );
 
-                              await _secureStore.write(
-                                key: kPinKey,
-                                value: pin,
-                              );
+                                await _secureStore.write(
+                                  key: kPinKey,
+                                  value: pin,
+                                );
 
-                              ref
-                                      .read(prefsChangeNotifierProvider)
-                                      .useBiometrics =
-                                  useBiometrics;
-                              ref.read(prefsChangeNotifierProvider).hasPin =
-                                  true;
+                                ref
+                                        .read(prefsChangeNotifierProvider)
+                                        .useBiometrics =
+                                    useBiometrics;
+                                ref.read(prefsChangeNotifierProvider).hasPin =
+                                    true;
 
-                              await Future<void>.delayed(
-                                const Duration(milliseconds: 200),
-                              );
+                                await Future<void>.delayed(
+                                  const Duration(milliseconds: 200),
+                                );
 
-                              if (context.mounted) {
-                                if (!widget.popOnSuccess) {
+                                if (context.mounted) {
+                                  if (!widget.popOnSuccess) {
+                                    unawaited(
+                                      Navigator.of(context)
+                                          .pushNamedAndRemoveUntil(
+                                            HomeView.routeName,
+                                            (route) => false,
+                                          ),
+                                    );
+                                  } else {
+                                    Navigator.of(context).pop();
+                                  }
+                                }
+                              } catch (e, s) {
+                                Logging.instance.e(
+                                  "Saving the PIN failed",
+                                  error: e,
+                                  stackTrace: s,
+                                );
+                                if (context.mounted) {
+                                  setState(() => _saving = false);
+                                  _pinPutController2.text = '';
                                   unawaited(
-                                    Navigator.of(context)
-                                        .pushNamedAndRemoveUntil(
-                                          HomeView.routeName,
-                                          (route) => false,
-                                        ),
+                                    showFloatingFlushBar(
+                                      type: FlushBarType.warning,
+                                      message:
+                                          "Couldn't save the PIN. Try again.",
+                                      context: context,
+                                      iconAsset: Assets.svg.alertCircle,
+                                    ),
                                   );
-                                } else {
-                                  Navigator.of(context).pop();
                                 }
                               }
-                            } catch (e, s) {
-                              Logging.instance.e(
-                                "Saving the PIN failed",
-                                error: e,
-                                stackTrace: s,
+                            } else {
+                              unawaited(
+                                _pageController.animateTo(
+                                  0,
+                                  duration: const Duration(milliseconds: 300),
+                                  curve: Curves.linear,
+                                ),
                               );
-                              if (context.mounted) {
-                                setState(() => _saving = false);
-                                _pinPutController2.text = '';
-                                unawaited(
-                                  showFloatingFlushBar(
-                                    type: FlushBarType.warning,
-                                    message:
-                                        "Couldn't save the PIN. Try again.",
-                                    context: context,
-                                    iconAsset: Assets.svg.alertCircle,
-                                  ),
-                                );
-                              }
+
+                              unawaited(
+                                showFloatingFlushBar(
+                                  type: FlushBarType.warning,
+                                  message: "PIN codes do not match. Try again.",
+                                  context: context,
+                                  iconAsset: Assets.svg.alertCircle,
+                                ),
+                              );
+
+                              _pinPutController1.text = '';
+                              _pinPutController2.text = '';
                             }
-                          } else {
-                            unawaited(
-                              _pageController.animateTo(
-                                0,
-                                duration: const Duration(milliseconds: 300),
-                                curve: Curves.linear,
-                              ),
-                            );
-
-                            unawaited(
-                              showFloatingFlushBar(
-                                type: FlushBarType.warning,
-                                message: "PIN codes do not match. Try again.",
-                                context: context,
-                                iconAsset: Assets.svg.alertCircle,
-                              ),
-                            );
-
-                            _pinPutController1.text = '';
-                            _pinPutController2.text = '';
-                          }
-                        },
-                      ),
-                    ],
+                          },
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),

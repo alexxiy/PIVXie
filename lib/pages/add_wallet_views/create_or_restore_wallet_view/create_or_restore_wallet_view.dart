@@ -8,6 +8,8 @@
  *
  */
 
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 
 import '../../../models/add_wallet_list_entity/add_wallet_list_entity.dart';
@@ -116,7 +118,10 @@ class CreateOrRestoreWalletContent extends StatelessWidget {
       );
     }
 
-    final side = MediaQuery.of(context).size.width / 1.6;
+    // Sized by the width, but at most 40% of the height: in landscape the
+    // buttons below would be out of sight.
+    final screen = MediaQuery.sizeOf(context);
+    final side = min(screen.width / 1.6, screen.height * 0.4);
     return LayoutBuilder(
       builder: (context, constraints) {
         return SingleChildScrollView(

@@ -51,45 +51,66 @@ class _IntroViewState extends ConsumerState<IntroView> {
         body: SafeArea(
           child: Center(
             child: !isDesktop
-                ? Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      const Spacer(flex: 2),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Image.asset(
-                          Assets.persona.welcome,
-                          width: 266,
-                          height: 266,
-                          fit: BoxFit.contain,
+                ? LayoutBuilder(
+                    // Scrolls when the screen is too short for it: a tablet
+                    // in landscape, a split screen window.
+                    builder: (context, constraints) => SingleChildScrollView(
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(
+                          minHeight: constraints.maxHeight,
+                        ),
+                        child: IntrinsicHeight(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              const Spacer(flex: 2),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                ),
+                                child: Image.asset(
+                                  Assets.persona.welcome,
+                                  width: 266,
+                                  height: 266,
+                                  fit: BoxFit.contain,
+                                ),
+                              ),
+                              const Spacer(flex: 1),
+                              AppNameText(isDesktop: isDesktop),
+                              const SizedBox(height: 8),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 48,
+                                ),
+                                child: IntroAboutText(isDesktop: isDesktop),
+                              ),
+                              const Spacer(flex: 4),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 32,
+                                ),
+                                child: PrivacyAndTOSText(isDesktop: isDesktop),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                  vertical: 16,
+                                ),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: GetStartedButton(
+                                        isDesktop: isDesktop,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                      const Spacer(flex: 1),
-                      AppNameText(isDesktop: isDesktop),
-                      const SizedBox(height: 8),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 48),
-                        child: IntroAboutText(isDesktop: isDesktop),
-                      ),
-                      const Spacer(flex: 4),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 32),
-                        child: PrivacyAndTOSText(isDesktop: isDesktop),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 16,
-                        ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: GetStartedButton(isDesktop: isDesktop),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
+                    ),
                   )
                 : SizedBox(
                     width: 350,

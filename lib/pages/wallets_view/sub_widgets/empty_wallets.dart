@@ -8,6 +8,8 @@
  *
  */
 
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -45,6 +47,12 @@ class EmptyWallets extends ConsumerWidget {
       );
     }
 
+    // Sized by the width, but at most 35% of the height: in landscape the
+    // button below would be out of sight.
+    final screen = MediaQuery.sizeOf(context);
+    final side = isDesktop
+        ? 280.0
+        : min(screen.width / 2, screen.height * 0.35);
     return SafeArea(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 43),
@@ -57,8 +65,8 @@ class EmptyWallets extends ConsumerWidget {
               const Spacer(flex: 2),
               Image.asset(
                 Assets.persona.addWallet,
-                width: isDesktop ? 280 : MediaQuery.of(context).size.width / 2,
-                height: isDesktop ? 280 : MediaQuery.of(context).size.width / 2,
+                width: side,
+                height: side,
                 fit: BoxFit.contain,
               ),
               SizedBox(height: isDesktop ? 30 : 16),

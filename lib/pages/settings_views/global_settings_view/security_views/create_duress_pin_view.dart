@@ -11,6 +11,7 @@ import '../../../../utilities/assets.dart';
 import '../../../../utilities/flutter_secure_storage_interface.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../widgets/background.dart';
+import '../../../../widgets/center_or_scroll.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/custom_pin_put/custom_pin_put.dart';
 import '../../../pinpad_views/lock_screen_view.dart';
@@ -95,167 +96,173 @@ class _CreateDuressPinViewState extends ConsumerState<CreateDuressPinView> {
             physics: const NeverScrollableScrollPhysics(),
             children: [
               // page 1
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Center(
-                    child: Text(
-                      "Create duress PIN",
-                      style: STextStyles.pageTitleH1(context),
+              CenterOrScroll(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Center(
+                      child: Text(
+                        "Create duress PIN",
+                        style: STextStyles.pageTitleH1(context),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 52),
-                  CustomPinPut(
-                    fieldsCount: pinCount,
-                    eachFieldHeight: 12,
-                    eachFieldWidth: 12,
-                    textStyle: STextStyles.label(context).copyWith(fontSize: 1),
-                    focusNode: _pinPutFocusNode1,
-                    controller: _pinPutController1,
-                    useNativeKeyboard: false,
-                    obscureText: "",
-                    inputDecoration: InputDecoration(
-                      border: InputBorder.none,
-                      enabledBorder: InputBorder.none,
-                      focusedBorder: InputBorder.none,
-                      disabledBorder: InputBorder.none,
-                      errorBorder: InputBorder.none,
-                      focusedErrorBorder: InputBorder.none,
-                      fillColor: Theme.of(context)
-                          .extension<StackColors>()!
-                          .background,
-                      counterText: "",
+                    const SizedBox(height: 52),
+                    CustomPinPut(
+                      fieldsCount: pinCount,
+                      eachFieldHeight: 12,
+                      eachFieldWidth: 12,
+                      textStyle: STextStyles.label(context)
+                          .copyWith(fontSize: 1),
+                      focusNode: _pinPutFocusNode1,
+                      controller: _pinPutController1,
+                      useNativeKeyboard: false,
+                      obscureText: "",
+                      inputDecoration: InputDecoration(
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        disabledBorder: InputBorder.none,
+                        errorBorder: InputBorder.none,
+                        focusedErrorBorder: InputBorder.none,
+                        fillColor: Theme.of(context)
+                            .extension<StackColors>()!
+                            .background,
+                        counterText: "",
+                      ),
+                      isRandom: ref
+                          .read(prefsChangeNotifierProvider)
+                          .randomizePIN,
+                      submittedFieldDecoration: _pinPutDecoration,
+                      selectedFieldDecoration: _pinPutDecoration,
+                      followingFieldDecoration: _pinPutDecoration,
+                      onSubmit: (String pin) async {
+                        // The same PIN would always open duress mode, hiding
+                        // every other wallet for good.
+                        final isMainPin =
+                            pin == await _secureStore.read(key: kPinKey);
+                        if (!context.mounted) return;
+                        if (pin.length < 4 || isMainPin) {
+                          if (isMainPin) _pinPutController1.clear();
+                          unawaited(
+                            showFloatingFlushBar(
+                              type: FlushBarType.warning,
+                              message: isMainPin
+                                  ? "That's your PIN. Pick a different duress PIN."
+                                  : "PIN not long enough!",
+                              iconAsset: Assets.svg.alertCircle,
+                              context: context,
+                            ),
+                          );
+                        } else {
+                          _pageController.nextPage(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.linear,
+                          );
+                        }
+                      },
                     ),
-                    isRandom: ref
-                        .read(prefsChangeNotifierProvider)
-                        .randomizePIN,
-                    submittedFieldDecoration: _pinPutDecoration,
-                    selectedFieldDecoration: _pinPutDecoration,
-                    followingFieldDecoration: _pinPutDecoration,
-                    onSubmit: (String pin) async {
-                      // The same PIN would always open duress mode, hiding
-                      // every other wallet for good.
-                      final isMainPin =
-                          pin == await _secureStore.read(key: kPinKey);
-                      if (!context.mounted) return;
-                      if (pin.length < 4 || isMainPin) {
-                        if (isMainPin) _pinPutController1.clear();
-                        unawaited(
-                          showFloatingFlushBar(
-                            type: FlushBarType.warning,
-                            message: isMainPin
-                                ? "That's your PIN. Pick a different duress PIN."
-                                : "PIN not long enough!",
-                            iconAsset: Assets.svg.alertCircle,
-                            context: context,
-                          ),
-                        );
-                      } else {
-                        _pageController.nextPage(
-                          duration: const Duration(milliseconds: 300),
-                          curve: Curves.linear,
-                        );
-                      }
-                    },
-                  ),
-                ],
+                  ],
+                ),
               ),
 
               // page 2
-              Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Center(
-                    child: Text(
-                      "Confirm duress PIN",
-                      style: STextStyles.pageTitleH1(context),
+              CenterOrScroll(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Center(
+                      child: Text(
+                        "Confirm duress PIN",
+                        style: STextStyles.pageTitleH1(context),
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 52),
-                  CustomPinPut(
-                    fieldsCount: pinCount,
-                    eachFieldHeight: 12,
-                    eachFieldWidth: 12,
-                    textStyle: STextStyles.infoSmall(context).copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .textSubtitle3,
-                      fontSize: 1,
-                    ),
-                    focusNode: _pinPutFocusNode2,
-                    controller: _pinPutController2,
-                    useNativeKeyboard: false,
-                    obscureText: "",
-                    inputDecoration: InputDecoration(
-                      border: InputBorder.none,
-                      enabledBorder: InputBorder.none,
-                      focusedBorder: InputBorder.none,
-                      disabledBorder: InputBorder.none,
-                      errorBorder: InputBorder.none,
-                      focusedErrorBorder: InputBorder.none,
-                      fillColor: Theme.of(context)
-                          .extension<StackColors>()!
-                          .background,
-                      counterText: "",
-                    ),
-                    isRandom: ref
-                        .read(prefsChangeNotifierProvider)
-                        .randomizePIN,
-                    submittedFieldDecoration: _pinPutDecoration,
-                    selectedFieldDecoration: _pinPutDecoration,
-                    followingFieldDecoration: _pinPutDecoration,
-                    onSubmit: (String pin) async {
-                      if (_pinPutController1.text == _pinPutController2.text) {
-                        await _secureStore.write(
-                          key: kDuressPinKey,
-                          value: pin,
-                        );
-                        ref.read(prefsChangeNotifierProvider).hasDuressPin =
-                            true;
+                    const SizedBox(height: 52),
+                    CustomPinPut(
+                      fieldsCount: pinCount,
+                      eachFieldHeight: 12,
+                      eachFieldWidth: 12,
+                      textStyle: STextStyles.infoSmall(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textSubtitle3,
+                        fontSize: 1,
+                      ),
+                      focusNode: _pinPutFocusNode2,
+                      controller: _pinPutController2,
+                      useNativeKeyboard: false,
+                      obscureText: "",
+                      inputDecoration: InputDecoration(
+                        border: InputBorder.none,
+                        enabledBorder: InputBorder.none,
+                        focusedBorder: InputBorder.none,
+                        disabledBorder: InputBorder.none,
+                        errorBorder: InputBorder.none,
+                        focusedErrorBorder: InputBorder.none,
+                        fillColor: Theme.of(context)
+                            .extension<StackColors>()!
+                            .background,
+                        counterText: "",
+                      ),
+                      isRandom: ref
+                          .read(prefsChangeNotifierProvider)
+                          .randomizePIN,
+                      submittedFieldDecoration: _pinPutDecoration,
+                      selectedFieldDecoration: _pinPutDecoration,
+                      followingFieldDecoration: _pinPutDecoration,
+                      onSubmit: (String pin) async {
+                        if (_pinPutController1.text ==
+                            _pinPutController2.text) {
+                          await _secureStore.write(
+                            key: kDuressPinKey,
+                            value: pin,
+                          );
+                          ref.read(prefsChangeNotifierProvider).hasDuressPin =
+                              true;
 
-                        if (context.mounted) {
+                          if (context.mounted) {
+                            unawaited(
+                              showFloatingFlushBar(
+                                type: FlushBarType.success,
+                                message: "Duress PIN is set up",
+                                context: context,
+                                iconAsset: Assets.svg.check,
+                              ),
+                            );
+                          }
+
+                          await Future<void>.delayed(
+                            const Duration(milliseconds: 1200),
+                          );
+
+                          if (context.mounted) {
+                            Navigator.of(context).popUntil(
+                              ModalRoute.withName(SecurityView.routeName),
+                            );
+                          }
+                        } else {
                           unawaited(
-                            showFloatingFlushBar(
-                              type: FlushBarType.success,
-                              message: "Duress PIN is set up",
-                              context: context,
-                              iconAsset: Assets.svg.check,
+                            _pageController.animateTo(
+                              0,
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.linear,
                             ),
                           );
-                        }
-
-                        await Future<void>.delayed(
-                          const Duration(milliseconds: 1200),
-                        );
-
-                        if (context.mounted) {
-                          Navigator.of(context).popUntil(
-                            ModalRoute.withName(SecurityView.routeName),
+                          unawaited(
+                            showFloatingFlushBar(
+                              type: FlushBarType.warning,
+                              message: "PIN codes do not match. Try again.",
+                              context: context,
+                              iconAsset: Assets.svg.alertCircle,
+                            ),
                           );
-                        }
-                      } else {
-                        unawaited(
-                          _pageController.animateTo(
-                            0,
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.linear,
-                          ),
-                        );
-                        unawaited(
-                          showFloatingFlushBar(
-                            type: FlushBarType.warning,
-                            message: "PIN codes do not match. Try again.",
-                            context: context,
-                            iconAsset: Assets.svg.alertCircle,
-                          ),
-                        );
 
-                        _pinPutController1.text = '';
-                        _pinPutController2.text = '';
-                      }
-                    },
-                  ),
-                ],
+                          _pinPutController1.text = '';
+                          _pinPutController2.text = '';
+                        }
+                      },
+                    ),
+                  ],
+                ),
               ),
             ],
           ),

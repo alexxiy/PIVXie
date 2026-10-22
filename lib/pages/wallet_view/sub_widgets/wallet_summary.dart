@@ -8,6 +8,8 @@
  *
  */
 
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'wallet_summary_info.dart';
 import '../../../services/event_bus/events/global/wallet_sync_status_changed_event.dart';
@@ -32,13 +34,15 @@ class WalletSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // The height follows the width only up to maxHeight. Otherwise on a
-    // tablet, and in landscape above all, the card fills the screen and
-    // pushes the balance and transactions out of sight.
+    // The height follows the width only up to maxHeight, and up to 30% of
+    // the screen. Otherwise on a tablet, and in landscape above all, the
+    // card fills the screen and pushes the transactions out of sight.
+    final screenHeight = MediaQuery.sizeOf(context).height;
+    final cap = max(minHeight, min(maxHeight, screenHeight * 0.3));
     return LayoutBuilder(
       builder: (_, constraints) {
         final width = constraints.maxWidth;
-        final height = (width / aspectRatio).clamp(minHeight, maxHeight);
+        final height = (width / aspectRatio).clamp(minHeight, cap);
         return SizedBox(
           width: width,
           height: height,
