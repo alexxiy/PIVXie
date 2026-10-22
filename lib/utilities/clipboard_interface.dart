@@ -9,8 +9,10 @@
  */
 
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/services.dart';
+import 'package:flutter/widgets.dart';
 
 abstract class ClipboardInterface {
   Future<void> setData(ClipboardData data);
@@ -31,23 +33,55 @@ class ClipboardWrapper implements ClipboardInterface {
   }
 }
 
+const _secretChannel = MethodChannel("PIVXIE_CLIPBOARD");
+
 extension SecretClipboard on ClipboardInterface {
   /// Copy a secret (a recovery phrase, a masternode key) and clear the
   /// clipboard again after [after], unless something else was copied
   /// meanwhile.
+  ///
+  /// On Android the copy is marked sensitive: the system's copy preview
+  /// hides it, and keyboards keep it out of their clipboard history.
   Future<void> setSecret(
     String text, {
     Duration after = const Duration(minutes: 1),
   }) async {
-    await setData(ClipboardData(text: text));
-    Timer(after, () async {
+    if (this is ClipboardWrapper && Platform.isAndroid) {
       try {
-        if ((await getData(Clipboard.kTextPlain))?.text == text) {
-          await setData(const ClipboardData(text: ""));
-        }
-      } catch (_) {
-        // The clipboard can't be read (e.g. in the background on Android).
+        await _secretChannel.invokeMethod<void>("setSecret", {"text": text});
+      } on MissingPluginException {
+        await setData(ClipboardData(text: text));
       }
+    } else {
+      await setData(ClipboardData(text: text));
+    }
+    Timer(after, () {
+      final binding = WidgetsBinding.instance;
+      if ((Platform.isAndroid || Platform.isIOS) &&
+          binding.lifecycleState != AppLifecycleState.resumed) {
+        // The clipboard can't be read in the background: check once the
+        // app is back.
+        late final AppLifecycleListener listener;
+        listener = AppLifecycleListener(
+          binding: binding,
+          onResume: () {
+            listener.dispose();
+            unawaited(_clearSecret(text));
+          },
+        );
+        return;
+      }
+      unawaited(_clearSecret(text));
     });
+  }
+
+  Future<void> _clearSecret(String text) async {
+    try {
+      if ((await getData(Clipboard.kTextPlain))?.text == text) {
+        await setData(const ClipboardData(text: ""));
+      }
+    } catch (_) {
+      // The clipboard can't be read.
+    }
   }
 }
