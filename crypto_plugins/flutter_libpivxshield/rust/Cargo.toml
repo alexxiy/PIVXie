@@ -35,7 +35,7 @@ serde_bytes = "0.11"
 bellman = { git = "https://github.com/Duddino/librustpivx", branch = "librustzcash-rebase", features = ["groth16"] }
 
 [dev-dependencies]
-jubjub = "*"
+jubjub = "0.10"
 
 # Debug app builds compile the dev profile; unoptimised Sapling proving
 # is several times slower, so optimise it too.

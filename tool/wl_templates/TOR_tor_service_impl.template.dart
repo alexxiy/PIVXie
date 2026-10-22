@@ -1,13 +1,7 @@
 //ON
-import 'dart:ffi';
 import 'dart:io';
-import 'dart:isolate';
-import 'dart:math';
 
-import 'package:ffi/ffi.dart';
 import 'package:tor_ffi_plugin/tor_ffi_plugin.dart';
-import 'package:tor_ffi_plugin/tor_ffi_plugin_bindings_generated.dart'
-    as bindings;
 
 import '../../services/event_bus/events/global/tor_connection_status_changed_event.dart';
 import '../../services/event_bus/global_event_bus.dart';
@@ -35,12 +29,8 @@ class _TorServiceImpl extends TorService {
   String? _torDataDirPath;
   TorConnectionStatus _status = TorConnectionStatus.disconnected;
 
-  /// SOCKS port and native proxy handle of the running Tor client.
-  int? _port;
-  int _proxyAddress = 0;
-
   /// Bumped by [disable]; a start that finishes under an older
-  /// generation was cancelled and shuts its proxy down.
+  /// generation was cancelled.
   int _generation = 0;
 
   @override
@@ -51,8 +41,8 @@ class _TorServiceImpl extends TorService {
   /// Throws if Tor is not connected.
   @override
   ({InternetAddress host, int port}) getProxyInfo() {
-    if (status == TorConnectionStatus.connected && _port != null) {
-      return (host: InternetAddress.loopbackIPv4, port: _port!);
+    if (status == TorConnectionStatus.connected) {
+      return (host: InternetAddress.loopbackIPv4, port: Tor.instance.port);
     } else {
       throw Exception("Tor proxy info fetched while not connected!");
     }
@@ -65,9 +55,10 @@ class _TorServiceImpl extends TorService {
 
   /// Start Tor and bootstrap a circuit.
   ///
-  /// Both run in a background isolate: bootstrapping blocks for as long as
-  /// the network takes, and must not freeze the UI. [disable] cancels a
-  /// start in progress.
+  /// The plugin does both in background isolates, so the UI doesn't wait
+  /// for the network. A bootstrap that times out (no network yet, as on a
+  /// phone started offline) is tried again until it works or [disable] is
+  /// called, which also cancels a start in progress.
   @override
   Future<void> start() async {
     if (_torDataDirPath == null) {
@@ -82,41 +73,23 @@ class _TorServiceImpl extends TorService {
     );
 
     try {
-      final stateDir =
-          await Directory("$_torDataDirPath/tor_state").create(recursive: true);
-      final cacheDir =
-          await Directory("$_torDataDirPath/tor_cache").create(recursive: true);
-      final port = await _unusedPort();
-
-      final proxyAddress = await Isolate.run(() {
-        final tor = bindings.tor_start(
-          port,
-          stateDir.path.toNativeUtf8().cast(),
-          cacheDir.path.toNativeUtf8().cast(),
-        );
-        if (tor.client == nullptr) {
-          throw Exception(_lastTorError());
+      while (true) {
+        try {
+          await Tor.instance.start(torDataDirPath: _torDataDirPath!);
+          break;
+        } on TorBootstrapTimeout catch (e) {
+          if (generation != _generation) return;
+          Logging.instance.w("Tor bootstrap timed out, trying again: $e");
         }
-        if (!bindings.tor_client_bootstrap(tor.client)) {
-          final error = _lastTorError();
-          bindings.tor_proxy_stop(tor.proxy);
-          throw Exception(error);
-        }
-        return tor.proxy.address;
-      });
-
-      if (generation != _generation) {
-        // Cancelled while bootstrapping.
-        _stopProxy(proxyAddress);
-        return;
       }
+      if (generation != _generation) return;
 
-      _port = port;
-      _proxyAddress = proxyAddress;
       _updateStatusAndFireEvent(
         status: TorConnectionStatus.connected,
         message: "TorService.start call success",
       );
+    } on TorStartCancelled {
+      // disable() was called meanwhile.
     } catch (e, s) {
       if (generation != _generation) return;
       Logging.instance.w("TorService.start failed: ", error: e, stackTrace: s);
@@ -129,38 +102,23 @@ class _TorServiceImpl extends TorService {
   }
 
   /// Disable Tor, also while it is still connecting.
+  ///
+  /// The proxy is shut down and the client released; until that's done,
+  /// nothing uses it (the status already reads disconnected).
   @override
   Future<void> disable() async {
     if (_status == TorConnectionStatus.disconnected) return;
     _generation++;
-    _stopProxy(_proxyAddress);
-    _proxyAddress = 0;
-    _port = null;
     _updateStatusAndFireEvent(
       status: TorConnectionStatus.disconnected,
       message: "TorService.disable call success",
     );
-  }
-
-  static void _stopProxy(int address) {
-    if (address == 0) return;
-    bindings.tor_proxy_stop(Pointer.fromAddress(address));
-  }
-
-  static Future<int> _unusedPort() async {
-    final random = Random.secure();
-    for (int i = 0; i < 100; i++) {
-      final port = 1024 + random.nextInt(65535 - 1024);
-      try {
-        final socket = await ServerSocket.bind(
-          InternetAddress.loopbackIPv4,
-          port,
-        );
-        await socket.close();
-        return port;
-      } catch (_) {}
+    try {
+      await Tor.instance.stop();
+    } catch (e, s) {
+      // The next start or stop retries the release.
+      Logging.instance.w("Tor stop failed: ", error: e, stackTrace: s);
     }
-    throw Exception("Failed to get an unused port for Tor");
   }
 
   void _updateStatusAndFireEvent({
@@ -173,8 +131,5 @@ class _TorServiceImpl extends TorService {
     );
   }
 }
-
-String _lastTorError() =>
-    bindings.tor_last_error_message().cast<Utf8>().toDartString();
 
 //END_ON

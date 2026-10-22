@@ -9,7 +9,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("com.android.tools.build:gradle:8.7.0")
+        classpath("com.android.tools.build:gradle:9.4.1")
     }
 }
 
@@ -24,8 +24,8 @@ apply plugin: 'com.android.library'
 
 android {
     namespace 'org.pivx.flutter_libpivxshield'
-    compileSdk = 35
-    ndkVersion = "28.0.13004108"
+    compileSdk = 37
+    ndkVersion = "30.0.16248370"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
@@ -33,7 +33,7 @@ android {
     }
 
     defaultConfig {
-        minSdk = 21
+        minSdk = 24
     }
 }
 

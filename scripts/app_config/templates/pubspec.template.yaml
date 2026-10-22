@@ -29,7 +29,7 @@ dependencies:
 #  tor_ffi_plugin:
 #    git:
 #      url: https://github.com/cypherstack/tor.git
-#      ref: 5586bfa3c48e495bc00f9b56fa18869daf768573
+#      ref: e30ed0d386a40ee4a999aeaf57aafd32921d601e
 # %%END_ENABLE_TOR%%
 
 # %%ENABLE_PIVX%%
@@ -40,7 +40,7 @@ dependencies:
   stack_wallet_backup:
     git:
       url: https://github.com/cypherstack/stack_wallet_backup.git
-      ref: 5efe8f8f259317d32b6f037cf91f62e06125c040
+      ref: d353fcd289c2fd5de8f4f32395536dad9674ebe3
 
   # Utility plugins
   # pivx: payment links opened from other apps (camera, browser, ...)
@@ -56,6 +56,7 @@ dependencies:
     git:
       url: https://github.com/google/flutter-desktop-embedding.git
       path: plugins/window_size
+      ref: eb3964990cf19629c89ff8cb4a37640c7b3d5601
 
   # Bitcoin-style key and address plugins
   bip39:
@@ -80,7 +81,7 @@ dependencies:
   path_provider: ^2.1.6
   path: ^1.9.1
   saf_util: ^3.1.1
-  saf_stream: ^4.0.2
+  saf_stream: ^4.0.3
 
   # UI/Component plugins
   flutter_native_splash: ^2.4.8
@@ -97,7 +98,7 @@ dependencies:
   flutter_riverpod: ^3.4.3
 
   # Platform plugins
-  wakelock_plus: ^1.8.1
+  wakelock_plus: ^1.8.2
   devicelocale: 0.9.1
   device_info_plus: ^13.3.0
   package_info_plus: ^10.2.2
@@ -107,7 +108,7 @@ dependencies:
   mobile_app_privacy:
     git:
       url: https://github.com/cypherstack/mobile_app_privacy
-      ref: v0.0.3
+      ref: 21f95309522dd48face32c0c4a3ca2ac8df092fb
   # In-repo copy: bundles its own static OpenCV (plugins/camera_linux).
   camera_linux:
     path: ./plugins/camera_linux
@@ -115,6 +116,7 @@ dependencies:
     git: # TODO [prio=low]: Revert to official after https://github.com/flutter/packages/pull/7067.
       url: https://github.com/cypherstack/packages.git
       path: packages/camera/camera_windows
+      ref: 9bfbfd643ba4e6865ec34124e42a1cc502c400c0
   camera_platform_interface: ^2.14.0
   camera_macos: ^0.1.1
   zxing2: ^0.2.3
@@ -130,7 +132,7 @@ dependencies:
   async: ^2.13.1
   archive: ^4.5.0
   meta: ^1.9.1
-  socks5_proxy: ^2.1.1
+  socks5_proxy: ^2.1.2
   logger:
     git:
       url: https://github.com/cypherstack/logger
@@ -141,7 +143,7 @@ dev_dependencies:
     sdk: flutter
   build_runner: ^2.16.2
   flutter_launcher_icons: ^0.14.4
-  hive_ce_generator: ^1.11.3
+  hive_ce_generator: ^1.12.0
   dependency_validator: ^5.1.0
   hive_test: ^1.0.1
   flutter_secure_storage_platform_interface: ^2.1.1
