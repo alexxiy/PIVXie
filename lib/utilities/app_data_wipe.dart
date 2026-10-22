@@ -17,7 +17,7 @@ import 'prefs.dart';
 import 'stack_file_system.dart';
 
 /// Deletes everything the app keeps: wallets, keys, history, the address
-/// book, settings, shield data and the Sapling parameters. Used by
+/// book, settings, shield data, the Sapling parameters and the logs. Used by
 /// "Forgot password" on desktop and "Delete account" on iOS.
 abstract final class AppDataWipe {
   /// The folders the app makes in its data folder. Only these go: the
@@ -39,6 +39,7 @@ abstract final class AppDataWipe {
     final root = await StackFileSystem.applicationRootDirectory();
     await Isar.getInstance("desktopStore")?.close();
     await Isar.getInstance("wallet_data")?.close();
+    await _deleteLogs();
     await DB.instance.hive.close();
     for (final name in _appFolders) {
       final dir = Directory("${root.path}${Platform.pathSeparator}$name");
@@ -50,6 +51,20 @@ abstract final class AppDataWipe {
       }
     }
     exit(0);
+  }
+
+  /// The logs (addresses, transactions), when they are in the app's own
+  /// folder: one the user picked may hold other files.
+  static Future<void> _deleteLogs() async {
+    if (Prefs.instance.logsPath != null) return;
+    try {
+      final dir = await StackFileSystem.applicationLogsDirectory(
+        Prefs.instance,
+      );
+      if (dir.existsSync()) await dir.delete(recursive: true);
+    } catch (e) {
+      Logging.instance.w("Could not delete the logs: $e");
+    }
   }
 
   /// iOS: delete every wallet (with its keys and data) and everything
@@ -84,6 +99,7 @@ abstract final class AppDataWipe {
       final dir = Directory("${root.path}/$name");
       if (dir.existsSync()) await dir.delete(recursive: true);
     }
+    await _deleteLogs();
     if (!await DB.instance.deleteEverything()) {
       throw Exception("Deleting the settings failed");
     }

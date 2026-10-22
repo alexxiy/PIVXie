@@ -694,6 +694,7 @@ class _SendViewState extends ConsumerState<SendView> {
     memoController.text = "";
     _address = "";
     _addressToggleFlag = false;
+    _setValidAddressProviders("");
     setState(() {});
   }
 

@@ -606,10 +606,10 @@ class _NodeFormState extends ConsumerState<NodeForm> {
   }
 
   bool get canTestConnection {
-    // 65535 is max tcp port
+    // TCP ports are 1 to 65535.
     return _hostController.text.isNotEmpty &&
         port != null &&
-        port! >= 0 &&
+        port! > 0 &&
         port! <= 65535;
   }
 

@@ -515,7 +515,7 @@ class _NewWalletRecoveryPhraseWarningViewState
                                       SizedBox(width: isDesktop ? 20 : 10),
                                       Flexible(
                                         child: Text(
-                                          "I understand that ${AppConfig.appName} does not keep and cannot restore my recovery phrase, and If I lose my recovery phrase, I will not be able to access my funds.",
+                                          "I understand that ${AppConfig.appName} does not keep my recovery phrase and cannot restore it. If I lose it, I will not be able to access my funds.",
                                           style: isDesktop
                                               ? STextStyles.desktopTextMedium(
                                                   context,

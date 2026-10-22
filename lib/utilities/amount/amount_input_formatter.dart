@@ -29,8 +29,11 @@ class AmountInputFormatter extends TextInputFormatter {
 
     String newText = newValue.text.replaceAll(groupSeparator, "");
 
-    final selectionIndexFromTheRight =
-        newValue.text.length - newValue.selection.end;
+    // The cursor keeps its place counted from the end, as separators come
+    // and go. Without a selection (-1) it goes to the end.
+    final selectionIndexFromTheRight = newValue.selection.isValid
+        ? max(newValue.text.length - newValue.selection.end, 0)
+        : 0;
 
     String? fraction;
     if (newText.contains(decimalSeparator)) {
@@ -51,7 +54,7 @@ class AmountInputFormatter extends TextInputFormatter {
         return TextEditingValue(
           text: newText,
           selection: TextSelection.collapsed(
-            offset: newText.length - selectionIndexFromTheRight,
+            offset: max(newText.length - selectionIndexFromTheRight, 0),
           ),
         );
       }
@@ -91,7 +94,8 @@ class AmountInputFormatter extends TextInputFormatter {
     return TextEditingValue(
       text: newString,
       selection: TextSelection.collapsed(
-        offset: newString.length - selectionIndexFromTheRight,
+        // Cut fraction digits can leave less text than was right of it.
+        offset: max(newString.length - selectionIndexFromTheRight, 0),
       ),
     );
   }

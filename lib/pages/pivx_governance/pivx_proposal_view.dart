@@ -119,6 +119,9 @@ class _PivxProposalViewState extends ConsumerState<PivxProposalView> {
     final p = _proposal;
     final g = _governance;
     final masternodes = wallet.masternodes;
+    // The last superblock paying it (Core's end block lies past it).
+    final lastSuperblock =
+        p.blockStart + (p.totalPayments - 1) * wallet.budgetCycleBlocks;
     final secondary = STextStyles.w500_12(context)
         .copyWith(color: colors.textSubtitle1);
 
@@ -249,10 +252,13 @@ class _PivxProposalViewState extends ConsumerState<PivxProposalView> {
                                     },
                                   ),
                                 ),
-                                fact(
-                                  "Superblocks",
-                                  "${p.blockStart} – ${p.blockEnd}",
-                                ),
+                                if (p.totalPayments > 1)
+                                  fact(
+                                    "Superblocks",
+                                    "${p.blockStart} – $lastSuperblock",
+                                  )
+                                else
+                                  fact("Superblock", "${p.blockStart}"),
                               ],
                             ),
                             if (p.status == PivxProposalStatus.waiting) ...[

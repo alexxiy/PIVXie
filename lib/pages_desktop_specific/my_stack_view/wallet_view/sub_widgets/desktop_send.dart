@@ -464,6 +464,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     noteController.text = "";
     _address = "";
     _addressToggleFlag = false;
+    _setValidAddressProviders("");
     setState(() {});
   }
 

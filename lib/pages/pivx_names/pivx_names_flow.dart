@@ -260,6 +260,7 @@ class _PivxNamesTargetViewState extends ConsumerState<PivxNamesTargetView> {
   }
 
   Future<void> _loadCost() async {
+    if (!mounted) return;
     final price = _flow.price;
     if (price != null) {
       setState(() => _cost = price);

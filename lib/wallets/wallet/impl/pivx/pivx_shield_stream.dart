@@ -39,8 +39,9 @@ Stream<PivxShieldBlock> parsePivxShieldStream(Stream<List<int>> bytes) async* {
       off += 4 + len;
       if (packet.isEmpty) throw const FormatException("Empty shield packet");
       if (packet[0] == 0x5d) {
-        if (packet.length < 9)
+        if (packet.length < 9) {
           throw const FormatException("Short block footer");
+        }
         final view = ByteData.sublistView(packet);
         yield (
           height: view.getUint32(1, Endian.little),
