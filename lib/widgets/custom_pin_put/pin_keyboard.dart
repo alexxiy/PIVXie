@@ -449,7 +449,6 @@ class RandomKeyboard extends StatelessWidget {
   void _numberHandler(String number) {
     onNumberKeyPressed.call(number);
     HapticFeedback.lightImpact();
-    debugPrint("NUMBER: $number");
   }
 
   @override

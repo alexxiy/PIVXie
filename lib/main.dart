@@ -69,6 +69,11 @@ final openedFromSWBFileStringStateProvider = StateProvider<String?>(
 // miscellaneous box for later use
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
+  if (kReleaseMode) {
+    // Release builds log through Logging only: debugPrint would still
+    // reach logcat and stdout.
+    debugPrint = (String? message, {int? wrapWidth}) {};
+  }
   trustBundledRootCertificates();
 
   if (Util.isDesktop && args.length == 2 && args.first == "-d") {
@@ -359,7 +364,8 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
 
     String themeId;
     if (ref.read(prefsChangeNotifierProvider).enableSystemBrightness) {
-      final brightness = WidgetsBinding.instance.window.platformBrightness;
+      final brightness =
+          WidgetsBinding.instance.platformDispatcher.platformBrightness;
       switch (brightness) {
         case Brightness.dark:
           themeId = ref
@@ -407,30 +413,6 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       }
     });
 
-    WidgetsBinding.instance.window.onPlatformBrightnessChanged = () {
-      String themeId;
-      switch (WidgetsBinding.instance.window.platformBrightness) {
-        case Brightness.dark:
-          themeId = ref
-              .read(prefsChangeNotifierProvider)
-              .systemBrightnessDarkThemeId;
-          break;
-        case Brightness.light:
-          themeId = ref
-              .read(prefsChangeNotifierProvider)
-              .systemBrightnessLightThemeId;
-          break;
-      }
-
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (ref.read(prefsChangeNotifierProvider).enableSystemBrightness) {
-          ref.read(themeProvider.notifier).state = ref
-              .read(pThemeService)
-              .getTheme(themeId: themeId)!;
-        }
-      });
-    };
-
     super.initState();
   }
 
@@ -439,6 +421,25 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     WidgetsBinding.instance.removeObserver(this);
     unawaited(_paymentLinks?.cancel());
     super.dispose();
+  }
+
+  @override
+  void didChangePlatformBrightness() {
+    super.didChangePlatformBrightness();
+    final prefs = ref.read(prefsChangeNotifierProvider);
+    final themeId =
+        switch (WidgetsBinding.instance.platformDispatcher.platformBrightness) {
+          Brightness.dark => prefs.systemBrightnessDarkThemeId,
+          Brightness.light => prefs.systemBrightnessLightThemeId,
+        };
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (ref.read(prefsChangeNotifierProvider).enableSystemBrightness) {
+        ref.read(themeProvider.notifier).state = ref
+            .read(pThemeService)
+            .getTheme(themeId: themeId)!;
+      }
+    });
   }
 
   @override
