@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:typed_data';
 
 import 'package:socks5_proxy/socks_client.dart';
 
@@ -208,7 +209,7 @@ class PivxBridgeClient {
           request!.add(bytes);
         }
         final response = await request!.close();
-        final text = await response.transform(utf8.decoder).join();
+        final text = await _readText(response);
         _lastActivity = DateTime.now();
         return (code: response.statusCode, body: text);
       }().timeout(timeout);
@@ -219,6 +220,25 @@ class PivxBridgeClient {
       // Its text names the URL, which may hold the wallet's xpub.
       throw HttpException(redactXpubs(e.message));
     }
+  }
+
+  /// The most a reply can be, far more than any (a page of 1000
+  /// transactions is a few MB): a server that never stops sending would
+  /// otherwise use up the memory.
+  static const _maxReplyBytes = 64 * 1024 * 1024;
+
+  static Future<String> _readText(HttpClientResponse response) async {
+    if (response.contentLength > _maxReplyBytes) {
+      throw PivxBridgeException("reply too large");
+    }
+    final bytes = BytesBuilder(copy: false);
+    await for (final chunk in response) {
+      bytes.add(chunk);
+      if (bytes.length > _maxReplyBytes) {
+        throw PivxBridgeException("reply too large");
+      }
+    }
+    return utf8.decode(bytes.takeBytes());
   }
 
   /// [text] without extended public keys: error messages end up in the
@@ -635,9 +655,9 @@ class PivxBridgeClient {
     return json.toString();
   }
 
-  /// Download [url] into [file], reporting `(received, total)`.
-  /// Download [url] to [file]; more than [maxBytes] is refused (a server
-  /// that never stops sending would fill the disk).
+  /// Download [url] to [file], reporting `(received, total)`; more than
+  /// [maxBytes] is refused (a server that never stops sending would fill
+  /// the disk).
   static Future<void> downloadToFile(
     Uri url,
     File file, {
@@ -652,7 +672,8 @@ class PivxBridgeClient {
     final client = _newHttpClient(proxy);
     final tmp = File("${file.path}.part");
     try {
-      final response = await (await client.getUrl(url)).close();
+      final request = await client.getUrl(url).timeout(_timeout);
+      final response = await request.close().timeout(_timeout);
       if (response.statusCode != 200) {
         throw PivxBridgeException(
           "download failed: $url",
