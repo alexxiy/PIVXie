@@ -65,13 +65,13 @@ class PivxNamesFlow {
   final BigInt? listedPrice;
 
   String get title => switch (op) {
-    PivxNamesOp.reg => "Register $name",
-    PivxNamesOp.buy => "Buy $name",
+    PivxNamesOp.reg => "Register ${pivxNamesUnbroken(name)}",
+    PivxNamesOp.buy => "Buy ${pivxNamesUnbroken(name)}",
     PivxNamesOp.upd => "Change destination",
     PivxNamesOp.chg => "Change owner",
     PivxNamesOp.lst =>
       listedPrice == null ? "List on the marketplace" : "Change sell price",
-    PivxNamesOp.ult => "Unlist $name",
+    PivxNamesOp.ult => "Unlist ${pivxNamesUnbroken(name)}",
   };
 }
 
@@ -459,27 +459,28 @@ class _PivxNamesTargetViewState extends ConsumerState<PivxNamesTargetView> {
         : pivxNamesAmount(listedPrice, ref, wallet, exact: true);
     final targetError = op.hasTarget ? error : null;
 
+    final name = pivxNamesUnbroken(_flow.name);
     final (String heading, String text) = switch (op) {
       PivxNamesOp.reg || PivxNamesOp.buy => (
-        "Where should ${_flow.name} point?",
+        "Where should $name point?",
         "Choose one of your shield addresses, or enter another one. Anyone "
-            "who pays ${_flow.name} pays this address, and you can change it "
+            "who pays $name pays this address, and you can change it "
             "later.",
       ),
       PivxNamesOp.upd => (
         "Choose the new destination",
-        "Payments to ${_flow.name} will go to this address. People keep "
+        "Payments to $name will go to this address. People keep "
             "paying the name and never need to know.",
       ),
       PivxNamesOp.chg => (
-        "Who will own ${_flow.name}?",
+        "Who will own $name?",
         "Paste the public key of the new owner. They find it in My Names, "
             "in PIVXie or on pivx.name.",
       ),
       PivxNamesOp.lst => (
         _flow.listedPrice == null
-            ? "Set the price for ${_flow.name}"
-            : "Set a new price for ${_flow.name}",
+            ? "Set the price for $name"
+            : "Set a new price for $name",
         "Anyone can buy the name for this price on the marketplace. The "
             "price then goes to your PIVX.name balance (My Balance), to "
             "withdraw to your wallet.",
@@ -598,7 +599,7 @@ class _PivxNamesTargetViewState extends ConsumerState<PivxNamesTargetView> {
                       RoundedWhiteContainer(
                         borderColor: colors.accentColorOrange,
                         child: Text(
-                          "The new owner gets ${_flow.name} and full control "
+                          "The new owner gets $name and full control "
                           "of it. Only they can give it back.",
                           style: STextStyles.w500_12(context),
                         ),
@@ -845,7 +846,7 @@ class _PivxNamesPaymentViewState extends ConsumerState<PivxNamesPaymentView> {
                     const SizedBox(height: 20),
                     Text(
                       _flow.op == PivxNamesOp.reg
-                          ? "Pay to register ${_flow.name}"
+                          ? "Pay to register ${pivxNamesUnbroken(_flow.name)}"
                           : "Pay to process the change",
                       style: STextStyles.pageTitleH2(context),
                     ),

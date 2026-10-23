@@ -110,7 +110,7 @@ class _PivxNamesMyNamesViewState extends ConsumerState<PivxNamesMyNamesView> {
     final ok = await pivxNamesConfirm(
       context,
       title: "Unlist from sale",
-      message: "Take ${d.name} off the marketplace?",
+      message: "Take ${pivxNamesUnbroken(d.name)} off the marketplace?",
       action: "Unlist",
     );
     if (ok && mounted) await _start(_flow(d, PivxNamesOp.ult));
@@ -455,7 +455,9 @@ class _PivxNamesMyNamesViewState extends ConsumerState<PivxNamesMyNamesView> {
                         ? null
                         : PrimaryButton(
                             label: "Register your first name",
-                            buttonHeight: ButtonHeight.m,
+                            buttonHeight: Util.isDesktop
+                                ? ButtonHeight.m
+                                : null,
                             onPressed: () => Navigator.of(context).pop(),
                           ),
                   )

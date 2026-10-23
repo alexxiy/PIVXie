@@ -141,7 +141,7 @@ class _PivxNamesViewState extends ConsumerState<PivxNamesView> {
       context,
       title: "Buy name",
       message:
-          "Do you want to buy ${l.name} for "
+          "Do you want to buy ${pivxNamesUnbroken(l.name)} for "
           "${pivxNamesAmount(l.price, ref, _wallet)}?",
       action: "Buy",
     );
@@ -163,7 +163,7 @@ class _PivxNamesViewState extends ConsumerState<PivxNamesView> {
     final ok = await pivxNamesConfirm(
       context,
       title: "Unlist from sale",
-      message: "Take ${l.name} off the marketplace?",
+      message: "Take ${pivxNamesUnbroken(l.name)} off the marketplace?",
       action: "Unlist",
     );
     if (!ok || !mounted) return;
@@ -312,7 +312,7 @@ class _PivxNamesViewState extends ConsumerState<PivxNamesView> {
             const SizedBox(width: 6),
             Expanded(
               child: Text(
-                "${result.name} is already taken.",
+                "${pivxNamesUnbroken(result.name)} is already taken.",
                 style: STextStyles.w600_14(context)
                     .copyWith(color: colors.textError),
               ),

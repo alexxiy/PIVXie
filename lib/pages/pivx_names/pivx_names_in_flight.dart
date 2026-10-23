@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../../services/pivx_name/pivx_names_registrar.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/text_styles.dart';
+import '../../utilities/util.dart';
 import '../../widgets/desktop/secondary_button.dart';
 import 'pivx_names_common.dart';
 import 'pivx_names_status_view.dart';
@@ -116,7 +117,7 @@ class PivxNamesInFlightNote extends StatelessWidget {
         IntrinsicWidth(
           child: SecondaryButton(
             label: "Follow it",
-            buttonHeight: ButtonHeight.s,
+            buttonHeight: Util.isDesktop ? ButtonHeight.s : null,
             padding: const EdgeInsets.symmetric(horizontal: 16),
             onPressed: () => Navigator.of(context)
                 .pushNamed(PivxNamesStatusView.routeName, arguments: tracked),

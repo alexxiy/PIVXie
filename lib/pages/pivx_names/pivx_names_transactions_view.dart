@@ -526,7 +526,11 @@ class _PivxNamesTransactionsViewState
                 ] else if (shown == null && _loading)
                   const PivxNamesListState(loading: true)
                 else if (rows.isEmpty)
-                  const PivxNamesListState(empty: "No transactions yet.")
+                  PivxNamesListState(
+                    empty: _refunds
+                        ? "No withdrawals yet."
+                        : "No payments to PIVX.name yet.",
+                  )
                 else ...[
                   ...rows,
                   PivxNamesPager(

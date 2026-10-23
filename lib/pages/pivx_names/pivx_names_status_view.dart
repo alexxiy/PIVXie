@@ -153,14 +153,17 @@ class _PivxNamesStatusViewState extends ConsumerState<PivxNamesStatusView> {
     }
   }
 
-  String get _success => switch (_t.op) {
-    "BUY" => "You've bought ${_t.name}!",
-    "UPD" => "${_t.name} now points to its new address!",
-    "CHG" => "${_t.name} now belongs to its new owner!",
-    "LST" => "${_t.name} is listed on the marketplace!",
-    "ULT" => "${_t.name} is off the marketplace!",
-    _ => "You've registered ${_t.name}!",
-  };
+  String get _success {
+    final name = pivxNamesUnbroken(_t.name);
+    return switch (_t.op) {
+      "BUY" => "You've bought $name!",
+      "UPD" => "$name now points to its new address!",
+      "CHG" => "$name now belongs to its new owner!",
+      "LST" => "$name is listed on the marketplace!",
+      "ULT" => "$name is off the marketplace!",
+      _ => "You've registered $name!",
+    };
+  }
 
   /// "3 minutes 20 seconds", "3 minutes" or "20 seconds".
   static String _time(int seconds) {

@@ -529,10 +529,42 @@ class _InfoDialogState extends State<_InfoDialog> {
     );
   }
 
+  Widget _slideBody(int i) {
+    final (title, points) = _slides[i];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(title, style: STextStyles.pageTitleH2(context)),
+        const SizedBox(height: 14),
+        if (i < _slides.length - 1)
+          for (final p in points) _point(p)
+        else ...[
+          _link(
+            Icons.send_rounded,
+            "Join us on Telegram",
+            kPivxNamesTelegramUrl,
+          ),
+          _link(
+            Icons.menu_book_rounded,
+            "Read the docs",
+            kPivxNamesDocsUrl,
+          ),
+          const SizedBox(height: 6),
+          Text(
+            "Let's support privacy and make it simpler.",
+            textAlign: TextAlign.center,
+            style: STextStyles.itemSubtitle(context)
+                .copyWith(fontStyle: FontStyle.italic),
+          ),
+          const SizedBox(height: 8),
+        ],
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<StackColors>()!;
-    final (title, points) = _slides[_slide];
     final last = _slide == _slides.length - 1;
     return Dialog(
       backgroundColor: colors.popupBG,
@@ -560,30 +592,20 @@ class _InfoDialogState extends State<_InfoDialog> {
                 ],
               ),
               const SizedBox(height: 18),
-              Text(title, style: STextStyles.pageTitleH2(context)),
-              const SizedBox(height: 14),
-              if (!last)
-                for (final p in points) _point(p)
-              else ...[
-                _link(
-                  Icons.send_rounded,
-                  "Join us on Telegram",
-                  kPivxNamesTelegramUrl,
-                ),
-                _link(
-                  Icons.menu_book_rounded,
-                  "Read the docs",
-                  kPivxNamesDocsUrl,
-                ),
-                const SizedBox(height: 6),
-                Text(
-                  "Let's support privacy and make it simpler.",
-                  textAlign: TextAlign.center,
-                  style: STextStyles.itemSubtitle(context)
-                      .copyWith(fontStyle: FontStyle.italic),
-                ),
-                const SizedBox(height: 8),
-              ],
+              // Every slide takes the tallest one's room, so the buttons
+              // stay under the finger while paging.
+              Stack(
+                children: [
+                  for (var i = 0; i < _slides.length; i++)
+                    Visibility(
+                      visible: i == _slide,
+                      maintainSize: true,
+                      maintainAnimation: true,
+                      maintainState: true,
+                      child: _slideBody(i),
+                    ),
+                ],
+              ),
               const SizedBox(height: 8),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -694,6 +716,10 @@ const _zoneColors = {
   ".secure": Color(0xFF3B82F6),
   ".safe": Color(0xFF10B981),
 };
+
+/// [name] for running text: a word joiner after each hyphen keeps
+/// "my-shop.pivx" on one line instead of breaking it at the hyphen.
+String pivxNamesUnbroken(String name) => name.replaceAll("-", "-\u2060");
 
 /// A name with its zone in the zone's colour: "alice" ".pivx".
 class PivxNamesNameText extends StatelessWidget {
@@ -1024,7 +1050,7 @@ class PivxNamesListState extends StatelessWidget {
               SecondaryButton(
                 label: "Try again",
                 width: 160,
-                buttonHeight: ButtonHeight.m,
+                buttonHeight: Util.isDesktop ? ButtonHeight.m : null,
                 onPressed: onRetry,
               ),
             ],

@@ -8,6 +8,7 @@ import '../../services/pivx_name/pivx_names_protocol.dart';
 import '../../services/pivx_name/pivx_names_registrar.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/text_styles.dart';
+import '../../utilities/util.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
 import '../../widgets/background.dart';
 import '../../widgets/desktop/primary_button.dart';
@@ -100,7 +101,7 @@ class _PivxNamesMarketplaceViewState
       context,
       title: "Buy name",
       message:
-          "Do you want to buy ${d.name} for "
+          "Do you want to buy ${pivxNamesUnbroken(d.name)} for "
           "${pivxNamesAmount(d.price, ref, _wallet)}?",
       action: "Buy",
     );
@@ -113,7 +114,7 @@ class _PivxNamesMarketplaceViewState
     final ok = await pivxNamesConfirm(
       context,
       title: "Unlist from sale",
-      message: "Take ${d.name} off the marketplace?",
+      message: "Take ${pivxNamesUnbroken(d.name)} off the marketplace?",
       action: "Unlist",
     );
     if (ok && mounted) {
@@ -157,7 +158,7 @@ class _PivxNamesMarketplaceViewState
                   Expanded(
                     child: SecondaryButton(
                       label: "Change price",
-                      buttonHeight: ButtonHeight.m,
+                      buttonHeight: Util.isDesktop ? ButtonHeight.m : null,
                       onPressed: () => startPivxNamesFlow(
                         context,
                         ref,
@@ -169,7 +170,7 @@ class _PivxNamesMarketplaceViewState
                   Expanded(
                     child: SecondaryButton(
                       label: "Unlist",
-                      buttonHeight: ButtonHeight.m,
+                      buttonHeight: Util.isDesktop ? ButtonHeight.m : null,
                       onPressed: () => _unlist(d),
                     ),
                   ),
@@ -178,7 +179,7 @@ class _PivxNamesMarketplaceViewState
             else
               PrimaryButton(
                 label: "Buy name",
-                buttonHeight: ButtonHeight.m,
+                buttonHeight: Util.isDesktop ? ButtonHeight.m : null,
                 onPressed: () => _buy(d),
               ),
           ],
@@ -233,7 +234,9 @@ class _PivxNamesMarketplaceViewState
                         : SecondaryButton(
                             label: "Sell my names",
                             width: 200,
-                            buttonHeight: ButtonHeight.m,
+                            buttonHeight: Util.isDesktop
+                                ? ButtonHeight.m
+                                : null,
                             onPressed: () => Navigator.of(context)
                                 .pushReplacementNamed(
                                   PivxNamesSection.myNames.routeName,
