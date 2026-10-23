@@ -14,6 +14,7 @@ import '../../route_generator.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/amount/amount_formatter.dart';
+import '../../utilities/assets.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
@@ -670,7 +671,7 @@ class _PivxDonationViewState extends ConsumerState<PivxDonationView> {
             padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
             children: [
               PivxDonationStage(
-                art: look.art,
+                art: Assets.donation.thanks(shielded: _funding.fromShield),
                 mood: look.mood,
                 shielded: _funding.fromShield,
                 celebrating: true,

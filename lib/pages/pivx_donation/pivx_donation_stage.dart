@@ -289,10 +289,11 @@ class _Scene {
   double get t => time.value;
 
   /// The floating offset: a sleepy sway for the tiny drop, a buzz for the
-  /// direct IV, a slow climb for the moon boost.
+  /// direct IV, a slow climb for the moon boost. The thank-you art just
+  /// floats.
   Offset get bob {
     final t = this.t;
-    switch (mood) {
+    switch (celebrating ? null : mood) {
       case PivxDonationTier.tinyDrop:
         return Offset(1.5 * math.sin(t * 0.8), 2 * math.sin(t * 1.6));
       case PivxDonationTier.directIv:
@@ -408,7 +409,7 @@ class _BackPainter extends CustomPainter {
     // The glow, brighter for bigger tiers.
     final energy = s.energy / 5;
     var glow = 0.28 + 0.3 * energy;
-    if (s.mood == PivxDonationTier.directIv) {
+    if (s.mood == PivxDonationTier.directIv && !s.celebrating) {
       glow *= 0.75 + 0.25 * _rnd((t * 12).floor(), 11);
     }
     final bob = s.bob;
@@ -426,7 +427,7 @@ class _BackPainter extends CustomPainter {
         ).createShader(Rect.fromCircle(center: c, radius: r)),
     );
 
-    if (s.mood != PivxDonationTier.moonBoost) {
+    if (s.mood != PivxDonationTier.moonBoost || s.celebrating) {
       // The floor shadow shrinks as PIVXie rises.
       final lift = (-bob.dy).clamp(0, 12) / 12;
       final floor = Offset(s.center.dx, s.center.dy + s.size * 0.47);

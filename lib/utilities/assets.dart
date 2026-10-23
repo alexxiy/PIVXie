@@ -16,17 +16,21 @@ abstract class Assets {
   static const donation = _DONATION();
 }
 
-/// "Fuel PIVXie" donation tiers: square WebPs of one size (370-680 px),
-/// cut from the design sheets by asset_sources/donation/.
+/// "Fuel PIVXie" donation art: square 1024 px WebPs cut from the designs
+/// by asset_sources/donation/: the hooded PIVXie when `shielded`, the
+/// translucent one otherwise.
 class _DONATION {
   const _DONATION();
 
   static const _path = "assets/donation/";
 
-  /// The [usd] dollar tier (1, 5, 10, 20, 50 or 100): hooded PIVXie when
-  /// [shielded], the translucent one otherwise.
+  /// The [usd] dollar tier (1, 5, 10, 20, 50 or 100).
   String tier(int usd, {required bool shielded}) =>
       "$_path${shielded ? "private" : "public"}_t$usd.webp";
+
+  /// After a donation: PIVXie holding a "THANK YOU!" sign.
+  String thanks({required bool shielded}) =>
+      "$_path${shielded ? "private" : "public"}_thanks.webp";
 }
 
 /// The PIVXie mascot (the Void Pixie). PNGs with 1.5x-4.0x density
