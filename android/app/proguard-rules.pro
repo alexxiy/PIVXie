@@ -38,3 +38,12 @@
 -dontwarn com.google.errorprone.annotations.**
 -dontwarn javax.annotation.Nullable
 -dontwarn javax.annotation.concurrent.GuardedBy
+
+# Play checks for a call to EdgeToEdge.enable() ("Edge-to-edge may not
+# display for all users"). R8 would inline it into MainActivity.onCreate,
+# leaving no such call in the release build.
+-keep class androidx.activity.EdgeToEdge {
+    public static void enable*(...);
+}
+-keepnames class androidx.activity.ComponentActivity
+-keepnames class androidx.activity.SystemBarStyle

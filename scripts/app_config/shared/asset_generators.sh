@@ -28,6 +28,10 @@ else
 
   if [[ "${APP_BUILD_PLATFORM}" = 'ios' || "${APP_BUILD_PLATFORM}" = 'android' ]]; then
     dart run flutter_native_splash:create
+    # The splash tool gives the launch theme the shortEdges cutout mode,
+    # deprecated since Android 15 (Play flags it). enableEdgeToEdge() in
+    # MainActivity sets the cutout mode at start anyway.
+    sed -i '/android:windowLayoutInDisplayCutoutMode/d' android/app/src/main/res/values*/styles.xml
   fi
 fi
 popd
