@@ -1,6 +1,6 @@
 {
   "@@locale": "pt",
-  "languageDevice": "Idioma do dispositivo",
+  "languageSystem": "Idioma do sistema",
   "languageEnglish": "Inglês",
   "languageGerman": "Alemão",
   "languageSpanish": "Espanhol",
@@ -17,7 +17,7 @@
   "languageTitle": "Idioma",
   "languageSelect": "Selecionar idioma",
   "languageChange": "Alterar idioma",
-  "languageDescription": "O idioma da sua carteira. Por padrão, segue o do seu dispositivo.",
+  "languageDescription": "O idioma da sua carteira. Por padrão, segue o idioma do sistema.",
   "commonSearch": "Pesquisar",
   "commonCancel": "Cancelar",
   "commonSaveChanges": "Salvar alterações",

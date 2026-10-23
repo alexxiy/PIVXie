@@ -1,6 +1,6 @@
 {
   "@@locale": "tr",
-  "languageDevice": "Cihaz dili",
+  "languageSystem": "Sistem dili",
   "languageEnglish": "İngilizce",
   "languageGerman": "Almanca",
   "languageSpanish": "İspanyolca",
@@ -17,7 +17,7 @@
   "languageTitle": "Dil",
   "languageSelect": "Dil seçin",
   "languageChange": "Dili değiştir",
-  "languageDescription": "Cüzdanınızın dili. Varsayılan olarak cihazınızın dilini kullanır.",
+  "languageDescription": "Cüzdanınızın dili. Varsayılan olarak sistem dilini kullanır.",
   "commonSearch": "Ara",
   "commonCancel": "İptal",
   "commonSaveChanges": "Değişiklikleri kaydet",

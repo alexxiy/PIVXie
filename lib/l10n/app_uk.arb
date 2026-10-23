@@ -1,6 +1,6 @@
 {
   "@@locale": "uk",
-  "languageDevice": "Мова пристрою",
+  "languageSystem": "Мова системи",
   "languageEnglish": "Англійська",
   "languageGerman": "Німецька",
   "languageSpanish": "Іспанська",
@@ -17,7 +17,7 @@
   "languageTitle": "Мова",
   "languageSelect": "Виберіть мову",
   "languageChange": "Змінити мову",
-  "languageDescription": "Мова вашого гаманця. За замовчуванням збігається з мовою пристрою.",
+  "languageDescription": "Мова вашого гаманця. За замовчуванням збігається з мовою системи.",
   "commonSearch": "Пошук",
   "commonCancel": "Скасувати",
   "commonSaveChanges": "Зберегти зміни",

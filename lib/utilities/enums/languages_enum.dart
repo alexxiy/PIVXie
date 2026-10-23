@@ -55,17 +55,29 @@ enum Language {
     Language.japanese => l10n.languageJapanese,
   };
 
-  /// The language the device's settings give: the first of its languages
+  /// The system language: the first of the device's languages
   /// the app has, or English.
-  static Language get device {
-    for (final locale in PlatformDispatcher.instance.locales) {
+  static Language get system =>
+      fromLocales(PlatformDispatcher.instance.locales);
+
+  /// MaterialApp's localeListResolutionCallback: [fromLocales], so the app
+  /// shows the language the list calls the system language. Flutter's own
+  /// matching would take a later exact "ru" over an earlier "uk-UA".
+  static Locale resolveLocale(
+    List<Locale>? locales,
+    Iterable<Locale> supportedLocales,
+  ) => fromLocales(locales ?? const []).locale;
+
+  /// The first of [locales] the app has, or English.
+  static Language fromLocales(List<Locale> locales) {
+    for (final locale in locales) {
       final language = fromCode(locale.languageCode);
       if (language != null) return language;
     }
     return Language.english;
   }
 
-  /// null for anything else, which means the device's language. That
+  /// null for anything else, which means the system language. That
   /// includes "English (US)", the only choice before there were others.
   static Language? fromCode(String? code) {
     for (final language in values) {
@@ -75,11 +87,11 @@ enum Language {
   }
 }
 
-/// The language list's title for [language] (null: the device's language).
+/// The language list's title for [language] (null: the system language).
 String languageTitle(Language? language) =>
-    language?.nativeName ?? l10n.languageDevice;
+    language?.nativeName ?? l10n.languageSystem;
 
 /// The line under [languageTitle]: the name in the language on screen, or
-/// for the device's language the language that is.
+/// for the system language the language that is.
 String languageSubtitle(Language? language) =>
-    language?.translatedName ?? Language.device.nativeName;
+    language?.translatedName ?? Language.system.nativeName;

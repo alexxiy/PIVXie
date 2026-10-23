@@ -37,7 +37,7 @@ class LanguageSettingsView extends ConsumerStatefulWidget {
 }
 
 class _LanguageViewState extends ConsumerState<LanguageSettingsView> {
-  /// null is the device's language.
+  /// null is the system language.
   static const List<Language?> _choices = [null, ...Language.values];
 
   late List<Language?> _shown;
@@ -216,7 +216,7 @@ class _LanguageViewState extends ConsumerState<LanguageSettingsView> {
                             child: Padding(
                               padding: const EdgeInsets.all(4),
                               key: Key(
-                                "languageSelect_${language?.code ?? "device"}",
+                                "languageSelect_${language?.code ?? "system"}",
                               ),
                               child: RoundedContainer(
                                 padding: const EdgeInsets.all(0),

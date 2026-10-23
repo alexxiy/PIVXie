@@ -1,6 +1,6 @@
 {
   "@@locale": "az",
-  "languageDevice": "Cihazın dili",
+  "languageSystem": "Sistem dili",
   "languageEnglish": "İngilis dili",
   "languageGerman": "Alman dili",
   "languageSpanish": "İspan dili",
@@ -17,7 +17,7 @@
   "languageTitle": "Dil",
   "languageSelect": "Dili seçin",
   "languageChange": "Dili dəyişin",
-  "languageDescription": "Pulqabınızın dili. Standart olaraq cihazınızın dilinə uyğunlaşır.",
+  "languageDescription": "Pulqabınızın dili. Standart olaraq sistem dilinə uyğunlaşır.",
   "commonSearch": "Axtar",
   "commonCancel": "Ləğv et",
   "commonSaveChanges": "Dəyişiklikləri saxla",

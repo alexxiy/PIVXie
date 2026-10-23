@@ -192,7 +192,7 @@ class Prefs extends ChangeNotifier {
 
   // language
 
-  /// A [Language.code], or "" for the device's language.
+  /// A [Language.code], or "" for the system language.
   String _language = "";
 
   String get language => _language;

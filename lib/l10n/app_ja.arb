@@ -1,6 +1,6 @@
 {
   "@@locale": "ja",
-  "languageDevice": "端末の言語",
+  "languageSystem": "システムの言語",
   "languageEnglish": "英語",
   "languageGerman": "ドイツ語",
   "languageSpanish": "スペイン語",
@@ -17,7 +17,7 @@
   "languageTitle": "言語",
   "languageSelect": "言語を選択",
   "languageChange": "言語を変更",
-  "languageDescription": "ウォレットの表示言語です。初期設定では端末の言語に従います。",
+  "languageDescription": "ウォレットの表示言語です。初期設定ではシステムの言語に従います。",
   "commonSearch": "検索",
   "commonCancel": "キャンセル",
   "commonSaveChanges": "変更を保存",

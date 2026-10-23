@@ -6,3 +6,6 @@ template-arb-file: app_en.arb
 output-localization-file: app_localizations.dart
 output-class: AppLocalizations
 nullable-getter: false
+# English first: a device language the app doesn't have falls back to the
+# first supported locale (alphabetical order would make it Azerbaijani).
+preferred-supported-locales: [en]

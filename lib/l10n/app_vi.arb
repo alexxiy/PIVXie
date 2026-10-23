@@ -1,6 +1,6 @@
 {
   "@@locale": "vi",
-  "languageDevice": "Ngôn ngữ thiết bị",
+  "languageSystem": "Ngôn ngữ hệ thống",
   "languageEnglish": "Tiếng Anh",
   "languageGerman": "Tiếng Đức",
   "languageSpanish": "Tiếng Tây Ban Nha",
@@ -17,7 +17,7 @@
   "languageTitle": "Ngôn ngữ",
   "languageSelect": "Chọn ngôn ngữ",
   "languageChange": "Đổi ngôn ngữ",
-  "languageDescription": "Ngôn ngữ của ví. Mặc định theo ngôn ngữ của thiết bị.",
+  "languageDescription": "Ngôn ngữ của ví. Mặc định theo ngôn ngữ hệ thống.",
   "commonSearch": "Tìm kiếm",
   "commonCancel": "Hủy",
   "commonSaveChanges": "Lưu thay đổi",

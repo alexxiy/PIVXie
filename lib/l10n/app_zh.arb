@@ -1,6 +1,6 @@
 {
   "@@locale": "zh",
-  "languageDevice": "跟随设备",
+  "languageSystem": "系统语言",
   "languageEnglish": "英语",
   "languageGerman": "德语",
   "languageSpanish": "西班牙语",
@@ -17,7 +17,7 @@
   "languageTitle": "语言",
   "languageSelect": "选择语言",
   "languageChange": "更改语言",
-  "languageDescription": "钱包的显示语言，默认跟随设备。",
+  "languageDescription": "钱包的显示语言，默认跟随系统。",
   "commonSearch": "搜索",
   "commonCancel": "取消",
   "commonSaveChanges": "保存更改",

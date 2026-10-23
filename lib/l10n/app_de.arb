@@ -1,6 +1,6 @@
 {
   "@@locale": "de",
-  "languageDevice": "Gerätesprache",
+  "languageSystem": "Systemsprache",
   "languageEnglish": "Englisch",
   "languageGerman": "Deutsch",
   "languageSpanish": "Spanisch",
@@ -17,7 +17,7 @@
   "languageTitle": "Sprache",
   "languageSelect": "Sprache auswählen",
   "languageChange": "Sprache ändern",
-  "languageDescription": "Die Sprache Ihrer Wallet. Standardmäßig folgt sie Ihrem Gerät.",
+  "languageDescription": "Die Sprache Ihrer Wallet. Standardmäßig folgt sie der Systemsprache.",
   "commonSearch": "Suchen",
   "commonCancel": "Abbrechen",
   "commonSaveChanges": "Änderungen speichern",

@@ -1,7 +1,7 @@
 {
   "@@locale": "en",
-  "languageDevice": "Device language",
-  "@languageDevice": {
+  "languageSystem": "System language",
+  "@languageSystem": {
     "description": "First choice in the language list: follow the phone's or computer's language."
   },
   "languageEnglish": "English",
@@ -20,7 +20,7 @@
   "languageTitle": "Language",
   "languageSelect": "Select language",
   "languageChange": "Change language",
-  "languageDescription": "The language of your wallet. By default it follows your device.",
+  "languageDescription": "The language of your wallet. By default it follows the system language.",
   "commonSearch": "Search",
   "commonCancel": "Cancel",
   "commonSaveChanges": "Save changes",

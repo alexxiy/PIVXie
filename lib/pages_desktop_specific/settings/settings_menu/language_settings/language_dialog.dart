@@ -40,7 +40,7 @@ class _LanguageDialog extends ConsumerState<LanguageDialog> {
 
   late final FocusNode searchLanguageFocusNode;
 
-  /// null is the device's language.
+  /// null is the system language.
   static const List<Language?> _choices = [null, ...Language.values];
 
   late List<Language?> _shown;
@@ -234,7 +234,7 @@ class _LanguageDialog extends ConsumerState<LanguageDialog> {
                               child: Padding(
                                 padding: const EdgeInsets.all(4),
                                 key: Key(
-                                  "desktopSelectLanguage_${language?.code ?? "device"}",
+                                  "desktopSelectLanguage_${language?.code ?? "system"}",
                                 ),
                                 child: Padding(
                                   padding: const EdgeInsets.symmetric(

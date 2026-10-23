@@ -1,6 +1,6 @@
 {
   "@@locale": "es",
-  "languageDevice": "Idioma del dispositivo",
+  "languageSystem": "Idioma del sistema",
   "languageEnglish": "Inglés",
   "languageGerman": "Alemán",
   "languageSpanish": "Español",
@@ -17,7 +17,7 @@
   "languageTitle": "Idioma",
   "languageSelect": "Seleccionar idioma",
   "languageChange": "Cambiar idioma",
-  "languageDescription": "El idioma de tu billetera. Por defecto sigue el de tu dispositivo.",
+  "languageDescription": "El idioma de tu billetera. Por defecto sigue el idioma del sistema.",
   "commonSearch": "Buscar",
   "commonCancel": "Cancelar",
   "commonSaveChanges": "Guardar cambios",

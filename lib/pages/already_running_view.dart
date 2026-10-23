@@ -20,6 +20,7 @@ import '../l10n/l10n.dart';
 import '../themes/stack_colors.dart';
 import '../themes/theme_providers.dart';
 import '../themes/theme_service.dart';
+import '../utilities/enums/languages_enum.dart';
 import '../utilities/stack_file_system.dart';
 import '../utilities/text_styles.dart';
 import '../utilities/util.dart';
@@ -64,8 +65,9 @@ class _AlreadyRunningAppState extends ConsumerState<AlreadyRunningApp> {
         fontFamily: GoogleFonts.inter().fontFamily,
         splashColor: Colors.transparent,
       ),
-      // No prefs here: the device's language.
+      // No prefs here: the system language.
       supportedLocales: AppLocalizations.supportedLocales,
+      localeListResolutionCallback: Language.resolveLocale,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       builder: (context, child) => L10nRoot(child: child!),
       home: const AlreadyRunningView(),

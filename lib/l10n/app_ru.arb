@@ -1,6 +1,6 @@
 {
   "@@locale": "ru",
-  "languageDevice": "Язык устройства",
+  "languageSystem": "Язык системы",
   "languageEnglish": "Английский",
   "languageGerman": "Немецкий",
   "languageSpanish": "Испанский",
@@ -17,7 +17,7 @@
   "languageTitle": "Язык",
   "languageSelect": "Выберите язык",
   "languageChange": "Сменить язык",
-  "languageDescription": "Язык вашего кошелька. По умолчанию совпадает с языком устройства.",
+  "languageDescription": "Язык вашего кошелька. По умолчанию совпадает с языком системы.",
   "commonSearch": "Поиск",
   "commonCancel": "Отмена",
   "commonSaveChanges": "Сохранить изменения",

@@ -919,7 +919,7 @@ abstract class SWB {
     final _prefs = Prefs.instance;
     await _prefs.init();
     _prefs.currency = prefs['currency'] as String;
-    // Older backups hold "English (US)": the device's language.
+    // Older backups hold "English (US)": the system language.
     _prefs.language =
         Language.fromCode(prefs['language'] as String?)?.code ?? "";
     _prefs.showFavoriteWallets = prefs['showFavoriteWallets'] as bool;

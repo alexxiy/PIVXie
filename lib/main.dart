@@ -140,8 +140,9 @@ void main(List<String> args) async {
         errorApp = MaterialApp(
           debugShowCheckedModeBanner: false,
           theme: ThemeData(fontFamily: GoogleFonts.inter().fontFamily),
-          // No prefs here: the device's language.
+          // No prefs here: the system language.
           supportedLocales: AppLocalizations.supportedLocales,
+          localeListResolutionCallback: Language.resolveLocale,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           builder: (context, child) => L10nRoot(child: child!),
           home: Scaffold(
@@ -599,9 +600,10 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       navigatorKey: ref.read(pNavKey),
       title: AppConfig.appName,
       onGenerateRoute: RouteGenerator.generateRoute,
-      // null follows the device.
+      // null follows the system language.
       locale: Language.fromCode(language)?.locale,
       supportedLocales: AppLocalizations.supportedLocales,
+      localeListResolutionCallback: Language.resolveLocale,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       builder: (context, child) => L10nRoot(child: child!),
       theme: ThemeData(

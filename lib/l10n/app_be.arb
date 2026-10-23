@@ -1,6 +1,6 @@
 {
   "@@locale": "be",
-  "languageDevice": "Мова прылады",
+  "languageSystem": "Мова сістэмы",
   "languageEnglish": "Англійская",
   "languageGerman": "Нямецкая",
   "languageSpanish": "Іспанская",
@@ -17,7 +17,7 @@
   "languageTitle": "Мова",
   "languageSelect": "Выберыце мову",
   "languageChange": "Змяніць мову",
-  "languageDescription": "Мова вашага кашалька. Па змаўчанні супадае з мовай прылады.",
+  "languageDescription": "Мова вашага кашалька. Па змаўчанні супадае з мовай сістэмы.",
   "commonSearch": "Пошук",
   "commonCancel": "Скасаваць",
   "commonSaveChanges": "Захаваць змены",

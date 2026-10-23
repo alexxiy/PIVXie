@@ -1,6 +1,6 @@
 {
   "@@locale": "ko",
-  "languageDevice": "기기 언어",
+  "languageSystem": "시스템 언어",
   "languageEnglish": "영어",
   "languageGerman": "독일어",
   "languageSpanish": "스페인어",
@@ -17,7 +17,7 @@
   "languageTitle": "언어",
   "languageSelect": "언어 선택",
   "languageChange": "언어 변경",
-  "languageDescription": "지갑에 표시되는 언어입니다. 기본값은 기기 언어를 따릅니다.",
+  "languageDescription": "지갑에 표시되는 언어입니다. 기본값은 시스템 언어를 따릅니다.",
   "commonSearch": "검색",
   "commonCancel": "취소",
   "commonSaveChanges": "변경 사항 저장",
