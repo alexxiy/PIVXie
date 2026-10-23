@@ -1,0 +1,37 @@
+PIVXie, kontrolü sizde tutan bir PIVX cüzdanıdır. Kurtarma ifadeniz ve anahtarlarınız cihazınızda kalır. Hesap oluşturmanız gerekmez ve coin'lerinizi sizden başka kimse hareket ettiremez.
+
+Gizlilik
+• SHIELD işlemleri: PIV'leri Shield'e taşıyın, Shield'den çıkarın ve gizlice gönderin; isterseniz şifreli bir memo ekleyin.
+• Tüm bağlantılar için isteğe bağlı Tor.
+• Reklam yok, takip yok.
+
+Staking, masternode'lar ve yönetişim
+• Cold staking: PIV'lerinizi bir staker'a devredin ve coin'ler cüzdanınızda kalırken staking ödülleri alın. masternode.space üzerinden bir staker seçin ya da kendi düğümünüzü kullanın; devri istediğiniz zaman geri alın.
+• Masternode'lar: Cüzdandan bir masternode kurun, başlatın, durumunu ve ödüllerini takip edin.
+• Yönetişim: Bütçe tekliflerine göz atın, masternode'larınızla oy verin, kendi teklifinizi sunun ve bütçe ödemelerinin ne zaman geldiğini görün.
+
+PIVX Name
+• john.pivx gibi kolay bir ad (veya .private, .secure, .safe) kaydedin ve uzun bir adres yerine onu paylaşın.
+• Adınızı size ya da başkasına ait herhangi bir SHIELD adresine yönlendirin ve bunu istediğiniz zaman değiştirin. İnsanlar aynı ada ödemeye devam eder.
+• Bir adı başka birine devredin, adlarınızı pazar yerinde satışa çıkarın ve beğendiğiniz adları satın alın.
+• Adlarınız kurtarma ifadenize bağlıdır; aynı ifade onları pivx.name'de de açar.
+• Adres yerine bir PIVX adına ödeme yapın. PIVXie, göndermeden önce adın nereyi gösterdiğini kontrol eder.
+
+Günlük kullanım
+• QR kodlarını tarayın ve pivx: ödeme bağlantılarını açın.
+• Adres defteri ve coin kontrolü.
+• Mesajları imzalayın ve doğrulayın.
+• Anlaşılır bir geçmiş: staking ödülleri, masternode ödülleri, teklif ödemeleri ve SHIELD işlemleri etiketlenir; her türe göre filtreleyebilirsiniz.
+• Tek bir kurtarma ifadesinden birden fazla hesap ve genişletilmiş açık anahtardan salt görüntüleme cüzdanları.
+
+Yedekler ve güvenlik
+• 12 veya 24 kelimelik kurtarma ifadenizle, isterseniz bir parola ifadesiyle birlikte geri yükleyin. MyPIVXWallet kurtarma ifadeleri de çalışır.
+• Cüzdanlarınızın ve ayarlarınızın şifreli yedekleri ve otomatik yedekleme.
+• PIN ve biyometrik kilit, ayrıca uygulamayı yalnızca seçtiğiniz cüzdanlarla açan bir zorlama PIN'i.
+
+İsterseniz kendi sunucunuz
+PIVXie varsayılan olarak PIVXie bridge sunucusuna bağlanır. İstediğiniz zaman kendi pivx-bridge sunucunuza geçebilirsiniz.
+
+Kurtarma ifadenizi yazıp güvenli bir yerde saklayın. Ona sahip olan coin'lerinizi kontrol eder ve PIVXie ekibi dahil hiç kimse onu sizin için geri getiremez.
+
+PIVXie, GPLv3 lisansı altında açık kaynaklıdır.

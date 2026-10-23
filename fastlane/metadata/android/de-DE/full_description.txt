@@ -1,0 +1,37 @@
+PIVXie ist eine PIVX-Wallet, bei der Sie die Kontrolle behalten. Ihre Wiederherstellungsphrase und Ihre Schlüssel bleiben auf Ihrem Gerät. Sie brauchen kein Konto, und niemand außer Ihnen kann Ihre Coins bewegen.
+
+Privatsphäre
+• SHIELD-Transaktionen: PIV ins Shield und aus dem Shield verschieben und privat senden, auf Wunsch mit verschlüsseltem Memo.
+• Tor für alle Verbindungen, wenn Sie möchten.
+• Keine Werbung und kein Tracking.
+
+Staking, Masternodes und Governance
+• Cold Staking: Delegieren Sie Ihre PIV an einen Staker und erhalten Sie Staking-Belohnungen, während die Coins in Ihrer Wallet bleiben. Wählen Sie einen Staker auf masternode.space oder nutzen Sie Ihren eigenen Knoten, und beenden Sie die Delegierung, wann immer Sie möchten.
+• Masternodes: Richten Sie eine Masternode direkt in der Wallet ein, starten Sie sie und verfolgen Sie ihren Status und ihre Belohnungen.
+• Governance: Sehen Sie sich Budgetvorschläge an, stimmen Sie mit Ihren Masternodes ab, reichen Sie einen eigenen Vorschlag ein und sehen Sie, wann Budgetzahlungen eintreffen.
+
+PIVX Name
+• Registrieren Sie einen einfachen Namen wie john.pivx (oder .private, .secure, .safe) und teilen Sie ihn statt einer langen Adresse.
+• Lassen Sie Ihren Namen auf eine beliebige SHIELD-Adresse zeigen, Ihre eigene oder die einer anderen Person, und ändern Sie das jederzeit. Andere zahlen einfach weiter an denselben Namen.
+• Übergeben Sie einen Namen an jemand anderen, verkaufen Sie Ihre Namen auf dem Marktplatz und kaufen Sie die, die Ihnen gefallen.
+• Ihre Namen gehören zu Ihrer Wiederherstellungsphrase, deshalb öffnet dieselbe Phrase sie auch auf pivx.name.
+• Zahlen Sie an einen PIVX-Namen statt an eine Adresse. PIVXie prüft vor dem Senden, wohin der Name zeigt.
+
+Im Alltag
+• QR-Codes scannen und pivx:-Zahlungslinks öffnen.
+• Adressbuch und Coin Control.
+• Nachrichten signieren und prüfen.
+• Ein übersichtlicher Verlauf: Staking-Belohnungen, Masternode-Belohnungen, Zahlungen aus Vorschlägen und SHIELD-Transaktionen sind gekennzeichnet, und Sie können nach jeder Art filtern.
+• Mehrere Konten aus einer Wiederherstellungsphrase und Nur-Ansicht-Wallets aus einem erweiterten öffentlichen Schlüssel.
+
+Backups und Sicherheit
+• Stellen Sie Wallets mit Ihrer Wiederherstellungsphrase aus 12 oder 24 Wörtern wieder her, auf Wunsch mit Passphrase. Wiederherstellungsphrasen aus MyPIVXWallet funktionieren auch.
+• Verschlüsselte Backups Ihrer Wallets und Einstellungen sowie automatische Backups.
+• Sperre per PIN und Biometrie sowie eine Notfall-PIN, die die App nur mit den Wallets Ihrer Wahl öffnet.
+
+Ihr eigener Server, wenn Sie möchten
+PIVXie verbindet sich standardmäßig mit der PIVXie-Bridge. Sie können jederzeit zu Ihrem eigenen pivx-bridge-Server wechseln.
+
+Schreiben Sie Ihre Wiederherstellungsphrase auf und bewahren Sie sie an einem sicheren Ort auf. Wer sie hat, kontrolliert Ihre Coins, und niemand, auch nicht das PIVXie-Team, kann sie für Sie wiederherstellen.
+
+PIVXie ist Open Source unter der GPLv3-Lizenz.

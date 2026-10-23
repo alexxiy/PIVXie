@@ -1,0 +1,37 @@
+PIVXie nəzarəti sizdə saxlayan PIVX pulqabısıdır. Bərpa ifadəniz və açarlarınız cihazınızda qalır. Hesab yaratmağa ehtiyac yoxdur və sizdən başqa heç kim coinlərinizi köçürə bilməz.
+
+Məxfilik
+• SHIELD əməliyyatları: PIV-ləri Shield-ə köçürün, Shield-dən çıxarın və məxfi göndərin, istəsəniz şifrələnmiş memo ilə.
+• Bütün bağlantılar üçün istəyə bağlı Tor.
+• Reklam yoxdur, izləmə yoxdur.
+
+Staking, masternodlar və idarəetmə
+• Cold staking: PIV-lərinizi stakerə həvalə edin və coinlər pulqabınızda qalarkən staking mükafatları alın. masternode.space saytında staker seçin və ya öz qovşağınızdan istifadə edin, həvaləni istədiyiniz vaxt geri alın.
+• Masternodlar: pulqabıdan masternod qurun, onu işə salın, statusunu və mükafatlarını izləyin.
+• İdarəetmə: büdcə təkliflərinə baxın, masternodlarınızla səs verin, öz təklifinizi göndərin və büdcə ödənişlərinin nə vaxt gəldiyini görün.
+
+PIVX Name
+• john.pivx kimi asan ad (və ya .private, .secure, .safe) qeydiyyatdan keçirin və uzun ünvan əvəzinə onu paylaşın.
+• Adınızı istənilən SHIELD ünvanına (özünüzün və ya başqasının) yönləndirin və bunu istədiyiniz vaxt dəyişin. İnsanlar eyni ada ödəməyə davam edir.
+• Adı başqasına ötürün, adlarınızı bazarda satın və bəyəndiyiniz adları alın.
+• Adlarınız bərpa ifadənizə bağlıdır, ona görə də eyni ifadə onları pivx.name saytında da açır.
+• Ünvan əvəzinə PIVX adına ödəniş edin. PIVXie göndərməzdən əvvəl adın hara yönəldiyini yoxlayır.
+
+Gündəlik istifadə
+• QR kodları skan edin və pivx: ödəniş linklərini açın.
+• Ünvan kitabı və coin nəzarəti.
+• Mesajları imzalayın və yoxlayın.
+• Aydın tarixçə: staking mükafatları, masternod mükafatları, təklif ödənişləri və SHIELD əməliyyatları işarələnir, hər növə görə filtr edə bilərsiniz.
+• Bir bərpa ifadəsindən bir neçə hesab və genişləndirilmiş açıq açardan yalnız baxış pulqabıları.
+
+Ehtiyat nüsxələr və təhlükəsizlik
+• 12 və ya 24 sözlük bərpa ifadənizlə, istəsəniz parol ifadəsi ilə birlikdə bərpa edin. MyPIVXWallet bərpa ifadələri də işləyir.
+• Pulqabılarınızın və parametrlərinizin şifrələnmiş ehtiyat nüsxələri, həmçinin avtomatik ehtiyat nüsxələr.
+• PIN və biometrik kilid, həmçinin tətbiqi yalnız seçdiyiniz pulqabılarla açan təzyiq PIN-i.
+
+İstəsəniz, öz serveriniz
+PIVXie standart olaraq PIVXie bridge serverinə qoşulur. İstənilən vaxt öz pivx-bridge serverinizə keçə bilərsiniz.
+
+Bərpa ifadənizi yazıb təhlükəsiz yerdə saxlayın. Ona sahib olan hər kəs coinlərinizə nəzarət edir və heç kim, PIVXie komandası da daxil olmaqla, onu sizin üçün bərpa edə bilməz.
+
+PIVXie GPLv3 lisenziyası ilə açıq mənbəlidir.

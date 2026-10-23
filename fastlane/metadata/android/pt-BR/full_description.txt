@@ -1,0 +1,37 @@
+O PIVXie é uma carteira PIVX que deixa você no controle. Sua frase de recuperação e suas chaves ficam no seu dispositivo. Não é preciso criar conta, e ninguém além de você pode movimentar suas moedas.
+
+Privacidade
+• Transações SHIELD: mova PIV para o Shield, retire do Shield e envie com privacidade, com um memo criptografado opcional.
+• Tor opcional em todas as conexões.
+• Sem anúncios e sem rastreamento.
+
+Staking, masternodes e governança
+• Cold staking: delegue seus PIV a um staker e receba recompensas de staking enquanto as moedas continuam na sua carteira. Escolha um staker no masternode.space ou use seu próprio nó, e retire a delegação quando quiser.
+• Masternodes: configure um masternode pela carteira, inicie-o e acompanhe o status e as recompensas.
+• Governança: veja as propostas de orçamento, vote com seus masternodes, envie sua própria proposta e saiba quando os pagamentos do orçamento chegam.
+
+PIVX Name
+• Registre um nome fácil como john.pivx (ou .private, .secure, .safe) e compartilhe-o em vez de um endereço longo.
+• Aponte seu nome para qualquer endereço SHIELD, seu ou de outra pessoa, e mude quando quiser. As pessoas continuam pagando o mesmo nome.
+• Passe um nome para outra pessoa, venda seus nomes no mercado e compre os que você gostar.
+• Seus nomes pertencem à sua frase de recuperação, então a mesma frase também os abre no pivx.name.
+• Pague para um nome PIVX em vez de um endereço. O PIVXie confere para onde o nome aponta antes do envio.
+
+Uso diário
+• Escaneie códigos QR e abra links de pagamento pivx:.
+• Catálogo de endereços e controle de moedas.
+• Assine e verifique mensagens.
+• Um histórico claro: recompensas de staking, recompensas de masternode, pagamentos de propostas e transações SHIELD vêm identificados, e você pode filtrar por cada tipo.
+• Várias contas com uma única frase de recuperação e carteiras somente leitura a partir de uma chave pública estendida.
+
+Backups e segurança
+• Restaure com sua frase de recuperação de 12 ou 24 palavras, com uma frase secreta opcional. Frases de recuperação da MyPIVXWallet também funcionam.
+• Backups criptografados das suas carteiras e configurações, além de backups automáticos.
+• Bloqueio por PIN e biometria, e um PIN de coação que abre o app só com as carteiras que você escolher.
+
+Seu próprio servidor, se quiser
+Por padrão, o PIVXie se conecta ao bridge do PIVXie. Você pode trocar para o seu próprio servidor pivx-bridge a qualquer momento.
+
+Guarde sua frase de recuperação anotada em um lugar seguro. Quem tiver a frase controla suas moedas, e ninguém, nem a equipe do PIVXie, pode recuperá-la para você.
+
+O PIVXie é de código aberto, sob a licença GPLv3.

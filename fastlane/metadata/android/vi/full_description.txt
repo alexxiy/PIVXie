@@ -1,0 +1,37 @@
+PIVXie là ví PIVX giúp bạn luôn nắm quyền kiểm soát. Cụm từ khôi phục và khóa của bạn luôn nằm trên thiết bị của bạn. Không cần tạo tài khoản, và không ai khác có thể di chuyển coin của bạn.
+
+Quyền riêng tư
+• Giao dịch SHIELD: chuyển PIV vào Shield, rút khỏi Shield và gửi riêng tư, kèm memo mã hóa nếu muốn.
+• Tùy chọn dùng Tor cho mọi kết nối.
+• Không quảng cáo, không theo dõi.
+
+Staking, masternode và quản trị
+• Cold staking: ủy thác PIV cho một staker và nhận phần thưởng staking trong khi coin vẫn nằm trong ví của bạn. Chọn staker trên masternode.space hoặc dùng nút của riêng bạn, và hủy ủy thác bất cứ lúc nào.
+• Masternode: thiết lập masternode ngay trong ví, khởi động và theo dõi trạng thái cùng phần thưởng của nó.
+• Quản trị: xem các đề xuất ngân sách, bỏ phiếu bằng masternode của bạn, gửi đề xuất của riêng bạn và biết khi nào nhận được khoản chi ngân sách.
+
+PIVX Name
+• Đăng ký một tên dễ nhớ như john.pivx (hoặc .private, .secure, .safe) và chia sẻ nó thay cho địa chỉ dài.
+• Trỏ tên đến bất kỳ địa chỉ SHIELD nào, của bạn hay của người khác, và đổi bất cứ lúc nào. Mọi người vẫn trả tiền cho cùng một tên.
+• Chuyển tên cho người khác, bán tên của bạn trên chợ tên và mua những tên bạn thích.
+• Tên của bạn gắn với cụm từ khôi phục, nên cùng cụm từ đó cũng mở được chúng trên pivx.name.
+• Trả tiền cho tên PIVX thay vì địa chỉ. PIVXie kiểm tra tên đang trỏ đến đâu trước khi gửi.
+
+Dùng hằng ngày
+• Quét mã QR và mở liên kết thanh toán pivx:.
+• Sổ địa chỉ và kiểm soát coin.
+• Ký và xác minh tin nhắn.
+• Lịch sử rõ ràng: phần thưởng staking, phần thưởng masternode, khoản chi từ đề xuất và giao dịch SHIELD đều được gắn nhãn, và bạn có thể lọc theo từng loại.
+• Nhiều tài khoản từ một cụm từ khôi phục, và ví chỉ xem từ khóa công khai mở rộng.
+
+Sao lưu và bảo mật
+• Khôi phục bằng cụm từ khôi phục 12 hoặc 24 từ, kèm passphrase nếu muốn. Cụm từ khôi phục từ MyPIVXWallet cũng dùng được.
+• Bản sao lưu mã hóa cho ví và cài đặt của bạn, cùng sao lưu tự động.
+• Khóa bằng PIN và sinh trắc học, cùng PIN khẩn cấp mở ứng dụng chỉ với những ví bạn chọn.
+
+Máy chủ của riêng bạn, nếu muốn
+Theo mặc định, PIVXie kết nối với máy chủ bridge của PIVXie. Bạn có thể chuyển sang máy chủ pivx-bridge của riêng mình bất cứ lúc nào.
+
+Hãy ghi cụm từ khôi phục ra giấy và cất ở nơi an toàn. Ai có nó sẽ kiểm soát coin của bạn, và không ai, kể cả đội ngũ PIVXie, có thể khôi phục nó giúp bạn.
+
+PIVXie là phần mềm nguồn mở theo giấy phép GPLv3.
