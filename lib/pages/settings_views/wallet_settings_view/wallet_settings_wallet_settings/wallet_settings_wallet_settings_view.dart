@@ -237,11 +237,14 @@ class _WalletSettingsWalletSettingsViewState
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                "Reuse receiving address",
-                                style: STextStyles.titleBold12(context),
-                                textAlign: TextAlign.left,
+                              Expanded(
+                                child: Text(
+                                  "Reuse receiving address",
+                                  style: STextStyles.titleBold12(context),
+                                  textAlign: TextAlign.left,
+                                ),
                               ),
+                              const SizedBox(width: 12),
                               SizedBox(
                                 height: 20,
                                 width: 40,
@@ -285,11 +288,14 @@ class _WalletSettingsWalletSettingsViewState
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                "Show in duress",
-                                style: STextStyles.titleBold12(context),
-                                textAlign: TextAlign.left,
+                              Expanded(
+                                child: Text(
+                                  "Show in duress",
+                                  style: STextStyles.titleBold12(context),
+                                  textAlign: TextAlign.left,
+                                ),
                               ),
+                              const SizedBox(width: 12),
                               SizedBox(
                                 height: 20,
                                 width: 40,

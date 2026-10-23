@@ -96,7 +96,7 @@ class _NewWalletOptionsViewState extends ConsumerState<NewWalletOptionsView> {
             appBar: AppBar(
               leading: const AppBarBackButton(),
               title: Text(
-                "Wallet Options",
+                "Wallet options",
                 style: STextStyles.navBarTitle(context),
               ),
             ),
@@ -145,7 +145,9 @@ class _NewWalletOptionsViewState extends ConsumerState<NewWalletOptionsView> {
                       value: e,
                       child: Text(
                         e.name,
-                        style: STextStyles.desktopTextMedium(context),
+                        style: Util.isDesktop
+                            ? STextStyles.desktopTextMedium(context)
+                            : STextStyles.w500_14(context),
                       ),
                     ),
                   ),
@@ -158,14 +160,30 @@ class _NewWalletOptionsViewState extends ConsumerState<NewWalletOptionsView> {
                   }
                 },
                 isExpanded: true,
+                // On phones a field like the word count one below it.
+                buttonStyleData: Util.isDesktop
+                    ? null
+                    : ButtonStyleData(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textFieldDefaultBG,
+                          borderRadius: BorderRadius.circular(
+                            Constants.size.circularBorderRadius,
+                          ),
+                        ),
+                      ),
                 iconStyleData: IconStyleData(
-                  icon: SvgPicture.asset(
-                    Assets.svg.chevronDown,
-                    width: 12,
-                    height: 6,
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .textFieldActiveSearchIconRight,
+                  icon: Padding(
+                    padding: EdgeInsets.only(right: Util.isDesktop ? 0 : 10),
+                    child: SvgPicture.asset(
+                      Assets.svg.chevronDown,
+                      width: 12,
+                      height: 6,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textFieldActiveSearchIconRight,
+                    ),
                   ),
                 ),
                 dropdownStyleData: DropdownStyleData(

@@ -270,11 +270,14 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            "Auto Backup",
-                            style: STextStyles.titleBold12(context),
-                            textAlign: TextAlign.left,
+                          Expanded(
+                            child: Text(
+                              "Auto Backup",
+                              style: STextStyles.titleBold12(context),
+                              textAlign: TextAlign.left,
+                            ),
                           ),
+                          const SizedBox(width: 12),
                           SizedBox(
                             height: 20,
                             width: 40,

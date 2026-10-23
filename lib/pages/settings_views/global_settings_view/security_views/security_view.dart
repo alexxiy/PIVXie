@@ -272,11 +272,14 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                "Enable biometric authentication",
-                                style: STextStyles.titleBold12(context),
-                                textAlign: TextAlign.left,
+                              Expanded(
+                                child: Text(
+                                  "Enable biometric authentication",
+                                  style: STextStyles.titleBold12(context),
+                                  textAlign: TextAlign.left,
+                                ),
                               ),
+                              const SizedBox(width: 12),
                               SizedBox(
                                 height: 20,
                                 width: 40,
@@ -319,11 +322,14 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                "Randomize PIN Pad",
-                                style: STextStyles.titleBold12(context),
-                                textAlign: TextAlign.left,
+                              Expanded(
+                                child: Text(
+                                  "Randomize PIN pad",
+                                  style: STextStyles.titleBold12(context),
+                                  textAlign: TextAlign.left,
+                                ),
                               ),
+                              const SizedBox(width: 12),
                               SizedBox(
                                 height: 20,
                                 width: 40,
@@ -367,11 +373,14 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                "Auto-accept correct PIN",
-                                style: STextStyles.titleBold12(context),
-                                textAlign: TextAlign.left,
+                              Expanded(
+                                child: Text(
+                                  "Auto-accept correct PIN",
+                                  style: STextStyles.titleBold12(context),
+                                  textAlign: TextAlign.left,
+                                ),
                               ),
+                              const SizedBox(width: 12),
                               SizedBox(
                                 height: 20,
                                 width: 40,
@@ -413,11 +422,14 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Text(
-                                "Cover in background",
-                                style: STextStyles.titleBold12(context),
-                                textAlign: TextAlign.left,
+                              Expanded(
+                                child: Text(
+                                  "Cover in background",
+                                  style: STextStyles.titleBold12(context),
+                                  textAlign: TextAlign.left,
+                                ),
                               ),
+                              const SizedBox(width: 12),
                               SizedBox(
                                 height: 20,
                                 width: 40,
@@ -461,11 +473,14 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
-                                  "Disable screenshots",
-                                  style: STextStyles.titleBold12(context),
-                                  textAlign: TextAlign.left,
+                                Expanded(
+                                  child: Text(
+                                    "Disable screenshots",
+                                    style: STextStyles.titleBold12(context),
+                                    textAlign: TextAlign.left,
+                                  ),
                                 ),
+                                const SizedBox(width: 12),
                                 SizedBox(
                                   height: 20,
                                   width: 40,
@@ -510,11 +525,14 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
-                                  "Duress PIN",
-                                  style: STextStyles.titleBold12(context),
-                                  textAlign: TextAlign.left,
+                                Expanded(
+                                  child: Text(
+                                    "Duress PIN",
+                                    style: STextStyles.titleBold12(context),
+                                    textAlign: TextAlign.left,
+                                  ),
                                 ),
+                                const SizedBox(width: 12),
                                 SizedBox(
                                   height: 20,
                                   width: 40,
@@ -565,11 +583,14 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
-                                  "Biometrics opens duress",
-                                  style: STextStyles.titleBold12(context),
-                                  textAlign: TextAlign.left,
+                                Expanded(
+                                  child: Text(
+                                    "Biometrics opens duress",
+                                    style: STextStyles.titleBold12(context),
+                                    textAlign: TextAlign.left,
+                                  ),
                                 ),
+                                const SizedBox(width: 12),
                                 SizedBox(
                                   height: 20,
                                   width: 40,

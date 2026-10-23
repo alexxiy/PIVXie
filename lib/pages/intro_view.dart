@@ -177,10 +177,17 @@ class IntroAboutText extends StatelessWidget {
 
   final bool isDesktop;
 
+  // Lines break between the short sentences ("Your privacy. Your keys." /
+  // "Your PIVX."), never inside one.
+  static String _breakBetweenSentences(String text) => text
+      .split(". ")
+      .map((sentence) => sentence.replaceAll(" ", "\u00a0"))
+      .join(". ");
+
   @override
   Widget build(BuildContext context) {
     return Text(
-      AppConfig.shortDescriptionText,
+      _breakBetweenSentences(AppConfig.shortDescriptionText),
       textAlign: TextAlign.center,
       style: !isDesktop
           ? STextStyles.subtitle(context)

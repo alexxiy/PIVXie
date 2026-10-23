@@ -91,7 +91,7 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              "Toggle testnet coins",
+                              "Show testnet coins",
                               style: STextStyles.desktopTextExtraSmall(context)
                                   .copyWith(
                                     color: Theme.of(context)

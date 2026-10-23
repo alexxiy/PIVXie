@@ -102,6 +102,10 @@ class _AutoLockTimeoutSettingsViewState
                     }
                   },
                 ),
+                title: Text(
+                  "Auto lock settings",
+                  style: STextStyles.navBarTitle(context),
+                ),
               ),
               body: SafeArea(
                 child: LayoutBuilder(
@@ -143,11 +147,14 @@ class _AutoLockTimeoutSettingsViewState
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      "Toggle auto lock",
-                      style: STextStyles.titleBold12(context),
-                      textAlign: TextAlign.left,
+                    Expanded(
+                      child: Text(
+                        "Lock automatically",
+                        style: STextStyles.titleBold12(context),
+                        textAlign: TextAlign.left,
+                      ),
                     ),
+                    const SizedBox(width: 12),
                     SizedBox(
                       height: 20,
                       width: 40,
