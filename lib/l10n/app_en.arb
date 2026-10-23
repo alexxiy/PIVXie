@@ -4121,5 +4121,107 @@
         "type": "String"
       }
     }
+  },
+  "donateTitle": "Fuel PIVXie",
+  "@donateTitle": {
+    "description": "The donation screen and its menu entry. \"Fuel\" as in coffee for the developer."
+  },
+  "featureDonateText": "Buy PIVXie's developer a coffee, straight from this wallet.",
+  "donateShielded": "Shielded",
+  "@donateShielded": {
+    "description": "The switch in the donation screen's top bar: pay from the shielded balance."
+  },
+  "donateSize": "Donation size",
+  "donateCustom": "Custom",
+  "@donateCustom": {
+    "description": "The last stop on the donation size slider, where you type the amount."
+  },
+  "donateTinyDrop": "Tiny Drop",
+  "donateTinyDropMascot": "Sleepy Pixie (1% Powered)",
+  "donateTinyDropText": "PIVXie gets a microscopic drip of caffeine. Eye status: 1% loaded. Head is heavy, but a shaky, half-asleep thumbs-up has been successfully initiated. Every tiny drop helps the void!",
+  "donateCyberMug": "Cyber Mug",
+  "donateCyberMugMascot": "Network Warmup",
+  "donateCyberMugText": "A steaming cup of standard node fuel. PIVXie is officially online, moderately happy, and warming its tiny hands around its favorite pixel-art PIV mug. The gears are finally turning!",
+  "donateDoubleShot": "Double-Shot",
+  "donateDoubleShotMascot": "The Cold-Staking Surge",
+  "donateDoubleShotText": "Iced cold-brew staking upgrade! Laptop is open, keyboard keys are flying, and code verification is happening at record speeds. PIVXie is fully locked in and getting stuff done!",
+  "donateZeroKnowledgeNitro": "Zero-Knowledge Nitro",
+  "donateZeroKnowledgeNitroMascot": "Privacy Overdrive",
+  "donateZeroKnowledgeNitroText": "A bubbling, ultra-filtered cryptographic nitro brew. PIVXie is fully overclocked, sporting pixel shades, and literally writing privacy protocols in its sleep. Total stealth mode: activated.",
+  "donateDirectIv": "Direct IV",
+  "donateDirectIvMascot": "Direct Mempool Injection",
+  "donateDirectIvText": "Who needs cups? An unfiltered, pressurized cyber-caffeine feed. Digital lightning is sparking, wings are buzzing at 10,000 RPM, and PIVXie is pulsing with pure network power. Absolutely electric!",
+  "donateMoonBoost": "Moon Boost",
+  "donateMoonBoostMascot": "Hyper-Space Ascension",
+  "donateMoonBoostText": "100% block-fuel, no limits! Full-throttle orbital rocket boost has launched PIVXie into zero-gravity. Levitating, surrounded by orbiting PIV coins, and breaking the atmosphere. To the Moon! 🚀",
+  "donateCustomBrew": "The Custom Brew",
+  "donateCustomBrewMascot": "Manual Calibration",
+  "donateCustomBrewText": "You set the dosage, alchemist! Type in any amount and watch PIVXie try to survive the recipe. Big or small, your custom dose keeps the non-custodial wizardry running.",
+  "donateEggTapWater": "PIVXie is inspecting this... is this tap water? Hydration is still appreciated!",
+  "@donateEggTapWater": {
+    "description": "A custom donation under one US dollar."
+  },
+  "donateEggCoffeeNotFound": "Error: Coffee Not Found. Visualizing a glitchy, invisible phantom cup.",
+  "@donateEggCoffeeNotFound": {
+    "description": "A custom donation of exactly $4.04, a joke on the HTTP 404 error."
+  },
+  "donateEggMadman": "Absolute madman! The mug is stretching past the ceiling. PIVXie is looking way, way up.",
+  "@donateEggMadman": {
+    "description": "A custom donation of $250 or more."
+  },
+  "donatePriceLoading": "Getting the PIVX price…",
+  "donateNoPrice": "Without the PIVX price, the dollar amounts can't be worked out: CoinGecko is off in Incognito mode, or can't be reached. Choose Custom to enter an amount in PIV.",
+  "donateAvailable": "{amount} available",
+  "@donateAvailable": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "donateNotEnoughShielded": "Your shielded balance is too low for this donation.",
+  "donateNotEnoughTransparent": "Your transparent balance is too low for this donation.",
+  "donateUseTransparent": "Pay from transparent",
+  "donateUseShielded": "Pay from shielded",
+  "donateCheers": "Cheers message",
+  "@donateCheers": {
+    "description": "An optional message to the developer that goes with the donation."
+  },
+  "donateCheersHint": "Keep up the great work! 🚀",
+  "donateCheersNote": "Optional. It goes in the encrypted memo, so only the developer can read it.",
+  "donateSlide": "Slide to brew ⚡",
+  "@donateSlide": {
+    "description": "A slide-to-confirm button: dragging it to the end sends the donation."
+  },
+  "donateTo": "Goes to {name}, PIVXie's developer. The network fee comes on top.",
+  "@donateTo": {
+    "description": "name is a PIVX name, e.g. alexxiy.pivx",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "donateNote": "Fuel PIVXie: {tier}",
+  "@donateNote": {
+    "description": "The donation's note in the transaction history. tier is the donation size, e.g. Cyber Mug.",
+    "placeholders": {
+      "tier": {
+        "type": "String"
+      }
+    }
+  },
+  "donateThanksTitle": "Thank you! 💜",
+  "donateThanksText": "PIVXie is fueled up and buzzing. Your donation is on its way to {name}.",
+  "@donateThanksText": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "donateAgain": "Brew another",
+  "@donateAgain": {
+    "description": "Start over on the donation screen after a donation."
   }
 }

@@ -43,6 +43,8 @@ import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
 import '../address_book_views/address_book_view.dart';
 import '../pivx_cold_staking/pivx_cold_staking_view.dart';
+import '../pivx_donation/pivx_donation.dart';
+import '../pivx_donation/pivx_donation_view.dart';
 import '../pivx_governance/pivx_governance_view.dart';
 import '../pivx_names/pivx_names_common.dart';
 import '../pivx_names/pivx_names_view.dart';
@@ -726,6 +728,30 @@ class _WalletViewState extends ConsumerState<WalletView> {
                       onTap: () {
                         Navigator.of(context).pushNamed(
                           PivxNamesView.routeName,
+                          arguments: widget.walletId,
+                        );
+                      },
+                    ),
+                  if (!viewOnly &&
+                      wallet is PivxWallet &&
+                      pivxDonationAvailable(coin))
+                    WalletNavigationBarItemData(
+                      label: l10n.donateTitle,
+                      icon: Icon(
+                        Icons.local_cafe_rounded,
+                        size: 20,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .bottomNavIconIcon,
+                      ),
+                      isNew: !ref.watch(
+                        prefsChangeNotifierProvider.select(
+                          (value) => value.donationSeen,
+                        ),
+                      ),
+                      onTap: () {
+                        Navigator.of(context).pushNamed(
+                          PivxDonationView.routeName,
                           arguments: widget.walletId,
                         );
                       },

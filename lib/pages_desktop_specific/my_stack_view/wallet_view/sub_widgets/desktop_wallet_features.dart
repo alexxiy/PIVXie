@@ -35,8 +35,11 @@ import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/static_overflow_row/static_overflow_row.dart';
+import '../../../../widgets/wallet_navigation_bar/components/wallet_navigation_bar_item.dart';
 import '../../../coin_control/desktop_coin_control_view.dart';
 import '../../../../pages/pivx_cold_staking/pivx_cold_staking_view.dart';
+import '../../../../pages/pivx_donation/pivx_donation.dart';
+import '../../../../pages/pivx_donation/pivx_donation_view.dart';
 import '../../../../pages/pivx_governance/pivx_governance_view.dart';
 import '../../../../pages/pivx_names/pivx_names_common.dart';
 import '../../../../pages/pivx_names/pivx_names_view.dart';
@@ -51,6 +54,7 @@ enum WalletFeature {
   governance,
   names,
   privatize,
+  donate,
 
   // special cases
   reuseAddress;
@@ -62,6 +66,7 @@ enum WalletFeature {
     governance => l10n.govTitle,
     names => l10n.pivxNamesTitle,
     privatize => l10n.walletPrivatizeFunds,
+    donate => l10n.donateTitle,
     reuseAddress => "",
   };
 
@@ -72,6 +77,7 @@ enum WalletFeature {
     governance => l10n.featureGovernanceText,
     names => l10n.featureNamesText,
     privatize => l10n.featurePrivatizeText,
+    donate => l10n.featureDonateText,
     reuseAddress => "",
   };
 }
@@ -263,7 +269,21 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
         (WalletFeature.privatize, Icons.shield_rounded, _onPrivatizePressed),
       if (showCoinControl)
         (WalletFeature.coinControl, Icons.checklist_rtl, _onCoinControlPressed),
+      if (wallet is PivxWallet &&
+          !isViewOnly &&
+          pivxDonationAvailable(wallet.cryptoCurrency))
+        (
+          WalletFeature.donate,
+          Icons.local_cafe_rounded,
+          () => _push(PivxDonationView.routeName),
+        ),
     ];
+    // Marks More until the donation screen has been opened once.
+    final donateIsNew =
+        moreOptions.any((e) => e.$1 == WalletFeature.donate) &&
+        !ref.watch(
+          prefsChangeNotifierProvider.select((value) => value.donationSeen),
+        );
 
     final canGen =
         !(isViewOnly &&
@@ -277,7 +297,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
     return StaticOverflowRow(
       forcedOverflow: moreOptions.isNotEmpty || extraOptions.isNotEmpty,
       overflowBuilder: (count) {
-        return Padding(
+        final button = Padding(
           padding: const EdgeInsets.only(left: 16),
           child: SecondaryButton(
             label: l10n.commonMore,
@@ -297,6 +317,14 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
               ...extraOptions,
             ]),
           ),
+        );
+        if (!donateIsNew) return button;
+        return Stack(
+          clipBehavior: Clip.none,
+          children: [
+            button,
+            const Positioned(top: -2, right: -2, child: NewItemDot()),
+          ],
         );
       },
 

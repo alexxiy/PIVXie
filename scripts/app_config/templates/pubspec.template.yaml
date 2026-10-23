@@ -209,6 +209,9 @@ flutter:
     # PIVXie mascot (Void Pixie), 1.5x-4.0x density variants
     - assets/persona/
 
+    # "Fuel PIVXie" donation tiers (WebP)
+    - assets/donation/
+
     # lottie animations
     # basic
     - assets/lottie/loader.json

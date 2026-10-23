@@ -70,6 +70,7 @@ class Prefs extends ChangeNotifier {
       _privacyScreen = await _getPrivacyScreen();
       _soundEffects = await _getSoundEffects();
       _disableScreenShots = await _getDisableScreenShots();
+      _donationSeen = await _getDonationSeen();
 
       _initialized = true;
     }
@@ -1066,6 +1067,29 @@ class Prefs extends ChangeNotifier {
     return await DB.instance.get<dynamic>(
           boxName: DB.boxNamePrefs,
           key: "disableScreenShots",
+        ) as bool? ??
+        false;
+  }
+
+  // "Fuel PIVXie" opened once: the wallet's More menu stops marking it
+  bool _donationSeen = false;
+  bool get donationSeen => _donationSeen;
+  set donationSeen(bool donationSeen) {
+    if (_donationSeen != donationSeen) {
+      DB.instance.put<dynamic>(
+        boxName: DB.boxNamePrefs,
+        key: "donationSeen",
+        value: donationSeen,
+      );
+      _donationSeen = donationSeen;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> _getDonationSeen() async {
+    return await DB.instance.get<dynamic>(
+          boxName: DB.boxNamePrefs,
+          key: "donationSeen",
         ) as bool? ??
         false;
   }

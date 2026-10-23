@@ -36,6 +36,7 @@ class PivxFundingCard extends ConsumerWidget {
     this.amount,
     this.subtractFee = false,
     this.allowShield = true,
+    this.toShield = false,
   });
 
   final String walletId;
@@ -49,6 +50,9 @@ class PivxFundingCard extends ConsumerWidget {
   /// Whether the private balance can pay this transaction.
   final bool allowShield;
 
+  /// Whether it pays a shield address, for the coin control summary.
+  final bool toShield;
+
   Future<void> _chooseCoins(BuildContext context) async {
     final result = await Navigator.of(context).pushNamed(
       CoinControlView.routeName,
@@ -60,7 +64,7 @@ class PivxFundingCard extends ConsumerWidget {
         (
           shieldNotes: funding.fromShield,
           sendAmount: amount,
-          toShield: false,
+          toShield: toShield,
           subtractFee: subtractFee,
         ),
       ),

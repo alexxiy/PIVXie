@@ -211,6 +211,9 @@ class _WalletNavigationBarState extends ConsumerState<WalletNavigationBar> {
                                         ),
                                         label: null,
                                         isMore: true,
+                                        isNew: widget.moreItems.any(
+                                          (e) => e.isNew,
+                                        ),
                                         onTap: _onMorePressed,
                                       ),
                                       disableDuration: _moreDuration,

@@ -81,7 +81,8 @@ class Utf8LengthLimitingFormatter extends TextInputFormatter {
 }
 
 /// A shielded memo input (a send to a shield address, or a payment
-/// request for one), with a byte counter ("37 / 512 bytes").
+/// request for one), with a byte counter ("37 / 512 bytes"). [maxBytes]
+/// is less where the app adds a line of its own.
 class PivxMemoField extends StatelessWidget {
   const PivxMemoField({
     super.key,
@@ -89,12 +90,14 @@ class PivxMemoField extends StatelessWidget {
     required this.focusNode,
     this.onChanged,
     this.hint,
+    this.maxBytes = kPivxMaxMemoBytes,
   });
 
   final TextEditingController controller;
   final FocusNode focusNode;
   final VoidCallback? onChanged;
   final String? hint;
+  final int maxBytes;
 
   @override
   Widget build(BuildContext context) {
@@ -116,9 +119,7 @@ class PivxMemoField extends StatelessWidget {
                 focusNode: focusNode,
                 minLines: 1,
                 maxLines: 4,
-                inputFormatters: [
-                  Utf8LengthLimitingFormatter(kPivxMaxMemoBytes),
-                ],
+                inputFormatters: [Utf8LengthLimitingFormatter(maxBytes)],
                 style: isDesktop
                     ? STextStyles.desktopTextExtraSmall(
                         context,
@@ -158,10 +159,10 @@ class PivxMemoField extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(top: 4, right: 4),
                 child: Text(
-                  l10n.memoBytes(bytes, kPivxMaxMemoBytes),
+                  l10n.memoBytes(bytes, maxBytes),
                   textAlign: TextAlign.right,
                   style: STextStyles.label(context).copyWith(
-                    color: bytes > kPivxMaxMemoBytes
+                    color: bytes > maxBytes
                         ? colors.textError
                         : colors.textSubtitle2,
                   ),
