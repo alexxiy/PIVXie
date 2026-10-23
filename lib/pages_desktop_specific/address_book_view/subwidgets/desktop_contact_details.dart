@@ -252,7 +252,7 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
                             child: PrimaryButton(
                               width: 260,
                               buttonHeight: ButtonHeight.m,
-                              label: "Pay to ${contact.name}",
+                              label: payContactLabel(contact),
                               onPressed: () =>
                                   payContact(context, ref, contact),
                             ),

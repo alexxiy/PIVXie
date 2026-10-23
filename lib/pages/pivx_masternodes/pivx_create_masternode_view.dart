@@ -11,11 +11,13 @@ import '../../providers/global/wallets_provider.dart';
 import '../../route_generator.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/text_styles.dart';
+import '../../utilities/util.dart';
 import '../../wallets/models/tx_data.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/blue_text_button.dart';
 import '../../widgets/desktop/primary_button.dart';
+import '../../widgets/middle_ellipsis_text.dart';
 import '../../widgets/page_app_bar.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/secret_screen.dart';
@@ -375,6 +377,16 @@ class _PivxCreateMasternodeViewState
     );
   }
 
+  /// An output's address label, or the address itself shortened in the
+  /// middle like the app's other addresses.
+  Widget _outputTitle(UTXO u) {
+    final style = STextStyles.w600_14(context);
+    final label = _label(u.address ?? "");
+    return label != null
+        ? Text(label, overflow: TextOverflow.ellipsis, style: style)
+        : MiddleEllipsisText(u.address ?? "", style: style);
+  }
+
   Widget _subtitle(String text) => Text(
     text,
     style: STextStyles.w500_12(context).copyWith(
@@ -465,12 +477,7 @@ class _PivxCreateMasternodeViewState
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      _label(u.address ?? "") ??
-                                          (u.address ?? ""),
-                                      overflow: TextOverflow.ellipsis,
-                                      style: STextStyles.w600_14(context),
-                                    ),
+                                    _outputTitle(u),
                                     const SizedBox(height: 2),
                                     _subtitle(
                                       "${u.txid.substring(0, 16)}…:${u.vout}",
@@ -514,9 +521,12 @@ class _PivxCreateMasternodeViewState
                           focusNode: _addressLabelFocus,
                           style: STextStyles.field(context),
                           decoration: standardInputDecoration(
-                            "Address label (optional), e.g. "
-                            "${_labelController.text.trim().isEmpty ? "MN1" : _labelController.text.trim()} "
-                            "collateral",
+                            // The example doesn't fit a phone's field.
+                            Util.isDesktop
+                                ? "Address label (optional), e.g. "
+                                      "${_labelController.text.trim().isEmpty ? "MN1" : _labelController.text.trim()} "
+                                      "collateral"
+                                : "Address label (optional)",
                             _addressLabelFocus,
                             context,
                           ),
@@ -548,9 +558,8 @@ class _PivxCreateMasternodeViewState
                                     _addressTitle(a),
                                     style: STextStyles.w600_14(context),
                                   ),
-                                  Text(
+                                  MiddleEllipsisText(
                                     a.value,
-                                    overflow: TextOverflow.ellipsis,
                                     style: STextStyles.w500_12(context)
                                         .copyWith(color: colors.textSubtitle1),
                                   ),

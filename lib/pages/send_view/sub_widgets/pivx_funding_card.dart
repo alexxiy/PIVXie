@@ -180,14 +180,18 @@ class PivxFundingCard extends ConsumerWidget {
         children: [
           Text("Pay from", style: STextStyles.smallMed12(context)),
           const SizedBox(height: 8),
-          Row(
-            children: [
-              source("Transparent balance", false, public),
-              if (shieldPossible) ...[
-                const SizedBox(width: 8),
-                source("Shielded balance", true, private),
+          // Both as high as the taller one when a label wraps.
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                source("Transparent balance", false, public),
+                if (shieldPossible) ...[
+                  const SizedBox(width: 8),
+                  source("Shielded balance", true, private),
+                ],
               ],
-            ],
+            ),
           ),
           row(
             funding.fromShield ? "Notes to spend" : "Coins to spend",

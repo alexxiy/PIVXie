@@ -259,15 +259,18 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                           ),
                         ),
                         const SizedBox(width: 16),
-                        FittedBox(
-                          fit: BoxFit.scaleDown,
+                        // A long name wraps, then ends in "…", and leaves
+                        // room for Edit.
+                        Expanded(
                           child: Text(
                             _contact.name,
                             textAlign: TextAlign.left,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                             style: STextStyles.pageTitleH2(context),
                           ),
                         ),
-                        const Spacer(),
+                        const SizedBox(width: 12),
                         TextButton(
                           onPressed: () {
                             Navigator.of(context).pushNamed(
@@ -398,7 +401,7 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                     if (_contact.addresses.isNotEmpty) ...[
                       const SizedBox(height: 24),
                       PrimaryButton(
-                        label: "Pay to ${_contact.name}",
+                        label: payContactLabel(_contact),
                         onPressed: () => payContact(context, ref, _contact),
                       ),
                     ],

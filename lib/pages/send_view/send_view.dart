@@ -1705,8 +1705,9 @@ class _SendViewState extends ConsumerState<SendView> {
                                 onChanged: (_) => setState(() {}),
                                 decoration:
                                     standardInputDecoration(
+                                      // Short enough for a phone's field.
                                       coin is Pivx
-                                          ? "Just for you: kept in your history, never sent"
+                                          ? "Only in your history, never sent"
                                           : "Type something...",
                                       _noteFocusNode,
                                       context,

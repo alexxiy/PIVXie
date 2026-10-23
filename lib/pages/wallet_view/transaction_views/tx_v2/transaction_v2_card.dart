@@ -162,20 +162,26 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     // crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
+                      // The amount takes what it needs (up to a cap) and
+                      // the title the rest: two equal halves shrank long
+                      // titles like "Cold staking reward (59/101)".
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Flexible(
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Text(
-                                whatIsIt(coin, currentHeight),
-                                style: STextStyles.itemSubtitle12(context),
+                          Expanded(
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: FittedBox(
+                                fit: BoxFit.scaleDown,
+                                child: Text(
+                                  whatIsIt(coin, currentHeight),
+                                  style: STextStyles.itemSubtitle12(context),
+                                ),
                               ),
                             ),
                           ),
                           const SizedBox(width: 10),
-                          Flexible(
+                          ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 160),
                             child: FittedBox(
                               fit: BoxFit.scaleDown,
                               child: Builder(

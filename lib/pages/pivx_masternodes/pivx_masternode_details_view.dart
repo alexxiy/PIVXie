@@ -189,6 +189,9 @@ class _PivxMasternodeDetailsViewState
 
   static const _hiddenKey = "••••••••••••••••••••";
 
+  /// Shorter in config lines, which then fit a phone's width.
+  static const _hiddenKeyInCode = "••••••••••••";
+
   Widget _row(String label, String value, {bool secret = false}) {
     final colors = Theme.of(context).extension<StackColors>()!;
     return RoundedWhiteContainer(
@@ -237,7 +240,7 @@ class _PivxMasternodeDetailsViewState
         children: [
           Expanded(
             child: SelectableText(
-              code(_showKey ? key : _hiddenKey),
+              code(_showKey ? key : _hiddenKeyInCode),
               style: STextStyles.w500_12(context)
                   .copyWith(fontFamily: "monospace", color: colors.textDark),
             ),

@@ -216,6 +216,13 @@ Future<void> openPaymentLinkDesktop(
   );
 }
 
+/// "Pay to {name}" for a one-line button: a long contact name is cut, as
+/// the buttons don't wrap or shrink their label.
+String payContactLabel(ContactEntry contact) {
+  final name = contact.name.characters;
+  return "Pay to ${name.length > 20 ? "${name.take(19)}…" : contact.name}";
+}
+
 /// Pay a contact: one of its addresses (asked when it has several) opens
 /// the send screen of a wallet that can pay it. On mobile with a wallet
 /// open, that's its send screen on top, as the contact's send button

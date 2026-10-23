@@ -1038,8 +1038,10 @@ class _PivxTxParts extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final change = transaction.pivxChangeAddresses;
+    // A cold stake script holds two addresses (staker, owner): one line
+    // each.
     String where(List<String> addresses, {bool shield = false}) {
-      final text = addresses.where((e) => e.isNotEmpty).join(", ");
+      final text = addresses.where((e) => e.isNotEmpty).join("\n");
       return text.isNotEmpty ? text : (shield ? "Shielded" : "Unknown");
     }
 
@@ -1143,33 +1145,60 @@ class _PivxPartListState extends ConsumerState<_PivxPartList> {
           if (_open)
             for (final e in widget.entries) ...[
               const SizedBox(height: 10),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: SelectableText(
-                      e.address,
-                      style: STextStyles.itemSubtitle12(context),
+              if (Util.isDesktop)
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: SelectableText(
+                        e.address,
+                        style: STextStyles.itemSubtitle12(context),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
+                    const SizedBox(width: 12),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          fmt.format(amount(e.value)),
+                          style: STextStyles.itemSubtitle12(context),
+                        ),
+                        if (e.tag != null)
+                          Text(
+                            e.tag!,
+                            style: STextStyles.label(context)
+                                .copyWith(color: colors.textSubtitle1),
+                          ),
+                      ],
+                    ),
+                  ],
+                )
+              else ...[
+                // On a phone the address gets the whole width, so it
+                // doesn't break in the middle.
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
                         fmt.format(amount(e.value)),
                         style: STextStyles.itemSubtitle12(context),
                       ),
-                      if (e.tag != null)
-                        Text(
-                          e.tag!,
-                          style: STextStyles.label(context)
-                              .copyWith(color: colors.textSubtitle1),
-                        ),
-                    ],
-                  ),
-                ],
-              ),
+                    ),
+                    if (e.tag != null)
+                      Text(
+                        e.tag!,
+                        style: STextStyles.label(context)
+                            .copyWith(color: colors.textSubtitle1),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 2),
+                SelectableText(
+                  e.address,
+                  style: STextStyles.label(context)
+                      .copyWith(color: colors.textDark),
+                ),
+              ],
             ],
         ],
       ),
