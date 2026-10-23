@@ -15,6 +15,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../../l10n/l10n.dart';
 import '../../../models/isar/models/contact_entry.dart';
 import '../../../notifications/show_flush_bar.dart';
 import '../../../themes/coin_icon_provider.dart';
@@ -65,12 +66,12 @@ class DesktopAddressCard extends ConsumerWidget {
               ),
               const SizedBox(height: 8),
               CustomTextButton(
-                text: "Copy",
+                text: l10n.commonCopy,
                 onTap: () {
                   clipboard.setData(ClipboardData(text: entry.address));
                   showFloatingFlushBar(
                     type: FlushBarType.info,
-                    message: "Copied to clipboard",
+                    message: l10n.commonCopiedToClipboard,
                     iconAsset: Assets.svg.copy,
                     context: context,
                   );

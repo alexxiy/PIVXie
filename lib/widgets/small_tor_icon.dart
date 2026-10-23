@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../l10n/l10n.dart';
 import '../pages/settings_views/global_settings_view/tor_settings/tor_settings_view.dart';
 import '../services/event_bus/events/global/tor_connection_status_changed_event.dart';
 import '../services/tor_service.dart';
@@ -51,7 +52,7 @@ class _SmallTorIconState extends ConsumerState<SmallTorIcon> {
         });
       },
       child: AppBarIconButton(
-        semanticsLabel: "Tor Settings Button. Takes To Tor Settings Page.",
+        semanticsLabel: l10n.torSettingsSemantics,
         key: const Key("walletsViewTorButton"),
         size: 36,
         shadows: const [],

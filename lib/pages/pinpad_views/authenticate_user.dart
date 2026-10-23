@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../l10n/l10n.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/desktop_auth_send.dart';
 import '../../route_generator.dart';
@@ -53,7 +54,7 @@ Future<bool> authenticateUser(
           popOnSuccess: true,
           routeOnSuccessArguments: true,
           routeOnSuccess: "",
-          biometricsCancelButtonString: "CANCEL",
+          biometricsCancelButtonString: l10n.commonCancelCaps,
           biometricsLocalizedReason: reason,
           biometricsAuthenticationTitle: title,
         ),
@@ -65,7 +66,7 @@ Future<bool> authenticateUser(
     unawaited(
       showFloatingFlushBar(
         type: FlushBarType.warning,
-        message: "Wrong password",
+        message: l10n.pinWrongPassword,
         context: context,
       ),
     );

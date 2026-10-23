@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app_config.dart';
+import '../../../../l10n/l10n.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/block_explorers.dart';
 import '../../../../utilities/text_styles.dart';
@@ -64,7 +65,7 @@ class _ManageExplorerViewState extends ConsumerState<ManageExplorerView> {
             },
           ),
           title: Text(
-            "${widget.coin.prettyName} block explorer",
+            l10n.explorerOfCoin(widget.coin.prettyName),
             style: STextStyles.navBarTitle(context),
           ),
         ),
@@ -87,12 +88,7 @@ class _ManageExplorerViewState extends ConsumerState<ManageExplorerView> {
                       RoundedWhiteContainer(
                         child: Center(
                           child: Text(
-                            "Edit your block explorer above. Keep in mind that "
-                            "every block explorer has a slightly different URL "
-                            "scheme.\n\nPaste in your block explorer of choice,"
-                            " then put [TXID] where the transaction ID "
-                            "should go, and ${AppConfig.appName} will fill in "
-                            "the transaction ID there.",
+                            l10n.explorerEditText(AppConfig.appName),
                             style: STextStyles.itemSubtitle(context),
                           ),
                         ),
@@ -101,7 +97,7 @@ class _ManageExplorerViewState extends ConsumerState<ManageExplorerView> {
                   ),
                 ),
                 PrimaryButton(
-                  label: "Save",
+                  label: l10n.commonSave,
                   onPressed: () async {
                     textEditingController.text =
                         textEditingController.text.trim();

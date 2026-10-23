@@ -19,6 +19,7 @@ import 'package:tuple/tuple.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import '../../../../app_config.dart';
+import '../../../../l10n/l10n.dart';
 import '../../../../providers/providers.dart';
 import '../../../../route_generator.dart';
 import '../../../../services/event_bus/events/global/node_connection_status_changed_event.dart';
@@ -30,6 +31,7 @@ import '../../../../services/tor_service.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/constants.dart';
+import '../../../../utilities/format.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
@@ -137,7 +139,7 @@ class _WalletNetworkSettingsViewState
             // pop rescanning dialog
             Navigator.of(context, rootNavigator: isDesktop).pop();
 
-            const message = "Rescan completed";
+            final message = l10n.netRescanCompleted;
 
             // show success
             await showDialog<dynamic>(
@@ -155,7 +157,7 @@ class _WalletNetworkSettingsViewState
                         .extension<StackColors>()!
                         .getSecondaryEnabledButtonStyle(context),
                     child: Text(
-                      "Ok",
+                      l10n.commonOk,
                       style: STextStyles.itemSubtitle12(context),
                     ),
                     onPressed: () {
@@ -179,13 +181,16 @@ class _WalletNetworkSettingsViewState
               useSafeArea: false,
               barrierDismissible: true,
               builder: (context) => StackDialog(
-                title: "Rescan failed",
+                title: l10n.netRescanFailed,
                 message: e.toString(),
                 rightButton: TextButton(
                   style: Theme.of(context)
                       .extension<StackColors>()!
                       .getSecondaryEnabledButtonStyle(context),
-                  child: Text("Ok", style: STextStyles.itemSubtitle12(context)),
+                  child: Text(
+                    l10n.commonOk,
+                    style: STextStyles.itemSubtitle12(context),
+                  ),
                   onPressed: () {
                     Navigator.of(context, rootNavigator: isDesktop).pop();
                   },
@@ -203,9 +208,9 @@ class _WalletNetworkSettingsViewState
   String _percentString(double value) {
     final double realPercent = (value * 10000).ceil().clamp(0, 10000) / 100.0;
     if (realPercent > 99.99 && _currentSyncStatus == WalletSyncStatus.syncing) {
-      return "99.99%";
+      return Format.percent(99.99);
     }
-    return "${realPercent.toStringAsFixed(2)}%";
+    return Format.percent(realPercent);
   }
 
   @override
@@ -299,7 +304,10 @@ class _WalletNetworkSettingsViewState
                   Navigator.of(context).pop();
                 },
               ),
-              title: Text("Network", style: STextStyles.navBarTitle(context)),
+              title: Text(
+                l10n.netTitle,
+                style: STextStyles.navBarTitle(context),
+              ),
               actions: [
                 Padding(
                   padding: const EdgeInsets.only(
@@ -370,7 +378,7 @@ class _WalletNetworkSettingsViewState
                                             child: Material(
                                               color: Colors.transparent,
                                               child: Text(
-                                                "Rescan blockchain",
+                                                l10n.netRescanBlockchain,
                                                 style: STextStyles.baseXS(
                                                   context,
                                                 ),
@@ -417,14 +425,14 @@ class _WalletNetworkSettingsViewState
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                "Blockchain status",
+                l10n.netBlockchainStatus,
                 textAlign: TextAlign.left,
                 style: isDesktop
                     ? STextStyles.desktopTextExtraExtraSmall(context)
                     : STextStyles.smallMed12(context),
               ),
               CustomTextButton(
-                text: "Resync",
+                text: l10n.netResync,
                 onTap: () {
                   ref.read(pWallets).getWallet(widget.walletId).refresh();
                 },
@@ -472,7 +480,7 @@ class _WalletNetworkSettingsViewState
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              "Synchronized",
+                              l10n.netSynchronized,
                               style: STextStyles.w600_12(context),
                             ),
                           ],
@@ -536,11 +544,11 @@ class _WalletNetworkSettingsViewState
                           children: [
                             AnimatedText(
                               style: STextStyles.w600_12(context),
-                              stringsToLoopThrough: const [
-                                "Synchronizing",
-                                "Synchronizing.",
-                                "Synchronizing..",
-                                "Synchronizing...",
+                              stringsToLoopThrough: [
+                                l10n.netSynchronizing,
+                                "${l10n.netSynchronizing}.",
+                                "${l10n.netSynchronizing}..",
+                                "${l10n.netSynchronizing}...",
                               ],
                             ),
                             Row(
@@ -616,7 +624,7 @@ class _WalletNetworkSettingsViewState
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              "Unable to synchronize",
+                              l10n.netUnableToSync,
                               style: STextStyles.w600_12(context).copyWith(
                                 color: Theme.of(context)
                                     .extension<StackColors>()!
@@ -659,7 +667,7 @@ class _WalletNetworkSettingsViewState
                     .extension<StackColors>()!
                     .warningBackground,
                 child: Text(
-                  "Please check your internet connection and make sure your current node is not having issues.",
+                  l10n.netCheckConnection,
                   style: STextStyles.baseXS(context).copyWith(
                     color: Theme.of(context)
                         .extension<StackColors>()!
@@ -680,7 +688,7 @@ class _WalletNetworkSettingsViewState
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  "Current height",
+                  l10n.netCurrentHeight,
                   textAlign: TextAlign.left,
                   style: isDesktop
                       ? STextStyles.desktopTextExtraExtraSmall(context)
@@ -700,7 +708,7 @@ class _WalletNetworkSettingsViewState
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  "Tor status",
+                  l10n.torStatus,
                   textAlign: TextAlign.left,
                   style: isDesktop
                       ? STextStyles.desktopTextExtraExtraSmall(context)
@@ -713,8 +721,8 @@ class _WalletNetworkSettingsViewState
                           (value) => value.useTor,
                         ),
                       )
-                      ? "Disconnect"
-                      : "Connect",
+                      ? l10n.commonDisconnect
+                      : l10n.commonConnect,
                   onTap: onTorTapped,
                 ),
               ],
@@ -790,7 +798,7 @@ class _WalletNetworkSettingsViewState
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Tor status",
+                          l10n.torStatus,
                           style: STextStyles.desktopTextExtraExtraSmall(context)
                               .copyWith(
                                 color: Theme.of(context)
@@ -801,7 +809,7 @@ class _WalletNetworkSettingsViewState
                         if (_torConnectionStatus ==
                             TorConnectionStatus.connected)
                           Text(
-                            "Connected",
+                            l10n.commonConnected,
                             style: STextStyles.desktopTextExtraExtraSmall(
                               context,
                             ),
@@ -809,7 +817,7 @@ class _WalletNetworkSettingsViewState
                         if (_torConnectionStatus ==
                             TorConnectionStatus.connecting)
                           Text(
-                            "Connecting...",
+                            l10n.commonConnecting,
                             style: STextStyles.desktopTextExtraExtraSmall(
                               context,
                             ),
@@ -817,7 +825,7 @@ class _WalletNetworkSettingsViewState
                         if (_torConnectionStatus ==
                             TorConnectionStatus.disconnected)
                           Text(
-                            "Disconnected",
+                            l10n.commonDisconnected,
                             style: STextStyles.desktopTextExtraExtraSmall(
                               context,
                             ),
@@ -833,14 +841,16 @@ class _WalletNetworkSettingsViewState
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                "${ref.watch(pWalletCoin(widget.walletId)).prettyName} nodes",
+                l10n.nodesOfCoin(
+                  ref.watch(pWalletCoin(widget.walletId)).prettyName,
+                ),
                 textAlign: TextAlign.left,
                 style: isDesktop
                     ? STextStyles.desktopTextExtraExtraSmall(context)
                     : STextStyles.smallMed12(context),
               ),
               CustomTextButton(
-                text: "Add new node",
+                text: l10n.nodeAddNew,
                 onTap: () {
                   Navigator.of(context).pushNamed(
                     AddEditNodeView.routeName,
@@ -868,7 +878,7 @@ class _WalletNetworkSettingsViewState
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
                   Text(
-                    "Advanced",
+                    l10n.commonAdvanced,
                     textAlign: TextAlign.left,
                     style: STextStyles.desktopTextExtraExtraSmall(context),
                   ),
@@ -919,7 +929,7 @@ class _WalletNetworkSettingsViewState
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              "Advanced",
+                              l10n.commonAdvanced,
                               style:
                                   STextStyles.desktopTextExtraExtraSmall(
                                     context,
@@ -930,7 +940,7 @@ class _WalletNetworkSettingsViewState
                                   ),
                             ),
                             Text(
-                              "Rescan blockchain",
+                              l10n.netRescanBlockchain,
                               style: STextStyles.desktopTextExtraExtraSmall(
                                 context,
                               ),
@@ -960,7 +970,7 @@ class _WalletNetworkSettingsViewState
                         bottom: 6,
                       ),
                       child: CustomTextButton(
-                        text: "Rescan",
+                        text: l10n.netRescan,
                         onTap: () async {
                           await Navigator.of(context).push(
                             FadePageRoute<void>(

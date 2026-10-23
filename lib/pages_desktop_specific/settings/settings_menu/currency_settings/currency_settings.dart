@@ -11,6 +11,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import '../../../../l10n/l10n.dart';
 import '../../../../pages/settings_views/global_settings_view/currency_view.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/text_styles.dart';
@@ -45,7 +46,7 @@ Future<void> chooseCurrency(BuildContext context) async {
                 Padding(
                   padding: const EdgeInsets.all(32),
                   child: Text(
-                    "Select currency",
+                    l10n.currencySelect,
                     style: STextStyles.desktopH3(context),
                     textAlign: TextAlign.center,
                   ),
@@ -94,13 +95,12 @@ class _CurrencySettings extends ConsumerState<CurrencySettings> {
                       text: TextSpan(
                         children: [
                           TextSpan(
-                            text: "Currency",
+                            text: l10n.settingsCurrency,
                             style: STextStyles.desktopTextSmall(context),
                           ),
                           TextSpan(
                             text:
-                                "\n\nSelect a fiat currency to evaluate your crypto assets. We use CoinGecko conversion rates "
-                                "when displaying your balance and transaction amounts.",
+                                "\n\n${l10n.currencyText}",
                             style:
                                 STextStyles.desktopTextExtraExtraSmall(context),
                           ),
@@ -120,7 +120,7 @@ class _CurrencySettings extends ConsumerState<CurrencySettings> {
                         width: 200,
                         buttonHeight: ButtonHeight.m,
                         enabled: true,
-                        label: "Change currency",
+                        label: l10n.currencyChange,
                         onPressed: () {
                           chooseCurrency(context);
                         },

@@ -11,6 +11,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../l10n/l10n.dart';
 import '../../route_generator.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/text_styles.dart';
@@ -115,6 +116,6 @@ class DesktopSettingsTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text("Settings", style: STextStyles.desktopH3(context));
+    return Text(l10n.settingsTitle, style: STextStyles.desktopH3(context));
   }
 }

@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/legacy.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../app_config.dart';
+import '../../l10n/l10n.dart';
 import '../../models/isar/models/contact_entry.dart';
 import '../../models/send_view_auto_fill_data.dart';
 import '../../notifications/show_flush_bar.dart';
@@ -79,7 +80,7 @@ _paymentLinkWallets(BuildContext context, WidgetRef ref, String link) {
       ? null
       : AppConfig.coins.where((c) => c.validateAddress(address)).firstOrNull;
   if (data == null || coin == null) {
-    warn("The payment link has no valid PIVX address");
+    warn(l10n.paymentLinkNoAddress);
     return null;
   }
 
@@ -90,7 +91,7 @@ _paymentLinkWallets(BuildContext context, WidgetRef ref, String link) {
         w,
   ];
   if (wallets.isEmpty) {
-    warn("No ${coin.prettyName} wallet to pay from");
+    warn(l10n.paymentLinkNoWallet(coin.prettyName));
     return null;
   }
   return (data: data, coin: coin, wallets: wallets);
@@ -137,7 +138,7 @@ Future<void> openPaymentLink(
     // keeps it syncing, per the syncing preferences.
     await nav.maybePop();
     if (ref.read(currentWalletIdProvider) != null) {
-      warn("Close the open wallet first");
+      warn(l10n.paymentLinkCloseWallet);
       return;
     }
   }
@@ -157,7 +158,7 @@ Future<void> openPaymentLink(
   await showLoading(
     whileFuture: wallet.init(),
     context: context,
-    message: "Opening ${wallet.info.name}",
+    message: l10n.walletOpening(wallet.info.name),
   );
   if (!context.mounted) return;
   unawaited(nav.pushNamed(WalletView.routeName, arguments: walletId));
@@ -220,7 +221,9 @@ Future<void> openPaymentLinkDesktop(
 /// the buttons don't wrap or shrink their label.
 String payContactLabel(ContactEntry contact) {
   final name = contact.name.characters;
-  return "Pay to ${name.length > 20 ? "${name.take(19)}…" : contact.name}";
+  return l10n.paymentPayTo(
+    name.length > 20 ? "${name.take(19)}…" : contact.name,
+  );
 }
 
 /// Pay a contact: one of its addresses (asked when it has several) opens
@@ -248,7 +251,7 @@ Future<void> payContact(
       ? addresses.first
       : await _chooseOne<ContactAddressEntry>(
           context,
-          title: "Pay to ${contact.name}",
+          title: l10n.paymentPayTo(contact.name),
           desktop: Util.isDesktop,
           options: [
             for (final a in addresses)
@@ -257,8 +260,8 @@ Future<void> payContact(
                 detail: switch (a.coin) {
                   final Pivx pivx =>
                     pivx.isShieldAddress(a.address)
-                        ? "Shielded (${pivx.ticker})"
-                        : "Transparent (${pivx.ticker})",
+                        ? "${l10n.addressKindShielded} (${pivx.ticker})"
+                        : "${l10n.addressKindTransparent} (${pivx.ticker})",
                   final coin => coin.prettyName,
                 },
                 value: a,
@@ -292,7 +295,7 @@ Future<String?> _chooseWallet(
   required bool desktop,
 }) => _chooseOne<String>(
   context,
-  title: "Pay from",
+  title: l10n.paymentPayFrom,
   desktop: desktop,
   options: [
     for (final w in wallets)

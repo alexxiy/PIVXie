@@ -168,14 +168,12 @@ extension PivxMasternodes on PivxWallet {
   /// Why [alias] can't name a new masternode, or null when it can.
   String? masternodeAliasError(String alias) {
     final a = alias.trim();
-    if (a.isEmpty) return "Enter a masternode alias";
+    if (a.isEmpty) return l10n.mnEnterAlias;
     if (!_aliasPattern.hasMatch(a)) {
-      return a.length > 32
-          ? "At most 32 characters"
-          : "Only letters, digits, \"_\", \"-\" and \".\"";
+      return a.length > 32 ? l10n.commonAtMostChars(32) : l10n.mnAliasChars;
     }
     if (isMasternodeAliasTaken(a)) {
-      return "Another masternode is already called \"$a\"";
+      return l10n.mnAliasTaken(a);
     }
     return null;
   }
@@ -251,9 +249,9 @@ extension PivxMasternodes on PivxWallet {
     String? service,
   }) async {
     if (!isValidMasternodeKey(masternodeKey)) {
-      throw Exception("Invalid masternode private key");
+      throw Exception(l10n.mnInvalidKey);
     }
-    if (label.trim().isEmpty) throw Exception("Masternode alias is required");
+    if (label.trim().isEmpty) throw Exception(l10n.mnAliasRequired);
     final mn = PivxMasternode(
       label: label,
       address: address,
@@ -320,11 +318,11 @@ extension PivxMasternodes on PivxWallet {
   Future<TxData> prepareMasternodeCollateral({
     required String address,
     PivxFunding funding = kPivxAutoFunding,
-    String note = "Create masternode",
+    String? note,
   }) => prepareSend(
     txData: TxData(
       // The confirm screen expects both notes set, like the send screen.
-      note: note,
+      note: note ?? l10n.mnCreate,
       noteOnChain: "",
       recipients: [
         TxRecipient(
@@ -349,7 +347,7 @@ extension PivxMasternodes on PivxWallet {
       final o = outputs[i];
       if (o.valueStringSats == raw && o.addresses.contains(address)) return i;
     }
-    throw Exception("Collateral output not found");
+    throw Exception(l10n.mnCollateralNotFound);
   }
 
   /// The network's view of [mn] (`listmasternodes`): status such as
@@ -451,11 +449,11 @@ extension PivxMasternodes on PivxWallet {
     int port = masternodePort;
     if (s.startsWith("[")) {
       final end = s.indexOf("]");
-      if (end < 0) throw const FormatException("Invalid IPv6 address");
+      if (end < 0) throw FormatException(l10n.mnInvalidIpv6);
       host = s.substring(1, end);
       final rest = s.substring(end + 1);
       if (rest.isNotEmpty) {
-        if (!rest.startsWith(":")) throw const FormatException("Invalid port");
+        if (!rest.startsWith(":")) throw FormatException(l10n.mnInvalidPort);
         port = _parsePort(rest.substring(1));
       }
     } else if (":".allMatches(s).length == 1) {
@@ -467,20 +465,18 @@ extension PivxMasternodes on PivxWallet {
     }
     final ip = InternetAddress.tryParse(host);
     if (ip == null) {
-      throw const FormatException("Enter the server's IP address");
+      throw FormatException(l10n.mnEnterIp);
     }
-    if (port <= 0 || port > 65535) throw const FormatException("Invalid port");
+    if (port <= 0 || port > 65535) throw FormatException(l10n.mnInvalidPort);
     // As PIVX Core checks a masternode broadcast: mainnet masternodes run
     // on 51472 and other networks never do. Testnet uses its default port;
     // regtest (several nodes on one host) any other.
     if (_isRegtest) {
       if (port == kPivxMasternodePortMain) {
-        throw const FormatException(
-          "Port $kPivxMasternodePortMain is for mainnet masternodes only",
-        );
+        throw FormatException(l10n.mnMainnetPortOnly(kPivxMasternodePortMain));
       }
     } else if (port != masternodePort) {
-      throw FormatException("Masternodes must use port $masternodePort");
+      throw FormatException(l10n.mnMustUsePort(masternodePort));
     }
     return ip.type == InternetAddressType.IPv6
         ? "[${ip.address}]:$port"
@@ -489,7 +485,7 @@ extension PivxMasternodes on PivxWallet {
 
   static int _parsePort(String text) {
     final port = int.tryParse(text.trim());
-    if (port == null) throw const FormatException("Invalid port");
+    if (port == null) throw FormatException(l10n.mnInvalidPort);
     return port;
   }
 
@@ -519,7 +515,7 @@ extension PivxMasternodes on PivxWallet {
     PivxMasternode mn, {
     required String service,
   }) async {
-    if (isViewOnly) throw Exception("View only wallets cannot sign");
+    if (isViewOnly) throw Exception(l10n.walletViewOnlyCannotSign);
     await loadMasternodeNetwork();
     service = normalizeMasternodeService(service);
 
@@ -529,7 +525,7 @@ extension PivxMasternodes on PivxWallet {
         .txidWalletIdVoutEqualTo(mn.txid, walletId, mn.vout)
         .findFirst();
     if (utxo == null || utxo.used == true) {
-      throw Exception("The collateral output is not in this wallet anymore");
+      throw Exception(l10n.mnCollateralGone);
     }
     final height = await bridge.getBlockCount();
     final confirmations = utxo.blockHeight == null || utxo.blockHeight! <= 0
@@ -537,20 +533,22 @@ extension PivxMasternodes on PivxWallet {
         : height - utxo.blockHeight! + 1;
     if (confirmations < masternodeMinConfirmations) {
       throw Exception(
-        "The collateral needs $masternodeMinConfirmations confirmations "
-        "($confirmations so far)",
+        l10n.mnCollateralConfirmations(
+          masternodeMinConfirmations,
+          confirmations,
+        ),
       );
     }
 
     final mnWif = await masternodeKey(mn);
-    if (mnWif == null) throw Exception("Masternode private key not found");
+    if (mnWif == null) throw Exception(l10n.mnKeyNotFound);
     final mnKey = coinlib.WIF
         .fromString(mnWif, version: cryptoCurrency.networkParams.wifPrefix)
         .privkey;
 
     final address = await mainDB.getAddress(walletId, mn.address);
     if (address?.derivationPath == null) {
-      throw Exception("The collateral address is not a wallet address");
+      throw Exception(l10n.mnCollateralNotWallet);
     }
     final collateralKey = (await getRootHDNode())
         .derivePath(address!.derivationPath!.value)

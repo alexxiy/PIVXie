@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app_config.dart';
+import '../../../l10n/l10n.dart';
 import '../../../providers/global/prefs_provider.dart';
 import '../../../providers/global/wallets_provider.dart';
 import '../../../themes/stack_colors.dart';
@@ -86,13 +87,12 @@ class StartupSettings extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "Startup",
+                        l10n.settingsStartup,
                         style: STextStyles.desktopTextSmall(context),
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        "Choose what opens after you unlock "
-                        "${AppConfig.appName}.",
+                        l10n.startupChooseText(AppConfig.appName),
                         style: STextStyles.desktopTextExtraExtraSmall(context),
                       ),
                       const SizedBox(height: 12),
@@ -105,14 +105,14 @@ class StartupSettings extends ConsumerWidget {
                             children: [
                               option(
                                 value: null,
-                                title: "My Wallets",
-                                subtitle: "The list of your wallets",
+                                title: l10n.desktopMyWallets,
+                                subtitle: l10n.startupMyWalletsText,
                               ),
                               for (final w in wallets)
                                 option(
                                   value: w.walletId,
                                   title: w.info.name,
-                                  subtitle: "Open this wallet",
+                                  subtitle: l10n.startupOpenWallet,
                                 ),
                             ],
                           ),

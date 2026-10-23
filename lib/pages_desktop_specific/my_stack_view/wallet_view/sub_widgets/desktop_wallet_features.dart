@@ -16,6 +16,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:tuple/tuple.dart';
 
+import '../../../../l10n/l10n.dart';
 import '../../../../models/keys/view_only_wallet_data.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../pages/coin_control/coin_control_view.dart';
@@ -44,31 +45,35 @@ import '../../../../wallets/wallet/impl/pivx_wallet.dart';
 import 'more_features/more_features_dialog.dart';
 
 enum WalletFeature {
-  coinControl(
-    "Coin control",
-    "Choose which outputs to spend and freeze the ones to keep",
-  ),
-  masternodes("Masternodes", "Create, start and follow your masternodes"),
-  coldStaking(
-    "Cold staking",
-    "Delegate coins to a staker and earn rewards while they stay yours",
-  ),
-  governance(
-    "Governance",
-    "Budget proposals: follow them and vote with your masternodes",
-  ),
-  names("Names", "Register a PIVX name, and manage or sell your names"),
-  privatize(
-    "Privatize funds",
-    "Move your whole transparent balance to your shield balance",
-  ),
+  coinControl,
+  masternodes,
+  coldStaking,
+  governance,
+  names,
+  privatize,
 
   // special cases
-  reuseAddress("", "");
+  reuseAddress;
 
-  final String label;
-  final String description;
-  const WalletFeature(this.label, this.description);
+  String get label => switch (this) {
+    coinControl => l10n.coinControlTitle,
+    masternodes => l10n.mnTitle,
+    coldStaking => l10n.csTitle,
+    governance => l10n.govTitle,
+    names => l10n.pivxNamesTitle,
+    privatize => l10n.walletPrivatizeFunds,
+    reuseAddress => "",
+  };
+
+  String get description => switch (this) {
+    coinControl => l10n.featureCoinControlText,
+    masternodes => l10n.featureMasternodesText,
+    coldStaking => l10n.featureColdStakingText,
+    governance => l10n.featureGovernanceText,
+    names => l10n.featureNamesText,
+    privatize => l10n.featurePrivatizeText,
+    reuseAddress => "",
+  };
 }
 
 /// A feature's icon: an SVG asset path, a Material [IconData] or a widget
@@ -126,7 +131,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
       unawaited(
         showFloatingFlushBar(
           type: FlushBarType.info,
-          message: "No funds available to privatize!",
+          message: l10n.walletNoFundsToPrivatize,
           context: context,
         ),
       );
@@ -145,7 +150,10 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text("Attention!", style: STextStyles.desktopH3(context)),
+                  Text(
+                    l10n.walletAttention,
+                    style: STextStyles.desktopH3(context),
+                  ),
                   const DesktopDialogCloseButton(),
                 ],
               ),
@@ -153,7 +161,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
               Padding(
                 padding: const EdgeInsets.only(right: 32),
                 child: Text(
-                  "You're about to privatize all of your public funds.",
+                  l10n.walletPrivatizeConfirm,
                   style: STextStyles.desktopTextExtraExtraSmall(context)
                       .copyWith(fontSize: 18),
                 ),
@@ -166,7 +174,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
                     Expanded(
                       child: SecondaryButton(
                         buttonHeight: ButtonHeight.l,
-                        label: "Cancel",
+                        label: l10n.commonCancel,
                         onPressed: () => Navigator.of(context).pop(false),
                       ),
                     ),
@@ -174,7 +182,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
                     Expanded(
                       child: PrimaryButton(
                         buttonHeight: ButtonHeight.l,
-                        label: "Continue",
+                        label: l10n.commonContinue,
                         onPressed: () => Navigator.of(context).pop(true),
                       ),
                     ),
@@ -191,7 +199,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
     await showLoading<void>(
       whileFuture: wallet.shieldAllTransparent(),
       context: context,
-      message: "Anonymizing balance",
+      message: l10n.walletAnonymizing,
       onException: (e) => error = e,
     );
     if (!mounted) return;
@@ -199,8 +207,8 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
       showFloatingFlushBar(
         type: error == null ? FlushBarType.success : FlushBarType.warning,
         message: error == null
-            ? "Privatize transaction submitted"
-            : "Privatize all failed: $error",
+            ? l10n.walletPrivatizeSubmitted
+            : "${l10n.walletPrivatizeFailed}: $error",
         context: context,
       ),
     );
@@ -272,7 +280,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
         return Padding(
           padding: const EdgeInsets.only(left: 16),
           child: SecondaryButton(
-            label: "More",
+            label: l10n.commonMore,
             padding: const EdgeInsets.symmetric(horizontal: 16),
             buttonHeight: ButtonHeight.l,
             icon: SvgPicture.asset(

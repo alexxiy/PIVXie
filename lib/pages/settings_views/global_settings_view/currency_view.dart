@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../../l10n/l10n.dart';
 import '../../../providers/global/base_currencies_provider.dart';
 import '../../../providers/providers.dart';
 import '../../../themes/stack_colors.dart';
@@ -84,12 +85,22 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
 
   String filter = "";
 
+  /// [code]'s name in the app's language: "" when it has none.
+  String _currencyName(String code) {
+    final name = ref.watch(baseCurrenciesProvider.select((value) => value.map))[code];
+    return name == null ? "" : l10n.currencyName(code, name);
+  }
+
   List<String> _filtered() {
     final currencyMap = ref.read(baseCurrenciesProvider).map;
     return currenciesWithoutSelected.where((element) {
+      final name = currencyMap[element];
       return element.toLowerCase().contains(filter.toLowerCase()) ||
-          (currencyMap[element]?.toLowerCase().contains(filter.toLowerCase()) ??
-              false);
+          (name != null &&
+              l10n
+                  .currencyName(element, name)
+                  .toLowerCase()
+                  .contains(filter.toLowerCase()));
     }).toList();
   }
 
@@ -153,7 +164,7 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
                   }
                 },
               ),
-              title: Text("Currency", style: STextStyles.navBarTitle(context)),
+              title: Text(l10n.settingsCurrency, style: STextStyles.navBarTitle(context)),
             ),
             body: SafeArea(
               child: Padding(
@@ -190,7 +201,7 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
                   children: [
                     Expanded(
                       child: SecondaryButton(
-                        label: "Cancel",
+                        label: l10n.commonCancel,
                         buttonHeight: ButtonHeight.l,
                         onPressed: Navigator.of(context).pop,
                       ),
@@ -198,7 +209,7 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
                     const SizedBox(width: 16),
                     Expanded(
                       child: PrimaryButton(
-                        label: "Save changes",
+                        label: l10n.commonSaveChanges,
                         buttonHeight: ButtonHeight.l,
                         onPressed: () {
                           ref.read(prefsChangeNotifierProvider).currency =
@@ -247,7 +258,7 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
                         },
                         style: STextStyles.field(context),
                         decoration: standardInputDecoration(
-                          "Search",
+                          l10n.commonSearch,
                           _searchFocusNode,
                           context,
                         ).copyWith(
@@ -378,12 +389,7 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
                                         ),
                                         const SizedBox(height: 2),
                                         Text(
-                                          ref.watch(
-                                                baseCurrenciesProvider.select(
-                                                  (value) => value.map,
-                                                ),
-                                              )[currenciesWithoutSelected[index]] ??
-                                              "",
+                                          _currencyName(currenciesWithoutSelected[index]),
                                           key:
                                               (currenciesWithoutSelected[index] ==
                                                       current)

@@ -16,6 +16,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:isar_community/isar.dart';
 
 import '../../db/isar/main_db.dart';
+import '../../l10n/l10n.dart';
 import '../../models/isar/models/blockchain_data/utxo.dart';
 import '../../themes/coin_icon_provider.dart';
 import '../../themes/stack_colors.dart';
@@ -137,7 +138,10 @@ class _DesktopCoinControlViewState
                     .textSubtitle1,
               ),
               const SizedBox(width: 12),
-              Text("Coin control", style: STextStyles.desktopH3(context)),
+              Text(
+                l10n.coinControlTitle,
+                style: STextStyles.desktopH3(context),
+              ),
             ],
           ),
         ),
@@ -174,7 +178,7 @@ class _DesktopCoinControlViewState
                           ),
                       decoration:
                           standardInputDecoration(
-                            "Search...",
+                            l10n.commonSearchEllipsis,
                             searchFieldFocusNode,
                             context,
                             desktopMed: true,
@@ -243,7 +247,7 @@ class _DesktopCoinControlViewState
                 AnimatedCrossFade(
                   firstChild: JDropdownButton(
                     redrawOnScreenSizeChanged: true,
-                    label: "Sort by...",
+                    label: l10n.coinControlSortBy,
                     width: 200,
                     groupValue: _sort,
                     items: CCSortDescriptor.values.toSet(),
@@ -258,7 +262,9 @@ class _DesktopCoinControlViewState
                   secondChild: SecondaryButton(
                     buttonHeight: ButtonHeight.l,
                     width: 200,
-                    label: "Clear selection (${_selectedUTXOs.length})",
+                    label: l10n.coinControlClearSelectionCount(
+                      _selectedUTXOs.length,
+                    ),
                     onPressed: () => setState(() => _selectedUTXOs.clear()),
                   ),
                   crossFadeState: _selectedUTXOs.isEmpty
@@ -345,8 +351,7 @@ class _DesktopCoinControlViewState
                                 ),
                                 Expanded(
                                   child: Text(
-                                    "${entry.value.length} "
-                                    "output${entry.value.length > 1 ? "s" : ""}",
+                                    l10n.coinControlOutputs(entry.value.length),
                                     style:
                                         STextStyles.desktopTextExtraExtraSmall(
                                           context,

@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import '../../../../l10n/l10n.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/text_styles.dart';
@@ -46,7 +47,7 @@ class RestoreSucceededDialog extends StatelessWidget {
               flex: 2,
             ),
             Text(
-              "Wallet restored",
+              l10n.restoreSucceeded,
               style: STextStyles.desktopH2(context),
               textAlign: TextAlign.center,
             ),
@@ -56,7 +57,7 @@ class RestoreSucceededDialog extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 32),
               child: Text(
-                message ?? "You may access your wallet now.",
+                message ?? l10n.restoreAccessNow,
                 style: STextStyles.desktopTextMedium(context).copyWith(
                   color: Theme.of(context).extension<StackColors>()!.textDark3,
                 ),
@@ -85,8 +86,8 @@ class RestoreSucceededDialog extends StatelessWidget {
       );
     } else {
       return StackDialog(
-        title: "Wallet restored",
-        message: message ?? "You may access your wallet now.",
+        title: l10n.restoreSucceeded,
+        message: message ?? l10n.restoreAccessNow,
         icon: SvgPicture.asset(
           Assets.svg.checkCircle,
           width: 24,
@@ -98,7 +99,7 @@ class RestoreSucceededDialog extends StatelessWidget {
               .extension<StackColors>()!
               .getSecondaryEnabledButtonStyle(context),
           child: Text(
-            "Ok",
+            l10n.commonOk,
             style: STextStyles.itemSubtitle12(context),
           ),
           onPressed: () {

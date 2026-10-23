@@ -21,6 +21,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../../l10n/l10n.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/address_utils.dart';
@@ -111,7 +112,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
             unawaited(
               showFloatingFlushBar(
                 type: FlushBarType.success,
-                message: "${uri.toFilePath()} saved!",
+                message: l10n.receiveSaved(uri.toFilePath()),
                 context: context,
               ),
             );
@@ -125,7 +126,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
         await SharePlus.instance.share(
           ShareParams(
             files: [XFile("${tempDir.path}/qrcode.png")],
-            text: "Receive URI QR Code",
+            text: l10n.receiveQrShareText,
           ),
         );
       }
@@ -153,7 +154,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
     if (amountString.isNotEmpty && amount == null) {
       showFloatingFlushBar(
         type: FlushBarType.warning,
-        message: "Invalid amount",
+        message: l10n.receiveInvalidAmount,
         context: context,
       );
       return null;
@@ -203,7 +204,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
             children: [
               Center(
                 child: Text(
-                  "New QR code",
+                  l10n.receiveNewQr,
                   style: STextStyles.pageTitleH2(context),
                 ),
               ),
@@ -223,7 +224,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                 child: SizedBox(
                   width: width,
                   child: SecondaryButton(
-                    label: "Share",
+                    label: l10n.commonShare,
                     icon: SvgPicture.asset(
                       Assets.svg.share,
                       width: 14,
@@ -296,7 +297,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
               },
             ),
             title: Text(
-              "Generate QR code",
+              l10n.receiveGenerateQr,
               style: STextStyles.navBarTitle(context),
             ),
           ),
@@ -335,19 +336,17 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
             if (!isDesktop)
               RoundedWhiteContainer(
                 child: Text(
-                  "The new QR code with your address, amount"
-                  "${_pivxShield
-                      ? " and shielded memo"
+                  _pivxShield
+                      ? l10n.receiveQrWillAppearMemo
                       : _isPivx
-                      ? ""
-                      : " and note"}"
-                  " will appear in the pop up window.",
+                      ? l10n.receiveQrWillAppear
+                      : l10n.receiveQrWillAppearNote,
                   style: STextStyles.itemSubtitle(context),
                 ),
               ),
             if (!isDesktop) const SizedBox(height: 12),
             Text(
-              "Amount (Optional)",
+              l10n.receiveAmountOptional,
               style: isDesktop
                   ? STextStyles.desktopTextExtraExtraSmall(context).copyWith(
                       color: Theme.of(context)
@@ -381,7 +380,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                 onChanged: (_) => setState(() {}),
                 decoration:
                     standardInputDecoration(
-                      "Amount",
+                      l10n.commonAmount,
                       _amountFocusNode,
                       context,
                     ).copyWith(
@@ -418,7 +417,9 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
             if (_showNote) ...[
               SizedBox(height: isDesktop ? 20 : 12),
               Text(
-                _pivxShield ? "Shielded memo (Optional)" : "Note (Optional)",
+                _pivxShield
+                    ? l10n.receiveMemoOptional
+                    : l10n.receiveNoteOptional,
                 style: isDesktop
                     ? STextStyles.desktopTextExtraExtraSmall(context).copyWith(
                         color: Theme.of(context)
@@ -434,7 +435,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                 PivxMemoField(
                   controller: noteController,
                   focusNode: _noteFocusNode,
-                  hint: "Sent privately with the payment",
+                  hint: l10n.memoHint,
                   onChanged: () => setState(() {}),
                 )
               else
@@ -459,7 +460,9 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                     onChanged: (_) => setState(() {}),
                     decoration:
                         standardInputDecoration(
-                          _pivxShield ? "Shielded memo" : "Note",
+                          _pivxShield
+                              ? l10n.pivxNamesShieldedMemo
+                              : l10n.sendNote,
                           _noteFocusNode,
                           context,
                         ).copyWith(
@@ -496,7 +499,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
             ],
             SizedBox(height: isDesktop ? 20 : 8),
             PrimaryButton(
-              label: "Generate QR code",
+              label: l10n.receiveGenerateQr,
               onPressed: isDesktop
                   ? () {
                       final uriString = _generateURI();
@@ -529,7 +532,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                         child: Column(
                           children: [
                             Text(
-                              "New QR Code",
+                              l10n.receiveNewQr,
                               style: STextStyles.desktopTextMedium(context),
                             ),
                             const SizedBox(height: 16),
@@ -558,7 +561,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                                     onPressed: () async {
                                       await _capturePng(false);
                                     },
-                                    label: "Share",
+                                    label: l10n.commonShare,
                                     icon: SvgPicture.asset(
                                       Assets.svg.share,
                                       width: 20,
@@ -579,7 +582,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                                     // save works on linux at the moment
                                     await _capturePng(true);
                                   },
-                                  label: "Save",
+                                  label: l10n.commonSave,
                                   icon: SvgPicture.asset(
                                     Assets.svg.arrowDown,
                                     width: 20,

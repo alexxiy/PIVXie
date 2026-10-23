@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 
+import '../../../l10n/l10n.dart';
 import '../../../models/paymint/fee_object_model.dart';
 import '../../../providers/providers.dart';
 import '../../../providers/ui/fee_rate_type_state_provider.dart';
@@ -64,10 +65,10 @@ class _TransactionFeeSelectionSheetState
   FeeObject? feeObject;
 
   final stringsToLoopThrough = [
-    "Calculating",
-    "Calculating.",
-    "Calculating..",
-    "Calculating...",
+    l10n.commonCalculating,
+    "${l10n.commonCalculating}.",
+    "${l10n.commonCalculating}..",
+    "${l10n.commonCalculating}...",
   ];
 
   Future<Amount> feeFor({
@@ -101,10 +102,8 @@ class _TransactionFeeSelectionSheetState
     final int time = targetBlockTime * estimatedNumberOfBlocks;
 
     final int hours = (time / 3600).floor();
-    if (hours > 1) {
-      return "~$hours hours";
-    } else if (hours == 1) {
-      return "~$hours hour";
+    if (hours >= 1) {
+      return l10n.feeTimeHours(hours);
     }
 
     // less than an hour
@@ -112,12 +111,12 @@ class _TransactionFeeSelectionSheetState
     final string = (time / 60).toStringAsFixed(1);
 
     if (string == "1.0") {
-      return "~1 minute";
+      return l10n.feeTimeOneMinute;
     } else {
       if (string.endsWith(".0")) {
-        return "~${(time / 60).floor()} minutes";
+        return l10n.feeTimeMinutes("${(time / 60).floor()}");
       }
-      return "~$string minutes";
+      return l10n.feeTimeMinutes(string);
     }
   }
 
@@ -174,7 +173,7 @@ class _TransactionFeeSelectionSheetState
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Fee rate",
+                      l10n.feeRate,
                       style: STextStyles.pageTitleH2(context),
                       textAlign: TextAlign.left,
                     ),

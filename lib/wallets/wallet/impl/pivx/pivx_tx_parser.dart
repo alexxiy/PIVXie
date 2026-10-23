@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 
+import '../../../../l10n/l10n.dart';
 import '../../../../models/isar/models/blockchain_data/transaction_type.dart';
 import '../../../../models/isar/models/blockchain_data/v2/input_v2.dart';
 import '../../../../models/isar/models/blockchain_data/v2/output_v2.dart';
@@ -446,7 +447,7 @@ List<PivxRawOutput> pivxVerifiedOutputs(String txid, String rawHex) {
   final id = Uint8List.fromList(coinlib.sha256DoubleHash(raw).reversed.toList())
       .toHex;
   if (id != txid) {
-    throw Exception("The server sent a wrong transaction for $txid");
+    throw Exception(l10n.txWrongFromServer(txid));
   }
   return pivxTxOutputs(raw);
 }

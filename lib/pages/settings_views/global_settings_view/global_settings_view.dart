@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app_config.dart';
+import '../../../l10n/l10n.dart';
 import '../../../route_generator.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
@@ -55,7 +56,10 @@ class GlobalSettingsView extends ConsumerWidget {
               Navigator.of(context).pop();
             },
           ),
-          title: Text("Settings", style: STextStyles.navBarTitle(context)),
+          title: Text(
+            l10n.settingsTitle,
+            style: STextStyles.navBarTitle(context),
+          ),
         ),
         body: SafeArea(
           child: LayoutBuilder(
@@ -80,24 +84,29 @@ class GlobalSettingsView extends ConsumerWidget {
                                   SettingsListButton(
                                     iconAssetName: Assets.svg.downloadFolder,
                                     iconSize: 14,
-                                    title:
-                                        "${AppConfig.prefix} backup & restore",
+                                    title: l10n.settingsBackupRestore(
+                                      AppConfig.prefix,
+                                    ),
                                     onPressed: () {
                                       Navigator.push(
                                         context,
                                         RouteGenerator.getRoute(
                                           shouldUseMaterialRoute: RouteGenerator
                                               .useMaterialPageRoute,
-                                          builder: (_) => const LockscreenView(
+                                          builder: (_) => LockscreenView(
                                             showBackButton: true,
                                             routeOnSuccess:
                                                 StackBackupView.routeName,
                                             biometricsCancelButtonString:
-                                                "CANCEL",
-                                            biometricsLocalizedReason:
-                                                "Authenticate to access ${AppConfig.prefix} backup & restore settings",
-                                            biometricsAuthenticationTitle:
-                                                "${AppConfig.prefix} backup",
+                                                l10n.commonCancelCaps,
+                                            biometricsLocalizedReason: l10n
+                                                .settingsBackupAuthReason(
+                                                  AppConfig.prefix,
+                                                ),
+                                            biometricsAuthenticationTitle: l10n
+                                                .settingsBackupAuthTitle(
+                                                  AppConfig.prefix,
+                                                ),
                                           ),
                                           settings: const RouteSettings(
                                             name: "/swblockscreen",
@@ -110,7 +119,7 @@ class GlobalSettingsView extends ConsumerWidget {
                                   SettingsListButton(
                                     iconAssetName: Assets.svg.lock,
                                     iconSize: 16,
-                                    title: "Security",
+                                    title: l10n.settingsSecurity,
                                     onPressed: () {
                                       Navigator.of(context)
                                           .pushNamed(SecurityView.routeName);
@@ -120,7 +129,7 @@ class GlobalSettingsView extends ConsumerWidget {
                                   SettingsListButton(
                                     iconAssetName: Assets.svg.dollarSign,
                                     iconSize: 18,
-                                    title: "Currency",
+                                    title: l10n.settingsCurrency,
                                     onPressed: () {
                                       Navigator.of(context).pushNamed(
                                         BaseCurrencySettingsView.routeName,
@@ -131,7 +140,7 @@ class GlobalSettingsView extends ConsumerWidget {
                                   SettingsListButton(
                                     iconAssetName: Assets.svg.tor,
                                     iconSize: 18,
-                                    title: "Tor settings",
+                                    title: l10n.settingsTor,
                                     onPressed: () {
                                       Navigator.of(context)
                                           .pushNamed(TorSettingsView.routeName);
@@ -141,7 +150,7 @@ class GlobalSettingsView extends ConsumerWidget {
                                   SettingsListButton(
                                     iconAssetName: Assets.svg.node,
                                     iconSize: 16,
-                                    title: "Manage nodes",
+                                    title: l10n.settingsManageNodes,
                                     onPressed: () => pushCoinScoped(
                                       context,
                                       ref,
@@ -153,7 +162,7 @@ class GlobalSettingsView extends ConsumerWidget {
                                   SettingsListButton(
                                     iconAssetName: Assets.svg.arrowRotate,
                                     iconSize: 18,
-                                    title: "Syncing preferences",
+                                    title: l10n.settingsSyncing,
                                     onPressed: () {
                                       Navigator.of(context).pushNamed(
                                         SyncingPreferencesView.routeName,
@@ -164,7 +173,7 @@ class GlobalSettingsView extends ConsumerWidget {
                                   SettingsListButton(
                                     iconAssetName: Assets.svg.arrowUpRight,
                                     iconSize: 16,
-                                    title: "Startup",
+                                    title: l10n.settingsStartup,
                                     onPressed: () {
                                       Navigator.of(context).pushNamed(
                                         StartupPreferencesView.routeName,
@@ -175,7 +184,7 @@ class GlobalSettingsView extends ConsumerWidget {
                                   SettingsListButton(
                                     iconAssetName: Assets.svg.sun,
                                     iconSize: 18,
-                                    title: "Appearance",
+                                    title: l10n.settingsAppearance,
                                     onPressed: () {
                                       Navigator.of(context)
                                           .pushNamed(AppearanceView.routeName);
@@ -186,7 +195,7 @@ class GlobalSettingsView extends ConsumerWidget {
                                     SettingsListButton(
                                       iconAssetName: Assets.svg.circleAlert,
                                       iconSize: 16,
-                                      title: "Delete account",
+                                      title: l10n.settingsDeleteAccount,
                                       onPressed: () async {
                                         await Navigator.of(context).pushNamed(
                                           DeleteAccountView.routeName,
@@ -197,7 +206,7 @@ class GlobalSettingsView extends ConsumerWidget {
                                   SettingsListButton(
                                     iconAssetName: Assets.svg.solidSliders,
                                     iconSize: 16,
-                                    title: "Advanced",
+                                    title: l10n.commonAdvanced,
                                     onPressed: () {
                                       Navigator.of(context).pushNamed(
                                         AdvancedSettingsView.routeName,
@@ -208,7 +217,7 @@ class GlobalSettingsView extends ConsumerWidget {
                                   SettingsListButton(
                                     iconAssetName: Assets.svg.questionMessage,
                                     iconSize: 16,
-                                    title: "Support",
+                                    title: l10n.settingsSupport,
                                     onPressed: () {
                                       Navigator.of(context)
                                           .pushNamed(SupportView.routeName);
@@ -218,7 +227,7 @@ class GlobalSettingsView extends ConsumerWidget {
                                   SettingsListButton(
                                     iconAssetName: Assets.svg.ellipsis,
                                     iconSize: 18,
-                                    title: "About",
+                                    title: l10n.settingsAbout,
                                     onPressed: () {
                                       Navigator.of(context)
                                           .pushNamed(AboutView.routeName);

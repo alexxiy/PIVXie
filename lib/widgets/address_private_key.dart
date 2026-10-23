@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../l10n/l10n.dart';
 import '../models/isar/models/isar_models.dart';
 import '../pages/pinpad_views/pinpad_dialog.dart';
 import '../pages_desktop_specific/password/request_desktop_auth_dialog.dart';
@@ -47,12 +48,11 @@ class _AddressPrivateKeyState extends ConsumerState<AddressPrivateKey> {
       final verified = await showDialog<String?>(
         context: context,
         builder: (context) => Util.isDesktop
-            ? const RequestDesktopAuthDialog(title: "Show WIF private key")
-            : const PinpadDialog(
-                biometricsAuthenticationTitle: "Show WIF private key",
-                biometricsLocalizedReason:
-                    "Authenticate to show WIF private key",
-                biometricsCancelButtonString: "CANCEL",
+            ? RequestDesktopAuthDialog(title: l10n.privateKeyShowWif)
+            : PinpadDialog(
+                biometricsAuthenticationTitle: l10n.privateKeyShowWif,
+                biometricsLocalizedReason: l10n.privateKeyAuthReason,
+                biometricsCancelButtonString: l10n.commonCancelCaps,
               ),
         barrierDismissible: !Util.isDesktop,
       );
@@ -64,7 +64,7 @@ class _AddressPrivateKeyState extends ConsumerState<AddressPrivateKey> {
         _private = await showLoading(
           whileFuture: wallet.getPrivateKeyWIF(widget.address),
           context: context,
-          message: "Loading...",
+          message: l10n.commonLoading,
           delay: const Duration(milliseconds: 800),
           rootNavigator: Util.isDesktop,
         );
@@ -80,14 +80,11 @@ class _AddressPrivateKeyState extends ConsumerState<AddressPrivateKey> {
   Widget build(BuildContext context) {
     return DetailItemBase(
       button: CustomTextButton(
-        text: "Show",
+        text: l10n.commonShow,
         onTap: _loadPrivKey,
         enabled: _private == null,
       ),
-      title: Text(
-        "Private key (WIF)",
-        style: STextStyles.itemSubtitle(context),
-      ),
+      title: Text(l10n.privateKeyWif, style: STextStyles.itemSubtitle(context)),
       detail: _private == null
           ? Text(
               "*" * 52, // 52 is approx length

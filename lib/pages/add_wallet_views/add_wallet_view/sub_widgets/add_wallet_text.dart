@@ -9,6 +9,7 @@
  */
 
 import 'package:flutter/material.dart';
+import '../../../../l10n/l10n.dart';
 import '../../../../utilities/text_styles.dart';
 
 class AddWalletText extends StatelessWidget {
@@ -22,7 +23,7 @@ class AddWalletText extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Text(
-          "Add wallet",
+          l10n.addWalletTitle,
           textAlign: TextAlign.center,
           style: isDesktop
               ? STextStyles.desktopH2(context)
@@ -32,7 +33,7 @@ class AddWalletText extends StatelessWidget {
           height: 16,
         ),
         Text(
-          "Select wallet currency",
+          l10n.addWalletSelectCurrency,
           textAlign: TextAlign.center,
           style: isDesktop
               ? STextStyles.desktopSubtitleH2(context)

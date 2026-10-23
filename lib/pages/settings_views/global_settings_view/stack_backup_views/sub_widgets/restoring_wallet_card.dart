@@ -15,6 +15,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../../../../l10n/l10n.dart';
 import '../../../../../models/wallet_restore_state.dart';
 import '../../../../../providers/stack_restore/stack_restoring_ui_state_provider.dart';
 import '../../../../../route_generator.dart';
@@ -156,7 +157,7 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
                 "${ref.watch(provider.select((value) => value.walletName))} (${coin.ticker})",
             subTitle: restoringStatus == StackRestoringStatus.failed
                 ? Text(
-                    "Unable to restore. Tap icon to retry.",
+                    l10n.restoreWalletFailedRetry,
                     style: STextStyles.errorSmall(context),
                   )
                 : restoringStatus == StackRestoringStatus.restoring
@@ -205,7 +206,7 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 8.0),
                         child: Text(
-                          "Show recovery phrase",
+                          l10n.restoreShowPhrase,
                           style: STextStyles.infoSmall(context).copyWith(
                             color: Theme.of(context)
                                 .extension<StackColors>()!
@@ -251,7 +252,7 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
                   "${ref.watch(provider.select((value) => value.walletName))} (${coin.ticker})",
               subTitle: restoringStatus == StackRestoringStatus.failed
                   ? Text(
-                      "Unable to restore. Tap icon to retry.",
+                      l10n.restoreWalletFailedRetry,
                       style: STextStyles.errorSmall(context),
                     )
                   : restoringStatus == StackRestoringStatus.restoring
@@ -300,7 +301,7 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
                         child: Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 8.0),
                           child: Text(
-                            "Show recovery phrase",
+                            l10n.restoreShowPhrase,
                             style: STextStyles.infoSmall(context).copyWith(
                               color: Theme.of(context)
                                   .extension<StackColors>()!

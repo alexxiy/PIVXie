@@ -16,6 +16,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:tuple/tuple.dart';
 
+import '../../../../l10n/l10n.dart';
 import '../../../../pages/settings_views/wallet_settings_view/wallet_network_settings_view/wallet_network_settings_view.dart';
 import '../../../../providers/providers.dart';
 import '../../../../route_generator.dart';
@@ -133,13 +134,13 @@ class _NetworkInfoButtonState extends ConsumerState<NetworkInfoButton> {
 
     switch (status) {
       case WalletSyncStatus.unableToSync:
-        label = "Unable to sync";
+        label = l10n.netUnableToSyncShort;
         break;
       case WalletSyncStatus.synced:
-        label = "Synchronized";
+        label = l10n.netSynchronized;
         break;
       case WalletSyncStatus.syncing:
-        label = "Synchronizing";
+        label = l10n.netSynchronizing;
         break;
     }
 
@@ -191,7 +192,7 @@ class _NetworkInfoButtonState extends ConsumerState<NetworkInfoButton> {
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
-                                      "Network",
+                                      l10n.netTitle,
                                       style: STextStyles.desktopH3(context),
                                     ),
                                     DesktopDialogCloseButton(

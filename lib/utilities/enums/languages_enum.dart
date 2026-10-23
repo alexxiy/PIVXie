@@ -8,16 +8,78 @@
  *
  */
 
-enum Language {
-  englishUS,
-  // TODO: add more
-}
+import 'dart:ui';
 
-extension LanguageExt on Language {
-  String get description {
-    switch (this) {
-      case Language.englishUS:
-        return "English (US)";
+import '../../l10n/l10n.dart';
+
+/// The app's languages: the ones pivx.name has, in its order.
+enum Language {
+  english("en", "English"),
+  german("de", "Deutsch"),
+  spanish("es", "Español"),
+  portuguese("pt", "Português"),
+  turkish("tr", "Türkçe"),
+  azerbaijani("az", "Azərbaycan"),
+  russian("ru", "Русский"),
+  belarusian("be", "Беларуская"),
+  ukrainian("uk", "Українська"),
+  vietnamese("vi", "Tiếng Việt"),
+  chinese("zh", "中文"),
+  korean("ko", "한국어"),
+  japanese("ja", "日本語");
+
+  const Language(this.code, this.nativeName);
+
+  /// What the prefs ("language") and backups store.
+  final String code;
+
+  /// The language's name in that language.
+  final String nativeName;
+
+  Locale get locale => Locale(code);
+
+  /// The language's name in the language on screen.
+  String get translatedName => switch (this) {
+    Language.english => l10n.languageEnglish,
+    Language.german => l10n.languageGerman,
+    Language.spanish => l10n.languageSpanish,
+    Language.portuguese => l10n.languagePortuguese,
+    Language.turkish => l10n.languageTurkish,
+    Language.azerbaijani => l10n.languageAzerbaijani,
+    Language.russian => l10n.languageRussian,
+    Language.belarusian => l10n.languageBelarusian,
+    Language.ukrainian => l10n.languageUkrainian,
+    Language.vietnamese => l10n.languageVietnamese,
+    Language.chinese => l10n.languageChinese,
+    Language.korean => l10n.languageKorean,
+    Language.japanese => l10n.languageJapanese,
+  };
+
+  /// The language the device's settings give: the first of its languages
+  /// the app has, or English.
+  static Language get device {
+    for (final locale in PlatformDispatcher.instance.locales) {
+      final language = fromCode(locale.languageCode);
+      if (language != null) return language;
     }
+    return Language.english;
+  }
+
+  /// null for anything else, which means the device's language. That
+  /// includes "English (US)", the only choice before there were others.
+  static Language? fromCode(String? code) {
+    for (final language in values) {
+      if (language.code == code) return language;
+    }
+    return null;
   }
 }
+
+/// The language list's title for [language] (null: the device's language).
+String languageTitle(Language? language) =>
+    language?.nativeName ?? l10n.languageDevice;
+
+/// The line under [languageTitle]: the name in the language on screen, or
+/// for the device's language the language that is.
+String languageSubtitle(Language? language) =>
+    language?.translatedName ?? Language.device.nativeName;

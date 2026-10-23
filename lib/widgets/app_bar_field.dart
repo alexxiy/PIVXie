@@ -9,6 +9,7 @@
  */
 
 import 'package:flutter/material.dart';
+import '../l10n/l10n.dart';
 import '../utilities/text_styles.dart';
 
 class AppBarSearchField extends StatefulWidget {
@@ -42,7 +43,7 @@ class _AppBarSearchFieldState extends State<AppBarSearchField> {
             style: STextStyles.field(context),
             decoration: InputDecoration(
               fillColor: Colors.transparent,
-              hintText: "Search...",
+              hintText: l10n.commonSearchEllipsis,
               hintStyle: STextStyles.fieldLabel(context),
               border: InputBorder.none,
               enabledBorder: InputBorder.none,

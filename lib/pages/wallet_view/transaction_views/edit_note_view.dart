@@ -11,6 +11,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../l10n/l10n.dart';
 import '../../../models/isar/models/transaction_note.dart';
 import '../../../providers/providers.dart';
 import '../../../themes/stack_colors.dart';
@@ -95,7 +96,7 @@ class _EditNoteViewState extends ConsumerState<EditNoteView> {
                     },
                   ),
                   title: Text(
-                    "Edit note",
+                    l10n.txEditNote,
                     style: STextStyles.navBarTitle(context),
                   ),
                 ),
@@ -109,7 +110,7 @@ class _EditNoteViewState extends ConsumerState<EditNoteView> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text("Edit note", style: STextStyles.desktopH3(context)),
+                      Text(l10n.txEditNote, style: STextStyles.desktopH3(context)),
                       const DesktopDialogCloseButton(),
                     ],
                   ),
@@ -141,7 +142,7 @@ class _EditNoteViewState extends ConsumerState<EditNoteView> {
                             : STextStyles.field(context),
                     focusNode: noteFieldFocusNode,
                     decoration: standardInputDecoration(
-                      "Note",
+                      l10n.sendNote,
                       noteFieldFocusNode,
                       context,
                       desktopMed: isDesktop,
@@ -185,7 +186,7 @@ class _EditNoteViewState extends ConsumerState<EditNoteView> {
                 Padding(
                   padding: const EdgeInsets.all(32),
                   child: PrimaryButton(
-                    label: "Save",
+                    label: l10n.commonSave,
                     onPressed: () async {
                       await ref
                           .read(mainDBProvider)
@@ -224,7 +225,7 @@ class _EditNoteViewState extends ConsumerState<EditNoteView> {
                   style: Theme.of(context)
                       .extension<StackColors>()!
                       .getPrimaryEnabledButtonStyle(context),
-                  child: Text("Save", style: STextStyles.button(context)),
+                  child: Text(l10n.commonSave, style: STextStyles.button(context)),
                 ),
             ],
           ),

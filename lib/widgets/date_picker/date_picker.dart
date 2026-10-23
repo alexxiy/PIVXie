@@ -4,6 +4,7 @@ import 'package:calendar_date_picker2/calendar_date_picker2.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../l10n/l10n.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/constants.dart';
@@ -214,7 +215,7 @@ class StackDateRangePicker extends StatelessWidget {
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          fromDateString.isEmpty ? "From..." : fromDateString,
+                          fromDateString.isEmpty ? l10n.datePickerFrom : fromDateString,
                           style: STextStyles.fieldLabel(context).copyWith(
                             color: fromDateString.isEmpty
                                 ? Theme.of(
@@ -307,7 +308,7 @@ class StackDateRangePicker extends StatelessWidget {
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          toDateString.isEmpty ? "To..." : toDateString,
+                          toDateString.isEmpty ? l10n.datePickerTo : toDateString,
                           style: STextStyles.fieldLabel(context).copyWith(
                             color: toDateString.isEmpty
                                 ? Theme.of(

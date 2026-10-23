@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../l10n/l10n.dart';
 import '../../../models/keys/view_only_wallet_data.dart';
 import '../../../utilities/util.dart';
 import '../../../widgets/custom_buttons/simple_copy_button.dart';
@@ -18,7 +19,7 @@ class ViewOnlyWalletDataWidget extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           DetailItem(
-            title: "Address",
+            title: l10n.commonAddress,
             detail: e.address,
             button: Util.isDesktop
                 ? IconCopyButton(data: e.address)

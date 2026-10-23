@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../l10n/l10n.dart';
 import '../../models/isar/models/isar_models.dart';
 import '../../providers/global/wallets_provider.dart';
 import '../../route_generator.dart';
@@ -90,14 +91,25 @@ class _PivxColdStakingViewState extends ConsumerState<PivxColdStakingView> {
 
   /// "36 tPIV from 9 stakes".
   String _rewardsFrom(({BigInt amount, int stakes}) r, AmountFormatter fmt) =>
-      "${fmt.format(Amount(rawValue: r.amount, fractionDigits: _wallet.cryptoCurrency.fractionDigits))}"
-      " from ${r.stakes} ${r.stakes == 1 ? "stake" : "stakes"}";
+      l10n.csFromStakes(
+        fmt.format(
+          Amount(
+            rawValue: r.amount,
+            fractionDigits: _wallet.cryptoCurrency.fractionDigits,
+          ),
+        ),
+        r.stakes,
+      );
 
   String _rewardsSoFar(
     Iterable<({BigInt amount, int stakes})> perOwner,
     AmountFormatter fmt,
-  ) =>
-      "Rewards so far: ${_rewardsFrom((amount: perOwner.fold(BigInt.zero, (p, r) => p + r.amount), stakes: perOwner.fold(0, (p, r) => p + r.stakes)), fmt)}";
+  ) => l10n.csRewardsSoFar(
+    _rewardsFrom((
+      amount: perOwner.fold(BigInt.zero, (p, r) => p + r.amount),
+      stakes: perOwner.fold(0, (p, r) => p + r.stakes),
+    ), fmt),
+  );
 
   /// The reward part of [d] (an output a stake created), formatted.
   String? _rewardText(PivxDelegation d, AmountFormatter fmt) {
@@ -151,13 +163,14 @@ class _PivxColdStakingViewState extends ConsumerState<PivxColdStakingView> {
   /// Delegated or staking, or how long until it stakes.
   String _status(PivxDelegation d, int height) {
     final confirmations = d.utxo.getConfirmations(height);
-    if (confirmations <= 0) return "Waiting for confirmation";
+    if (confirmations <= 0) return l10n.pivxNamesWaitingConfirmation;
     final left = _wallet.coldStakeMinDepth - confirmations;
     if (left > 0) {
-      return "Starts staking in ~"
-          "${pivxDuration(left * _wallet.cryptoCurrency.targetBlockTimeSeconds)}";
+      return l10n.csStartsIn(
+        pivxDuration(left * _wallet.cryptoCurrency.targetBlockTimeSeconds),
+      );
     }
-    return "Staking";
+    return l10n.csStaking;
   }
 
   Future<void> _showInfo() => showModalBottomSheet<void>(
@@ -166,36 +179,15 @@ class _PivxColdStakingViewState extends ConsumerState<PivxColdStakingView> {
     isScrollControlled: true,
     useSafeArea: true,
     builder: (context) => _Sheet(
-      title: "How cold staking works",
+      title: l10n.csHowItWorks,
       children: [
-        Text(
-          "Your coins earn staking rewards while they stay in this wallet. "
-          "A staker, a PIVX node that is always online, stakes them for "
-          "you, but it can never spend or move them. Rewards are added to "
-          "your delegated coins.",
-          style: STextStyles.itemSubtitle(context),
-        ),
+        Text(l10n.csInfo1, style: STextStyles.itemSubtitle(context)),
         const SizedBox(height: 12),
-        Text(
-          "To take coins out of cold staking, just spend them. Tap an "
-          "output and choose Withdraw, and the coins return to your "
-          "regular balance.",
-          style: STextStyles.itemSubtitle(context),
-        ),
+        Text(l10n.csInfo2, style: STextStyles.itemSubtitle(context)),
         const SizedBox(height: 12),
-        Text(
-          "Delegated coins are frozen, so a normal send never uses them by "
-          "accident.",
-          style: STextStyles.itemSubtitle(context),
-        ),
+        Text(l10n.csInfo3, style: STextStyles.itemSubtitle(context)),
         const SizedBox(height: 12),
-        Text(
-          "Delegated coins sit at an owner address of this wallet. A staker "
-          "only stakes coins whose owner address it has on its whitelist, "
-          "so give it every owner address you delegate from. The list "
-          "groups your delegations by owner address.",
-          style: STextStyles.itemSubtitle(context),
-        ),
+        Text(l10n.csInfo4, style: STextStyles.itemSubtitle(context)),
       ],
     ),
   );
@@ -224,16 +216,15 @@ class _PivxColdStakingViewState extends ConsumerState<PivxColdStakingView> {
             ),
             subtitle: _rewardText(d, fmt) == null
                 ? _status(d, height)
-                : "Includes ${_rewardText(d, fmt)} from its latest stake; "
-                      "earlier rewards are part of the amount · "
+                : "${l10n.csIncludesReward(_rewardText(d, fmt)!)} · "
                       "${_status(d, height)}",
             children: [
-              PivxCopyRow(title: "Staker", value: d.staker),
-              PivxCopyRow(title: "Owner (your address)", value: d.owner),
+              PivxCopyRow(title: l10n.csStaker, value: d.staker),
+              PivxCopyRow(title: l10n.csOwnerYours, value: d.owner),
               PivxCopyRow(
-                title: "Transaction",
+                title: l10n.csTransaction,
                 value: d.utxo.txid,
-                openTooltip: "Open in the block explorer",
+                openTooltip: l10n.govOpenInExplorer,
                 onOpen: () => openInBlockExplorer(
                   context,
                   ref,
@@ -246,17 +237,16 @@ class _PivxColdStakingViewState extends ConsumerState<PivxColdStakingView> {
               const SizedBox(height: 12),
               Text(
                 !canWithdraw && d.isReward && maturity > 0
-                    ? "New rewards can be spent after "
-                          "${coin.minCoinbaseConfirms} confirmations, in ~"
-                          "${pivxDuration(maturity * coin.targetBlockTimeSeconds)}."
-                    : "Withdrawing ends cold staking for these coins and "
-                          "moves them back to your regular balance. The "
-                          "network fee comes out of the amount.",
+                    ? l10n.csRewardMaturity(
+                        coin.minCoinbaseConfirms,
+                        pivxDuration(maturity * coin.targetBlockTimeSeconds),
+                      )
+                    : l10n.csWithdrawText,
                 style: STextStyles.itemSubtitle(context),
               ),
               const SizedBox(height: 16),
               PrimaryButton(
-                label: "Withdraw",
+                label: l10n.pivxNamesWithdraw,
                 enabled: canWithdraw && !wallet.isViewOnly,
                 onPressed: () {
                   Navigator.of(context).pop();
@@ -296,10 +286,10 @@ class _PivxColdStakingViewState extends ConsumerState<PivxColdStakingView> {
       child: Scaffold(
         backgroundColor: colors.background,
         appBar: PageAppBar(
-          title: Text("Cold staking", style: STextStyles.navBarTitle(context)),
+          title: Text(l10n.csTitle, style: STextStyles.navBarTitle(context)),
           actions: [
             IconButton(
-              tooltip: "How cold staking works",
+              tooltip: l10n.csHowItWorks,
               onPressed: _showInfo,
               icon: Icon(
                 Icons.info_outline_rounded,
@@ -329,7 +319,7 @@ class _PivxColdStakingViewState extends ConsumerState<PivxColdStakingView> {
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.stretch,
                                 children: [
-                                  Text("Delegated", style: secondary),
+                                  Text(l10n.csDelegated, style: secondary),
                                   const SizedBox(height: 4),
                                   Text(
                                     fmt.format(total),
@@ -361,14 +351,14 @@ class _PivxColdStakingViewState extends ConsumerState<PivxColdStakingView> {
                               children: [
                                 Expanded(
                                   child: Text(
-                                    "Delegated outputs",
+                                    l10n.csDelegatedOutputs,
                                     style: STextStyles.smallMed12(context),
                                   ),
                                 ),
                                 if (withdrawable.length > 1 &&
                                     !wallet.isViewOnly)
                                   CustomTextButton(
-                                    text: "Withdraw all",
+                                    text: l10n.csWithdrawAll,
                                     onTap: () => _withdraw(withdrawable),
                                   ),
                               ],
@@ -426,7 +416,7 @@ class _PivxColdStakingViewState extends ConsumerState<PivxColdStakingView> {
                       ),
                       const SizedBox(height: 8),
                       PrimaryButton(
-                        label: "Delegate more",
+                        label: l10n.csDelegateMore,
                         enabled: !wallet.isViewOnly,
                         onPressed: _delegate,
                       ),
@@ -463,28 +453,28 @@ class _Empty extends StatelessWidget {
               ),
               const SizedBox(height: 24),
               Text(
-                "Earn rewards with your PIV",
+                l10n.csEarnTitle,
                 textAlign: TextAlign.center,
                 style: STextStyles.pageTitleH2(context),
               ),
               const SizedBox(height: 8),
               Text(
-                "Delegate coins to a staker and earn staking rewards without "
-                "keeping a PIVX Core wallet online on your PC or server. Your "
-                "coins never leave your wallet, and you can take them back "
-                "at any time.",
+                l10n.csEarnText,
                 textAlign: TextAlign.center,
                 style: STextStyles.itemSubtitle(context),
               ),
               const SizedBox(height: 8),
               Center(
-                child: CustomTextButton(text: "How it works", onTap: onInfo),
+                child: CustomTextButton(
+                  text: l10n.pivxNamesInfoHowTitle,
+                  onTap: onInfo,
+                ),
               ),
             ],
           ),
         ),
         PrimaryButton(
-          label: "Start cold staking",
+          label: l10n.csStart,
           enabled: onStart != null,
           onPressed: onStart,
         ),
@@ -547,15 +537,15 @@ class _DelegationRow extends StatelessWidget {
                         if (delegation.isReward)
                           PivxPill(
                             text: reward == null
-                                ? "Reward"
-                                : "+$reward latest stake",
+                                ? l10n.csReward
+                                : l10n.csLatestStake(reward!),
                             color: colors.accentColorGreen,
                           ),
                       ],
                     ),
                     const SizedBox(height: 2),
                     MiddleEllipsisText(
-                      "Staker ${delegation.staker}",
+                      l10n.csStakerAddress(delegation.staker),
                       style: secondary,
                     ),
                     const SizedBox(height: 2),
@@ -665,12 +655,12 @@ class _OwnerHeader extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 4),
       child: PivxCopyRow(
-        title: "Owner · ${pivxAddressTitle(walletId, owner)}",
+        title: l10n.csOwnerTitle(pivxAddressTitle(walletId, owner)),
         value: owner,
         footer: Text(
           rewards == null
-              ? "$delegated delegated"
-              : "$delegated delegated · rewards: $rewards",
+              ? l10n.csDelegatedAmount(delegated)
+              : l10n.csDelegatedRewards(delegated, rewards!),
           style: secondary,
         ),
       ),

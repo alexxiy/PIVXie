@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../l10n/l10n.dart';
 import '../../../../models/keys/key_data_interface.dart';
 import '../../../../models/keys/view_only_wallet_data.dart';
 import '../../../../notifications/show_flush_bar.dart';
@@ -60,7 +61,7 @@ class WalletKeysDesktopPopup extends ConsumerWidget {
               Padding(
                 padding: const EdgeInsets.only(left: 32),
                 child: Text(
-                  keyData != null ? "Wallet keys" : "Wallet seed",
+                  keyData != null ? l10n.walletKeys : l10n.walletSeed,
                   style: STextStyles.desktopH3(context),
                 ),
               ),
@@ -99,15 +100,16 @@ class _Mnemonic extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text("Recovery phrase", style: STextStyles.desktopTextMedium(context)),
+        Text(
+          l10n.restoreRecoveryPhrase,
+          style: STextStyles.desktopTextMedium(context),
+        ),
         const SizedBox(height: 8),
         Center(
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32),
             child: Text(
-              "Write down your recovery phrase in the right order and keep it "
-              "safe. It's the only way to get to your funds if this computer "
-              "is lost or you forget your password.",
+              l10n.walletWriteDownDesktop,
               style: STextStyles.desktopTextExtraExtraSmall(context),
               textAlign: TextAlign.center,
             ),
@@ -135,14 +137,14 @@ class _Mnemonic extends StatelessWidget {
             children: [
               Expanded(
                 child: SecondaryButton(
-                  label: "Copy",
+                  label: l10n.commonCopy,
                   onPressed: () async {
                     await const ClipboardWrapper().setSecret(words.join(" "));
                     if (context.mounted) {
                       unawaited(
                         showFloatingFlushBar(
                           type: FlushBarType.info,
-                          message: "Copied to clipboard",
+                          message: l10n.commonCopiedToClipboard,
                           iconAsset: Assets.svg.copy,
                           context: context,
                         ),
@@ -154,7 +156,7 @@ class _Mnemonic extends StatelessWidget {
               const SizedBox(width: 16),
               Expanded(
                 child: PrimaryButton(
-                  label: "Show QR code",
+                  label: l10n.receiveShowQr,
                   onPressed: () {
                     // TODO: address utils
                     final String value = AddressUtils.encodeQRSeedData(words);

@@ -22,6 +22,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../../app_config.dart';
+import '../../../../l10n/l10n.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../providers/global/prefs_provider.dart';
 import '../../../../themes/stack_colors.dart';
@@ -85,7 +86,7 @@ class _LoggingSettingsViewState extends ConsumerState<LoggingSettingsView> {
         ? currentPath.replaceAll("/", "\\")
         : currentPath;
     chosenPath = await FilePicker.getDirectoryPath(
-      dialogTitle: "Choose Log Save location",
+      dialogTitle: l10n.logsChooseLocation,
       initialDirectory: path,
       windowsOptions: const WindowsOptions(lockParentWindow: true),
     );
@@ -105,7 +106,7 @@ class _LoggingSettingsViewState extends ConsumerState<LoggingSettingsView> {
         .where((f) => f.path.endsWith('.txt'));
 
     if (files.isEmpty) {
-      throw Exception("No logs found in ${logsDir.path}");
+      throw Exception(l10n.logsNoneFound(logsDir.path));
     }
 
     final archive = Archive();
@@ -138,7 +139,7 @@ class _LoggingSettingsViewState extends ConsumerState<LoggingSettingsView> {
     await SharePlus.instance.share(
       ShareParams(
         files: [XFile(zipFile.path)],
-        text: "${AppConfig.appName} logs",
+        text: l10n.logsShareText(AppConfig.appName),
       ),
     );
   }
@@ -150,12 +151,12 @@ class _LoggingSettingsViewState extends ConsumerState<LoggingSettingsView> {
     final bytes = await showLoading(
       whileFuture: _zipLogs(),
       context: context,
-      message: "Preparing logs...",
+      message: l10n.logsPreparing,
       onException: (e) => throw e,
     );
     if (bytes == null) return;
     final uri = await FilePicker.saveFile(
-      dialogTitle: "Save logs",
+      dialogTitle: l10n.logsSave,
       fileName: _zipName,
       bytes: bytes,
       mimeType: "application/zip",
@@ -164,7 +165,7 @@ class _LoggingSettingsViewState extends ConsumerState<LoggingSettingsView> {
       unawaited(
         showFloatingFlushBar(
           type: FlushBarType.success,
-          message: "Logs saved",
+          message: l10n.logsSaved,
           context: context,
         ),
       );
@@ -184,7 +185,7 @@ class _LoggingSettingsViewState extends ConsumerState<LoggingSettingsView> {
         await showLoading(
           whileFuture: _shareLogs(),
           context: context,
-          message: "Exporting logs...",
+          message: l10n.logsExporting,
           onException: (e) => throw e,
         );
       }
@@ -195,7 +196,7 @@ class _LoggingSettingsViewState extends ConsumerState<LoggingSettingsView> {
           showDialog(
             context: context,
             builder: (context) => StackOkDialog(
-              title: "Failed to export logs",
+              title: l10n.logsExportFailed,
               message: e.toString(),
             ),
           ),
@@ -232,7 +233,10 @@ class _LoggingSettingsViewState extends ConsumerState<LoggingSettingsView> {
               Navigator.of(context).pop();
             },
           ),
-          title: Text("Logging", style: STextStyles.navBarTitle(context)),
+          title: Text(
+            l10n.settingsLogging,
+            style: STextStyles.navBarTitle(context),
+          ),
         ),
         body: SafeArea(
           child: Padding(
@@ -242,7 +246,7 @@ class _LoggingSettingsViewState extends ConsumerState<LoggingSettingsView> {
                 Row(
                   children: [
                     Text(
-                      "Log files location",
+                      l10n.logsLocation,
                       style: STextStyles.fieldLabel(context),
                       textAlign: TextAlign.left,
                     ),
@@ -255,7 +259,7 @@ class _LoggingSettingsViewState extends ConsumerState<LoggingSettingsView> {
                   controller: fileLocationController,
                   style: STextStyles.field(context),
                   decoration: InputDecoration(
-                    hintText: "Save to...",
+                    hintText: l10n.logsSaveTo,
                     hintStyle: STextStyles.fieldLabel(context),
                     suffixIcon: UnconstrainedBox(
                       child: Row(
@@ -292,8 +296,7 @@ class _LoggingSettingsViewState extends ConsumerState<LoggingSettingsView> {
                     Expanded(
                       child: RoundedWhiteContainer(
                         child: Text(
-                          "NOTE: ${AppConfig.appName} must be restarted in order"
-                          " for changes to take effect.",
+                          l10n.logsRestartNote(AppConfig.appName),
                           style: STextStyles.subtitle500(context),
                         ),
                       ),
@@ -305,17 +308,17 @@ class _LoggingSettingsViewState extends ConsumerState<LoggingSettingsView> {
 
                 if (Platform.isAndroid) ...[
                   SecondaryButton(
-                    label: "Share logs",
+                    label: l10n.logsShare,
                     onPressed: () => _androidExportLogs(save: false),
                   ),
                   const SizedBox(height: 16),
                   PrimaryButton(
-                    label: "Save logs to a file",
+                    label: l10n.logsSaveToFile,
                     onPressed: () => _androidExportLogs(save: true),
                   ),
                 ] else
                   PrimaryButton(
-                    label: "Select log save location",
+                    label: l10n.logsSelectLocation,
                     onPressed: () async {
                       if (_lock) {
                         return;
@@ -334,7 +337,7 @@ class _LoggingSettingsViewState extends ConsumerState<LoggingSettingsView> {
                           if (e.toString().contains(
                             "OS Error: Operation not permitted",
                           )) {
-                            err = "Cannot use chosen location";
+                            err = l10n.logsCannotUseLocation;
                           } else {
                             err = e.toString();
                           }
@@ -343,7 +346,7 @@ class _LoggingSettingsViewState extends ConsumerState<LoggingSettingsView> {
                             showDialog(
                               context: context,
                               builder: (context) => StackOkDialog(
-                                title: "Failed to change logs path",
+                                title: l10n.logsChangePathFailed,
                                 message: err,
                               ),
                             ),

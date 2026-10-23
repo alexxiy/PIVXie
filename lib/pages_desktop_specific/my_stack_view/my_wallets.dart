@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app_config.dart';
+import '../../l10n/l10n.dart';
 import '../../pages/wallets_view/wallets_overview.dart';
 import '../../providers/providers.dart';
 import '../../themes/stack_colors.dart';
@@ -50,7 +51,7 @@ class _MyWalletsState extends ConsumerState<MyWallets> {
             child: Row(
               children: [
                 Text(
-                  "All wallets",
+                  l10n.walletsAll,
                   style: STextStyles.desktopTextExtraSmall(context).copyWith(
                     color: Theme.of(context)
                         .extension<StackColors>()!
@@ -59,7 +60,7 @@ class _MyWalletsState extends ConsumerState<MyWallets> {
                 ),
                 const Spacer(),
                 CustomTextButton(
-                  text: "Add new wallet",
+                  text: l10n.walletsAddNew,
                   onTap: () => pushAddWallet(context, ref, rootNavigator: true),
                 ),
               ],

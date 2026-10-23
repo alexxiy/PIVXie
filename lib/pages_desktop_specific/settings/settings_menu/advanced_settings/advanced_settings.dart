@@ -13,6 +13,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../../../app_config.dart';
+import '../../../../l10n/l10n.dart';
 import '../../../../pages/settings_views/global_settings_view/advanced_views/manage_coin_units/edit_coin_units_view.dart';
 import '../../../../pages/settings_views/global_settings_view/advanced_views/manage_coin_units/manage_coin_units_view.dart';
 import '../../../../providers/global/prefs_provider.dart';
@@ -68,11 +69,11 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                           text: TextSpan(
                             children: [
                               TextSpan(
-                                text: "Advanced",
+                                text: l10n.commonAdvanced,
                                 style: STextStyles.desktopTextSmall(context),
                               ),
                               TextSpan(
-                                text: "\n\nConfigure these settings only if you know what you are doing!",
+                                text: "\n\n${l10n.advancedText}",
                                 style: STextStyles.desktopTextExtraExtraSmall(
                                   context,
                                 ),
@@ -91,7 +92,7 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              "Show testnet coins",
+                              l10n.advancedShowTestnet,
                               style: STextStyles.desktopTextExtraSmall(context)
                                   .copyWith(
                                     color: Theme.of(context)
@@ -130,7 +131,7 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              "Enable coin control",
+                              l10n.advancedEnableCoinControl,
                               style: STextStyles.desktopTextExtraSmall(context)
                                   .copyWith(
                                     color: Theme.of(context)
@@ -181,7 +182,7 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      "${AppConfig.prefix} Experience",
+                                      l10n.advancedExperience(AppConfig.prefix),
                                       style:
                                           STextStyles.desktopTextExtraSmall(
                                             context,
@@ -194,8 +195,8 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                                     ),
                                     Text(
                                       externalCalls
-                                          ? "Easy crypto"
-                                          : "Incognito",
+                                          ? l10n.advancedEasyCrypto
+                                          : l10n.privacyIncognito,
                                       style:
                                           STextStyles.desktopTextExtraExtraSmall(
                                             context,
@@ -204,7 +205,7 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                                   ],
                                 ),
                                 PrimaryButton(
-                                  label: "Change",
+                                  label: l10n.commonChange,
                                   buttonHeight: ButtonHeight.xs,
                                   width: 101,
                                   onPressed: () async {
@@ -235,7 +236,7 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          "Change block explorer",
+                          l10n.explorerChange,
                           style: STextStyles.desktopTextExtraSmall(context)
                               .copyWith(
                                 color: Theme.of(context)
@@ -246,7 +247,7 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                         ),
                         PrimaryButton(
                           buttonHeight: ButtonHeight.xs,
-                          label: "Edit",
+                          label: l10n.commonEdit,
                           width: 101,
                           onPressed: () async {
                             await showDialog<dynamic>(
@@ -281,7 +282,7 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          "Units",
+                          l10n.unitsTitle,
                           style: STextStyles.desktopTextExtraSmall(context)
                               .copyWith(
                                 color: Theme.of(context)
@@ -292,7 +293,7 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                         ),
                         PrimaryButton(
                           buttonHeight: ButtonHeight.xs,
-                          label: "Edit",
+                          label: l10n.commonEdit,
                           width: 101,
                           onPressed: () async {
                             await showDialog<dynamic>(
@@ -325,7 +326,7 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          "Logging",
+                          l10n.settingsLogging,
                           style: STextStyles.desktopTextExtraSmall(context)
                               .copyWith(
                                 color: Theme.of(context)
@@ -336,7 +337,7 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                         ),
                         PrimaryButton(
                           buttonHeight: ButtonHeight.xs,
-                          label: "View",
+                          label: l10n.commonView,
                           width: 101,
                           onPressed: () async {
                             await showDialog<dynamic>(

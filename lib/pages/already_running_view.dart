@@ -16,6 +16,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../app_config.dart';
+import '../l10n/l10n.dart';
 import '../themes/stack_colors.dart';
 import '../themes/theme_providers.dart';
 import '../themes/theme_service.dart';
@@ -63,6 +64,10 @@ class _AlreadyRunningAppState extends ConsumerState<AlreadyRunningApp> {
         fontFamily: GoogleFonts.inter().fontFamily,
         splashColor: Colors.transparent,
       ),
+      // No prefs here: the device's language.
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      builder: (context, child) => L10nRoot(child: child!),
       home: const AlreadyRunningView(),
     );
   }
@@ -76,9 +81,7 @@ class _AlreadyRunningAppState extends ConsumerState<AlreadyRunningApp> {
 class AlreadyRunningView extends ConsumerWidget {
   const AlreadyRunningView({super.key});
 
-  static const _errorMessage =
-      "${AppConfig.appName} is already running.  "
-      "Close the other window and try again.";
+  static String get _errorMessage => l10n.appAlreadyRunning(AppConfig.appName);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {

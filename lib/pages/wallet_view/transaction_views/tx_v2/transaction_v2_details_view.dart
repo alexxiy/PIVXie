@@ -17,6 +17,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:tuple/tuple.dart';
 
+import '../../../../l10n/l10n.dart';
 import '../../../../models/isar/models/blockchain_data/transaction_type.dart';
 import '../../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../../providers/global/address_book_service_provider.dart';
@@ -219,12 +220,12 @@ class _TransactionV2DetailsViewState
 
     if (_transaction.type == TransactionType.incoming) {
       if (data.length == 1 && data.first.addresses.length == 1) {
-        outputLabel = "Receiving address";
+        outputLabel = l10n.txReceivingAddress;
       } else {
-        outputLabel = "Receiving addresses";
+        outputLabel = l10n.txReceivingAddresses;
       }
     } else {
-      outputLabel = "Sent to";
+      outputLabel = l10n.txSentTo;
     }
 
     Decimal? price;
@@ -267,7 +268,7 @@ class _TransactionV2DetailsViewState
                   },
                 ),
                 title: Text(
-                  "Transaction details",
+                  l10n.txDetails,
                   style: STextStyles.navBarTitle(context),
                 ),
               ),
@@ -286,7 +287,7 @@ class _TransactionV2DetailsViewState
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        "Transaction details",
+                        l10n.txDetails,
                         style: STextStyles.desktopH3(context),
                       ),
                       const DesktopDialogCloseButton(),
@@ -343,7 +344,7 @@ class _TransactionV2DetailsViewState
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Text("Status", style: labelStyle),
+                                    Text(l10n.mnStatus, style: labelStyle),
                                     SelectableText(
                                       whatIsIt(_transaction, currentHeight),
                                       style: isDesktop
@@ -376,7 +377,7 @@ class _TransactionV2DetailsViewState
                                     ? const _Divider()
                                     : const SizedBox(height: 12),
                                 _DetailItem(
-                                  label: "Cold staking reward",
+                                  label: l10n.txColdStakingReward,
                                   detail: ref
                                       .watch(pAmountFormatter(coin))
                                       .format(amount - _alsoPart!),
@@ -589,8 +590,8 @@ class _TransactionV2DetailsViewState
                                           children: [
                                             Text(
                                               coin is Pivx
-                                                  ? "Shielded memo"
-                                                  : "On chain note",
+                                                  ? l10n.pivxNamesShieldedMemo
+                                                  : l10n.txOnChainNote,
                                               style: labelStyle,
                                             ),
                                             const SizedBox(height: 8),
@@ -622,7 +623,10 @@ class _TransactionV2DetailsViewState
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Text("Note ", style: labelStyle),
+                                        Text(
+                                          "${l10n.sendNote} ",
+                                          style: labelStyle,
+                                        ),
                                         isDesktop
                                             ? IconPencilButton(
                                                 onPressed: () {
@@ -667,7 +671,7 @@ class _TransactionV2DetailsViewState
                                                     ),
                                                     const SizedBox(width: 4),
                                                     Text(
-                                                      "Edit",
+                                                      l10n.commonEdit,
                                                       style: STextStyles.link2(
                                                         context,
                                                       ),
@@ -709,7 +713,7 @@ class _TransactionV2DetailsViewState
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        Text("Date", style: labelStyle),
+                                        Text(l10n.txDate, style: labelStyle),
                                         if (isDesktop)
                                           const SizedBox(height: 2),
                                         if (isDesktop)
@@ -757,7 +761,7 @@ class _TransactionV2DetailsViewState
                                                       pAmountFormatter(coin),
                                                     )
                                                     .format(fee)
-                                              : "Pending"
+                                              : l10n.txPending
                                         : ref
                                               .watch(pAmountFormatter(coin))
                                               .format(fee);
@@ -773,7 +777,7 @@ class _TransactionV2DetailsViewState
                                               CrossAxisAlignment.start,
                                           children: [
                                             Text(
-                                              "Transaction fee",
+                                              l10n.sendTransactionFee,
                                               style: labelStyle,
                                             ),
                                             if (isDesktop)
@@ -813,13 +817,13 @@ class _TransactionV2DetailsViewState
                                     coin.minCoinbaseConfirms,
                                   );
                                   if (confirmed) {
-                                    height =
-                                        "${_transaction.height == 0 ? "Unknow"
-                                                  "n" : _transaction.height}";
+                                    height = _transaction.height == 0
+                                        ? l10n.mnStatusUnknown
+                                        : "${_transaction.height}";
                                   } else {
                                     height = confirms > 0
                                         ? "${_transaction.height}"
-                                        : "Pending";
+                                        : l10n.txPending;
                                   }
 
                                   // Rewards (coinbase / coinstake) can be
@@ -848,7 +852,7 @@ class _TransactionV2DetailsViewState
                                                   CrossAxisAlignment.start,
                                               children: [
                                                 Text(
-                                                  "Block height",
+                                                  l10n.txBlockHeight,
                                                   style: labelStyle,
                                                 ),
                                                 if (isDesktop)
@@ -888,7 +892,7 @@ class _TransactionV2DetailsViewState
                                                   CrossAxisAlignment.start,
                                               children: [
                                                 Text(
-                                                  "Confirmations",
+                                                  l10n.txConfirmations,
                                                   style: labelStyle,
                                                 ),
                                                 if (isDesktop)
@@ -922,7 +926,7 @@ class _TransactionV2DetailsViewState
                                     : const SizedBox(height: 12),
                               if (_transaction.memo != null)
                                 _DetailItem(
-                                  label: "Memo",
+                                  label: l10n.commonMemo,
                                   detail: _transaction.memo!,
                                 ),
                               if (kDebugMode)
@@ -931,7 +935,7 @@ class _TransactionV2DetailsViewState
                                     : const SizedBox(height: 12),
                               if (kDebugMode)
                                 _DetailItem(
-                                  label: "Tx sub type",
+                                  label: l10n.txSubType,
                                   detail: _transaction.subType.toString(),
                                 ),
 
@@ -991,13 +995,13 @@ class OutputCard extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          owner == null ? "Address" : "Cold staking address",
+          owner == null ? l10n.commonAddress : l10n.txColdStakingAddress,
           style: labelStyle,
         ),
         SelectableText(address, style: valueStyle),
         if (owner != null) ...[
           const SizedBox(height: 10),
-          Text("Owner address", style: labelStyle),
+          Text(l10n.csOwnerAddress, style: labelStyle),
           SelectableText(owner!, style: valueStyle),
         ],
         const SizedBox(height: 10),
@@ -1005,7 +1009,7 @@ class OutputCard extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              "Amount",
+              l10n.commonAmount,
               style: Util.isDesktop
                   ? STextStyles.desktopTextExtraExtraSmall(context)
                   : STextStyles.itemSubtitle(context),
@@ -1042,17 +1046,19 @@ class _PivxTxParts extends StatelessWidget {
     // each.
     String where(List<String> addresses, {bool shield = false}) {
       final text = addresses.where((e) => e.isNotEmpty).join("\n");
-      return text.isNotEmpty ? text : (shield ? "Shielded" : "Unknown");
+      return text.isNotEmpty
+          ? text
+          : (shield ? l10n.txShielded : l10n.mnStatusUnknown);
     }
 
     final inputs = [
       for (final i in transaction.inputs)
         (
           address: i.coinbase != null
-              ? "New coins"
+              ? l10n.txNewCoins
               : where(i.addresses, shield: i.outpoint == null),
           value: i.value,
-          tag: i.walletOwns ? "Yours" : null,
+          tag: i.walletOwns ? l10n.pivxNamesYours : null,
         ),
     ];
     final outputs = [
@@ -1068,19 +1074,19 @@ class _PivxTxParts extends StatelessWidget {
             tag: !o.walletOwns
                 ? null
                 : pivxIsColdStakeScript(o.scriptPubKeyHex)
-                ? "Delegated"
+                ? l10n.csDelegated
                 : o.addresses.any(change.contains)
-                ? "Change"
-                : "Yours",
+                ? l10n.txChange
+                : l10n.pivxNamesYours,
           ),
     ];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _PivxPartList(title: "Inputs", entries: inputs, coin: coin),
+        _PivxPartList(title: l10n.txInputs, entries: inputs, coin: coin),
         Util.isDesktop ? const _Divider() : const SizedBox(height: 12),
-        _PivxPartList(title: "Outputs", entries: outputs, coin: coin),
+        _PivxPartList(title: l10n.txOutputs, entries: outputs, coin: coin),
       ],
     );
   }
@@ -1307,7 +1313,7 @@ class _TxidDetailItemState extends ConsumerState<_TxidDetailItem> {
                     ],
                   ),
                   child: Text(
-                    "Transaction ID",
+                    l10n.commonTransactionId,
                     style: isDesktop
                         ? STextStyles.desktopTextExtraExtraSmall(context)
                         : STextStyles.itemSubtitle(context),
@@ -1328,7 +1334,7 @@ class _TxidDetailItemState extends ConsumerState<_TxidDetailItem> {
                 ),
                 const SizedBox(height: 8),
                 CustomTextButton(
-                  text: "Open in block explorer",
+                  text: l10n.txOpenInExplorer,
                   onTap: () => openInBlockExplorer(
                     context,
                     ref,

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import '../services/event_bus/events/global/refresh_percent_changed_event.dart';
 import '../services/event_bus/global_event_bus.dart';
 import '../themes/stack_colors.dart';
+import '../utilities/format.dart';
 import '../utilities/text_styles.dart';
 import '../utilities/util.dart';
 
@@ -61,7 +62,7 @@ class _WalletSyncProgressState extends State<WalletSyncProgress> {
         ),
         const SizedBox(height: 6),
         Text(
-          "${(percent * 100).floor()} %",
+          Format.percent((percent * 100).floorToDouble(), decimals: 0),
           textAlign: TextAlign.right,
           style: Util.isDesktop
               ? STextStyles.desktopTextExtraExtraSmall(context)

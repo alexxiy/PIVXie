@@ -9,6 +9,7 @@
  */
 
 import 'package:flutter/cupertino.dart';
+import '../../../l10n/l10n.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../widgets/rounded_white_container.dart';
 
@@ -24,7 +25,7 @@ class NoTransActionsFound extends StatelessWidget {
           child: FittedBox(
             fit: BoxFit.scaleDown,
             child: Text(
-              "Transactions will appear here",
+              l10n.walletTransactionsPlaceholder,
               style: STextStyles.itemSubtitle(context),
             ),
           ),

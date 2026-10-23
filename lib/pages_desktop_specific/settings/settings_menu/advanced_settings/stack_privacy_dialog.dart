@@ -14,6 +14,7 @@ import 'package:flutter_svg/svg.dart';
 
 import '../../../../app_config.dart';
 import '../../../../db/hive/db.dart';
+import '../../../../l10n/l10n.dart';
 import '../../../../providers/global/prefs_provider.dart';
 import '../../../../providers/global/price_provider.dart';
 import '../../../../themes/stack_colors.dart';
@@ -65,7 +66,7 @@ class _StackPrivacyDialog extends ConsumerState<StackPrivacyDialog> {
               Padding(
                 padding: const EdgeInsets.all(32),
                 child: Text(
-                  "Choose Your ${AppConfig.prefix} Experience",
+                  l10n.privacyChooseExperience(AppConfig.prefix),
                   style: STextStyles.desktopH3(context),
                   textAlign: TextAlign.center,
                 ),
@@ -101,11 +102,9 @@ class _StackPrivacyDialog extends ConsumerState<StackPrivacyDialog> {
                         : STextStyles.label(context).copyWith(fontSize: 12.0),
                     children: infoToggle
                         ? [
-                            const TextSpan(
-                              text: "CoinGecko enabled: (24 hour price change shown in-app, total wallet value shown in USD or other currency).",
-                            ),
+                            TextSpan(text: l10n.privacyEasyText),
                             TextSpan(
-                              text: "\n\nRecommended for most crypto users.",
+                              text: "\n\n${l10n.privacyEasyRecommended}",
                               style: isDesktop
                                   ? STextStyles.desktopTextExtraExtraSmall600(
                                       context,
@@ -119,12 +118,9 @@ class _StackPrivacyDialog extends ConsumerState<StackPrivacyDialog> {
                             ),
                           ]
                         : [
-                            const TextSpan(
-                              text: "CoinGecko disabled (price changes not shown, no wallet value shown in other currencies).",
-                            ),
+                            TextSpan(text: l10n.privacyIncognitoText),
                             TextSpan(
-                              text:
-                                  "\n\nRecommended for the privacy conscious.",
+                              text: "\n\n${l10n.privacyIncognitoRecommended}",
                               style: isDesktop
                                   ? STextStyles.desktopTextExtraExtraSmall600(
                                       context,
@@ -149,7 +145,7 @@ class _StackPrivacyDialog extends ConsumerState<StackPrivacyDialog> {
               children: [
                 Expanded(
                   child: SecondaryButton(
-                    label: "Cancel",
+                    label: l10n.commonCancel,
                     onPressed: () {
                       Navigator.of(context).pop();
                     },
@@ -158,7 +154,7 @@ class _StackPrivacyDialog extends ConsumerState<StackPrivacyDialog> {
                 const SizedBox(width: 16),
                 Expanded(
                   child: PrimaryButton(
-                    label: "Save",
+                    label: l10n.commonSave,
                     onPressed: () {
                       ref.read(prefsChangeNotifierProvider).externalCalls =
                           isEasy;
@@ -265,7 +261,7 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                       if (isDesktop) const SizedBox(height: 12),
                       Center(
                         child: Text(
-                          "Easy Crypto",
+                          l10n.privacyEasy,
                           style: isDesktop
                               ? STextStyles.desktopTextSmall(context)
                               : STextStyles.label700(context),
@@ -273,7 +269,7 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                       ),
                       Center(
                         child: Text(
-                          "Recommended",
+                          l10n.privacyRecommended,
                           style: isDesktop
                               ? STextStyles.desktopTextExtraExtraSmall(context)
                               : STextStyles.label(context),
@@ -358,7 +354,7 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                       if (isDesktop) const SizedBox(height: 12),
                       Center(
                         child: Text(
-                          "Incognito",
+                          l10n.privacyIncognito,
                           style: isDesktop
                               ? STextStyles.desktopTextSmall(context)
                               : STextStyles.label700(context),
@@ -366,7 +362,7 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                       ),
                       Center(
                         child: Text(
-                          "Privacy conscious",
+                          l10n.privacyConscious,
                           style: isDesktop
                               ? STextStyles.desktopTextExtraExtraSmall(context)
                               : STextStyles.label(context),

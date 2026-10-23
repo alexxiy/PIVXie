@@ -20,6 +20,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stack_wallet_backup/stack_wallet_backup.dart';
 
 import '../../../../app_config.dart';
+import '../../../../l10n/l10n.dart';
 import '../../../../pages/settings_views/global_settings_view/stack_backup_views/helpers/restore_create_backup.dart';
 import '../../../../pages/settings_views/global_settings_view/stack_backup_views/helpers/swb_file_system.dart';
 import '../../../../providers/global/prefs_provider.dart';
@@ -137,8 +138,8 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
           return fileToSavePath;
         }(),
         context: context,
-        message: "Encrypting initial backup",
-        subMessage: "This shouldn't take long",
+        message: l10n.backupEncryptingInitial,
+        subMessage: l10n.backupShouldntTakeLong,
         delay: const Duration(seconds: 1),
         onException: (e) => ex = e,
       );
@@ -172,7 +173,7 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            "${AppConfig.prefix} Auto Backup enabled!",
+                            l10n.backupAutoEnabled(AppConfig.prefix),
                             style: STextStyles.desktopH3(context),
                           ),
                           const DesktopDialogCloseButton(),
@@ -184,7 +185,7 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                           const Spacer(),
                           Expanded(
                             child: PrimaryButton(
-                              label: "Ok",
+                              label: l10n.commonOk,
                               buttonHeight: ButtonHeight.l,
                               onPressed: () {
                                 Navigator.of(context).pop();
@@ -210,7 +211,7 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
             context: context,
             barrierDismissible: false,
             builder: (_) => StackOkDialog(
-              title: "Failed to enable Auto Backup",
+              title: l10n.backupEnableAutoFailed,
               message: ex?.toString(),
             ),
           );
@@ -276,7 +277,7 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
               Padding(
                 padding: const EdgeInsets.all(32),
                 child: Text(
-                  "Create auto backup",
+                  l10n.backupCreateAuto,
                   style: STextStyles.desktopH3(context),
                   textAlign: TextAlign.center,
                 ),
@@ -289,7 +290,7 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
             alignment: Alignment.centerLeft,
             padding: const EdgeInsets.only(left: 32),
             child: Text(
-              "Choose file location",
+              l10n.backupChooseLocation,
               style: STextStyles.desktopTextExtraSmall(context).copyWith(
                 color: Theme.of(context).extension<StackColors>()!.textDark3,
               ),
@@ -337,7 +338,7 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                           controller: fileLocationController,
                           style: STextStyles.field(context),
                           decoration: InputDecoration(
-                            hintText: "Save to...",
+                            hintText: l10n.logsSaveTo,
                             hintStyle: STextStyles.fieldLabel(context),
                             suffixIcon: UnconstrainedBox(
                               child: Row(
@@ -376,7 +377,7 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                   Padding(
                     padding: const EdgeInsets.only(bottom: 10.0),
                     child: Text(
-                      "Create a passphrase",
+                      l10n.backupCreateAPassphrase,
                       style: STextStyles.desktopTextExtraSmall(context)
                           .copyWith(
                             color: Theme.of(context)
@@ -400,7 +401,7 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                     autocorrect: false,
                     decoration:
                         standardInputDecoration(
-                          "Create passphrase",
+                          l10n.backupCreatePassphrase,
                           passphraseFocusNode,
                           context,
                         ).copyWith(
@@ -508,7 +509,7 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                     autocorrect: false,
                     decoration:
                         standardInputDecoration(
-                          "Confirm passphrase",
+                          l10n.backupConfirmPassphrase,
                           passphraseRepeatFocusNode,
                           context,
                         ).copyWith(
@@ -556,7 +557,7 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
             alignment: Alignment.centerLeft,
             padding: const EdgeInsets.only(left: 32),
             child: Text(
-              "Auto Backup frequency",
+              l10n.backupAutoFrequency,
               style: STextStyles.desktopTextExtraSmall(context).copyWith(
                 color: Theme.of(context).extension<StackColors>()!.textDark3,
               ),
@@ -576,13 +577,13 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                           String message = "";
                           switch (e) {
                             case BackupFrequencyType.everyTenMinutes:
-                              message = "Every 10 minutes";
+                              message = l10n.backupEveryTenMinutes;
                               break;
                             case BackupFrequencyType.everyAppStart:
-                              message = "Every app startup";
+                              message = l10n.backupEveryAppStartup;
                               break;
                             case BackupFrequencyType.afterClosingAWallet:
-                              message = "After closing a cryptocurrency wallet";
+                              message = l10n.backupAfterClosingWallet;
                               break;
                           }
 
@@ -652,7 +653,7 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
               children: [
                 Expanded(
                   child: SecondaryButton(
-                    label: "Cancel",
+                    label: l10n.commonCancel,
                     buttonHeight: ButtonHeight.l,
                     onPressed: Navigator.of(context).pop,
                   ),
@@ -661,7 +662,7 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                 Expanded(
                   child: PrimaryButton(
                     buttonHeight: ButtonHeight.l,
-                    label: "Enable Auto Backup",
+                    label: l10n.backupEnableAuto,
                     enabled: shouldEnableCreate,
                     onPressed: !shouldEnableCreate ? null : _enableAutoBackup,
                   ),

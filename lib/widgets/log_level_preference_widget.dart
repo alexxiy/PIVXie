@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logger/logger.dart';
 
+import '../l10n/l10n.dart';
 import '../providers/global/prefs_provider.dart';
 import '../themes/stack_colors.dart';
 import '../utilities/extensions/extensions.dart';
@@ -46,7 +47,7 @@ class _LogLevelPreferenceWidgetState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "Current level: ${current.name.capitalize()}",
+          l10n.logLevelCurrent(current.name.capitalize()),
           style: Util.isDesktop
               ? STextStyles.desktopTextFieldLabel(context)
               : STextStyles.fieldLabel(context),
@@ -73,83 +74,21 @@ class _LogLevelPreferenceWidgetState
                   Theme.of(context).extension<StackColors>()!.warningBackground,
               child: SelectableText.rich(
                 TextSpan(
-                  text: "Privacy Warning: ",
-                  style: STextStyles.label700(context).copyWith(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .warningForeground,
-                    fontSize: Util.isDesktop ? 14 : 12,
+                  children: l10nSpans(
+                    l10n.logLevelPrivacyWarning,
+                    style: STextStyles.label(context).copyWith(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .warningForeground,
+                      fontSize: Util.isDesktop ? 14 : 12,
+                    ),
+                    bold: STextStyles.label700(context).copyWith(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .warningForeground,
+                      fontSize: Util.isDesktop ? 14 : 12,
+                    ),
                   ),
-                  children: [
-                    TextSpan(
-                      text: "Selecting ",
-                      style: STextStyles.label(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .warningForeground,
-                        fontSize: Util.isDesktop ? 14 : 12,
-                      ),
-                    ),
-                    TextSpan(
-                      text: "Trace",
-                      style: STextStyles.label700(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .warningForeground,
-                        fontSize: Util.isDesktop ? 14 : 12,
-                      ),
-                    ),
-                    TextSpan(
-                      text: " or ",
-                      style: STextStyles.label(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .warningForeground,
-                        fontSize: Util.isDesktop ? 14 : 12,
-                      ),
-                    ),
-                    TextSpan(
-                      text: "Debug",
-                      style: STextStyles.label700(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .warningForeground,
-                        fontSize: Util.isDesktop ? 14 : 12,
-                      ),
-                    ),
-                    TextSpan(
-                      text: " may log sensitive metadata, such as transaction"
-                          " details, amounts, addresses, or network activity. While ",
-                      style: STextStyles.label(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .warningForeground,
-                        fontSize: Util.isDesktop ? 14 : 12,
-                      ),
-                    ),
-                    TextSpan(
-                      text: "Info",
-                      style: STextStyles.label700(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .warningForeground,
-                        fontSize: Util.isDesktop ? 14 : 12,
-                      ),
-                    ),
-                    TextSpan(
-                      text: " logs are less likely to contain sensitive data, "
-                          "they may still include some. No private keys, "
-                          "mnemonics, or credentials will ever be logged, but "
-                          "enabling these levels could expose information that "
-                          "might compromise privacy if accessed by unauthorized parties.",
-                      style: STextStyles.label(context).copyWith(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .warningForeground,
-                        fontSize: Util.isDesktop ? 14 : 12,
-                      ),
-                    ),
-                  ],
                 ),
               ),
             ),

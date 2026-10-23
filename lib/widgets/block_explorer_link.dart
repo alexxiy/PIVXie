@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../l10n/l10n.dart';
 import '../providers/providers.dart';
 import '../themes/stack_colors.dart';
 import '../utilities/text_styles.dart';
@@ -11,14 +12,13 @@ import 'desktop/primary_button.dart';
 import 'desktop/secondary_button.dart';
 import 'stack_dialog.dart';
 
-/// Opens [uri], a block explorer page of a transaction or an address
-/// ([what]), in the browser: after the privacy warning, unless the user
-/// turned it off.
+/// Opens [uri], a block explorer page of a transaction (or an [address]),
+/// in the browser: after the privacy warning, unless the user turned it off.
 Future<void> openInBlockExplorer(
   BuildContext context,
   WidgetRef ref,
   Uri uri, {
-  String what = "transaction",
+  bool address = false,
 }) async {
   if (!ref.read(prefsChangeNotifierProvider).hideBlockExplorerWarning) {
     final shouldContinue = await showDialog<bool>(
@@ -26,7 +26,7 @@ Future<void> openInBlockExplorer(
       barrierDismissible: false,
       builder: (_) => _ExplorerWarning(
         explorer: "${uri.scheme}://${uri.host}",
-        what: what,
+        address: address,
       ),
     );
     if (shouldContinue != true || !context.mounted) return;
@@ -40,8 +40,8 @@ Future<void> openInBlockExplorer(
     await showDialog<void>(
       context: context,
       builder: (_) => StackOkDialog(
-        title: "Could not open in block explorer",
-        message: "Failed to open \"$uri\"",
+        title: l10n.blockExplorerOpenFailedTitle,
+        message: l10n.blockExplorerOpenFailed(uri.toString()),
         maxWidth: Util.isDesktop ? 400 : null,
       ),
     );
@@ -49,10 +49,10 @@ Future<void> openInBlockExplorer(
 }
 
 class _ExplorerWarning extends ConsumerWidget {
-  const _ExplorerWarning({required this.explorer, required this.what});
+  const _ExplorerWarning({required this.explorer, required this.address});
 
   final String explorer;
-  final String what;
+  final bool address;
 
   Widget _neverAgain(BuildContext context, WidgetRef ref) => Row(
     mainAxisSize: MainAxisSize.min,
@@ -70,30 +70,31 @@ class _ExplorerWarning extends ConsumerWidget {
           }
         },
       ),
-      Text("Never show again", style: STextStyles.smallMed14(context)),
+      Text(l10n.commonNeverShowAgain, style: STextStyles.smallMed14(context)),
     ],
   );
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final outsideTor = ref.read(prefsChangeNotifierProvider).useTor
-        ? "\n\nYour browser opens it outside of Tor."
+        ? "\n\n${l10n.blockExplorerOutsideTor}"
         : "";
     final message =
-        "You are about to view this $what in a block explorer. The "
-        "explorer may log your IP address and link it to the $what. "
-        "Only proceed if you trust $explorer.$outsideTor";
+        (address
+            ? l10n.blockExplorerWarningAddress(explorer)
+            : l10n.blockExplorerWarningTransaction(explorer)) +
+        outsideTor;
 
     if (!Util.isDesktop) {
       final colors = Theme.of(context).extension<StackColors>()!;
       return StackDialog(
-        title: "Attention",
+        title: l10n.commonAttention,
         message: message,
         icon: _neverAgain(context, ref),
         leftButton: TextButton(
           onPressed: () => Navigator.of(context).pop(false),
           child: Text(
-            "Cancel",
+            l10n.commonCancel,
             style: STextStyles.button(
               context,
             ).copyWith(color: colors.accentColorDark),
@@ -102,7 +103,7 @@ class _ExplorerWarning extends ConsumerWidget {
         rightButton: TextButton(
           style: colors.getPrimaryEnabledButtonStyle(context),
           onPressed: () => Navigator.of(context).pop(true),
-          child: Text("Continue", style: STextStyles.button(context)),
+          child: Text(l10n.commonContinue, style: STextStyles.button(context)),
         ),
       );
     }
@@ -117,7 +118,7 @@ class _ExplorerWarning extends ConsumerWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text("Attention", style: STextStyles.desktopH2(context)),
+                Text(l10n.commonAttention, style: STextStyles.desktopH2(context)),
                 _neverAgain(context, ref),
               ],
             ),
@@ -130,7 +131,7 @@ class _ExplorerWarning extends ConsumerWidget {
                 SecondaryButton(
                   width: 200,
                   buttonHeight: ButtonHeight.l,
-                  label: "Cancel",
+                  label: l10n.commonCancel,
                   onPressed: () =>
                       Navigator.of(context, rootNavigator: true).pop(false),
                 ),
@@ -138,7 +139,7 @@ class _ExplorerWarning extends ConsumerWidget {
                 PrimaryButton(
                   width: 200,
                   buttonHeight: ButtonHeight.l,
-                  label: "Continue",
+                  label: l10n.commonContinue,
                   onPressed: () =>
                       Navigator.of(context, rootNavigator: true).pop(true),
                 ),

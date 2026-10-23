@@ -8,19 +8,21 @@
  *
  */
 
+import '../../l10n/l10n.dart';
+
 enum FeeRateType { fast, average, slow, custom }
 
 extension FeeRateTypeExt on FeeRateType {
   String get prettyName {
     switch (this) {
       case FeeRateType.fast:
-        return "Fast";
+        return l10n.feeFast;
       case FeeRateType.average:
-        return "Average";
+        return l10n.feeAverage;
       case FeeRateType.slow:
-        return "Slow";
+        return l10n.feeSlow;
       case FeeRateType.custom:
-        return "Custom";
+        return l10n.feeCustom;
     }
   }
 }

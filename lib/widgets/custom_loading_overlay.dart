@@ -14,6 +14,7 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../themes/stack_colors.dart';
+import '../utilities/format.dart';
 import '../utilities/text_styles.dart';
 import '../utilities/util.dart';
 import 'conditional_parent.dart';
@@ -120,7 +121,7 @@ class _CustomLoadingOverlayState extends ConsumerState<CustomLoadingOverlay> {
               ),
             if (widget.eventBus != null)
               Text(
-                "${(_percent * 100).toStringAsFixed(2)}%",
+                Format.percent(_percent * 100),
                 style: STextStyles.pageTitleH2(context).copyWith(
                   color: widget.textColor ??
                       Theme.of(context)

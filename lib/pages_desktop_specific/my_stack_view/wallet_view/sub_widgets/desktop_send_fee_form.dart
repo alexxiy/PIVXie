@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../l10n/l10n.dart';
 import '../../../../models/isar/models/blockchain_data/utxo.dart';
 import '../../../../pages/send_view/sub_widgets/transaction_fee_selection_sheet.dart';
 import '../../../../providers/providers.dart';
@@ -33,11 +34,11 @@ class DesktopSendFeeForm extends ConsumerWidget {
   final bool subtractFee;
   final Set<UTXO> selected;
 
-  static const _stringsToLoopThrough = [
-    "Calculating",
-    "Calculating.",
-    "Calculating..",
-    "Calculating...",
+  static List<String> get _stringsToLoopThrough => [
+    l10n.commonCalculating,
+    "${l10n.commonCalculating}.",
+    "${l10n.commonCalculating}..",
+    "${l10n.commonCalculating}...",
   ];
 
   Future<Amount> _fee(WidgetRef ref, Amount amount) async {
@@ -70,7 +71,7 @@ class DesktopSendFeeForm extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "Network fee (estimated)",
+          l10n.sendNetworkFeeEstimated,
           style: STextStyles.desktopTextExtraSmall(context)
               .copyWith(color: colors.textFieldActiveSearchIconRight),
           textAlign: TextAlign.left,

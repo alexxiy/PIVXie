@@ -15,6 +15,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:tuple/tuple.dart';
 
+import '../l10n/l10n.dart';
 import '../pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import '../pages/settings_views/global_settings_view/manage_nodes_views/node_details_view.dart';
 import '../providers/global/active_wallet_provider.dart';
@@ -134,7 +135,7 @@ class NodeOptionsSheet extends ConsumerWidget {
                   ),
                   const SizedBox(height: 36),
                   Text(
-                    "Node options",
+                    l10n.nodeOptions,
                     style: STextStyles.pageTitleH2(context),
                     textAlign: TextAlign.left,
                   ),
@@ -186,7 +187,12 @@ class NodeOptionsSheet extends ConsumerWidget {
                               style: STextStyles.titleBold12(context),
                             ),
                             const SizedBox(height: 2),
-                            Text(status, style: STextStyles.label(context)),
+                            Text(
+                              status == "Connected"
+                                  ? l10n.commonConnected
+                                  : l10n.commonDisconnected,
+                              style: STextStyles.label(context),
+                            ),
                           ],
                         ),
                         const Spacer(),
@@ -220,7 +226,7 @@ class NodeOptionsSheet extends ConsumerWidget {
                             );
                           },
                           child: Text(
-                            "Details",
+                            l10n.commonDetails,
                             style: STextStyles.button(context).copyWith(
                               color: Theme.of(context)
                                   .extension<StackColors>()!
@@ -278,7 +284,7 @@ class NodeOptionsSheet extends ConsumerWidget {
                                 },
                           child: Text(
                             // status == "Connected" ? "Disconnect" : "Connect",
-                            "Connect",
+                            l10n.commonConnect,
                             style: STextStyles.button(context),
                           ),
                         ),

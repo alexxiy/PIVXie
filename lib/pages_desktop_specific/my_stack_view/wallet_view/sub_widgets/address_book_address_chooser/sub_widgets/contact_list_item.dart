@@ -11,6 +11,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../../../l10n/l10n.dart';
 import '../../../../../../providers/global/address_book_service_provider.dart';
 import '../../../../../../themes/stack_colors.dart';
 import '../../../../../../utilities/text_styles.dart';
@@ -137,7 +138,7 @@ class _ContactListItemState extends ConsumerState<ContactListItem> {
                               ),
                             ),
                             CustomTextButton(
-                              text: "Use address",
+                              text: l10n.contactUseAddress,
                               onTap: () {
                                 Navigator.of(context).pop(e);
                               },

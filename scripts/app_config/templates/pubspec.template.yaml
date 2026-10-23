@@ -22,6 +22,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
   ffi: ^2.0.1
   mutex: ^3.0.0
 
@@ -180,6 +182,9 @@ dependency_overrides:
 
 # The following section is specific to Flutter.
 flutter:
+  # lib/l10n/app_localizations*.dart from the .arb files (l10n.yaml)
+  generate: true
+
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.

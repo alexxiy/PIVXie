@@ -29,6 +29,7 @@ import 'package:window_size/window_size.dart';
 import 'app_config.dart';
 import 'db/hive/db.dart';
 import 'db/isar/main_db.dart';
+import 'l10n/l10n.dart';
 import 'models/node_model.dart';
 import 'networking/trusted_roots.dart';
 import 'pages/already_running_view.dart';
@@ -52,6 +53,7 @@ import 'themes/theme_providers.dart';
 import 'themes/theme_service.dart';
 import 'utilities/constants.dart';
 import 'utilities/enums/backup_frequency_type.dart';
+import 'utilities/enums/languages_enum.dart';
 import 'utilities/logger.dart';
 import 'utilities/ui_stall_watch.dart';
 import 'utilities/prefs.dart';
@@ -138,13 +140,17 @@ void main(List<String> args) async {
         errorApp = MaterialApp(
           debugShowCheckedModeBanner: false,
           theme: ThemeData(fontFamily: GoogleFonts.inter().fontFamily),
+          // No prefs here: the device's language.
+          supportedLocales: AppLocalizations.supportedLocales,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          builder: (context, child) => L10nRoot(child: child!),
           home: Scaffold(
             body: Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    AppConfig.appName,
+                    l10n.appIsAlreadyRunning(AppConfig.appName),
                     textAlign: TextAlign.center,
                     style: GoogleFonts.inter(
                       fontSize: 20,
@@ -153,8 +159,7 @@ void main(List<String> args) async {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'is already running.\n'
-                    'Close the other window and try again.',
+                    l10n.appCloseOtherWindow,
                     textAlign: TextAlign.center,
                     style: GoogleFonts.inter(fontSize: 16),
                   ),
@@ -551,11 +556,13 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
               showBackButton: true,
               routeOnSuccess: RestoreFromEncryptedStringView.routeName,
               routeOnSuccessArguments: encrypted,
-              biometricsCancelButtonString: "CANCEL",
-              biometricsLocalizedReason:
-                  "Authenticate to restore ${AppConfig.appName} backup",
-              biometricsAuthenticationTitle:
-                  "Restore ${AppConfig.prefix} backup",
+              biometricsCancelButtonString: l10n.commonCancelCaps,
+              biometricsLocalizedReason: l10n.restoreAuthReason(
+                AppConfig.appName,
+              ),
+              biometricsAuthenticationTitle: l10n.restoreAuthTitle(
+                AppConfig.prefix,
+              ),
             ),
             settings: const RouteSettings(name: "/swbrestorelockscreen"),
           ),
@@ -583,12 +590,20 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
     }
 
     final colorScheme = ref.watch(colorProvider);
+    final language = ref.watch(
+      prefsChangeNotifierProvider.select((value) => value.language),
+    );
 
     return MaterialApp(
       key: GlobalKey(),
       navigatorKey: ref.read(pNavKey),
       title: AppConfig.appName,
       onGenerateRoute: RouteGenerator.generateRoute,
+      // null follows the device.
+      locale: Language.fromCode(language)?.locale,
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      builder: (context, child) => L10nRoot(child: child!),
       theme: ThemeData(
         extensions: [colorScheme],
         highlightColor: colorScheme.highlight,
@@ -720,11 +735,13 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
                       isInitialAppLogin: true,
                       routeOnSuccess: HomeView.routeName,
                       routeOnSuccessArguments: startupWalletId,
-                      biometricsAuthenticationTitle:
-                          "Unlock ${AppConfig.prefix}",
-                      biometricsLocalizedReason:
-                          "Unlock your ${AppConfig.appName} using biometrics",
-                      biometricsCancelButtonString: "Cancel",
+                      biometricsAuthenticationTitle: l10n.pinUnlockTitle(
+                        AppConfig.prefix,
+                      ),
+                      biometricsLocalizedReason: l10n.pinUnlockBiometricsReason(
+                        AppConfig.appName,
+                      ),
+                      biometricsCancelButtonString: l10n.commonCancel,
                     );
                   } else {
                     return const IntroView();

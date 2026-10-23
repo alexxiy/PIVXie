@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../l10n/l10n.dart';
 import '../../../pages/settings_views/global_settings_view/support_view.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/text_styles.dart';
@@ -40,7 +41,7 @@ class _DesktopSupportView extends ConsumerState<DesktopSupportView> {
               height: 24,
             ),
             Text(
-              "Support",
+              l10n.settingsSupport,
               style: STextStyles.desktopH3(context),
             ),
           ],

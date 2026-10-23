@@ -14,6 +14,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../app_config.dart';
+import '../../../l10n/l10n.dart';
 import '../../../pages/intro_view.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/git_status.dart';
@@ -38,7 +39,7 @@ class DesktopAboutView extends ConsumerWidget {
         leading: Row(
           children: [
             const SizedBox(width: 24, height: 24),
-            Text("About", style: STextStyles.desktopH3(context)),
+            Text(l10n.settingsAbout, style: STextStyles.desktopH3(context)),
           ],
         ),
       ),
@@ -119,7 +120,7 @@ class DesktopAboutView extends ConsumerWidget {
                                                   CrossAxisAlignment.start,
                                               children: [
                                                 Text(
-                                                  "Version",
+                                                  l10n.aboutVersion,
                                                   style:
                                                       STextStyles.desktopTextExtraExtraSmall(
                                                         context,
@@ -148,7 +149,7 @@ class DesktopAboutView extends ConsumerWidget {
                                                   CrossAxisAlignment.start,
                                               children: [
                                                 Text(
-                                                  "Build number",
+                                                  l10n.aboutBuildNumber,
                                                   style:
                                                       STextStyles.desktopTextExtraExtraSmall(
                                                         context,
@@ -177,7 +178,7 @@ class DesktopAboutView extends ConsumerWidget {
                                                   CrossAxisAlignment.start,
                                               children: [
                                                 Text(
-                                                  "Build commit",
+                                                  l10n.aboutBuildCommit,
                                                   style:
                                                       STextStyles.desktopTextExtraExtraSmall(
                                                         context,
@@ -210,7 +211,7 @@ class DesktopAboutView extends ConsumerWidget {
                                                   CrossAxisAlignment.start,
                                               children: [
                                                 Text(
-                                                  "Build signature",
+                                                  l10n.aboutBuildSignature,
                                                   style:
                                                       STextStyles.desktopTextExtraExtraSmall(
                                                         context,
@@ -240,7 +241,7 @@ class DesktopAboutView extends ConsumerWidget {
                                           Row(
                                             children: [
                                               Text(
-                                                "Website:",
+                                                "${l10n.aboutWebsite}:",
                                                 style:
                                                     STextStyles.desktopTextExtraExtraSmall(
                                                       context,

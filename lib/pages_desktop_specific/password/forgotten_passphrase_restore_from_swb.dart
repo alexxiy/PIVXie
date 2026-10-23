@@ -18,6 +18,7 @@ import 'package:flutter_svg/svg.dart';
 
 import '../../app_config.dart';
 import '../../db/hive/db.dart';
+import '../../l10n/l10n.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../pages/settings_views/global_settings_view/stack_backup_views/helpers/restore_create_backup.dart';
 import '../../pages/settings_views/global_settings_view/stack_backup_views/helpers/swb_file_system.dart';
@@ -70,7 +71,7 @@ class _ForgottenPassphraseRestoreFromSWBState
     if (!(await File(fileToRestore).exists())) {
       await showFloatingFlushBar(
         type: FlushBarType.warning,
-        message: "Backup file does not exist",
+        message: l10n.restoreFileMissing,
         context: context,
       );
       return;
@@ -93,7 +94,7 @@ class _ForgottenPassphraseRestoreFromSWBState
                 color: Colors.transparent,
                 child: Center(
                   child: Text(
-                    "Decrypting ${AppConfig.prefix} backup file",
+                    l10n.restoreDecrypting(AppConfig.prefix),
                     style: STextStyles.pageTitleH2(context).copyWith(
                       color: Theme.of(
                         context,
@@ -128,7 +129,7 @@ class _ForgottenPassphraseRestoreFromSWBState
       if (jsonString == null) {
         await showFloatingFlushBar(
           type: FlushBarType.warning,
-          message: "Failed to decrypt backup file",
+          message: l10n.restoreDecryptFailed,
           context: context,
         );
         return;
@@ -152,7 +153,7 @@ class _ForgottenPassphraseRestoreFromSWBState
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        "Restoring ${AppConfig.appName}",
+                        l10n.restoreRestoringApp(AppConfig.appName),
                         style: STextStyles.desktopH3(context),
                       ),
                     ],
@@ -230,12 +231,12 @@ class _ForgottenPassphraseRestoreFromSWBState
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
-                  "Restore from backup",
+                  l10n.restoreFromBackup,
                   style: STextStyles.desktopH1(context),
                 ),
                 const SizedBox(height: 32),
                 Text(
-                  "Use your ${AppConfig.prefix} backup file to restore your wallets, address book, and wallet preferences.",
+                  l10n.restoreUseBackupFile(AppConfig.prefix),
                   textAlign: TextAlign.center,
                   style: STextStyles.desktopTextSmall(context).copyWith(
                     color: Theme.of(
@@ -270,7 +271,7 @@ class _ForgottenPassphraseRestoreFromSWBState
                         controller: fileLocationController,
                         style: STextStyles.field(context),
                         decoration: InputDecoration(
-                          hintText: "Choose file...",
+                          hintText: l10n.restoreChooseFile,
                           hintStyle: STextStyles.desktopTextFieldLabel(context),
                           suffixIcon: SizedBox(
                             height: 70,
@@ -328,7 +329,7 @@ class _ForgottenPassphraseRestoreFromSWBState
                     autocorrect: false,
                     decoration:
                         standardInputDecoration(
-                          "Enter passphrase",
+                          l10n.restoreEnterPassphrase,
                           passwordFocusNode,
                           context,
                         ).copyWith(
@@ -378,7 +379,7 @@ class _ForgottenPassphraseRestoreFromSWBState
                 ),
                 const SizedBox(height: 24),
                 PrimaryButton(
-                  label: "Restore",
+                  label: l10n.restoreAction,
                   enabled: _enableButton,
                   onPressed: () {
                     restore();

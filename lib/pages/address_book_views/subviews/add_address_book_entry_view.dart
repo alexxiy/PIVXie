@@ -14,6 +14,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:uuid/uuid.dart';
 
+import '../../../l10n/l10n.dart';
 import '../../../models/isar/models/contact_entry.dart';
 import '../../../providers/global/address_book_service_provider.dart';
 import '../../../providers/ui/address_book_providers/address_entry_data_provider.dart';
@@ -173,7 +174,7 @@ class _AddAddressBookEntryViewState
                 },
               ),
               title: Text(
-                widget.contactId == null ? "New contact" : "Edit contact",
+                widget.contactId == null ? l10n.contactNew : l10n.contactEdit,
                 style: STextStyles.navBarTitle(context),
               ),
               actions: [
@@ -232,8 +233,8 @@ class _AddAddressBookEntryViewState
                       children: [
                         Text(
                           widget.contactId == null
-                              ? "New contact"
-                              : "Edit contact",
+                              ? l10n.contactNew
+                              : l10n.contactEdit,
                           style: STextStyles.desktopH3(context),
                           textAlign: TextAlign.center,
                         ),
@@ -413,7 +414,7 @@ class _AddAddressBookEntryViewState
                                         style: STextStyles.field(context),
                                         decoration:
                                             standardInputDecoration(
-                                              "Enter contact name",
+                                              l10n.contactEnterName,
                                               nameFocusNode,
                                               context,
                                             ).copyWith(
@@ -582,7 +583,7 @@ class _AddAddressBookEntryViewState
                                       style: STextStyles.field(context),
                                       decoration:
                                           standardInputDecoration(
-                                            "Enter contact name",
+                                            l10n.contactEnterName,
                                             nameFocusNode,
                                             context,
                                           ).copyWith(
@@ -642,14 +643,14 @@ class _AddAddressBookEntryViewState
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
-                                      "Address ${i + 1}",
+                                      l10n.contactAddressN(i + 1),
                                       style: STextStyles.smallMed12(context),
                                     ),
                                     CustomTextButton(
                                       onTap: () {
                                         _removeForm(forms[i].id);
                                       },
-                                      text: "Remove",
+                                      text: l10n.commonRemove,
                                     ),
                                   ],
                                 ),
@@ -667,7 +668,7 @@ class _AddAddressBookEntryViewState
                               curve: Curves.easeInOut,
                             );
                           },
-                          text: "+ Add another address",
+                          text: l10n.contactAddAnother,
                         ),
                         const SizedBox(height: 16),
                         const Spacer(),
@@ -675,7 +676,7 @@ class _AddAddressBookEntryViewState
                           children: [
                             Expanded(
                               child: SecondaryButton(
-                                label: "Cancel",
+                                label: l10n.commonCancel,
                                 buttonHeight: isDesktop ? ButtonHeight.m : null,
                                 onPressed: () async {
                                   if (!isDesktop &&
@@ -711,7 +712,7 @@ class _AddAddressBookEntryViewState
                                       validForms && nameExists;
 
                                   return PrimaryButton(
-                                    label: "Save",
+                                    label: l10n.commonSave,
                                     buttonHeight: isDesktop
                                         ? ButtonHeight.m
                                         : null,

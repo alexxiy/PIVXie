@@ -15,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tuple/tuple.dart';
 
+import '../../../l10n/l10n.dart';
 import '../../../models/keys/key_data_interface.dart';
 import '../../../models/keys/view_only_wallet_data.dart';
 import '../../../providers/global/wallets_provider.dart';
@@ -105,9 +106,9 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
               routeOnSuccessArguments: (walletId: walletId, keyData: keyData),
               showBackButton: true,
               routeOnSuccess: MobileKeyDataView.routeName,
-              biometricsCancelButtonString: "CANCEL",
-              biometricsLocalizedReason: "Authenticate to view recovery data",
-              biometricsAuthenticationTitle: "View recovery data",
+              biometricsCancelButtonString: l10n.commonCancelCaps,
+              biometricsLocalizedReason: l10n.walletViewRecoveryDataReason,
+              biometricsAuthenticationTitle: l10n.walletViewRecoveryData,
             ),
             settings: const RouteSettings(name: "/viewRecoveryDataLockscreen"),
           ),
@@ -124,9 +125,9 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
               ),
               showBackButton: true,
               routeOnSuccess: WalletBackupView.routeName,
-              biometricsCancelButtonString: "CANCEL",
-              biometricsLocalizedReason: "Authenticate to view recovery phrase",
-              biometricsAuthenticationTitle: "View recovery phrase",
+              biometricsCancelButtonString: l10n.commonCancelCaps,
+              biometricsLocalizedReason: l10n.walletViewPhraseReason,
+              biometricsAuthenticationTitle: l10n.addWalletViewPhrase,
             ),
             settings: const RouteSettings(name: "/viewRecoverPhraseLockscreen"),
           ),
@@ -221,14 +222,17 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
               Navigator.of(context).pop();
             },
           ),
-          title: Text("Settings", style: STextStyles.navBarTitle(context)),
+          title: Text(
+            l10n.settingsTitle,
+            style: STextStyles.navBarTitle(context),
+          ),
         ),
         body: _WalletSettingsViewBody(
           children: [
             SettingsListButton(
               iconAssetName: Assets.svg.node,
               iconSize: 16,
-              title: "Network",
+              title: l10n.netTitle,
               onPressed: () {
                 Navigator.of(context).pushNamed(
                   WalletNetworkSettingsView.routeName,
@@ -257,7 +261,7 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
               SettingsListButton(
                 iconAssetName: Assets.svg.plus,
                 iconSize: 16,
-                title: "Add account",
+                title: l10n.accountsAdd,
                 onPressed: () =>
                     showPivxAddAccountDialog(context, ref, walletId),
               ),
@@ -266,14 +270,14 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
             SettingsListButton(
               iconAssetName: Assets.svg.pencil,
               iconSize: 16,
-              title: "Sign / verify message",
+              title: l10n.signTitle,
               onPressed: () => Navigator.of(context)
                   .pushNamed(SignMessageView.routeName, arguments: walletId),
             ),
             const SizedBox(height: 8),
             SettingsListButton(
               iconAssetName: Assets.svg.downloadFolder,
-              title: "Wallet settings",
+              title: l10n.walletSettings,
               iconSize: 16,
               onPressed: () {
                 Navigator.of(context).pushNamed(

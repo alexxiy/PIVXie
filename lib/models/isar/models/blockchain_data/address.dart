@@ -10,6 +10,8 @@
 
 import 'package:isar_community/isar.dart';
 
+import '../../../../l10n/l10n.dart';
+
 part 'address.g.dart';
 
 @Collection(accessor: "addresses")
@@ -112,9 +114,9 @@ enum AddressType {
 
   String get readableName => switch (this) {
     AddressType.p2pkh => "P2PKH",
-    AddressType.pivxShield => "Shield",
-    AddressType.nonWallet => "Non wallet/unknown",
-    _ => "Unknown",
+    AddressType.pivxShield => l10n.coinControlShield,
+    AddressType.nonWallet => l10n.addressNonWallet,
+    _ => l10n.commonUnknown,
   };
 }
 
@@ -129,10 +131,10 @@ enum AddressSubType {
   nonWallet;
 
   String get prettyName => switch (this) {
-    AddressSubType.receiving => "Receiving",
-    AddressSubType.change => "Change",
-    AddressSubType.nonWallet => "Non wallet/unknown",
-    _ => "Unknown",
+    AddressSubType.receiving => l10n.addressReceiving,
+    AddressSubType.change => l10n.txChange,
+    AddressSubType.nonWallet => l10n.addressNonWallet,
+    _ => l10n.commonUnknown,
   };
 }
 

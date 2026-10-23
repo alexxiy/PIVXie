@@ -15,6 +15,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../app_config.dart';
+import '../../l10n/l10n.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../providers/desktop/storage_crypto_handler_provider.dart';
 import '../../themes/stack_colors.dart';
@@ -56,7 +57,7 @@ class _DesktopUnlockAppDialogState
             .read(storageCryptoHandlerProvider)
             .verifyPassphrase(passwordController.text),
         context: context,
-        message: "Verifying password...",
+        message: l10n.passwordVerifying,
         delay: const Duration(seconds: 1),
       );
 
@@ -67,7 +68,7 @@ class _DesktopUnlockAppDialogState
           unawaited(
             showFloatingFlushBar(
               type: FlushBarType.warning,
-              message: "Invalid password!",
+              message: l10n.passwordInvalid,
               context: context,
             ),
           );
@@ -107,12 +108,12 @@ class _DesktopUnlockAppDialogState
             SvgPicture.asset(Assets.svg.keys, width: 100),
             const SizedBox(height: 56),
             Text(
-              "Unlock ${AppConfig.appName}",
+              l10n.pinUnlockTitle(AppConfig.appName),
               style: STextStyles.desktopH3(context),
             ),
             const SizedBox(height: 16),
             Text(
-              "Enter your wallet password to unlock ${AppConfig.appName}",
+              l10n.passwordUnlockText(AppConfig.appName),
               style: STextStyles.desktopTextMedium(context).copyWith(
                 color: Theme.of(context).extension<StackColors>()!.textDark3,
               ),
@@ -139,7 +140,7 @@ class _DesktopUnlockAppDialogState
                 },
                 decoration:
                     standardInputDecoration(
-                      "Enter password",
+                      l10n.commonEnterPassword,
                       passwordFocusNode,
                       context,
                     ).copyWith(
@@ -190,7 +191,7 @@ class _DesktopUnlockAppDialogState
                 Expanded(
                   child: PrimaryButton(
                     enabled: _confirmEnabled,
-                    label: "Unlock",
+                    label: l10n.passwordUnlock,
                     buttonHeight: ButtonHeight.l,
                     onPressed: _confirmPressed,
                   ),

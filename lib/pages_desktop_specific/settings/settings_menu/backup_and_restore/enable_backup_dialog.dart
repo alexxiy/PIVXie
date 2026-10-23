@@ -9,6 +9,7 @@
  */
 
 import 'package:flutter/material.dart';
+import '../../../../l10n/l10n.dart';
 import 'create_auto_backup.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/text_styles.dart';
@@ -44,7 +45,7 @@ class EnableBackupDialog extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.all(32),
                 child: Text(
-                  "Enable Auto Backup",
+                  l10n.backupEnableAuto,
                   style: STextStyles.desktopH3(context),
                   textAlign: TextAlign.center,
                 ),
@@ -56,7 +57,7 @@ class EnableBackupDialog extends StatelessWidget {
             height: 30,
           ),
           Text(
-            "To enable Auto Backup, you need to create a backup file.",
+            l10n.backupEnableAutoText,
             style: STextStyles.desktopTextSmall(context).copyWith(
               color: Theme.of(context).extension<StackColors>()!.textDark3,
             ),
@@ -70,7 +71,7 @@ class EnableBackupDialog extends StatelessWidget {
                 Expanded(
                   child: SecondaryButton(
                     buttonHeight: ButtonHeight.l,
-                    label: "Cancel",
+                    label: l10n.commonCancel,
                     onPressed: () {
                       Navigator.of(context).pop();
                     },
@@ -82,7 +83,7 @@ class EnableBackupDialog extends StatelessWidget {
                 Expanded(
                   child: PrimaryButton(
                     buttonHeight: ButtonHeight.l,
-                    label: "Continue",
+                    label: l10n.commonContinue,
                     onPressed: () {
                       Navigator.of(context).pop();
                       createAutoBackup();

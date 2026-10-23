@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app_config.dart';
+import '../../../../l10n/l10n.dart';
 import '../../../../models/keys/view_only_wallet_data.dart';
 import '../../../../pages_desktop_specific/my_stack_view/wallet_view/sub_widgets/delete_wallet_keys_popup.dart';
 import '../../../../providers/global/secure_store_provider.dart';
@@ -63,7 +64,7 @@ class _DeleteViewOnlyWalletKeysViewState
           barrierDismissible: true,
           context: context,
           builder: (_) => StackDialog(
-            title: "Thanks! Your wallet will be deleted.",
+            title: l10n.walletWillBeDeleted,
             leftButton: TextButton(
               style: Theme.of(context)
                   .extension<StackColors>()!
@@ -72,7 +73,7 @@ class _DeleteViewOnlyWalletKeysViewState
                 Navigator.pop(context);
               },
               child: Text(
-                "Cancel",
+                l10n.commonCancel,
                 style: STextStyles.button(context).copyWith(
                   color: Theme.of(context)
                       .extension<StackColors>()!
@@ -97,7 +98,7 @@ class _DeleteViewOnlyWalletKeysViewState
                 }
               },
               child: Text(
-                "Ok",
+                l10n.commonOk,
                 style: STextStyles.button(context),
               ),
             ),
@@ -145,14 +146,7 @@ class _DeleteViewOnlyWalletKeysViewState
         children: [
           RoundedWhiteContainer(
             child: Text(
-              "Please write down your backup data. Keep it safe and "
-              "never share it with anyone. "
-              "Your backup data is the only way you can access your "
-              "wallet if you forget your PIN, lose your phone, etc."
-              "\n\n"
-              "${AppConfig.appName} does not keep nor is able to restore "
-              "your backup data. "
-              "Only you have access to your wallet.",
+              l10n.walletBackupDataText(AppConfig.appName),
               style: STextStyles.label(context),
             ),
           ),
@@ -167,7 +161,7 @@ class _DeleteViewOnlyWalletKeysViewState
             height: 16,
           ),
           PrimaryButton(
-            label: "Continue",
+            label: l10n.commonContinue,
             onPressed: _continuePressed,
           ),
         ],

@@ -15,6 +15,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app_config.dart';
+import '../../../../l10n/l10n.dart';
 import '../../../../models/keys/key_data_interface.dart';
 import '../../../../models/keys/view_only_wallet_data.dart';
 import '../../../../notifications/show_flush_bar.dart';
@@ -64,7 +65,7 @@ class WalletBackupView extends ConsumerWidget {
               Navigator.of(context).pop();
             },
           ),
-          title: Text("Wallet seed", style: STextStyles.navBarTitle(context)),
+          title: Text(l10n.walletSeed, style: STextStyles.navBarTitle(context)),
         ),
         body: SafeArea(
           child: Padding(
@@ -95,7 +96,7 @@ class _Mnemonic extends ConsumerWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          "Recovery Phrase",
+          l10n.addWalletRecoveryPhraseTitle,
           textAlign: TextAlign.center,
           style: STextStyles.pageTitleH1(context),
         ),
@@ -110,11 +111,7 @@ class _Mnemonic extends ConsumerWidget {
           child: Padding(
             padding: const EdgeInsets.all(12),
             child: Text(
-              "Write down your recovery phrase and keep it safe. Never share "
-              "it with anyone. It's the only way to get to your funds if you "
-              "forget your PIN, lose your phone, and so on.\n\n"
-              "${AppConfig.appName} doesn't keep a copy and can't restore it "
-              "for you. Only you have access to your wallet.",
+              l10n.walletSeedText(AppConfig.appName),
               style: STextStyles.label(context),
             ),
           ),
@@ -132,14 +129,14 @@ class _Mnemonic extends ConsumerWidget {
         ),
         const SizedBox(height: 12),
         SecondaryButton(
-          label: "Copy",
+          label: l10n.commonCopy,
           onPressed: () async {
             await const ClipboardWrapper().setSecret(mnemonic.join(" "));
             if (context.mounted) {
               unawaited(
                 showFloatingFlushBar(
                   type: FlushBarType.info,
-                  message: "Copied to clipboard",
+                  message: l10n.commonCopiedToClipboard,
                   iconAsset: Assets.svg.copy,
                   context: context,
                 ),
@@ -149,7 +146,7 @@ class _Mnemonic extends ConsumerWidget {
         ),
         const SizedBox(height: 12),
         PrimaryButton(
-          label: "Show QR Code",
+          label: l10n.walletShowQr,
           onPressed: () {
             final String data = AddressUtils.encodeQRSeedData(mnemonic);
 
@@ -165,7 +162,7 @@ class _Mnemonic extends ConsumerWidget {
                     children: [
                       Center(
                         child: Text(
-                          "Recovery phrase QR code",
+                          l10n.walletSeedQr,
                           style: STextStyles.pageTitleH2(context),
                         ),
                       ),
@@ -192,7 +189,7 @@ class _Mnemonic extends ConsumerWidget {
                                 .extension<StackColors>()!
                                 .getSecondaryEnabledButtonStyle(context),
                             child: Text(
-                              "Close",
+                              l10n.commonClose,
                               style: STextStyles.button(context).copyWith(
                                 color: Theme.of(context)
                                     .extension<StackColors>()!
@@ -243,7 +240,7 @@ class MobileKeyDataView extends ConsumerWidget {
               Navigator.of(context).pop();
             },
           ),
-          title: Text("Wallet keys", style: STextStyles.navBarTitle(context)),
+          title: Text(l10n.walletKeys, style: STextStyles.navBarTitle(context)),
         ),
         body: SafeArea(
           child: Padding(

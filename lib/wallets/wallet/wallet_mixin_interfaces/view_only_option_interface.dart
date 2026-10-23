@@ -1,3 +1,4 @@
+import '../../../l10n/l10n.dart';
 import '../../../models/keys/view_only_wallet_data.dart';
 import '../../crypto_currency/interfaces/view_only_option_currency_interface.dart';
 import '../wallet.dart';
@@ -30,5 +31,11 @@ mixin ViewOnlyOptionInterface<T extends ViewOnlyOptionCurrencyInterface>
 /// keys, every other one a seed.
 String walletSecretTitle(Wallet wallet) =>
     wallet is ViewOnlyOptionInterface && wallet.isViewOnly
-    ? "Wallet keys"
-    : "Wallet seed";
+    ? l10n.walletKeys
+    : l10n.walletSeed;
+
+/// "View wallet seed" or "View wallet keys": see [walletSecretTitle].
+String walletSecretViewLabel(Wallet wallet) =>
+    wallet is ViewOnlyOptionInterface && wallet.isViewOnly
+    ? l10n.walletViewKeys
+    : l10n.walletViewSeed;

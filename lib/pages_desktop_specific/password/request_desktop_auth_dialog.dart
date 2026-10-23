@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../l10n/l10n.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../providers/desktop/storage_crypto_handler_provider.dart';
 import '../../themes/stack_colors.dart';
@@ -51,7 +52,7 @@ class _RequestDesktopAuthDialogState
             .read(storageCryptoHandlerProvider)
             .verifyPassphrase(passwordController.text),
         context: context,
-        message: "Checking...",
+        message: l10n.commonCheckingEllipsis,
         rootNavigator: true,
         delay: const Duration(milliseconds: 1000),
       );
@@ -70,7 +71,7 @@ class _RequestDesktopAuthDialogState
             unawaited(
               showFloatingFlushBar(
                 type: FlushBarType.warning,
-                message: "Invalid passphrase!",
+                message: l10n.sendInvalidPassphrase,
                 context: context,
               ),
             );
@@ -135,7 +136,7 @@ class _RequestDesktopAuthDialogState
               height: 16,
             ),
           Text(
-            "Enter your password",
+            l10n.commonEnterYourPassword,
             style: STextStyles.desktopTextMedium(context).copyWith(
               color: Theme.of(context).extension<StackColors>()!.textDark3,
             ),
@@ -168,7 +169,7 @@ class _RequestDesktopAuthDialogState
                   }
                 },
                 decoration: standardInputDecoration(
-                  "Enter password",
+                  l10n.commonEnterPassword,
                   passwordFocusNode,
                   context,
                 ).copyWith(
@@ -234,7 +235,7 @@ class _RequestDesktopAuthDialogState
               children: [
                 Expanded(
                   child: SecondaryButton(
-                    label: "Cancel",
+                    label: l10n.commonCancel,
                     onPressed: Navigator.of(
                       context,
                       rootNavigator: true,
@@ -246,7 +247,7 @@ class _RequestDesktopAuthDialogState
                 ),
                 Expanded(
                   child: PrimaryButton(
-                    label: "Continue",
+                    label: l10n.commonContinue,
                     enabled: continueEnabled,
                     onPressed: continueEnabled ? _auth : null,
                   ),

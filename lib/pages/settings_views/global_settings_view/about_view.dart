@@ -14,6 +14,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../app_config.dart';
+import '../../../l10n/l10n.dart';
 import '../../intro_view.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/git_status.dart';
@@ -39,7 +40,10 @@ class AboutView extends ConsumerWidget {
               Navigator.of(context).pop();
             },
           ),
-          title: Text("About", style: STextStyles.navBarTitle(context)),
+          title: Text(
+            l10n.settingsAbout,
+            style: STextStyles.navBarTitle(context),
+          ),
         ),
         body: SafeArea(
           child: Padding(
@@ -92,7 +96,7 @@ class AboutView extends ConsumerWidget {
                                               CrossAxisAlignment.stretch,
                                           children: [
                                             Text(
-                                              "Version",
+                                              l10n.aboutVersion,
                                               style: STextStyles.titleBold12(
                                                 context,
                                               ),
@@ -114,7 +118,7 @@ class AboutView extends ConsumerWidget {
                                               CrossAxisAlignment.stretch,
                                           children: [
                                             Text(
-                                              "Build number",
+                                              l10n.aboutBuildNumber,
                                               style: STextStyles.titleBold12(
                                                 context,
                                               ),
@@ -136,7 +140,7 @@ class AboutView extends ConsumerWidget {
                                               CrossAxisAlignment.stretch,
                                           children: [
                                             Text(
-                                              "Build commit",
+                                              l10n.aboutBuildCommit,
                                               style: STextStyles.titleBold12(
                                                 context,
                                               ),
@@ -158,7 +162,7 @@ class AboutView extends ConsumerWidget {
                                               CrossAxisAlignment.stretch,
                                           children: [
                                             Text(
-                                              "Build signature",
+                                              l10n.aboutBuildSignature,
                                               style: STextStyles.titleBold12(
                                                 context,
                                               ),
@@ -185,7 +189,7 @@ class AboutView extends ConsumerWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    "Website",
+                                    l10n.aboutWebsite,
                                     style: STextStyles.titleBold12(context),
                                   ),
                                   const SizedBox(height: 4),

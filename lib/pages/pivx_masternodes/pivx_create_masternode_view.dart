@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar_community/isar.dart';
 
 import '../../db/isar/main_db.dart';
+import '../../l10n/l10n.dart';
 import '../../models/isar/models/isar_models.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../providers/global/wallets_provider.dart';
@@ -160,15 +161,15 @@ class _PivxCreateMasternodeViewState
   String _addressTitle(Address a) =>
       _label(a.value) ??
       (a.subType == AddressSubType.change
-          ? "Change #${a.derivationIndex}"
-          : "Receiving #${a.derivationIndex}");
+          ? l10n.addressChangeN(a.derivationIndex)
+          : l10n.addressReceivingN(a.derivationIndex));
 
   Future<void> _create() async {
     final wallet = _wallet;
     if (!wallet.isValidMasternodeKey(_key)) {
       await showFloatingFlushBar(
         type: FlushBarType.warning,
-        message: "Invalid masternode private key",
+        message: l10n.mnInvalidKey,
         context: context,
       );
       return;
@@ -194,9 +195,7 @@ class _PivxCreateMasternodeViewState
         } catch (e) {
           await showFloatingFlushBar(
             type: FlushBarType.warning,
-            message: e is FormatException
-                ? e.message
-                : "Invalid server address",
+            message: e is FormatException ? e.message : l10n.mnInvalidServer,
             context: context,
           );
           return;
@@ -226,7 +225,7 @@ class _PivxCreateMasternodeViewState
         final txData = await wallet.prepareMasternodeCollateral(
           address: address,
           funding: _funding,
-          note: "Create masternode $label",
+          note: l10n.mnCreateNote(label),
         );
         return (txData, wallet.collateralVout(txData, address));
       },
@@ -320,7 +319,7 @@ class _PivxCreateMasternodeViewState
       _pasteKey &&
           _keyController.text.trim().isNotEmpty &&
           !_wallet.isValidMasternodeKey(_keyController.text)
-      ? "Not a ${_wallet.cryptoCurrency.prettyName} masternode private key"
+      ? l10n.mnNotAKey(_wallet.cryptoCurrency.prettyName)
       : null;
 
   String? get _serviceError => _serviceController.text.trim().isEmpty
@@ -412,7 +411,7 @@ class _PivxCreateMasternodeViewState
         backgroundColor: colors.background,
         appBar: PageAppBar(
           title: Text(
-            widget.existing ? "Add existing masternode" : "Create masternode",
+            widget.existing ? l10n.mnAddExisting : l10n.mnCreate,
             style: STextStyles.navBarTitle(context),
           ),
         ),
@@ -422,25 +421,23 @@ class _PivxCreateMasternodeViewState
             children: [
               if (widget.existing) ...[
                 Text(
-                  "For a masternode that already runs, e.g. after restoring "
-                  "this wallet. Nothing is sent or started: PIVXie only "
-                  "records it and freezes its collateral.",
+                  l10n.mnAddExistingIntro,
                   style: STextStyles.itemSubtitle(context),
                 ),
                 const SizedBox(height: 20),
               ],
-              Text("Masternode alias", style: STextStyles.smallMed12(context)),
+              Text(l10n.mnAlias, style: STextStyles.smallMed12(context)),
               const SizedBox(height: 8),
               _field(
                 controller: _labelController,
                 focus: _labelFocus,
-                hint: "e.g. MN1",
+                hint: l10n.mnAliasHint,
                 error: aliasError,
                 plain: true,
               ),
               const SizedBox(height: 20),
               Text(
-                widget.existing ? "Collateral output" : "Collateral",
+                widget.existing ? l10n.mnCollateralOutput : l10n.mnCollateral,
                 style: STextStyles.smallMed12(context),
               ),
               const SizedBox(height: 8),
@@ -448,9 +445,7 @@ class _PivxCreateMasternodeViewState
                 if (_outputs.isEmpty)
                   RoundedWhiteContainer(
                     child: Text(
-                      "No unspent output of exactly $collateral in this "
-                      "wallet. A masternode's collateral is one output of "
-                      "exactly that amount.",
+                      l10n.mnNoCollateralOutput(collateral),
                       style: STextStyles.itemSubtitle(context),
                     ),
                   )
@@ -492,15 +487,14 @@ class _PivxCreateMasternodeViewState
                     ),
                 const SizedBox(height: 12),
                 Text(
-                  "Server IP (optional)",
+                  l10n.mnServerIpOptional,
                   style: STextStyles.smallMed12(context),
                 ),
                 const SizedBox(height: 8),
                 _field(
                   controller: _serviceController,
                   focus: _serviceFocus,
-                  hint:
-                      "e.g. 203.0.113.5 or 203.0.113.5:${wallet.masternodePort}",
+                  hint: l10n.mnServerIpHint(wallet.masternodePort),
                   error: serviceError,
                   plain: true,
                   keyboardType: TextInputType.url,
@@ -508,7 +502,7 @@ class _PivxCreateMasternodeViewState
               ] else ...[
                 _option(
                   _Collateral.newAddress,
-                  "Send $collateral to a new address",
+                  l10n.mnSendToNewAddress(collateral),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
@@ -523,10 +517,12 @@ class _PivxCreateMasternodeViewState
                           decoration: standardInputDecoration(
                             // The example doesn't fit a phone's field.
                             Util.isDesktop
-                                ? "Address label (optional), e.g. "
-                                      "${_labelController.text.trim().isEmpty ? "MN1" : _labelController.text.trim()} "
-                                      "collateral"
-                                : "Address label (optional)",
+                                ? l10n.mnAddressLabelExample(
+                                    _labelController.text.trim().isEmpty
+                                        ? "MN1"
+                                        : _labelController.text.trim(),
+                                  )
+                                : l10n.mnAddressLabelOptional,
                             _addressLabelFocus,
                             context,
                           ),
@@ -538,7 +534,7 @@ class _PivxCreateMasternodeViewState
                 if (_ownAddresses.isNotEmpty)
                   _option(
                     _Collateral.ownAddress,
-                    "Send $collateral to one of my addresses",
+                    l10n.mnSendToMyAddress(collateral),
                     DropdownButton<Address>(
                       isExpanded: true,
                       itemHeight: null,
@@ -586,12 +582,12 @@ class _PivxCreateMasternodeViewState
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "Masternode private key",
+                    l10n.mnPrivateKey,
                     style: STextStyles.smallMed12(context),
                   ),
                   if (!widget.existing)
                     CustomTextButton(
-                      text: _pasteKey ? "Generate one" : "I have a key",
+                      text: _pasteKey ? l10n.mnGenerateKey : l10n.mnHaveKey,
                       onTap: () => setState(() => _pasteKey = !_pasteKey),
                     ),
                 ],
@@ -601,7 +597,7 @@ class _PivxCreateMasternodeViewState
                 _field(
                   controller: _keyController,
                   focus: _keyFocus,
-                  hint: "Paste the masternode private key",
+                  hint: l10n.mnPasteKey,
                   error: keyError,
                   plain: true,
                 )
@@ -616,7 +612,7 @@ class _PivxCreateMasternodeViewState
                         ),
                       ),
                       CustomTextButton(
-                        text: "New",
+                        text: l10n.mnNewKey,
                         onTap: () => setState(
                           () => _generatedKey = wallet.generateMasternodeKey(),
                         ),
@@ -625,14 +621,10 @@ class _PivxCreateMasternodeViewState
                   ),
                 ),
               const SizedBox(height: 8),
-              _subtitle(
-                "The masternode private key identifies your masternode on "
-                "the network. It can't spend your coins, but keep it "
-                "private. You will find it again in the masternode details.",
-              ),
+              _subtitle(l10n.mnKeyExplained),
               const SizedBox(height: 24),
               PrimaryButton(
-                label: widget.existing ? "Add masternode" : "Send collateral",
+                label: widget.existing ? l10n.mnAdd : l10n.mnSendCollateral,
                 enabled:
                     aliasError == null &&
                     (!_pasteKey ||

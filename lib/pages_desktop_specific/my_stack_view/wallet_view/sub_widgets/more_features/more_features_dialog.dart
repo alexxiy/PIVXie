@@ -13,6 +13,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../../l10n/l10n.dart';
 import '../../../../../providers/providers.dart';
 import '../../../../../themes/stack_colors.dart';
 import '../../../../../utilities/text_styles.dart';
@@ -66,7 +67,7 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
                       Padding(
                         padding: const EdgeInsets.only(left: 32),
                         child: Text(
-                          "Warning!",
+                          l10n.commonWarningExclaim,
                           style: STextStyles.desktopH3(context),
                         ),
                       ),
@@ -84,9 +85,7 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Text(
-                          "Reusing addresses reduces your privacy and "
-                          "security. Are you sure you want to reuse "
-                          "addresses by default?",
+                          l10n.walletReuseWarning,
                           style: STextStyles.desktopTextSmall(context),
                         ),
                         const SizedBox(height: 43),
@@ -98,7 +97,7 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
                                 onPressed: () {
                                   Navigator.of(context).pop(false);
                                 },
-                                label: "Cancel",
+                                label: l10n.commonCancel,
                               ),
                             ),
                             const SizedBox(width: 16),
@@ -108,7 +107,7 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
                                 onPressed: () {
                                   Navigator.of(context).pop(true);
                                 },
-                                label: "Continue",
+                                label: l10n.commonContinue,
                               ),
                             ),
                           ],
@@ -171,7 +170,7 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
               Padding(
                 padding: const EdgeInsets.only(left: 32),
                 child: Text(
-                  "More features",
+                  l10n.walletMoreFeatures,
                   style: STextStyles.desktopH3(context),
                 ),
               ),
@@ -216,7 +215,7 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    "Reuse receiving address",
+                                    l10n.walletReuseAddress,
                                     style: STextStyles.w600_20(context),
                                   ),
                                 ],

@@ -19,6 +19,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stack_wallet_backup/stack_wallet_backup.dart';
 
 import '../../../../app_config.dart';
+import '../../../../l10n/l10n.dart';
 import '../../../../providers/global/prefs_provider.dart';
 import '../../../../providers/global/secure_store_provider.dart';
 import '../../../../themes/stack_colors.dart';
@@ -128,8 +129,8 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
           return fileToSavePath;
         }(),
         context: context,
-        message: "Encrypting initial backup",
-        subMessage: "This shouldn't take long",
+        message: l10n.backupEncryptingInitial,
+        subMessage: l10n.backupShouldntTakeLong,
         delay: const Duration(seconds: 1),
         onException: (e) => ex = e,
       );
@@ -146,7 +147,7 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
             context: context,
             barrierDismissible: false,
             builder: (_) => StackOkDialog(
-              title: "${AppConfig.prefix} Auto Backup enabled and saved to:",
+              title: l10n.backupAutoEnabledSavedTo(AppConfig.prefix),
               message: savedPath,
             ),
           );
@@ -162,7 +163,7 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
             context: context,
             barrierDismissible: false,
             builder: (_) => StackOkDialog(
-              title: "Failed to enable Auto Backup",
+              title: l10n.backupEnableAutoFailed,
               message: ex?.toString(),
             ),
           );
@@ -222,7 +223,7 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
             },
           ),
           title: Text(
-            "Create Auto Backup",
+            l10n.backupCreateAuto,
             style: STextStyles.navBarTitle(context),
           ),
         ),
@@ -241,7 +242,7 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Text(
-                            "Create your backup file",
+                            l10n.backupCreateFile,
                             style: STextStyles.smallMed12(context),
                           ),
                           const SizedBox(height: 10),
@@ -276,7 +277,7 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
                               controller: fileLocationController,
                               style: STextStyles.field(context),
                               decoration: InputDecoration(
-                                hintText: "Save to...",
+                                hintText: l10n.logsSaveTo,
                                 hintStyle: STextStyles.fieldLabel(context),
                                 suffixIcon: UnconstrainedBox(
                                   child: Row(
@@ -322,7 +323,7 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
                               autocorrect: false,
                               decoration:
                                   standardInputDecoration(
-                                    "Create passphrase",
+                                    l10n.backupCreatePassphrase,
                                     passwordFocusNode,
                                     context,
                                   ).copyWith(
@@ -428,7 +429,7 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
                               autocorrect: false,
                               decoration:
                                   standardInputDecoration(
-                                    "Confirm passphrase",
+                                    l10n.backupConfirmPassphrase,
                                     passwordRepeatFocusNode,
                                     context,
                                   ).copyWith(
@@ -469,7 +470,7 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
                           ),
                           const SizedBox(height: 32),
                           Text(
-                            "Auto Backup frequency",
+                            l10n.backupAutoFrequency,
                             style: STextStyles.smallMed12(context),
                           ),
                           const SizedBox(height: 10),
@@ -562,7 +563,7 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
                                 ? null
                                 : _createEnableAutoBackup,
                             child: Text(
-                              "Enable Auto Backup",
+                              l10n.backupEnableAuto,
                               style: STextStyles.button(context),
                             ),
                           ),

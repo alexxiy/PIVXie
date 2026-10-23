@@ -9,6 +9,7 @@
  */
 
 import 'package:flutter/material.dart';
+import '../../../l10n/l10n.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../widgets/desktop/secondary_button.dart';
 import '../../../widgets/stack_dialog.dart';
@@ -35,14 +36,14 @@ class RecoveryPhraseExplanationDialog extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Recovery phrase explained",
+                    l10n.explainTitle,
                     style: STextStyles.titleBold12(context),
                   ),
                   const SizedBox(
                     height: 12,
                   ),
                   Text(
-                    "The car analogy.",
+                    l10n.explainCarAnalogy,
                     style: STextStyles.titleBold12(context).copyWith(
                       fontSize: 14,
                     ),
@@ -51,28 +52,28 @@ class RecoveryPhraseExplanationDialog extends StatelessWidget {
                     height: 8,
                   ),
                   Text(
-                    "You can drive your car when your have your car keys. If you lose your car keys, you can’t drive you car. If someone steals your car keys, they can steal your car. If someone copies your car keys, they can also steal your car.",
+                    l10n.explainCar,
                     style: STextStyles.baseXS(context),
                   ),
                   const SizedBox(
                     height: 8,
                   ),
                   Text(
-                    "Cryptocurrency works the same way. These recovery phrase words we’re about to show you are like the car keys in the metaphor above.",
+                    l10n.explainCrypto,
                     style: STextStyles.baseXS(context),
                   ),
                   const SizedBox(
                     height: 8,
                   ),
                   Text(
-                    "If you lose these words, you can’t access your money. If someone steals these words, they can access and steal your money. If someone copies these words, they can access and steal your money.",
+                    l10n.explainLose,
                     style: STextStyles.baseXS(context),
                   ),
                   const SizedBox(
                     height: 8,
                   ),
                   Text(
-                    "If your funds are lost or stolen because of you don’t write down your recovery phrase or keep it safe, then NOBODY, NOT EVEN US, can help you recover your money.",
+                    l10n.explainNobody,
                     style: STextStyles.baseXS(context),
                   ),
                 ],
@@ -87,7 +88,7 @@ class RecoveryPhraseExplanationDialog extends StatelessWidget {
               const Spacer(),
               Expanded(
                 child: SecondaryButton(
-                  label: "Close",
+                  label: l10n.commonClose,
                   onPressed: Navigator.of(context).pop,
                 ),
               ),

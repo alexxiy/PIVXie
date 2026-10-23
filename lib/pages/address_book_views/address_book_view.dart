@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../l10n/l10n.dart';
 import '../../models/isar/models/contact_entry.dart';
 import '../../providers/global/address_book_service_provider.dart';
 import '../../themes/stack_colors.dart';
@@ -131,7 +132,7 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
                 },
               ),
               title: Text(
-                "Address book",
+                l10n.addressBookTitle,
                 style: STextStyles.navBarTitle(context),
               ),
               actions: [
@@ -195,7 +196,7 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
                       style: STextStyles.field(context),
                       decoration:
                           standardInputDecoration(
-                            "Search",
+                            l10n.commonSearch,
                             _searchFocusNode,
                             context,
                           ).copyWith(
@@ -234,7 +235,10 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
                     ),
                   ),
                 if (!isDesktop) const SizedBox(height: 16),
-                Text("Favorites", style: STextStyles.smallMed12(context)),
+                Text(
+                  l10n.addressBookFavorites,
+                  style: STextStyles.smallMed12(context),
+                ),
                 const SizedBox(height: 12),
                 if (favorites.isNotEmpty)
                   RoundedWhiteContainer(
@@ -253,13 +257,16 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
                   RoundedWhiteContainer(
                     child: Center(
                       child: Text(
-                        "Your favorite contacts will appear here",
+                        l10n.addressBookFavoritesEmpty,
                         style: STextStyles.itemSubtitle(context),
                       ),
                     ),
                   ),
                 const SizedBox(height: 16),
-                Text("All contacts", style: STextStyles.smallMed12(context)),
+                Text(
+                  l10n.addressBookAllContacts,
+                  style: STextStyles.smallMed12(context),
+                ),
                 const SizedBox(height: 12),
                 if (shown.isNotEmpty)
                   RoundedWhiteContainer(
@@ -281,7 +288,7 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
                   RoundedWhiteContainer(
                     child: Center(
                       child: Text(
-                        "No contacts found",
+                        l10n.addressBookNoContactsFound,
                         style: STextStyles.itemSubtitle(context),
                       ),
                     ),
@@ -326,20 +333,20 @@ class _NoContacts extends StatelessWidget {
         ),
         const SizedBox(height: 20),
         Text(
-          "No contacts yet",
+          l10n.addressBookNoContacts,
           textAlign: TextAlign.center,
           style: STextStyles.pageTitleH2(context),
         ),
         const SizedBox(height: 8),
         Text(
-          "Save the people you pay often, then pick them when you send.",
+          l10n.addressBookNoContactsText,
           textAlign: TextAlign.center,
           style: STextStyles.itemSubtitle(context),
         ),
         const Spacer(flex: 3),
         PrimaryButton(
           key: const Key("addressBookAddContactButton"),
-          label: "Add contact",
+          label: l10n.addressBookAddContact,
           onPressed: onAdd,
         ),
         const SizedBox(height: 12),

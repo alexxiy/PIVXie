@@ -16,13 +16,11 @@ enum CCFilter {
   frozen;
 
   @override
-  String toString() {
-    if (this == all) {
-      return "Show $name outputs";
-    }
-
-    return "${name.capitalize()} outputs";
-  }
+  String toString() => switch (this) {
+    CCFilter.all => l10n.coinControlShowAllOutputs,
+    CCFilter.available => l10n.coinControlAvailableOutputs,
+    CCFilter.frozen => l10n.coinControlFrozenOutputs,
+  };
 }
 
 /// Keep only utxos whose otherData contains [key] (or only those
@@ -35,16 +33,18 @@ enum CCSortDescriptor {
   value;
 
   @override
-  String toString() {
-    switch (this) {
-      case CCSortDescriptor.age:
-        return "Confirmations";
-      case CCSortDescriptor.address:
-        return "Address";
-      case CCSortDescriptor.value:
-        return "Amount";
-    }
-  }
+  String toString() => switch (this) {
+    CCSortDescriptor.age => l10n.txConfirmations,
+    CCSortDescriptor.address => l10n.commonAddress,
+    CCSortDescriptor.value => l10n.commonAmount,
+  };
+
+  /// "Sort by confirmations" and the like, for the sort menu.
+  String get sortByLabel => switch (this) {
+    CCSortDescriptor.age => l10n.coinControlSortByConfirmations,
+    CCSortDescriptor.address => l10n.coinControlSortByAddress,
+    CCSortDescriptor.value => l10n.coinControlSortByAmount,
+  };
 }
 
 /// Sorts [utxos] by [sort] in the given direction. Confirmations go

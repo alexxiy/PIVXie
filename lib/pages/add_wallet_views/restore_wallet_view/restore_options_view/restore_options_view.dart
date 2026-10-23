@@ -15,6 +15,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:tuple/tuple.dart';
 
+import '../../../../l10n/l10n.dart';
 import '../../../../pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import '../../../../providers/ui/verify_recovery_phrase/mnemonic_word_count_state_provider.dart';
 import '../../../../themes/stack_colors.dart';
@@ -185,7 +186,7 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
               if (!isDesktop) CoinImage(coin: coin, height: 100, width: 100),
               SizedBox(height: isDesktop ? 0 : 16),
               Text(
-                "Restore options",
+                l10n.restoreOptions,
                 textAlign: TextAlign.center,
                 style: isDesktop
                     ? STextStyles.desktopH2(context)
@@ -198,8 +199,8 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
                   width: isDesktop ? 490 : null,
                   child: Toggle(
                     key: UniqueKey(),
-                    onText: "Seed",
-                    offText: "View Only",
+                    onText: l10n.restoreSeed,
+                    offText: l10n.restoreViewOnly,
                     onColor: Theme.of(context)
                         .extension<StackColors>()!
                         .popupBG,
@@ -276,7 +277,7 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
     return Column(
       children: [
         Text(
-          "Choose recovery phrase length",
+          l10n.restoreChooseLength,
           style: Util.isDesktop
               ? STextStyles.desktopTextExtraSmall(context).copyWith(
                   color: Theme.of(context).extension<StackColors>()!.textDark3,
@@ -296,7 +297,7 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
                   (e) => DropdownItem(
                     value: e,
                     child: Text(
-                      "$e words",
+                      l10n.restoreWords(e),
                       style: STextStyles.desktopTextMedium(context),
                     ),
                   ),
@@ -368,7 +369,7 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      "Advanced",
+                      l10n.commonAdvanced,
                       style: Util.isDesktop
                           ? STextStyles.desktopTextExtraExtraSmall(context)
                                 .copyWith(
@@ -414,7 +415,7 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
                       autocorrect: false,
                       decoration:
                           standardInputDecoration(
-                            "BIP39 passphrase",
+                            l10n.addWalletPassphrase,
                             widget.pwFocusNode,
                             context,
                           ).copyWith(
@@ -458,9 +459,7 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
                   RoundedWhiteContainer(
                     child: Center(
                       child: Text(
-                        "If the recovery phrase you are about to restore "
-                        "was created with an optional BIP39 passphrase "
-                        "you can enter it here.",
+                        l10n.restorePassphraseText,
                         style: Util.isDesktop
                             ? STextStyles.desktopTextExtraSmall(context)
                                   .copyWith(

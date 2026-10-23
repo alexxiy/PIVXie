@@ -13,6 +13,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../l10n/l10n.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../providers/global/prefs_provider.dart';
 import '../../providers/global/secure_store_provider.dart';
@@ -137,12 +138,12 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          "Create a PIN",
+                          l10n.pinCreate,
                           style: STextStyles.pageTitleH1(context),
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          "This PIN protects access to your wallet.",
+                          l10n.pinProtects,
                           style: STextStyles.subtitle(context),
                         ),
                         const SizedBox(height: 36),
@@ -183,7 +184,7 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
                             if (pin.length < 4) {
                               showFloatingFlushBar(
                                 type: FlushBarType.warning,
-                                message: "PIN not long enough!",
+                                message: l10n.pinTooShort,
                                 iconAsset: Assets.svg.alertCircle,
                                 context: context,
                               );
@@ -205,12 +206,12 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          "Confirm PIN",
+                          l10n.pinConfirm,
                           style: STextStyles.pageTitleH1(context),
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          "This PIN protects access to your wallet.",
+                          l10n.pinProtects,
                           style: STextStyles.subtitle(context),
                         ),
                         const SizedBox(height: 36),
@@ -265,10 +266,10 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
                                 // ask if want to use biometrics
                                 final bool useBiometrics = await biometrics
                                     .authenticate(
-                                      cancelButtonText: "SKIP",
-                                      localizedReason: "You can use your fingerprint to unlock the wallet and confirm transactions.",
-                                      title:
-                                          "Enable fingerprint authentication",
+                                      cancelButtonText: l10n.commonSkipCaps,
+                                      localizedReason:
+                                          l10n.pinFingerprintReason,
+                                      title: l10n.pinFingerprintTitle,
                                     );
 
                                 assert(
@@ -319,8 +320,7 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
                                   unawaited(
                                     showFloatingFlushBar(
                                       type: FlushBarType.warning,
-                                      message:
-                                          "Couldn't save the PIN. Try again.",
+                                      message: l10n.pinSaveFailed,
                                       context: context,
                                       iconAsset: Assets.svg.alertCircle,
                                     ),
@@ -339,7 +339,7 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
                               unawaited(
                                 showFloatingFlushBar(
                                   type: FlushBarType.warning,
-                                  message: "PIN codes do not match. Try again.",
+                                  message: l10n.pinMismatch,
                                   context: context,
                                   iconAsset: Assets.svg.alertCircle,
                                 ),
@@ -369,7 +369,7 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
                           const LoadingIndicator(width: 100, height: 100),
                           const SizedBox(height: 16),
                           Text(
-                            "Saving your PIN…",
+                            l10n.pinSaving,
                             style: STextStyles.subtitle(context),
                           ),
                         ],

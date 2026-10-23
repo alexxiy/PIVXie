@@ -4,6 +4,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../../db/isar/main_db.dart';
+import '../../../l10n/l10n.dart';
 import '../../../models/isar/models/isar_models.dart';
 import '../../../providers/global/wallets_provider.dart';
 import '../../../themes/stack_colors.dart';
@@ -178,30 +179,33 @@ class PivxFundingCard extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text("Pay from", style: STextStyles.smallMed12(context)),
+          Text(l10n.sendPayFrom, style: STextStyles.smallMed12(context)),
           const SizedBox(height: 8),
           // Both as high as the taller one when a label wraps.
           IntrinsicHeight(
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                source("Transparent balance", false, public),
+                source(l10n.balanceTransparent, false, public),
                 if (shieldPossible) ...[
                   const SizedBox(width: 8),
-                  source("Shielded balance", true, private),
+                  source(l10n.balanceShielded, true, private),
                 ],
               ],
             ),
           ),
           row(
-            funding.fromShield ? "Notes to spend" : "Coins to spend",
+            funding.fromShield ? l10n.sendNotesToSpend : l10n.sendCoinsToSpend,
             funding.coins.isEmpty
-                ? "Chosen automatically"
-                : "${funding.coins.length} selected · ${fmt.format(coinsTotal)}",
+                ? l10n.sendChosenAutomatically
+                : l10n.sendCoinsSelected(
+                    funding.coins.length,
+                    fmt.format(coinsTotal),
+                  ),
             [
               if (funding.coins.isNotEmpty)
                 CustomTextButton(
-                  text: "Reset",
+                  text: l10n.commonReset,
                   onTap: () => onChanged((
                     fromShield: funding.fromShield,
                     coins: const {},
@@ -210,21 +214,21 @@ class PivxFundingCard extends ConsumerWidget {
                 ),
               const SizedBox(width: 12),
               CustomTextButton(
-                text: "Choose",
+                text: l10n.commonChoose,
                 onTap: () => _chooseCoins(context),
               ),
             ],
           ),
           row(
-            "Change address",
+            l10n.sendChangeAddress,
             change == null
                 ? funding.fromShield
-                      ? "Automatic (a new private address)"
-                      : "Automatic (a new change address)"
+                      ? l10n.sendAutomaticNewPrivate
+                      : l10n.sendAutomaticNewChangeShort
                 : change,
             [
               CustomTextButton(
-                text: "Choose",
+                text: l10n.commonChoose,
                 onTap: () => _chooseChange(context, coin),
               ),
             ],
@@ -319,7 +323,7 @@ class PivxOwnAddressField extends ConsumerWidget {
               ),
               const SizedBox(width: 8),
               CustomTextButton(
-                text: "Change",
+                text: l10n.commonChange,
                 onTap: () => _pick(context, wallet),
               ),
             ],
@@ -341,11 +345,12 @@ String pivxAddressTitle(String walletId, String address) {
     address,
     walletId,
   );
-  if (a == null) return "Address";
-  if (a.type == AddressType.pivxShield) return "Shield #${a.derivationIndex}";
+  if (a == null) return l10n.commonAddress;
+  if (a.type == AddressType.pivxShield)
+    return l10n.addressShieldN(a.derivationIndex);
   return a.subType == AddressSubType.change
-      ? "Change #${a.derivationIndex}"
-      : "Receiving #${a.derivationIndex}";
+      ? l10n.addressChangeN(a.derivationIndex)
+      : l10n.addressReceivingN(a.derivationIndex);
 }
 
 class _OwnAddressSheet extends StatefulWidget {
@@ -434,7 +439,10 @@ class _OwnAddressSheetState extends State<_OwnAddressSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text("Choose an address", style: STextStyles.pageTitleH2(context)),
+            Text(
+              l10n.pivxNamesChooseAddress,
+              style: STextStyles.pageTitleH2(context),
+            ),
             const SizedBox(height: 12),
             RoundedWhiteContainer(
               padding: EdgeInsets.zero,
@@ -449,7 +457,7 @@ class _OwnAddressSheetState extends State<_OwnAddressSheet> {
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          "Create a new address",
+                          l10n.addressCreateNew,
                           style: STextStyles.w600_14(context)
                               .copyWith(color: colors.accentColorBlue),
                         ),
@@ -479,7 +487,7 @@ class _OwnAddressSheetState extends State<_OwnAddressSheet> {
                 style: STextStyles.field(context),
                 decoration:
                     standardInputDecoration(
-                      "Search by address or label",
+                      l10n.addressSearchHint,
                       _searchFocus,
                       context,
                     ).copyWith(
@@ -510,7 +518,7 @@ class _OwnAddressSheetState extends State<_OwnAddressSheet> {
               Padding(
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 child: Text(
-                  "No addresses match",
+                  l10n.addressNoMatch,
                   textAlign: TextAlign.center,
                   style: secondary,
                 ),

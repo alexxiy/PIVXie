@@ -15,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../../l10n/l10n.dart';
 import '../../../pages_desktop_specific/my_stack_view/wallet_view/desktop_wallet_view.dart';
 import '../../../providers/providers.dart';
 import '../../../themes/coin_icon_provider.dart';
@@ -141,7 +142,7 @@ class _FavoriteCardState extends ConsumerState<FavoriteCard> {
           await showLoading(
             whileFuture: wallet.init(),
             context: context,
-            message: 'Opening ${wallet.info.name}',
+            message: l10n.walletOpening(wallet.info.name),
             rootNavigator: Util.isDesktop,
           );
 

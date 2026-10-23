@@ -20,6 +20,7 @@ import '../themes/stack_colors.dart';
 import '../utilities/constants.dart';
 import '../utilities/text_styles.dart';
 import '../utilities/shown_coins.dart';
+import '../wallets/crypto_currency/crypto_currency.dart';
 import 'background.dart';
 import 'custom_buttons/app_bar_icon_button.dart';
 import 'rounded_white_container.dart';
@@ -27,7 +28,7 @@ import 'rounded_white_container.dart';
 /*
  * This widget is used to choose a coin from a list of coins.
  * @param title: The title of the page.
- * @param coinAdditional: Additional text to be displayed after the coin name.
+ * @param coinLabel: The text for a coin, e.g. "PIVX block explorer".
  * @param nextRouteName: The name of the route to be pushed when a coin is selected.
  * @return A widget that displays a list of coins.
  */
@@ -36,14 +37,14 @@ class ChooseCoinView extends ConsumerStatefulWidget {
   const ChooseCoinView({
     super.key,
     required this.title,
-    required this.coinAdditional,
+    required this.coinLabel,
     required this.nextRouteName,
   });
 
   static const String routeName = "/chooseCoin";
 
   final String title;
-  final String coinAdditional;
+  final String Function(CryptoCurrency coin) coinLabel;
   final String nextRouteName;
 
   @override
@@ -114,7 +115,7 @@ class _ChooseCoinViewState extends ConsumerState<ChooseCoinView> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      "${coin.prettyName} ${widget.coinAdditional}",
+                                      widget.coinLabel(coin),
                                       style: STextStyles.titleBold12(context),
                                     ),
                                   ],

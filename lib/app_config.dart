@@ -4,6 +4,7 @@ import 'dart:io';
 // ignore: unused_import
 import 'package:flutter/foundation.dart' show kDebugMode;
 
+import 'l10n/l10n.dart';
 import 'wallets/crypto_currency/crypto_currency.dart';
 
 part 'app_config.g.dart';
@@ -27,10 +28,15 @@ abstract class AppConfig {
   static const prefix = _prefix;
   static const suffix = _suffix;
 
-  static const emptyWalletsMessage = _emptyWalletsMessage;
+  /// [_emptyWalletsMessage] in the app's language.
+  static String get emptyWalletsMessage =>
+      l10n.localeName == "en" ? _emptyWalletsMessage : l10n.appEmptyWallets;
 
   static String get appDefaultDataDirName => _appDataDirName;
-  static String get shortDescriptionText => _shortDescriptionText;
+
+  /// [_shortDescriptionText] in the app's language.
+  static String get shortDescriptionText =>
+      l10n.localeName == "en" ? _shortDescriptionText : l10n.appTagline;
   static String get commitHash => _commitHash;
 
   /// Project links; empty ones are not shown.

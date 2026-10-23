@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../app_config.dart';
+import '../../l10n/l10n.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../utilities/app_data_wipe.dart';
 import '../../utilities/logger.dart';
@@ -65,48 +66,32 @@ class _ForgotPasswordDesktopViewState
               children: [
                 const AppIcon(width: 100),
                 const SizedBox(height: 42),
-                Text("Warning!", style: STextStyles.desktopH1(context)),
+                Text(
+                  l10n.commonWarningExclaim,
+                  style: STextStyles.desktopH1(context),
+                ),
                 const SizedBox(height: 24),
                 SizedBox(
                   width: 480,
                   child: RichText(
                     textAlign: TextAlign.center,
                     text: TextSpan(
-                      children: [
-                        TextSpan(
-                          text: "To ",
-                          style: STextStyles.desktopTextSmall(context),
-                        ),
-                        TextSpan(
-                          text: widget.shouldCreateNew
-                              ? "create a new ${AppConfig.prefix}"
-                              : "restore from backup",
-                          style: STextStyles.desktopTextSmallBold(context),
-                        ),
-                        TextSpan(
-                          text: ", we need to ",
-                          style: STextStyles.desktopTextSmall(context),
-                        ),
-                        TextSpan(
-                          text: "delete your old wallets",
-                          style: STextStyles.desktopTextSmallBold(context),
-                        ),
-                        TextSpan(
-                          text:
-                              ". Make sure you have the recovery phrase of each "
-                              "one: without it, its funds are lost.\n\n"
-                              "${AppConfig.appName} closes when it's done. Open "
-                              "it again to "
-                              "${widget.shouldCreateNew ? "start over" : "restore your backup"}.",
-                          style: STextStyles.desktopTextSmall(context),
-                        ),
-                      ],
+                      children: l10nSpans(
+                        widget.shouldCreateNew
+                            ? l10n.passwordResetNewText(
+                                AppConfig.prefix,
+                                AppConfig.appName,
+                              )
+                            : l10n.passwordResetRestoreText(AppConfig.appName),
+                        style: STextStyles.desktopTextSmall(context),
+                        bold: STextStyles.desktopTextSmallBold(context),
+                      ),
                     ),
                   ),
                 ),
                 const SizedBox(height: 48),
                 PrimaryButton(
-                  label: "Delete and close",
+                  label: l10n.passwordDeleteAndClose,
                   enabled: !_deleteInProgress,
                   onPressed: () async {
                     if (_deleteInProgress) return;
@@ -123,7 +108,7 @@ class _ForgotPasswordDesktopViewState
                       unawaited(
                         showFloatingFlushBar(
                           type: FlushBarType.warning,
-                          message: "Deleting failed: $e",
+                          message: l10n.passwordDeletingFailed("$e"),
                           context: context,
                         ),
                       );
@@ -133,7 +118,7 @@ class _ForgotPasswordDesktopViewState
                 ),
                 const SizedBox(height: 24),
                 SecondaryButton(
-                  label: "Take me back!",
+                  label: l10n.passwordTakeMeBack,
                   enabled: !_deleteInProgress,
                   onPressed: () {
                     Navigator.of(context).pop();

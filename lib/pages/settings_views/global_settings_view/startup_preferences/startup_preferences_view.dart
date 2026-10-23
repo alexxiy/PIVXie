@@ -15,6 +15,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../../app_config.dart';
+import '../../../../l10n/l10n.dart';
 import '../../../../providers/providers.dart';
 import '../../../../themes/coin_icon_provider.dart';
 import '../../../../themes/stack_colors.dart';
@@ -75,7 +76,7 @@ class _StartupPreferencesViewState
             },
           ),
           title: Text(
-            "Startup preferences",
+            l10n.startupTitle,
             style: STextStyles.navBarTitle(context),
           ),
         ),
@@ -159,7 +160,7 @@ class _StartupPreferencesViewState
                                                     CrossAxisAlignment.start,
                                                 children: [
                                                   Text(
-                                                    "Home screen",
+                                                    l10n.startupHomeScreen,
                                                     style:
                                                         STextStyles.titleBold12(
                                                           context,
@@ -167,7 +168,7 @@ class _StartupPreferencesViewState
                                                     textAlign: TextAlign.left,
                                                   ),
                                                   Text(
-                                                    "${AppConfig.appName} home screen",
+                                                    l10n.startupAppHomeScreen(AppConfig.appName),
                                                     style:
                                                         STextStyles.itemSubtitle(
                                                           context,
@@ -244,7 +245,7 @@ class _StartupPreferencesViewState
                                                     CrossAxisAlignment.start,
                                                 children: [
                                                   Text(
-                                                    "Specific wallet",
+                                                    l10n.startupSpecificWallet,
                                                     style:
                                                         STextStyles.titleBold12(
                                                           context,
@@ -314,7 +315,7 @@ class _StartupPreferencesViewState
                                                         ),
                                                       )
                                                       : Text(
-                                                        "Select a specific wallet to load into on startup",
+                                                        l10n.startupSpecificWalletText,
                                                         style:
                                                             STextStyles.itemSubtitle(
                                                               context,
@@ -383,7 +384,7 @@ class _StartupPreferencesViewState
                                                     CrossAxisAlignment.start,
                                                 children: [
                                                   Text(
-                                                    "Select wallet...",
+                                                    l10n.startupSelectWallet,
                                                     style: STextStyles.link2(
                                                       context,
                                                     ),

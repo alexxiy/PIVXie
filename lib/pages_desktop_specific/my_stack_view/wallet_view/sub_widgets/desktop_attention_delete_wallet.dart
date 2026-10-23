@@ -14,6 +14,7 @@ import 'package:stack_wallet_backup/secure_storage.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../../../app_config.dart';
+import '../../../../l10n/l10n.dart';
 import '../../../../pages/settings_views/wallet_settings_view/wallet_settings_wallet_settings/delete_view_only_wallet_keys_view.dart';
 import '../../../../providers/global/wallets_provider.dart';
 import '../../../../route_generator.dart';
@@ -45,11 +46,9 @@ class DesktopAttentionDeleteWallet extends ConsumerStatefulWidget {
 
 class _DesktopAttentionDeleteWallet
     extends ConsumerState<DesktopAttentionDeleteWallet> {
-  static const _deleteWarning =
-      "You're about to permanently delete this wallet.\n\nAfter that, the "
-      "only way to get to your funds is your recovery phrase.\n\n"
-      "${AppConfig.appName} doesn't keep a copy of it and can't restore your "
-      "wallet.\n\nSAVE YOUR RECOVERY PHRASE FIRST.";
+  static String get _deleteWarning =>
+      "${l10n.walletDeleteWarning(AppConfig.appName)}\n\n"
+      "${l10n.walletDeleteSaveFirst}";
 
   @override
   Widget build(BuildContext context) {
@@ -72,7 +71,10 @@ class _DesktopAttentionDeleteWallet
             padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 26),
             child: Column(
               children: [
-                Text("Attention!", style: STextStyles.desktopH2(context)),
+                Text(
+                  l10n.walletAttention,
+                  style: STextStyles.desktopH2(context),
+                ),
                 const SizedBox(height: 16),
                 RoundedContainer(
                   color: Theme.of(context)
@@ -103,7 +105,7 @@ class _DesktopAttentionDeleteWallet
                     SecondaryButton(
                       width: 250,
                       buttonHeight: ButtonHeight.xl,
-                      label: "Cancel",
+                      label: l10n.commonCancel,
                       onPressed: () {
                         Navigator.of(context, rootNavigator: true).pop();
                       },
@@ -112,8 +114,9 @@ class _DesktopAttentionDeleteWallet
                     PrimaryButton(
                       width: 250,
                       buttonHeight: ButtonHeight.xl,
-                      label:
-                          "View ${walletSecretTitle(ref.read(pWallets).getWallet(widget.walletId)).toLowerCase()}",
+                      label: walletSecretViewLabel(
+                        ref.read(pWallets).getWallet(widget.walletId),
+                      ),
                       onPressed: () async {
                         try {
                           final wallet = ref
@@ -140,7 +143,7 @@ class _DesktopAttentionDeleteWallet
                                                 left: 32,
                                               ),
                                               child: Text(
-                                                "Wallet keys",
+                                                l10n.walletKeys,
                                                 style: STextStyles.desktopH3(
                                                   context,
                                                 ),
@@ -223,9 +226,7 @@ class ErrorLoadingKeysDialog extends StatelessWidget {
 
   final String walletId;
 
-  static const _errorInfoExtra =
-      "Could not retrieve wallet keys/mnemonic phrase/seed.\n\n"
-      "Are you certain you would like to continue with wallet deletion?";
+  static String get _errorInfoExtra => l10n.walletDecryptionErrorText;
 
   @override
   Widget build(BuildContext context) {
@@ -240,7 +241,7 @@ class ErrorLoadingKeysDialog extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(left: 32),
                 child: Text(
-                  "Decryption error",
+                  l10n.walletDecryptionError,
                   style: STextStyles.desktopH3(context),
                 ),
               ),
@@ -264,7 +265,7 @@ class ErrorLoadingKeysDialog extends StatelessWidget {
                 ),
                 const SizedBox(height: 40),
                 PrimaryButton(
-                  label: "Continue",
+                  label: l10n.commonContinue,
                   onPressed: () async {
                     await Navigator.of(context).push(
                       RouteGenerator.getRoute(

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../l10n/l10n.dart';
 import '../../providers/global/wallets_provider.dart';
 import '../../services/pivx_name/pivx_name.dart';
 import '../../services/pivx_name/pivx_names_protocol.dart';
@@ -132,7 +133,7 @@ class _PivxNamesTransactionsViewState
     } catch (e) {
       if (!mounted || request != _request) return;
       setState(
-        () => _error = "Couldn't load the transactions. ${pivxNamesError(e)}",
+        () => _error = l10n.pivxNamesLoadTransactionsFailed(pivxNamesError(e)),
       );
     } finally {
       if (mounted && request == _request) setState(() => _loading = false);
@@ -159,13 +160,13 @@ class _PivxNamesTransactionsViewState
     builder: (context) {
       final colors = Theme.of(context).extension<StackColors>()!;
       return StackDialog(
-        title: "Transaction memo",
+        title: l10n.pivxNamesTransactionMemo,
         message: memo,
         leftButton: TextButton(
           style: colors.getSecondaryEnabledButtonStyle(context),
           onPressed: () => Navigator.of(context).pop(),
           child: Text(
-            "Close",
+            l10n.commonClose,
             style: STextStyles.button(context)
                 .copyWith(color: colors.accentColorDark),
           ),
@@ -173,10 +174,10 @@ class _PivxNamesTransactionsViewState
         rightButton: TextButton(
           style: colors.getPrimaryEnabledButtonStyle(context),
           onPressed: () async {
-            await pivxNamesCopy(context, memo, "Memo");
+            await pivxNamesCopy(context, memo, l10n.commonMemo);
             if (context.mounted) Navigator.of(context).pop();
           },
-          child: Text("Copy", style: STextStyles.button(context)),
+          child: Text(l10n.commonCopy, style: STextStyles.button(context)),
         ),
       );
     },
@@ -230,9 +231,9 @@ class _PivxNamesTransactionsViewState
       ),
       child: Row(
         children: [
-          tab("Incoming", PivxNamesIcons.incoming, false),
+          tab(l10n.pivxNamesIncoming, PivxNamesIcons.incoming, false),
           const SizedBox(width: 4),
-          tab("Refunds", PivxNamesIcons.refunds, true),
+          tab(l10n.pivxNamesRefunds, PivxNamesIcons.refunds, true),
         ],
       ),
     );
@@ -242,7 +243,7 @@ class _PivxNamesTransactionsViewState
     final colors = Theme.of(context).extension<StackColors>()!;
     return InkWell(
       borderRadius: BorderRadius.circular(6),
-      onTap: () => pivxNamesCopy(context, txId, "Transaction ID"),
+      onTap: () => pivxNamesCopy(context, txId, l10n.commonTransactionId),
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 2),
         child: Row(
@@ -311,7 +312,10 @@ class _PivxNamesTransactionsViewState
                     status,
                     if (confirmations != null) ...[
                       const SizedBox(width: 8),
-                      Text("$confirmations confirmations", style: secondary),
+                      Text(
+                        l10n.pivxNamesConfirmations(confirmations),
+                        style: secondary,
+                      ),
                     ],
                   ],
                 ),
@@ -332,7 +336,7 @@ class _PivxNamesTransactionsViewState
                           ),
                           onPressed: () => _showMemo(memo),
                           child: Text(
-                            "Show memo",
+                            l10n.pivxNamesShowMemo,
                             style: STextStyles.w600_12(context)
                                 .copyWith(color: colors.accentColorBlue),
                           ),
@@ -364,7 +368,7 @@ class _PivxNamesTransactionsViewState
           name: s.name,
           op: s.op,
           status: const PivxNamesStatusPill(status: null),
-          note: "Sent. Waiting for PIVX.name to see it.",
+          note: l10n.pivxNamesSentWaiting,
           txId: s.txid,
           memo: s.memo,
           onTap: () => _open(
@@ -436,7 +440,9 @@ class _PivxNamesTransactionsViewState
                       ),
                     ),
                     PivxNamesPill(
-                      text: r.status?.label ?? "Status ${r.rawStatus ?? "?"}",
+                      text:
+                          r.status?.label ??
+                          l10n.pivxNamesStatusCode("${r.rawStatus ?? "?"}"),
                       color: pivxNamesReadable(switch (r.status) {
                         PivxNamesRefundStatus.paid => colors.accentColorGreen,
                         PivxNamesRefundStatus.error => colors.accentColorRed,
@@ -452,7 +458,7 @@ class _PivxNamesTransactionsViewState
                 Text(
                   [
                     if (r.date != null) day(r.date!),
-                    if (r.fee.isNotEmpty) "Fee ${r.fee}%",
+                    if (r.fee.isNotEmpty) l10n.pivxNamesFeePercent(r.fee),
                   ].join("  ·  "),
                   style: secondary,
                 ),
@@ -481,7 +487,7 @@ class _PivxNamesTransactionsViewState
         backgroundColor: colors.background,
         appBar: PivxNamesAppBar(
           walletId: widget.walletId,
-          title: "My Transactions",
+          title: l10n.pivxNamesMyTransactions,
           section: PivxNamesSection.transactions,
         ),
         body: SafeArea(
@@ -495,7 +501,7 @@ class _PivxNamesTransactionsViewState
                     Expanded(child: _tabs()),
                     const SizedBox(width: 8),
                     IconButton(
-                      tooltip: "Refresh",
+                      tooltip: l10n.commonRefresh,
                       onPressed: _loading ? null : _load,
                       icon: _loading
                           ? const SizedBox(
@@ -513,9 +519,8 @@ class _PivxNamesTransactionsViewState
                 const SizedBox(height: 8),
                 Text(
                   _refunds
-                      ? "Your withdrawals from My Balance."
-                      : "Your payments to PIVX.name. Tap one in progress to "
-                            "follow it.",
+                      ? l10n.pivxNamesRefundsIntro
+                      : l10n.pivxNamesIncomingIntro,
                   style: STextStyles.itemSubtitle(context),
                 ),
                 const SizedBox(height: 12),
@@ -528,8 +533,8 @@ class _PivxNamesTransactionsViewState
                 else if (rows.isEmpty)
                   PivxNamesListState(
                     empty: _refunds
-                        ? "No withdrawals yet."
-                        : "No payments to PIVX.name yet.",
+                        ? l10n.pivxNamesNoWithdrawals
+                        : l10n.pivxNamesNoPayments,
                   )
                 else ...[
                   ...rows,

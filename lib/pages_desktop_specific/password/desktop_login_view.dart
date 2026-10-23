@@ -15,6 +15,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../app_config.dart';
+import '../../l10n/l10n.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../providers/desktop/storage_crypto_handler_provider.dart';
 import '../../providers/global/secure_store_provider.dart';
@@ -213,7 +214,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                           }
                         },
                         decoration: standardInputDecoration(
-                          "Enter password",
+                          l10n.commonEnterPassword,
                           passwordFocusNode,
                           context,
                         ).copyWith(
@@ -294,7 +295,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                   height: 24,
                 ),
                 PrimaryButton(
-                  label: "Continue",
+                  label: l10n.commonContinue,
                   enabled: _continueEnabled,
                   onPressed: login,
                 ),
@@ -302,7 +303,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                   height: 60,
                 ),
                 CustomTextButton(
-                  text: "Forgot password?",
+                  text: l10n.passwordForgot,
                   textSize: 20,
                   onTap: () {
                     Navigator.of(context).pushNamed(

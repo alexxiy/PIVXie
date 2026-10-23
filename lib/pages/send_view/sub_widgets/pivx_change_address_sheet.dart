@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar_community/isar.dart';
 
 import '../../../db/isar/main_db.dart';
+import '../../../l10n/l10n.dart';
 import '../../../models/isar/models/isar_models.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/constants.dart';
@@ -80,10 +81,11 @@ class _PivxChangeAddressSheetState
         ?.value
         .trim();
     if (label != null && label.isNotEmpty) return label;
-    if (a.type == AddressType.pivxShield) return "Shield #${a.derivationIndex}";
+    if (a.type == AddressType.pivxShield)
+      return l10n.addressShieldN(a.derivationIndex);
     return a.subType == AddressSubType.change
-        ? "Change #${a.derivationIndex}"
-        : "Receiving #${a.derivationIndex}";
+        ? l10n.addressChangeN(a.derivationIndex)
+        : l10n.addressReceivingN(a.derivationIndex);
   }
 
   /// The typed address is valid but not one of this wallet's: the change
@@ -103,8 +105,8 @@ class _PivxChangeAddressSheetState
         : !widget.coin.isTransparentAddress(address)) {
       setState(
         () => _error = widget.shield
-            ? "Not a shield PIVX address"
-            : "Not a transparent PIVX address",
+            ? l10n.sendNotShieldAddress
+            : l10n.sendNotTransparentAddress,
       );
       return;
     }
@@ -185,7 +187,7 @@ class _PivxChangeAddressSheetState
                 ),
               if (!isDesktop) const SizedBox(height: 24),
               Text(
-                "Change address",
+                l10n.sendChangeAddress,
                 style: isDesktop
                     ? STextStyles.desktopH3(context)
                     : STextStyles.pageTitleH2(context),
@@ -196,10 +198,10 @@ class _PivxChangeAddressSheetState
                   shrinkWrap: true,
                   children: [
                     _option(
-                      title: "Automatic",
+                      title: l10n.sendAutomatic,
                       subtitle: widget.shield
-                          ? "This wallet's shield change address"
-                          : "A new change address of this wallet",
+                          ? l10n.sendAutomaticShieldChange
+                          : l10n.sendAutomaticNewChange,
                       selected: widget.current == null,
                       onTap: () => Navigator.of(context).pop(""),
                     ),
@@ -227,8 +229,8 @@ class _PivxChangeAddressSheetState
                   onChanged: (_) => setState(() => _error = null),
                   decoration: standardInputDecoration(
                     widget.shield
-                        ? "Other shield address"
-                        : "Other transparent address",
+                        ? l10n.sendOtherShieldAddress
+                        : l10n.sendOtherTransparentAddress,
                     _focus,
                     context,
                   ).copyWith(errorText: _error),
@@ -237,14 +239,16 @@ class _PivxChangeAddressSheetState
               if (_error == null && _foreign) ...[
                 const SizedBox(height: 8),
                 Text(
-                  "This address isn't one of this wallet's. The change would go "
-                  "to whoever owns it.",
+                  l10n.sendForeignChangeWarning,
                   style: STextStyles.label(context)
                       .copyWith(color: colors.textError),
                 ),
               ],
               const SizedBox(height: 12),
-              PrimaryButton(label: "Use this address", onPressed: _useCustom),
+              PrimaryButton(
+                label: l10n.sendUseThisAddress,
+                onPressed: _useCustom,
+              ),
             ],
           ),
         ),

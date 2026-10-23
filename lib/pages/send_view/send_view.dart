@@ -19,6 +19,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:tuple/tuple.dart';
 
+import '../../l10n/l10n.dart';
 import '../../models/input.dart';
 import '../../models/isar/models/isar_models.dart';
 import '../../models/send_view_auto_fill_data.dart';
@@ -96,11 +97,11 @@ class SendView extends ConsumerStatefulWidget {
 }
 
 class _SendViewState extends ConsumerState<SendView> {
-  static const stringsToLoopThrough = [
-    "Calculating",
-    "Calculating.",
-    "Calculating..",
-    "Calculating...",
+  static List<String> get stringsToLoopThrough => [
+    l10n.commonCalculating,
+    "${l10n.commonCalculating}.",
+    "${l10n.commonCalculating}..",
+    "${l10n.commonCalculating}...",
   ];
 
   late final String walletId;
@@ -493,14 +494,14 @@ class _SendViewState extends ConsumerState<SendView> {
             barrierDismissible: true,
             builder: (context) {
               return StackDialog(
-                title: "Confirm send all",
-                message: "You are about to send your entire balance. Would you like to continue?",
+                title: l10n.sendConfirmSendAll,
+                message: l10n.sendConfirmSendAllText,
                 leftButton: TextButton(
                   style: Theme.of(context)
                       .extension<StackColors>()!
                       .getSecondaryEnabledButtonStyle(context),
                   child: Text(
-                    "Cancel",
+                    l10n.commonCancel,
                     style: STextStyles.button(context).copyWith(
                       color: Theme.of(context)
                           .extension<StackColors>()!
@@ -515,7 +516,10 @@ class _SendViewState extends ConsumerState<SendView> {
                   style: Theme.of(context)
                       .extension<StackColors>()!
                       .getPrimaryEnabledButtonStyle(context),
-                  child: Text("Yes", style: STextStyles.button(context)),
+                  child: Text(
+                    l10n.commonYes,
+                    style: STextStyles.button(context),
+                  ),
                   onPressed: () {
                     Navigator.of(context).pop(true);
                   },
@@ -655,14 +659,14 @@ class _SendViewState extends ConsumerState<SendView> {
             barrierDismissible: true,
             builder: (context) {
               return StackDialog(
-                title: "Transaction failed",
+                title: l10n.sendTransactionFailed,
                 message: e.toString(),
                 rightButton: TextButton(
                   style: Theme.of(context)
                       .extension<StackColors>()!
                       .getSecondaryEnabledButtonStyle(context),
                   child: Text(
-                    "Ok",
+                    l10n.commonOk,
                     style: STextStyles.button(context).copyWith(
                       color: Theme.of(context)
                           .extension<StackColors>()!
@@ -703,10 +707,10 @@ class _SendViewState extends ConsumerState<SendView> {
     Set<StandardInput> selectedUTXOs,
   ) {
     if (showCoinControl && selectedUTXOs.isNotEmpty) {
-      return "Send all selected";
+      return l10n.sendAllSelected;
     }
 
-    return "Send all ${coin.ticker}";
+    return l10n.sendAllTicker(coin.ticker);
   }
 
   Amount _selectedUtxosAmount(Set<StandardInput> utxos) => Amount(
@@ -890,7 +894,7 @@ class _SendViewState extends ConsumerState<SendView> {
             onPressed: () => Navigator.of(context).pop(),
           ),
           title: Text(
-            "Send ${coin.ticker}",
+            l10n.sendUnit(coin.ticker),
             style: STextStyles.navBarTitle(context),
           ),
         ),
@@ -944,13 +948,13 @@ class _SendViewState extends ConsumerState<SendView> {
                                         ),
                                         Text(
                                           balType == BalanceType.private
-                                              ? "Shielded balance"
-                                              : "Transparent balance",
+                                              ? l10n.balanceShielded
+                                              : l10n.balanceTransparent,
                                           style: STextStyles.label(context)
                                               .copyWith(fontSize: 10),
                                         ),
                                         Text(
-                                          "Available balance",
+                                          l10n.balanceAvailable,
                                           style: STextStyles.label(context)
                                               .copyWith(fontSize: 10),
                                         ),
@@ -1020,7 +1024,7 @@ class _SendViewState extends ConsumerState<SendView> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  "Send to",
+                                  l10n.sendSendTo,
                                   style: STextStyles.smallMed12(context),
                                   textAlign: TextAlign.left,
                                 ),
@@ -1101,7 +1105,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                             children: [
                                               _addressToggleFlag
                                                   ? TextFieldIconButton(
-                                                      semanticsLabel: "Clear Button. Clears The Address Field Input.",
+                                                      semanticsLabel: l10n
+                                                          .sendClearAddressSemantics,
                                                       key: const Key(
                                                         "sendViewClearAddressFieldButtonKey",
                                                       ),
@@ -1120,7 +1125,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                                       child: const XIcon(),
                                                     )
                                                   : TextFieldIconButton(
-                                                      semanticsLabel: "Paste Button. Pastes From Clipboard To Address Field Input.",
+                                                      semanticsLabel: l10n
+                                                          .sendPasteAddressSemantics,
                                                       key: const Key(
                                                         "sendViewPasteAddressFieldButtonKey",
                                                       ),
@@ -1134,7 +1140,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                                     ),
                                               if (sendToController.text.isEmpty)
                                                 TextFieldIconButton(
-                                                  semanticsLabel: "Address Book Button. Opens Address Book For Address Field.",
+                                                  semanticsLabel: l10n
+                                                      .sendAddressBookSemantics,
                                                   key: const Key(
                                                     "sendViewAddressBookButtonKey",
                                                   ),
@@ -1151,7 +1158,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                                 ),
                                               if (sendToController.text.isEmpty)
                                                 TextFieldIconButton(
-                                                  semanticsLabel: "Scan QR Button. Opens Camera For Scanning QR Code.",
+                                                  semanticsLabel:
+                                                      l10n.sendScanQrSemantics,
                                                   key: const Key(
                                                     "sendViewScanQrButtonKey",
                                                   ),
@@ -1207,7 +1215,7 @@ class _SendViewState extends ConsumerState<SendView> {
                             ),
                             const SizedBox(height: 12),
                             Text(
-                              "Send from",
+                              l10n.sendSendFrom,
                               style: STextStyles.smallMed12(context),
                               textAlign: TextAlign.left,
                             ),
@@ -1261,8 +1269,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                                         publicPrivateBalanceStateProvider,
                                                       ) ==
                                                       BalanceType.private
-                                                  ? "Shielded balance"
-                                                  : "Transparent balance",
+                                                  ? l10n.balanceShielded
+                                                  : l10n.balanceTransparent,
                                               style: STextStyles.itemSubtitle12(
                                                 context,
                                               ),
@@ -1328,7 +1336,7 @@ class _SendViewState extends ConsumerState<SendView> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  "Amount",
+                                  l10n.commonAmount,
                                   style: STextStyles.smallMed12(context),
                                   textAlign: TextAlign.left,
                                 ),
@@ -1479,7 +1487,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                       ),
                                       const SizedBox(width: 12),
                                       Text(
-                                        "Subtract fee from amount",
+                                        l10n.sendSubtractFee,
                                         style: STextStyles.itemSubtitle12(
                                           context,
                                         ),
@@ -1496,7 +1504,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
-                                      "Change address",
+                                      l10n.sendChangeAddress,
                                       style: STextStyles.w500_14(context)
                                           .copyWith(
                                             color: Theme.of(context)
@@ -1508,7 +1516,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                     Flexible(
                                       child: CustomTextButton(
                                         text: _pivxChange(balType) == null
-                                            ? "Automatic"
+                                            ? l10n.sendAutomatic
                                             : "${_pivxChange(balType)!.substring(0, 6)}"
                                                   "…${_pivxChange(balType)!.substring(_pivxChange(balType)!.length - 6)}",
                                         onTap: () async {
@@ -1562,7 +1570,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
-                                      "Coin control",
+                                      l10n.coinControlTitle,
                                       style: STextStyles.w500_14(context)
                                           .copyWith(
                                             color: Theme.of(context)
@@ -1572,8 +1580,10 @@ class _SendViewState extends ConsumerState<SendView> {
                                     ),
                                     CustomTextButton(
                                       text: selectedUTXOs.isEmpty
-                                          ? "Select coins"
-                                          : "Selected coins (${selectedUTXOs.length})",
+                                          ? l10n.sendSelectCoins
+                                          : l10n.sendSelectedCoins(
+                                              selectedUTXOs.length,
+                                            ),
                                       onTap: () async {
                                         if (FocusScope.of(context).hasFocus) {
                                           FocusScope.of(context).unfocus();
@@ -1671,7 +1681,7 @@ class _SendViewState extends ConsumerState<SendView> {
                             // can receive one.
                             if (_sendsToShield) ...[
                               Text(
-                                "Shielded memo (optional)",
+                                l10n.sendShieldedMemoOptional,
                                 style: STextStyles.smallMed12(context),
                                 textAlign: TextAlign.left,
                               ),
@@ -1685,7 +1695,7 @@ class _SendViewState extends ConsumerState<SendView> {
                               const SizedBox(height: 4),
                             ],
                             Text(
-                              "Note (optional)",
+                              l10n.sendNoteOptional,
                               style: STextStyles.smallMed12(context),
                               textAlign: TextAlign.left,
                             ),
@@ -1707,8 +1717,8 @@ class _SendViewState extends ConsumerState<SendView> {
                                     standardInputDecoration(
                                       // Short enough for a phone's field.
                                       coin is Pivx
-                                          ? "Only in your history, never sent"
-                                          : "Type something...",
+                                          ? l10n.sendNoteHint
+                                          : l10n.sendTypeSomething,
                                       _noteFocusNode,
                                       context,
                                     ).copyWith(
@@ -1739,7 +1749,7 @@ class _SendViewState extends ConsumerState<SendView> {
                             ),
                             const SizedBox(height: 12),
                             Text(
-                              "Network fee (estimated)",
+                              l10n.sendNetworkFeeEstimated,
                               style: STextStyles.smallMed12(context),
                               textAlign: TextAlign.left,
                             ),
@@ -1789,7 +1799,7 @@ class _SendViewState extends ConsumerState<SendView> {
                                         .extension<StackColors>()!
                                         .getPrimaryDisabledButtonStyle(context),
                               child: Text(
-                                "Preview",
+                                l10n.sendPreview,
                                 style: STextStyles.button(context),
                               ),
                             ),

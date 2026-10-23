@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../../l10n/l10n.dart';
 import '../../pages/generic/single_field_edit_view.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
@@ -24,6 +25,7 @@ class SimpleEditButton extends StatelessWidget {
     super.key,
     this.editValue,
     this.editLabel,
+    this.editTitle,
     this.overrideTitle,
     this.disableIcon = false,
     this.onValueChanged,
@@ -38,6 +40,9 @@ class SimpleEditButton extends StatelessWidget {
 
   final String? editValue;
   final String? editLabel;
+
+  /// The edit view's title, such as "Edit label". [editLabel] when null.
+  final String? editTitle;
   final String? overrideTitle;
   final bool disableIcon;
   final void Function(String)? onValueChanged;
@@ -67,6 +72,7 @@ class SimpleEditButton extends StatelessWidget {
                       maxHeight: 300,
                       child: SingleFieldEditView(
                         initialValue: editValue!,
+                        title: editTitle ?? editLabel!,
                         label: editLabel!,
                       ),
                     );
@@ -92,8 +98,9 @@ class SimpleEditButton extends StatelessWidget {
             () async {
               final result = await Navigator.of(context).pushNamed(
                 SingleFieldEditView.routeName,
-                arguments: Tuple2(
+                arguments: Tuple3(
                   editValue!,
+                  editTitle ?? editLabel!,
                   editLabel!,
                 ),
               );
@@ -116,7 +123,7 @@ class SimpleEditButton extends StatelessWidget {
                 width: 4,
               ),
             Text(
-              overrideTitle ?? "Edit",
+              overrideTitle ?? l10n.commonEdit,
               style: STextStyles.link2(context),
             ),
           ],

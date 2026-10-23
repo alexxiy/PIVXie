@@ -13,6 +13,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import '../../l10n/l10n.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
@@ -35,7 +36,7 @@ class SimpleCopyButton extends StatelessWidget {
           unawaited(
             showFloatingFlushBar(
               type: FlushBarType.info,
-              message: "Copied to clipboard",
+              message: l10n.commonCopiedToClipboard,
               context: context,
             ),
           );
@@ -53,7 +54,7 @@ class SimpleCopyButton extends StatelessWidget {
             width: 4,
           ),
           Text(
-            "Copy",
+            l10n.commonCopy,
             style: STextStyles.link2(context),
           ),
         ],

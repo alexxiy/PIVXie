@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
+import '../../../l10n/l10n.dart';
 import '../../../models/keys/view_only_wallet_data.dart';
 import '../../../notifications/show_flush_bar.dart';
 import '../../../pages_desktop_specific/desktop_home_view.dart';
@@ -69,12 +70,13 @@ class _RestoreViewOnlyWalletViewState
     try {
       key = coinlib.HDPublicKey.decode(xpub, coin.networkParams.pubHDPrefix);
     } catch (_) {
-      return "That isn't a ${coin.prettyName} extended public key.";
+      return l10n.restoreNotXpub(coin.prettyName);
     }
     // Addresses are derived below the account key (chain/index).
     if (key.depth != 3) {
-      return "Use the extended public key of the account "
-          "(${coin.supportedHardenedDerivationPaths.last}).";
+      return l10n.restoreUseAccountXpub(
+        coin.supportedHardenedDerivationPaths.last,
+      );
     }
     return null;
   }
@@ -162,7 +164,7 @@ class _RestoreViewOnlyWalletViewState
 
       final xpub = viewKeyController.text.trim();
       if (xpub.isEmpty) {
-        throw Exception("Extended public key is empty");
+        throw Exception(l10n.restoreXpubEmpty);
       }
       final viewOnlyData = ExtendedKeysViewOnlyWalletData(
         walletId: info.walletId,
@@ -326,7 +328,7 @@ class _RestoreViewOnlyWalletViewState
                           ),
                         SizedBox(height: isDesktop ? 0 : 4),
                         Text(
-                          "Enter view only details",
+                          l10n.restoreEnterViewOnly,
                           style: isDesktop
                               ? STextStyles.desktopH2(context)
                               : STextStyles.pageTitleH1(context),
@@ -334,7 +336,7 @@ class _RestoreViewOnlyWalletViewState
                         SizedBox(height: isDesktop ? 24 : 16),
                         FullTextField(
                           key: const Key("viewOnlyKeyRestoreFieldKey"),
-                          label: "Extended public key",
+                          label: l10n.restoreXpub,
                           controller: viewKeyController,
                           onChanged: (value) {
                             setState(() {
@@ -348,7 +350,7 @@ class _RestoreViewOnlyWalletViewState
                           enabled: _enableRestoreButton,
                           onPressed: _requestRestore,
                           width: isDesktop ? 480 : null,
-                          label: "Restore",
+                          label: l10n.restoreAction,
                         ),
                         if (isDesktop) const Spacer(flex: 15),
                       ],

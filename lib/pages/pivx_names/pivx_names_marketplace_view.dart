@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../l10n/l10n.dart';
 import '../../providers/global/wallets_provider.dart';
 import '../../services/pivx_name/pivx_names_protocol.dart';
 import '../../services/pivx_name/pivx_names_registrar.dart';
@@ -81,7 +82,7 @@ class _PivxNamesMarketplaceViewState
       setState(() => _names = names);
     } catch (e) {
       if (!mounted || request != _request) return;
-      setState(() => _error = "Couldn't load the names. ${pivxNamesError(e)}");
+      setState(() => _error = l10n.pivxNamesLoadNamesFailed(pivxNamesError(e)));
     } finally {
       if (mounted && request == _request) setState(() => _loading = false);
     }
@@ -99,11 +100,12 @@ class _PivxNamesMarketplaceViewState
   Future<void> _buy(PivxNamesDomain d) async {
     final ok = await pivxNamesConfirm(
       context,
-      title: "Buy name",
-      message:
-          "Do you want to buy ${pivxNamesUnbroken(d.name)} for "
-          "${pivxNamesAmount(d.price, ref, _wallet)}?",
-      action: "Buy",
+      title: l10n.pivxNamesBuyName,
+      message: l10n.pivxNamesBuyConfirm(
+        pivxNamesUnbroken(d.name),
+        pivxNamesAmount(d.price, ref, _wallet),
+      ),
+      action: l10n.pivxNamesBuy,
     );
     if (ok && mounted) {
       await startPivxNamesFlow(context, ref, _flow(d, PivxNamesOp.buy));
@@ -113,9 +115,9 @@ class _PivxNamesMarketplaceViewState
   Future<void> _unlist(PivxNamesDomain d) async {
     final ok = await pivxNamesConfirm(
       context,
-      title: "Unlist from sale",
-      message: "Take ${pivxNamesUnbroken(d.name)} off the marketplace?",
-      action: "Unlist",
+      title: l10n.pivxNamesUnlistTitle,
+      message: l10n.pivxNamesUnlistConfirm(pivxNamesUnbroken(d.name)),
+      action: l10n.pivxNamesUnlist,
     );
     if (ok && mounted) {
       await startPivxNamesFlow(context, ref, _flow(d, PivxNamesOp.ult));
@@ -138,7 +140,10 @@ class _PivxNamesMarketplaceViewState
                 Expanded(child: PivxNamesNameText(d.name)),
                 const SizedBox(width: 8),
                 if (own)
-                  PivxNamesPill(text: "Yours", color: colors.accentColorBlue)
+                  PivxNamesPill(
+                    text: l10n.pivxNamesYours,
+                    color: colors.accentColorBlue,
+                  )
                 else
                   PivxNamesZoneBadge(name: d.name),
               ],
@@ -157,7 +162,7 @@ class _PivxNamesMarketplaceViewState
                 children: [
                   Expanded(
                     child: SecondaryButton(
-                      label: "Change price",
+                      label: l10n.pivxNamesChangePrice,
                       buttonHeight: Util.isDesktop ? ButtonHeight.m : null,
                       onPressed: () => startPivxNamesFlow(
                         context,
@@ -169,7 +174,7 @@ class _PivxNamesMarketplaceViewState
                   const SizedBox(width: 8),
                   Expanded(
                     child: SecondaryButton(
-                      label: "Unlist",
+                      label: l10n.pivxNamesUnlist,
                       buttonHeight: Util.isDesktop ? ButtonHeight.m : null,
                       onPressed: () => _unlist(d),
                     ),
@@ -178,7 +183,7 @@ class _PivxNamesMarketplaceViewState
               )
             else
               PrimaryButton(
-                label: "Buy name",
+                label: l10n.pivxNamesBuyName,
                 buttonHeight: Util.isDesktop ? ButtonHeight.m : null,
                 onPressed: () => _buy(d),
               ),
@@ -197,7 +202,7 @@ class _PivxNamesMarketplaceViewState
         backgroundColor: colors.background,
         appBar: PivxNamesAppBar(
           walletId: widget.walletId,
-          title: "Marketplace",
+          title: l10n.pivxNamesMarketplace,
           section: PivxNamesSection.marketplace,
         ),
         body: SafeArea(
@@ -207,12 +212,12 @@ class _PivxNamesMarketplaceViewState
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
               children: [
                 Text(
-                  "Find and buy PIVX names from other users.",
+                  l10n.pivxNamesMarketplaceIntro,
                   style: STextStyles.itemSubtitle(context),
                 ),
                 const SizedBox(height: 12),
                 PivxNamesSearchField(
-                  hint: "Search names on sale",
+                  hint: l10n.pivxNamesSearchOnSale,
                   onSearch: (term) {
                     _search = term;
                     _page = 1;
@@ -227,12 +232,12 @@ class _PivxNamesMarketplaceViewState
                 else if (names == null || names.items.isEmpty)
                   PivxNamesListState(
                     empty: _search.isNotEmpty
-                        ? "No names match your search."
-                        : "There are no names for sale right now.",
+                        ? l10n.pivxNamesNoMatch
+                        : l10n.pivxNamesNoneOnSale,
                     action: _search.isNotEmpty
                         ? null
                         : SecondaryButton(
-                            label: "Sell my names",
+                            label: l10n.pivxNamesSellMyNames,
                             width: 200,
                             buttonHeight: Util.isDesktop
                                 ? ButtonHeight.m

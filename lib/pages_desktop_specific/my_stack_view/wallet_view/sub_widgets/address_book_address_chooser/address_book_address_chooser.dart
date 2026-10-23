@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../../../../l10n/l10n.dart';
 import '../../../../../models/isar/models/contact_entry.dart';
 import '../../../../../providers/global/address_book_service_provider.dart';
 import '../../../../../themes/stack_colors.dart';
@@ -148,7 +149,7 @@ class _AddressBookAddressChooserState extends State<AddressBookAddressChooser> {
                   : STextStyles.field(context),
               decoration:
                   standardInputDecoration(
-                    "Search",
+                    l10n.commonSearch,
                     searchFieldFocusNode,
                     context,
                     desktopMed: isDesktop,
@@ -226,7 +227,7 @@ class _AddressBookAddressChooserState extends State<AddressBookAddressChooser> {
                         ),
                         padding: const EdgeInsets.only(bottom: 10),
                         child: Text(
-                          "Favorites",
+                          l10n.addressBookFavorites,
                           style: STextStyles.desktopTextExtraExtraSmall(
                             context,
                           ),
@@ -246,7 +247,7 @@ class _AddressBookAddressChooserState extends State<AddressBookAddressChooser> {
                         ),
                         padding: const EdgeInsets.symmetric(vertical: 10),
                         child: Text(
-                          "All contacts",
+                          l10n.addressBookAllContacts,
                           style: STextStyles.desktopTextExtraExtraSmall(
                             context,
                           ),

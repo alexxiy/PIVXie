@@ -17,6 +17,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../../../app_config.dart';
+import '../../../../l10n/l10n.dart';
 import '../../../../providers/global/prefs_provider.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
@@ -76,7 +77,7 @@ class _DebugInfoDialog extends ConsumerState<DesktopLoggingDialog> {
       final String path =
           Platform.isWindows ? currentPath.replaceAll("/", "\\") : currentPath;
       chosenPath = await FilePicker.getDirectoryPath(
-        dialogTitle: "Choose Log Save location",
+        dialogTitle: l10n.logsChooseLocation,
         initialDirectory: path,
         windowsOptions: const WindowsOptions(lockParentWindow: true),
       );
@@ -112,7 +113,7 @@ class _DebugInfoDialog extends ConsumerState<DesktopLoggingDialog> {
               Padding(
                 padding: const EdgeInsets.all(32),
                 child: Text(
-                  "Logging",
+                  l10n.settingsLogging,
                   style: STextStyles.desktopH3(context),
                   textAlign: TextAlign.center,
                 ),
@@ -125,7 +126,7 @@ class _DebugInfoDialog extends ConsumerState<DesktopLoggingDialog> {
             child: Row(
               children: [
                 Text(
-                  "Log files location",
+                  l10n.logsLocation,
                   style: STextStyles.desktopTextFieldLabel(context),
                   textAlign: TextAlign.left,
                 ),
@@ -143,7 +144,7 @@ class _DebugInfoDialog extends ConsumerState<DesktopLoggingDialog> {
               controller: fileLocationController,
               style: STextStyles.field(context),
               decoration: InputDecoration(
-                hintText: "Save to...",
+                hintText: l10n.logsSaveTo,
                 hintStyle: STextStyles.fieldLabel(context),
                 suffixIcon: UnconstrainedBox(
                   child: Row(
@@ -201,8 +202,7 @@ class _DebugInfoDialog extends ConsumerState<DesktopLoggingDialog> {
                           .extension<StackColors>()!
                           .textSubtitle6,
                       child: Text(
-                        "NOTE: ${AppConfig.appName} must be restarted in order"
-                        " for changes to take effect.",
+                        l10n.logsRestartNote(AppConfig.appName),
                         style: STextStyles.desktopTextExtraExtraSmall(context),
                       ),
                     ),
@@ -225,7 +225,7 @@ class _DebugInfoDialog extends ConsumerState<DesktopLoggingDialog> {
                   ),
                   Expanded(
                     child: PrimaryButton(
-                      label: "Select log save location",
+                      label: l10n.logsSelectLocation,
                       onPressed: () async {
                         if (_lock) {
                           return;
@@ -244,7 +244,7 @@ class _DebugInfoDialog extends ConsumerState<DesktopLoggingDialog> {
                               showDialog(
                                 context: context,
                                 builder: (context) => StackOkDialog(
-                                  title: "Failed to change logs path",
+                                  title: l10n.logsChangePathFailed,
                                   message: e.toString(),
                                 ),
                               ),

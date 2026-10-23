@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../../../../l10n/l10n.dart';
 import '../../../../../providers/global/prefs_provider.dart';
 import '../../../../../themes/coin_icon_provider.dart';
 import '../../../../../themes/stack_colors.dart';
@@ -56,7 +57,10 @@ class ManageCoinUnitsView extends ConsumerWidget {
               children: [
                 Padding(
                   padding: const EdgeInsets.only(left: 32),
-                  child: Text("Units", style: STextStyles.desktopH3(context)),
+                  child: Text(
+                    l10n.unitsTitle,
+                    style: STextStyles.desktopH3(context),
+                  ),
                 ),
                 const DesktopDialogCloseButton(),
               ],
@@ -83,7 +87,10 @@ class ManageCoinUnitsView extends ConsumerWidget {
                   Navigator.of(context).pop();
                 },
               ),
-              title: Text("Units", style: STextStyles.navBarTitle(context)),
+              title: Text(
+                l10n.unitsTitle,
+                style: STextStyles.navBarTitle(context),
+              ),
             ),
             body: SafeArea(child: child),
           ),
@@ -125,7 +132,7 @@ class ManageCoinUnitsView extends ConsumerWidget {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text(
-                        "Edit ${coin.prettyName} units",
+                        l10n.unitsEdit(coin.prettyName),
                         style: STextStyles.titleBold12(context),
                       ),
                     ),

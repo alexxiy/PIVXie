@@ -53,23 +53,27 @@ enum PivxVote {
 
 enum PivxProposalStatus {
   /// In the budget the next superblock pays.
-  passing("Passing"),
+  passing,
 
   /// Enough votes, but the budget is used up by proposals with more.
-  passingNotFunded("Passing, not funded"),
+  passingNotFunded,
 
   /// Too few net yes votes.
-  notPassing("Not passing"),
+  notPassing,
 
   /// Too new to be funded yet (one day on mainnet).
-  waiting("Waiting"),
+  waiting,
 
   /// All payments made.
-  finished("Finished");
+  finished;
 
-  const PivxProposalStatus(this.label);
-
-  final String label;
+  String get label => switch (this) {
+    passing => l10n.govStatusPassing,
+    passingNotFunded => l10n.govStatusPassingNotFunded,
+    notPassing => l10n.govStatusNotPassing,
+    waiting => l10n.govStatusWaiting,
+    finished => l10n.govStatusFinished,
+  };
 }
 
 class PivxProposal {
@@ -822,7 +826,7 @@ extension PivxGovernanceWallet on PivxWallet {
         connectionTimeout: const Duration(seconds: 20),
       );
       if (response.code != 200) {
-        throw Exception("pivx.org answered ${response.code}");
+        throw Exception(l10n.govArchiveFailed(response.code));
       }
       for (final p in parsePivxProposalArchive(
         response.body,
@@ -849,46 +853,50 @@ extension PivxGovernanceWallet on PivxWallet {
   }
 
   String? proposalNameError(String name) {
-    if (name.isEmpty) return "Enter a name";
+    if (name.isEmpty) return l10n.govEnterName;
     if (name.length > kPivxProposalNameMax) {
-      return "At most $kPivxProposalNameMax characters";
+      return l10n.commonAtMostChars(kPivxProposalNameMax);
     }
     if (!_kSafeChars.hasMatch(name)) {
-      return "Letters, digits, spaces and . , ; - _ / : ? @ ( ) only";
+      return l10n.govNameChars;
     }
     return null;
   }
 
   String? proposalUrlError(String url) {
-    if (url.isEmpty) return "Enter the link to the proposal's description";
+    if (url.isEmpty) return l10n.govEnterUrl;
     if (url.length > kPivxProposalUrlMax) {
-      return "At most $kPivxProposalUrlMax characters";
+      return l10n.commonAtMostChars(kPivxProposalUrlMax);
     }
     if (!_kSafeChars.hasMatch(url) || !_kUrlPattern.hasMatch(url)) {
-      return "Not a valid web link (https://…)";
+      return l10n.govInvalidUrl;
     }
     return null;
   }
 
   String? proposalAmountError(Amount? amount) {
-    if (amount == null) return "Enter an amount";
+    if (amount == null) return l10n.commonEnterAmount;
     if (amount.raw < BigInt.from(kPivxProposalMinSats)) {
-      return "At least ${kPivxProposalMinSats ~/ 100000000} "
-          "${cryptoCurrency.ticker}";
+      return l10n.govAmountAtLeast(
+        "${kPivxProposalMinSats ~/ 100000000}",
+        cryptoCurrency.ticker,
+      );
     }
     if (amount.raw > budgetPerSuperblock.raw) {
-      return "At most ${budgetPerSuperblock.decimal} "
-          "${cryptoCurrency.ticker} (the whole budget)";
+      return l10n.govAmountAtMost(
+        "${budgetPerSuperblock.decimal}",
+        cryptoCurrency.ticker,
+      );
     }
     return null;
   }
 
   String? proposalAddressError(String address) {
-    if (address.isEmpty) return "Enter the address to pay";
+    if (address.isEmpty) return l10n.govEnterPayAddress;
     if (!cryptoCurrency.validateAddress(address) ||
         isShieldAddress(address) ||
         cryptoCurrency.isExchangeAddress(address)) {
-      return "A transparent ${cryptoCurrency.ticker} address (D…)";
+      return l10n.govTransparentAddress(cryptoCurrency.ticker);
     }
     return null;
   }
@@ -912,7 +920,7 @@ extension PivxGovernanceWallet on PivxWallet {
         proposalAddressError(paymentAddress);
     if (error != null) throw Exception(error);
     if (payments < 1 || payments > maxProposalPayments) {
-      throw Exception("Between 1 and $maxProposalPayments payments");
+      throw Exception(l10n.govPaymentsRange(maxProposalPayments));
     }
     final payee = coinlib.Address.fromString(
       paymentAddress,
@@ -932,7 +940,7 @@ extension PivxGovernanceWallet on PivxWallet {
     );
     final txData = await prepareSend(
       txData: TxData(
-        note: "Proposal fee: $name",
+        note: l10n.govFeeNote(name),
         noteOnChain: "",
         utxos: pivxFundingInputs(funding),
         otherData: jsonEncode(pivxFundingOtherData(funding)),
@@ -1045,10 +1053,7 @@ extension PivxGovernanceWallet on PivxWallet {
       final confs = await feeConfirmationsOf(p);
       if (confs == null || confs < proposalFeeConfirmations) {
         if (height >= p.blockStart) {
-          failed[p.hash] = p.withError(
-            "Its start (block ${p.blockStart}) passed before the fee was "
-            "confirmed",
-          );
+          failed[p.hash] = p.withError(l10n.govStartPassed(p.blockStart));
         }
         continue;
       }
@@ -1140,7 +1145,7 @@ extension PivxGovernanceWallet on PivxWallet {
   }) async {
     final wif = await masternodeKey(mn);
     if (wif == null) {
-      throw Exception("The private key of ${mn.label} is missing");
+      throw Exception(l10n.govMnKeyMissing(mn.label));
     }
     final key = coinlib.WIF
         .fromString(wif, version: cryptoCurrency.networkParams.wifPrefix)
@@ -1170,8 +1175,8 @@ extension PivxGovernanceWallet on PivxWallet {
   static String _voteError(String answer) {
     final a = answer.replaceFirst(RegExp(r"^Error voting\s*:\s*"), "").trim();
     if (a.contains("Failure to find masternode")) {
-      return "The network doesn't know this masternode (start it first)";
+      return l10n.govMnUnknown;
     }
-    return a.isEmpty ? "The vote was not accepted" : a;
+    return a.isEmpty ? l10n.govVoteNotAccepted : a;
   }
 }

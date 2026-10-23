@@ -3,6 +3,7 @@ import 'dart:math';
 
 import 'package:isar_community/isar.dart';
 
+import '../../../../../l10n/l10n.dart';
 import '../../../../../utilities/amount/amount.dart';
 import '../transaction_type.dart';
 import 'input_v2.dart';
@@ -194,8 +195,8 @@ class TransactionV2 {
   /// Label of [pivxAlsoKind], e.g. "Masternode reward".
   @ignore
   String? get pivxAlsoLabel => switch (pivxAlsoKind) {
-    PivxTxKind.masternodeReward => "Masternode reward",
-    PivxTxKind.budgetPayment => "Proposal payment",
+    PivxTxKind.masternodeReward => l10n.txMasternodeReward,
+    PivxTxKind.budgetPayment => l10n.txProposalPayment,
     _ => null,
   };
 
@@ -259,21 +260,21 @@ class TransactionV2 {
 
     if (type == TransactionType.incoming) {
       if (isConfirmed(currentChainHeight, minConfirms, minCoinbaseConfirms)) {
-        return "Received";
+        return l10n.txReceived;
       } else {
-        return "Receiving ${prettyConfirms()}";
+        return "${l10n.txReceiving} ${prettyConfirms()}";
       }
     } else if (type == TransactionType.outgoing) {
       if (isConfirmed(currentChainHeight, minConfirms, minCoinbaseConfirms)) {
-        return "Sent";
+        return l10n.txSent;
       } else {
-        return "Sending ${prettyConfirms()}";
+        return "${l10n.txSending} ${prettyConfirms()}";
       }
     } else if (type == TransactionType.sentToSelf) {
       if (isConfirmed(currentChainHeight, minConfirms, minCoinbaseConfirms)) {
-        return "Sent to self";
+        return l10n.txSentToSelf;
       } else {
-        return "Sent to self ${prettyConfirms()}";
+        return "${l10n.txSentToSelf} ${prettyConfirms()}";
       }
     } else {
       return type.name;
@@ -288,25 +289,25 @@ class TransactionV2 {
         confirmed ? done : "$pending $confirms";
     switch (pivxKind) {
       case PivxTxKind.stakeReward:
-        return label("Staking reward", "Staking reward");
+        return label(l10n.txStakingReward, l10n.txStakingReward);
       case PivxTxKind.masternodeReward:
-        return label("Masternode reward", "Masternode reward");
+        return label(l10n.txMasternodeReward, l10n.txMasternodeReward);
       case PivxTxKind.coldStakeReward:
-        return label("Cold staking reward", "Cold staking reward");
+        return label(l10n.txColdStakingReward, l10n.txColdStakingReward);
       case PivxTxKind.budgetPayment:
-        return label("Proposal payment", "Proposal payment");
+        return label(l10n.txProposalPayment, l10n.txProposalPayment);
       case PivxTxKind.blockReward:
-        return label("Block reward", "Block reward");
+        return label(l10n.txBlockReward, l10n.txBlockReward);
       case PivxTxKind.delegation:
-        return label("Delegated", "Delegating");
+        return label(l10n.txDelegated, l10n.txDelegating);
       case PivxTxKind.undelegation:
-        return label("Undelegated", "Undelegating");
+        return label(l10n.txUndelegated, l10n.txUndelegating);
       case PivxTxKind.shield:
-        return label("Shielded", "Shielding");
+        return label(l10n.txShielded, l10n.txShielding);
       case PivxTxKind.unshield:
-        return label("Unshielded", "Unshielding");
+        return label(l10n.txUnshielded, l10n.txUnshielding);
       case PivxTxKind.burn:
-        return label("Burned", "Burning");
+        return label(l10n.txBurned, l10n.txBurning);
       default:
         return null;
     }

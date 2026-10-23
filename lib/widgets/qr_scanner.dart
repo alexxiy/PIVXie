@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 
+import '../l10n/l10n.dart';
 import '../themes/stack_colors.dart';
 import '../utilities/text_styles.dart';
 import 'background.dart';
@@ -51,7 +52,10 @@ class _QrScannerState extends State<QrScanner> {
         appBar: AppBar(
           backgroundColor: colors.backgroundAppBar,
           leading: const AppBarBackButton(),
-          title: Text("Scan QR code", style: STextStyles.navBarTitle(context)),
+          title: Text(
+            l10n.qrScanTitle,
+            style: STextStyles.navBarTitle(context),
+          ),
           actions: [
             ValueListenableBuilder<MobileScannerState>(
               valueListenable: _controller,
@@ -60,7 +64,7 @@ class _QrScannerState extends State<QrScanner> {
                   return const SizedBox.shrink();
                 }
                 return IconButton(
-                  tooltip: "Flashlight",
+                  tooltip: l10n.qrScanFlashlight,
                   icon: Icon(
                     state.torchState == TorchState.on
                         ? Icons.flashlight_off

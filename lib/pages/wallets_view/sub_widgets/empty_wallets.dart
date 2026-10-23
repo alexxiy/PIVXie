@@ -15,6 +15,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../../app_config.dart';
+import '../../../l10n/l10n.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../providers/global/prefs_provider.dart';
 import '../../../themes/theme_providers.dart';
@@ -142,7 +143,7 @@ class AddWalletButton extends ConsumerWidget {
                     ),
               SizedBox(width: isDesktop ? 8 : 5),
               Text(
-                "Add Wallet",
+                l10n.walletsAddWallet,
                 style: isDesktop
                     ? STextStyles.desktopButtonEnabled(context)
                     : STextStyles.button(context),

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../l10n/l10n.dart';
 import '../../providers/global/barcode_scanner_provider.dart';
 import '../../providers/global/wallets_provider.dart';
 import '../../route_generator.dart';
@@ -65,13 +66,15 @@ class PivxNamesFlow {
   final BigInt? listedPrice;
 
   String get title => switch (op) {
-    PivxNamesOp.reg => "Register ${pivxNamesUnbroken(name)}",
-    PivxNamesOp.buy => "Buy ${pivxNamesUnbroken(name)}",
-    PivxNamesOp.upd => "Change destination",
-    PivxNamesOp.chg => "Change owner",
+    PivxNamesOp.reg => l10n.pivxNamesFlowRegister(pivxNamesUnbroken(name)),
+    PivxNamesOp.buy => l10n.pivxNamesFlowBuy(pivxNamesUnbroken(name)),
+    PivxNamesOp.upd => l10n.pivxNamesFlowChangeDestination,
+    PivxNamesOp.chg => l10n.pivxNamesFlowChangeOwner,
     PivxNamesOp.lst =>
-      listedPrice == null ? "List on the marketplace" : "Change sell price",
-    PivxNamesOp.ult => "Unlist ${pivxNamesUnbroken(name)}",
+      listedPrice == null
+          ? l10n.pivxNamesFlowList
+          : l10n.pivxNamesFlowChangePrice,
+    PivxNamesOp.ult => l10n.pivxNamesFlowUnlist(pivxNamesUnbroken(name)),
   };
 }
 
@@ -140,7 +143,7 @@ Future<PivxNamesPayment?> _sign(
   Object? error;
   final payment = await showLoading<PivxNamesPayment>(
     context: context,
-    message: "Signing",
+    message: l10n.pivxNamesSigning,
     onException: (e) => error = e,
     whileFutureAlt: () async {
       final registrar = PivxNamesRegistrar.forCoin(wallet.cryptoCurrency)!;
@@ -158,9 +161,7 @@ Future<PivxNamesPayment?> _sign(
         priceSats: priceSats,
       );
       if (!pivxNamesCommandFits(command)) {
-        throw const PivxNamesException(
-          "This doesn't fit in a payment memo. Choose a shorter name.",
-        );
+        throw PivxNamesException(l10n.pivxNamesMemoTooLong);
       }
       return PivxNamesPayment(
         flow: flow,
@@ -171,7 +172,7 @@ Future<PivxNamesPayment?> _sign(
     },
   );
   if (payment == null && context.mounted) {
-    await showPivxNamesError(context, error ?? "Signing failed");
+    await showPivxNamesError(context, error ?? l10n.pivxNamesSigningFailed);
   }
   return payment;
 }
@@ -304,25 +305,23 @@ class _PivxNamesTargetViewState extends ConsumerState<PivxNamesTargetView> {
       case PivxNamesOp.upd:
       case PivxNamesOp.buy:
         final target = _destination;
-        if (target == null) return "Choose an address";
+        if (target == null) return l10n.pivxNamesChooseAddress;
         if (target.isEmpty) return "";
         if (target == _flow.currentAddress) {
-          return "${_flow.name} already points to this address.";
+          return l10n.pivxNamesAlreadyPointsHere(_flow.name);
         }
         if (!isValidPivxNamesTarget(target)) {
           return target.startsWith("ps1")
-              ? "That isn't a valid shield address. Check it for typos."
-              : "A name can only point to a shield address. It starts with "
-                    "\"ps1\".";
+              ? l10n.pivxNamesInvalidShieldAddress
+              : l10n.pivxNamesShieldOnly;
         }
         return null;
       case PivxNamesOp.chg:
         final key = _newOwner;
         if (key.isEmpty) return "";
-        if (key == _ownKey) return "That's your own key: the name is yours.";
+        if (key == _ownKey) return l10n.pivxNamesOwnKey;
         if (!isValidPivxNamesPublicKey(key)) {
-          return "That isn't a valid public key. It's 64 characters, 0-9 "
-              "and a-f.";
+          return l10n.pivxNamesInvalidPublicKey;
         }
         return null;
       case PivxNamesOp.lst:
@@ -336,10 +335,9 @@ class _PivxNamesTargetViewState extends ConsumerState<PivxNamesTargetView> {
             _wallet,
           );
           final decimals = coin.fractionDigits - _shift;
-          final places = decimals > 0
-              ? "with up to $decimals decimals"
-              : "without decimals";
-          return "Enter a price above 0 and up to $max, $places.";
+          return decimals > 0
+              ? l10n.pivxNamesInvalidPrice(max, decimals)
+              : l10n.pivxNamesInvalidPriceWhole(max);
         }
         return null;
       case PivxNamesOp.ult:
@@ -462,37 +460,35 @@ class _PivxNamesTargetViewState extends ConsumerState<PivxNamesTargetView> {
     final name = pivxNamesUnbroken(_flow.name);
     final (String heading, String text) = switch (op) {
       PivxNamesOp.reg || PivxNamesOp.buy => (
-        "Where should $name point?",
-        "Choose one of your shield addresses, or enter another one. Anyone "
-            "who pays $name pays this address, and you can change it "
-            "later.",
+        l10n.pivxNamesWherePoint(name),
+        l10n.pivxNamesWherePointText(name),
       ),
       PivxNamesOp.upd => (
-        "Choose the new destination",
-        "Payments to $name will go to this address. People keep "
-            "paying the name and never need to know.",
+        l10n.pivxNamesNewDestination,
+        l10n.pivxNamesNewDestinationText(name),
       ),
       PivxNamesOp.chg => (
-        "Who will own $name?",
-        "Paste the public key of the new owner. They find it in My Names, "
-            "in PIVXie or on pivx.name.",
+        l10n.pivxNamesWhoOwns(name),
+        l10n.pivxNamesWhoOwnsText,
       ),
       PivxNamesOp.lst => (
         _flow.listedPrice == null
-            ? "Set the price for $name"
-            : "Set a new price for $name",
-        "Anyone can buy the name for this price on the marketplace. The "
-            "price then goes to your PIVX.name balance (My Balance), to "
-            "withdraw to your wallet.",
+            ? l10n.pivxNamesSetPrice(name)
+            : l10n.pivxNamesSetNewPrice(name),
+        l10n.pivxNamesSetPriceText,
       ),
       PivxNamesOp.ult => ("", ""),
     };
 
     final costLine = switch (op) {
       _ when cost == null => null,
-      PivxNamesOp.reg => "Registration: ${pivxNamesAmount(cost, ref, wallet)}",
-      PivxNamesOp.buy => "Price: ${pivxNamesAmount(cost, ref, wallet)}",
-      _ => "This change costs ${pivxNamesAmount(cost, ref, wallet)}",
+      PivxNamesOp.reg => l10n.pivxNamesCostRegistration(
+        pivxNamesAmount(cost, ref, wallet),
+      ),
+      PivxNamesOp.buy => l10n.pivxNamesCostPrice(
+        pivxNamesAmount(cost, ref, wallet),
+      ),
+      _ => l10n.pivxNamesCostChange(pivxNamesAmount(cost, ref, wallet)),
     };
 
     return Background(
@@ -521,11 +517,11 @@ class _PivxNamesTargetViewState extends ConsumerState<PivxNamesTargetView> {
                           onColor: Util.isDesktop
                               ? colors.rateTypeToggleDesktopColorOn
                               : colors.popupBG,
-                          onText: "My addresses",
+                          onText: l10n.pivxNamesMyAddresses,
                           offColor: Util.isDesktop
                               ? colors.rateTypeToggleDesktopColorOff
                               : colors.textFieldDefaultBG,
-                          offText: "Another address",
+                          offText: l10n.pivxNamesAnotherAddress,
                           isOn: _custom,
                           onValueChanged: (custom) => setState(() {
                             _custom = custom;
@@ -543,18 +539,18 @@ class _PivxNamesTargetViewState extends ConsumerState<PivxNamesTargetView> {
                     ],
                     if (op.hasTarget && _custom)
                       _field(
-                        hint: "Shield address",
+                        hint: l10n.pivxNamesShieldAddress,
                         input: _Input.address,
                         suffix: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             IconButton(
-                              tooltip: "Paste",
+                              tooltip: l10n.commonPaste,
                               onPressed: _paste,
                               icon: const ClipboardIcon(),
                             ),
                             IconButton(
-                              tooltip: "Scan QR code",
+                              tooltip: l10n.qrScanTitle,
                               onPressed: _scan,
                               icon: const QrCodeIcon(),
                             ),
@@ -566,10 +562,11 @@ class _PivxNamesTargetViewState extends ConsumerState<PivxNamesTargetView> {
                         walletId: _flow.walletId,
                         value: _target,
                         shield: true,
-                        placeholder: "Choose an address",
+                        placeholder: l10n.pivxNamesChooseAddress,
                         tags: {
                           if (_flow.currentAddress != null)
-                            _flow.currentAddress!: "current destination",
+                            _flow.currentAddress!:
+                                l10n.pivxNamesCurrentDestination,
                         },
                         onChanged: (a) => setState(() {
                           _target = a;
@@ -588,9 +585,9 @@ class _PivxNamesTargetViewState extends ConsumerState<PivxNamesTargetView> {
                     ],
                     if (op == PivxNamesOp.chg) ...[
                       _field(
-                        hint: "New owner's public key",
+                        hint: l10n.pivxNamesNewOwnerKey,
                         suffix: IconButton(
-                          tooltip: "Paste",
+                          tooltip: l10n.commonPaste,
                           onPressed: _paste,
                           icon: const ClipboardIcon(),
                         ),
@@ -599,15 +596,14 @@ class _PivxNamesTargetViewState extends ConsumerState<PivxNamesTargetView> {
                       RoundedWhiteContainer(
                         borderColor: colors.accentColorOrange,
                         child: Text(
-                          "The new owner gets $name and full control "
-                          "of it. Only they can give it back.",
+                          l10n.pivxNamesNewOwnerWarning(name),
                           style: STextStyles.w500_12(context),
                         ),
                       ),
                     ],
                     if (op == PivxNamesOp.lst) ...[
                       _field(
-                        hint: "Price",
+                        hint: l10n.pivxNamesPrice,
                         input: _Input.price,
                         suffix: Padding(
                           padding: const EdgeInsets.only(right: 14, top: 14),
@@ -622,7 +618,7 @@ class _PivxNamesTargetViewState extends ConsumerState<PivxNamesTargetView> {
                         Padding(
                           padding: const EdgeInsets.only(left: 12, top: 4),
                           child: Text(
-                            "Listed for $listed now",
+                            l10n.pivxNamesListedNow(listed),
                             style: STextStyles.label(context)
                                 .copyWith(color: colors.textSubtitle1),
                           ),
@@ -631,7 +627,7 @@ class _PivxNamesTargetViewState extends ConsumerState<PivxNamesTargetView> {
                     const SizedBox(height: 16),
                     if (costLine != null)
                       Text(
-                        "$costLine, plus the network fee.",
+                        costLine,
                         style: STextStyles.w500_12(context)
                             .copyWith(color: colors.textSubtitle1),
                       )
@@ -647,7 +643,7 @@ class _PivxNamesTargetViewState extends ConsumerState<PivxNamesTargetView> {
                           ),
                           TextButton(
                             onPressed: _loadCost,
-                            child: const Text("Try again"),
+                            child: Text(l10n.commonTryAgain),
                           ),
                         ],
                       ),
@@ -657,7 +653,7 @@ class _PivxNamesTargetViewState extends ConsumerState<PivxNamesTargetView> {
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                 child: PrimaryButton(
-                  label: "Next",
+                  label: l10n.commonNext,
                   enabled: error == null && cost != null,
                   onPressed: _next,
                 ),
@@ -700,12 +696,12 @@ class _PivxNamesPaymentViewState extends ConsumerState<PivxNamesPaymentView> {
   );
 
   String get _note => switch (_flow.op) {
-    PivxNamesOp.reg => "PIVX.name: register ${_flow.name}",
-    PivxNamesOp.buy => "PIVX.name: buy ${_flow.name}",
-    PivxNamesOp.upd => "PIVX.name: new destination for ${_flow.name}",
-    PivxNamesOp.chg => "PIVX.name: new owner for ${_flow.name}",
-    PivxNamesOp.lst => "PIVX.name: list ${_flow.name}",
-    PivxNamesOp.ult => "PIVX.name: unlist ${_flow.name}",
+    PivxNamesOp.reg => l10n.pivxNamesNoteRegister(_flow.name),
+    PivxNamesOp.buy => l10n.pivxNamesNoteBuy(_flow.name),
+    PivxNamesOp.upd => l10n.pivxNamesNoteDestination(_flow.name),
+    PivxNamesOp.chg => l10n.pivxNamesNoteOwner(_flow.name),
+    PivxNamesOp.lst => l10n.pivxNamesNoteList(_flow.name),
+    PivxNamesOp.ult => l10n.pivxNamesNoteUnlist(_flow.name),
   };
 
   Future<void> _create() async {
@@ -846,45 +842,43 @@ class _PivxNamesPaymentViewState extends ConsumerState<PivxNamesPaymentView> {
                     const SizedBox(height: 20),
                     Text(
                       _flow.op == PivxNamesOp.reg
-                          ? "Pay to register ${pivxNamesUnbroken(_flow.name)}"
-                          : "Pay to process the change",
+                          ? l10n.pivxNamesPayToRegister(
+                              pivxNamesUnbroken(_flow.name),
+                            )
+                          : l10n.pivxNamesPayForChange,
                       style: STextStyles.pageTitleH2(context),
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      "Your wallet makes this payment to PIVX.name with the "
-                      "memo inside. The memo is the command, and PIVX.name "
-                      "acts on it once the payment is confirmed. PIVX.name "
-                      "publishes its viewing key, so anyone can read the "
-                      "memo, but there's nothing secret in it.",
+                      l10n.pivxNamesPaymentExplained,
                       style: STextStyles.itemSubtitle(context),
                     ),
                     const SizedBox(height: 16),
                     _row(
-                      title: "To PIVX.name",
+                      title: l10n.pivxNamesToPivxName,
                       value: _payment.address,
-                      what: "Address",
+                      what: l10n.commonAddress,
                       mono: true,
                     ),
                     const SizedBox(height: 8),
                     _row(
-                      title: "Amount",
+                      title: l10n.commonAmount,
                       value: pivxNamesAmount(
                         _payment.amount,
                         ref,
                         wallet,
                         exact: true,
                       ),
-                      what: "Amount",
+                      what: l10n.commonAmount,
                     ),
                     const SizedBox(height: 8),
                     _row(
-                      title: "Shielded memo",
+                      title: l10n.pivxNamesShieldedMemo,
                       value: _payment.memo,
-                      what: "Memo",
+                      what: l10n.commonMemo,
                       mono: true,
                       badge: PivxNamesPill(
-                        text: "Added for you",
+                        text: l10n.pivxNamesAddedForYou,
                         color: pivxNamesReadable(
                           colors.accentColorGreen,
                           colors,
@@ -900,8 +894,7 @@ class _PivxNamesPaymentViewState extends ConsumerState<PivxNamesPaymentView> {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      "The network fee comes on top: PIVX.name needs the "
-                      "exact amount, and refunds a payment that differs.",
+                      l10n.pivxNamesFeeOnTop,
                       style: STextStyles.w500_12(context)
                           .copyWith(color: colors.textSubtitle1),
                     ),
@@ -911,7 +904,7 @@ class _PivxNamesPaymentViewState extends ConsumerState<PivxNamesPaymentView> {
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                 child: PrimaryButton(
-                  label: "Create transaction",
+                  label: l10n.pivxNamesCreateTransaction,
                   onPressed: _create,
                 ),
               ),

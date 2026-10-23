@@ -23,6 +23,7 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 import '../../../../../app_config.dart';
 import '../../../../../db/hive/db.dart';
 import '../../../../../db/isar/main_db.dart';
+import '../../../../../l10n/l10n.dart';
 import '../../../../../models/isar/models/address_label.dart';
 import '../../../../../models/isar/models/contact_entry.dart';
 import '../../../../../models/isar/models/transaction_note.dart';
@@ -36,6 +37,7 @@ import '../../../../../services/node_service.dart';
 import '../../../../../services/wallets.dart';
 import '../../../../../themes/theme_service.dart';
 import '../../../../../utilities/amount/amount_unit.dart';
+import '../../../../../utilities/enums/languages_enum.dart';
 import '../../../../../utilities/enums/stack_restoring_status.dart';
 import '../../../../../utilities/enums/sync_type_enum.dart';
 import '../../../../../utilities/flutter_secure_storage_interface.dart';
@@ -109,12 +111,12 @@ bool validateFail(
 ) {
   final missing = passwordMissing(passphrase);
   for (final e in [
-    [pathToSave.isEmpty, "Directory not chosen"],
+    [pathToSave.isEmpty, l10n.backupNoDirectory],
     if (!pathToSave.startsWith("content://"))
-      [!(Directory(pathToSave).existsSync()), "Directory does not exist"],
-    [passphrase.isEmpty, "A passphrase is required"],
+      [!(Directory(pathToSave).existsSync()), l10n.backupDirectoryMissing],
+    [passphrase.isEmpty, l10n.backupPassphraseRequired],
     [missing != null, missing ?? ""],
-    [passphrase != repeatPassphrase, "Passphrase does not match"],
+    [passphrase != repeatPassphrase, l10n.verifyPassphraseMismatch],
   ]) {
     if (e[0] as bool) {
       if (context.mounted) {
@@ -917,7 +919,9 @@ abstract class SWB {
     final _prefs = Prefs.instance;
     await _prefs.init();
     _prefs.currency = prefs['currency'] as String;
-    _prefs.language = prefs['language'] as String;
+    // Older backups hold "English (US)": the device's language.
+    _prefs.language =
+        Language.fromCode(prefs['language'] as String?)?.code ?? "";
     _prefs.showFavoriteWallets = prefs['showFavoriteWallets'] as bool;
     _prefs.syncType = prefs['syncType'] == "currentWalletOnly"
         ? SyncingType.currentWalletOnly

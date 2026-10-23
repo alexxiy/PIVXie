@@ -15,6 +15,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../../../l10n/l10n.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../providers/global/secure_store_provider.dart';
 import '../../../../providers/global/wallets_provider.dart';
@@ -66,7 +67,7 @@ class _DeleteWalletRecoveryPhraseViewState
         barrierDismissible: true,
         context: context,
         builder: (_) => StackDialog(
-          title: "Thanks! Your wallet will be deleted.",
+          title: l10n.walletWillBeDeleted,
           leftButton: TextButton(
             style: Theme.of(context)
                 .extension<StackColors>()!
@@ -75,7 +76,7 @@ class _DeleteWalletRecoveryPhraseViewState
               Navigator.pop(context);
             },
             child: Text(
-              "Cancel",
+              l10n.commonCancel,
               style: STextStyles.button(context).copyWith(
                 color: Theme.of(context)
                     .extension<StackColors>()!
@@ -100,7 +101,7 @@ class _DeleteWalletRecoveryPhraseViewState
                     .popUntil(ModalRoute.withName(HomeView.routeName));
               }
             },
-            child: Text("Ok", style: STextStyles.button(context)),
+            child: Text(l10n.commonOk, style: STextStyles.button(context)),
           ),
         ),
       );
@@ -154,7 +155,7 @@ class _DeleteWalletRecoveryPhraseViewState
                       unawaited(
                         showFloatingFlushBar(
                           type: FlushBarType.info,
-                          message: "Copied to clipboard",
+                          message: l10n.commonCopiedToClipboard,
                           iconAsset: Assets.svg.copy,
                           context: context,
                         ),
@@ -180,7 +181,7 @@ class _DeleteWalletRecoveryPhraseViewState
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  "Recovery Phrase",
+                  l10n.addWalletRecoveryPhraseTitle,
                   textAlign: TextAlign.center,
                   style: STextStyles.pageTitleH1(context),
                 ),
@@ -195,7 +196,7 @@ class _DeleteWalletRecoveryPhraseViewState
                   child: Padding(
                     padding: const EdgeInsets.all(12),
                     child: Text(
-                      "Please write down your recovery phrase in the correct order and save it to keep your funds secure. You will also be asked to verify the words on the next screen.",
+                      l10n.addWalletWriteDown,
                       style: STextStyles.label(context).copyWith(
                         color: Theme.of(context)
                             .extension<StackColors>()!
@@ -216,7 +217,10 @@ class _DeleteWalletRecoveryPhraseViewState
                       .extension<StackColors>()!
                       .getPrimaryEnabledButtonStyle(context),
                   onPressed: _continuePressed,
-                  child: Text("Continue", style: STextStyles.button(context)),
+                  child: Text(
+                    l10n.commonContinue,
+                    style: STextStyles.button(context),
+                  ),
                 ),
               ],
             ),

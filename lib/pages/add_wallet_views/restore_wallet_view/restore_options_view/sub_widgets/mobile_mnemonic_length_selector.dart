@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../../../../l10n/l10n.dart';
 import '../../../../../providers/ui/verify_recovery_phrase/mnemonic_word_count_state_provider.dart';
 import '../../../../../themes/stack_colors.dart';
 import '../../../../../utilities/assets.dart';
@@ -52,7 +53,7 @@ class MobileMnemonicLengthSelector extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  "${ref.watch(mnemonicWordCountStateProvider)} words",
+                  l10n.restoreWords(ref.watch(mnemonicWordCountStateProvider)),
                   style: STextStyles.itemSubtitle12(context),
                 ),
                 SvgPicture.asset(

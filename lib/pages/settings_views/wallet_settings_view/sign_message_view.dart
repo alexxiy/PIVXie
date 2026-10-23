@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../l10n/l10n.dart';
 import '../../../notifications/show_flush_bar.dart';
 import '../../../providers/global/wallets_provider.dart';
 import '../../../themes/stack_colors.dart';
@@ -48,10 +49,7 @@ class SignMessageView extends StatelessWidget {
           leading: AppBarBackButton(
             onPressed: () => Navigator.of(context).pop(),
           ),
-          title: Text(
-            "Sign / verify message",
-            style: STextStyles.navBarTitle(context),
-          ),
+          title: Text(l10n.signTitle, style: STextStyles.navBarTitle(context)),
         ),
         body: SafeArea(
           child: SingleChildScrollView(
@@ -80,7 +78,7 @@ Future<void> showSignMessageDialog(BuildContext context, String walletId) =>
                 Padding(
                   padding: const EdgeInsets.only(left: 32),
                   child: Text(
-                    "Sign / verify message",
+                    l10n.signTitle,
                     style: STextStyles.desktopH3(context),
                   ),
                 ),
@@ -100,11 +98,13 @@ Future<void> showSignMessageDialog(BuildContext context, String walletId) =>
     );
 
 enum _Tab {
-  sign("Sign"),
-  verify("Verify");
+  sign,
+  verify;
 
-  const _Tab(this.label);
-  final String label;
+  String get label => switch (this) {
+    _Tab.sign => l10n.signTabSign,
+    _Tab.verify => l10n.verifyAction,
+  };
 }
 
 class SignMessageForm extends ConsumerStatefulWidget {
@@ -200,7 +200,7 @@ class _SignMessageFormState extends ConsumerState<SignMessageForm> {
     try {
       final a = await _wallet.mainDB.getAddress(widget.walletId, address);
       if (a == null || a.derivationPath == null) {
-        throw Exception("This wallet has no key for $address");
+        throw Exception(l10n.signNoKey(address));
       }
       final key = await _wallet.getPrivateKey(a);
       final signature = coinlib.MessageSignature.sign(
@@ -210,7 +210,7 @@ class _SignMessageFormState extends ConsumerState<SignMessageForm> {
       ).toString();
       if (mounted) setState(() => _signature = signature);
     } catch (e) {
-      if (mounted) setState(() => _signError = "Couldn't sign: $e");
+      if (mounted) setState(() => _signError = l10n.signFailed("$e"));
     } finally {
       if (mounted) setState(() => _signing = false);
     }
@@ -223,15 +223,11 @@ class _SignMessageFormState extends ConsumerState<SignMessageForm> {
     try {
       address = coinlib.Address.fromString(text, coin.networkParams);
     } catch (_) {
-      setState(() => _verifyError = "Not a ${coin.ticker} address");
+      setState(() => _verifyError = l10n.signNotAddress(coin.ticker));
       return;
     }
     if (address is! coinlib.P2PKHAddress) {
-      setState(
-        () => _verifyError =
-            "Only a regular ${coin.ticker} address (not a script or "
-            "shielded one) can sign messages",
-      );
+      setState(() => _verifyError = l10n.signOnlyRegular(coin.ticker));
       return;
     }
     coinlib.MessageSignature signature;
@@ -240,7 +236,7 @@ class _SignMessageFormState extends ConsumerState<SignMessageForm> {
         _verifySignature.text.trim(),
       );
     } catch (_) {
-      setState(() => _verifyError = "The signature isn't in a valid format");
+      setState(() => _verifyError = l10n.signBadFormat);
       return;
     }
     setState(() {
@@ -274,7 +270,7 @@ class _SignMessageFormState extends ConsumerState<SignMessageForm> {
       decoration: standardInputDecoration(hint, focus, context).copyWith(
         suffixIcon: paste
             ? IconButton(
-                tooltip: "Paste",
+                tooltip: l10n.commonPaste,
                 icon: const Icon(Icons.content_paste_rounded, size: 20),
                 onPressed: () async {
                   final data = await Clipboard.getData(Clipboard.kTextPlain);
@@ -325,14 +321,9 @@ class _SignMessageFormState extends ConsumerState<SignMessageForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          "Prove you own an address: anyone can check the signature against "
-          "the address and the exact message. Signing doesn't spend "
-          "anything. Only transparent addresses can sign.",
-          style: secondary,
-        ),
+        Text(l10n.signExplain, style: secondary),
         const SizedBox(height: 16),
-        Text("Address", style: label),
+        Text(l10n.commonAddress, style: label),
         const SizedBox(height: 8),
         PivxOwnAddressField(
           walletId: widget.walletId,
@@ -344,12 +335,17 @@ class _SignMessageFormState extends ConsumerState<SignMessageForm> {
           }),
         ),
         const SizedBox(height: 16),
-        Text("Message", style: label),
+        Text(l10n.signMessage, style: label),
         const SizedBox(height: 8),
-        _field(_message, _messageFocus, "Message to sign", multiline: true),
+        _field(
+          _message,
+          _messageFocus,
+          l10n.signMessageToSign,
+          multiline: true,
+        ),
         const SizedBox(height: 16),
         PrimaryButton(
-          label: _signing ? "Signing…" : "Sign message",
+          label: _signing ? l10n.signSigning : l10n.signAction,
           enabled: !_signing && _address != null && _message.text.isNotEmpty,
           onPressed: _sign,
         ),
@@ -371,7 +367,7 @@ class _SignMessageFormState extends ConsumerState<SignMessageForm> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("Signature", style: secondary),
+                      Text(l10n.signSignature, style: secondary),
                       const SizedBox(height: 4),
                       SelectableText(
                         signature,
@@ -381,7 +377,7 @@ class _SignMessageFormState extends ConsumerState<SignMessageForm> {
                   ),
                 ),
                 IconButton(
-                  tooltip: "Copy signature",
+                  tooltip: l10n.signCopy,
                   icon: Icon(
                     Icons.copy_rounded,
                     size: 20,
@@ -392,7 +388,7 @@ class _SignMessageFormState extends ConsumerState<SignMessageForm> {
                     if (mounted) {
                       await showFloatingFlushBar(
                         type: FlushBarType.info,
-                        message: "Signature copied",
+                        message: l10n.signCopied,
                         iconAsset: Assets.svg.copy,
                         context: context,
                       );
@@ -416,43 +412,39 @@ class _SignMessageFormState extends ConsumerState<SignMessageForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          "Check that a message was signed with an address's key. The "
-          "message must match exactly, spaces and line breaks included.",
-          style: secondary,
-        ),
+        Text(l10n.signVerifyExplain, style: secondary),
         const SizedBox(height: 16),
-        Text("Address", style: label),
+        Text(l10n.commonAddress, style: label),
         const SizedBox(height: 8),
         _field(
           _verifyAddress,
           _verifyAddressFocus,
-          "${_wallet.cryptoCurrency.ticker} address",
+          l10n.signTickerAddress(_wallet.cryptoCurrency.ticker),
           plain: true,
           paste: true,
         ),
         const SizedBox(height: 16),
-        Text("Message", style: label),
+        Text(l10n.signMessage, style: label),
         const SizedBox(height: 8),
         _field(
           _verifyMessage,
           _verifyMessageFocus,
-          "Signed message",
+          l10n.signSignedMessage,
           multiline: true,
         ),
         const SizedBox(height: 16),
-        Text("Signature", style: label),
+        Text(l10n.signSignature, style: label),
         const SizedBox(height: 8),
         _field(
           _verifySignature,
           _verifySignatureFocus,
-          "Signature",
+          l10n.signSignature,
           plain: true,
           paste: true,
         ),
         const SizedBox(height: 16),
         PrimaryButton(
-          label: "Verify message",
+          label: l10n.signVerifyAction,
           enabled: ready,
           onPressed: _verify,
         ),
@@ -476,10 +468,7 @@ class _SignMessageFormState extends ConsumerState<SignMessageForm> {
                 Expanded(
                   child: Text(
                     _verifyError ??
-                        (valid == true
-                            ? "Valid: this address signed this message."
-                            : "Not valid: this address didn't sign this "
-                                  "message, or the message was changed."),
+                        (valid == true ? l10n.signValid : l10n.signNotValid),
                     style: STextStyles.w500_14(context),
                   ),
                 ),

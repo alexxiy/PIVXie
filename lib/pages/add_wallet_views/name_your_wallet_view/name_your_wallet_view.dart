@@ -15,6 +15,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar_community/isar.dart';
 import 'package:tuple/tuple.dart';
 
+import '../../../l10n/l10n.dart';
 import '../../../pages_desktop_specific/my_stack_view/exit_to_my_stack_button.dart';
 import '../../../providers/db/main_db_provider.dart';
 import '../../../providers/ui/verify_recovery_phrase/mnemonic_word_count_state_provider.dart';
@@ -217,7 +218,7 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
       if (!isDesktop) CoinImage(coin: coin, height: 100, width: 100),
       SizedBox(height: isDesktop ? 0 : 16),
       Text(
-        "Name your ${coin.prettyName} wallet",
+        l10n.addWalletNameYour(coin.prettyName),
         textAlign: TextAlign.center,
         style: isDesktop
             ? STextStyles.desktopH2(context)
@@ -225,7 +226,7 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
       ),
       SizedBox(height: isDesktop ? 16 : 8),
       Text(
-        "Enter a label for your wallet (e.g. Savings)",
+        l10n.addWalletEnterLabel,
         textAlign: TextAlign.center,
         style: isDesktop
             ? STextStyles.desktopSubtitleH2(context)
@@ -263,7 +264,7 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
               : STextStyles.field(context),
           decoration:
               standardInputDecoration(
-                "Enter wallet name",
+                l10n.addWalletEnterName,
                 textFieldFocusNode,
                 context,
               ).copyWith(
@@ -276,7 +277,7 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
                           key: const Key("genRandomWalletNameButtonKey"),
                           child: _showDiceIcon
                               ? Semantics(
-                                  label: "Generate Random Wallet Name Button. Generates A Random Name For Wallet.",
+                                  label: l10n.addWalletRandomNameSemantics,
                                   excludeSemantics: true,
                                   child: DiceIcon(
                                     width: isDesktop ? 20 : 17,
@@ -284,7 +285,7 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
                                   ),
                                 )
                               : Semantics(
-                                  label: "Clear Wallet Name Field Button. Clears the wallet name field.",
+                                  label: l10n.addWalletClearNameSemantics,
                                   excludeSemantics: true,
                                   child: XIcon(
                                     width: isDesktop ? 21 : 18,
@@ -327,7 +328,7 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
         child: RoundedWhiteContainer(
           child: Center(
             child: Text(
-              "Roll the dice to pick a random name.",
+              l10n.addWalletRollDice,
               style: isDesktop
                   ? STextStyles.desktopTextExtraSmall(context).copyWith(
                       color: Theme.of(context)
@@ -356,7 +357,7 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
                     .extension<StackColors>()!
                     .getPrimaryDisabledButtonStyle(context),
           child: Text(
-            "Next",
+            l10n.commonNext,
             style: isDesktop
                 ? _nextEnabled
                       ? STextStyles.desktopButtonEnabled(context)

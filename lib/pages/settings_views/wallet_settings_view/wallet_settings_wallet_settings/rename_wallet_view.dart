@@ -13,6 +13,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../l10n/l10n.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../providers/db/main_db_provider.dart';
 import '../../../../themes/stack_colors.dart';
@@ -71,7 +72,7 @@ class _RenameWalletViewState extends ConsumerState<RenameWalletView> {
               Navigator.of(context).pop();
             },
           ),
-          title: Text("Rename wallet", style: STextStyles.navBarTitle(context)),
+          title: Text(l10n.walletRename, style: STextStyles.navBarTitle(context)),
         ),
         body: SafeArea(
           child: Padding(
@@ -91,7 +92,7 @@ class _RenameWalletViewState extends ConsumerState<RenameWalletView> {
                     style: STextStyles.field(context),
                     onChanged: (_) => setState(() {}),
                     decoration: standardInputDecoration(
-                      "Wallet name",
+                      l10n.walletName,
                       _focusNode,
                       context,
                     ).copyWith(
@@ -138,7 +139,7 @@ class _RenameWalletViewState extends ConsumerState<RenameWalletView> {
                       if (e.toString().contains(
                         "Empty wallet name not allowed!",
                       )) {
-                        errMessage = "Empty wallet name not allowed.";
+                        errMessage = l10n.walletNameEmpty;
                       } else {
                         errMessage = e.toString();
                       }
@@ -150,7 +151,7 @@ class _RenameWalletViewState extends ConsumerState<RenameWalletView> {
                         unawaited(
                           showFloatingFlushBar(
                             type: FlushBarType.success,
-                            message: "Wallet renamed",
+                            message: l10n.walletRenamed,
                             context: context,
                           ),
                         );
@@ -158,14 +159,14 @@ class _RenameWalletViewState extends ConsumerState<RenameWalletView> {
                         unawaited(
                           showFloatingFlushBar(
                             type: FlushBarType.warning,
-                            message: "Wallet named \"$newName\" already exists",
+                            message: l10n.walletNameExists(newName),
                             context: context,
                           ),
                         );
                       }
                     }
                   },
-                  child: Text("Save", style: STextStyles.button(context)),
+                  child: Text(l10n.commonSave, style: STextStyles.button(context)),
                 ),
               ],
             ),

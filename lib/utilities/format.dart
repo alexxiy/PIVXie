@@ -10,6 +10,9 @@
 
 import 'dart:typed_data';
 
+import 'package:intl/intl.dart';
+
+import '../l10n/l10n.dart';
 import 'constants.dart';
 import 'enums/backup_frequency_type.dart';
 
@@ -26,6 +29,13 @@ abstract class Format {
       date = date.toUtc();
     }
 
+    // Other languages: their own date and time formats.
+    if (l10n.localeName != "en") {
+      return noTime
+          ? DateFormat.yMMMd().format(date)
+          : DateFormat.yMMMd().add_Hm().format(date);
+    }
+
     final dayAndYear =
         "${date.day} ${Constants.monthMapShort[date.month]} ${date.year}";
 
@@ -39,7 +49,16 @@ abstract class Format {
   }
 
   /// format date string as dd/mm/yy from DateTime object
-  static String formatDate(DateTime date) {
+    /// [value] percent (12.5 for 12.5 %) with [decimals] digits, written the
+    /// app language's way: "12.50%", "12,50 %", "%12,50".
+    static String percent(double value, {int decimals = 2}) =>
+        NumberFormat.decimalPercentPattern(
+          decimalDigits: decimals,
+        ).format(value / 100);
+
+    static String formatDate(DateTime date) {
+    if (l10n.localeName != "en") return DateFormat.yMd().format(date);
+
     // prepend '0' if needed
     final day = date.day < 10 ? "0${date.day}" : "${date.day}";
 
@@ -75,11 +94,11 @@ abstract class Format {
   static String prettyFrequencyType(BackupFrequencyType type) {
     switch (type) {
       case BackupFrequencyType.everyTenMinutes:
-        return "Every 10 minutes";
+        return l10n.backupEveryTenMinutes;
       case BackupFrequencyType.everyAppStart:
-        return "Every app start";
+        return l10n.backupEveryAppStart;
       case BackupFrequencyType.afterClosingAWallet:
-        return "After closing a cryptocurrency wallet";
+        return l10n.backupAfterClosingWallet;
     }
   }
 }

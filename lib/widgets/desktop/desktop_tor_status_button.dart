@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../l10n/l10n.dart';
 import '../../pages_desktop_specific/desktop_menu_item.dart';
 import '../../providers/global/prefs_provider.dart';
 import '../../services/event_bus/events/global/tor_connection_status_changed_event.dart';
@@ -162,7 +163,7 @@ class _DesktopTorStatusButtonState extends ConsumerState<DesktopTorStatusButton>
                         Text(
                           torOn
                               ? _torConnectionStatus.name.capitalize()
-                              : "Tor off",
+                              : l10n.torOff,
                           style: STextStyles.smallMed12(context).copyWith(
                             color: _color(_torConnectionStatus),
                           ),

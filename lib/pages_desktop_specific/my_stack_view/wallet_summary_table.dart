@@ -15,11 +15,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../l10n/l10n.dart';
 import '../../pages/wallets_view/wallets_overview.dart';
 import '../../providers/providers.dart';
 import '../../themes/coin_icon_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount.dart';
+import '../../utilities/format.dart';
 import '../../utilities/show_loading.dart';
 import '../../utilities/show_node_tor_settings_mismatch.dart';
 import '../../utilities/text_styles.dart';
@@ -115,7 +117,7 @@ class _DesktopWalletSummaryRowState
         await showLoading(
           whileFuture: wallet.init(),
           context: context,
-          message: 'Opening ${wallet.info.name}',
+          message: l10n.walletOpening(wallet.info.name),
           rootNavigator: Util.isDesktop,
         );
 
@@ -150,7 +152,10 @@ class _DesktopWalletSummaryRowState
                     Padding(
                       padding: const EdgeInsets.only(left: 32),
                       child: Text(
-                        "${widget.coin.prettyName} (${widget.coin.ticker}) wallets",
+                        l10n.walletsOfCoin(
+                          widget.coin.prettyName,
+                          widget.coin.ticker,
+                        ),
                         style: STextStyles.desktopH3(context),
                       ),
                     ),
@@ -221,9 +226,7 @@ class _DesktopWalletSummaryRowState
             Expanded(
               flex: 4,
               child: Text(
-                widget.walletCount == 1
-                    ? "${widget.walletCount} wallet"
-                    : "${widget.walletCount} wallets",
+                l10n.walletsCount(widget.walletCount),
                 style: STextStyles.desktopTextExtraSmall(context).copyWith(
                   color: Theme.of(context)
                       .extension<StackColors>()!
@@ -285,7 +288,7 @@ class TablePriceInfo extends ConsumerWidget {
           ),
         ),
         Text(
-          "${price.change24h.toStringAsFixed(2)}%",
+          Format.percent(price.change24h),
           style: STextStyles.desktopTextExtraSmall(context)
               .copyWith(color: percentChangedColor),
         ),

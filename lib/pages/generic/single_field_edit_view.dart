@@ -10,9 +10,9 @@
 
 import 'package:flutter/material.dart';
 
+import '../../l10n/l10n.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/constants.dart';
-import '../../utilities/extensions/extensions.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../widgets/background.dart';
@@ -29,12 +29,16 @@ class SingleFieldEditView extends StatefulWidget {
   const SingleFieldEditView({
     super.key,
     required this.initialValue,
+    required this.title,
     required this.label,
   });
 
   static const String routeName = "/singleFieldEdit";
 
   final String initialValue;
+  final String title;
+
+  /// The field's caption.
   final String label;
 
   @override
@@ -87,7 +91,7 @@ class _SingleFieldEditViewState extends State<SingleFieldEditView> {
                   },
                 ),
                 title: Text(
-                  "Edit ${widget.label}",
+                  widget.title,
                   style: STextStyles.navBarTitle(context),
                 ),
               ),
@@ -121,7 +125,7 @@ class _SingleFieldEditViewState extends State<SingleFieldEditView> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "Edit ${widget.label}",
+                    widget.title,
                     style: STextStyles.desktopH3(context),
                   ),
                   const DesktopDialogCloseButton(),
@@ -153,7 +157,7 @@ class _SingleFieldEditViewState extends State<SingleFieldEditView> {
                         : STextStyles.field(context),
                 focusNode: _textFocusNode,
                 decoration: standardInputDecoration(
-                  widget.label.capitalize(),
+                  widget.label,
                   _textFocusNode,
                   context,
                   desktopMed: isDesktop,
@@ -203,7 +207,7 @@ class _SingleFieldEditViewState extends State<SingleFieldEditView> {
                     children: [
                       Expanded(
                         child: SecondaryButton(
-                          label: "Cancel",
+                          label: l10n.commonCancel,
                           buttonHeight: ButtonHeight.l,
                           onPressed: () {
                             if (mounted) {
@@ -218,7 +222,7 @@ class _SingleFieldEditViewState extends State<SingleFieldEditView> {
                   ),
                 ),
             child: PrimaryButton(
-              label: "Save",
+              label: l10n.commonSave,
               buttonHeight: isDesktop ? ButtonHeight.l : null,
               onPressed: () {
                 if (mounted) {

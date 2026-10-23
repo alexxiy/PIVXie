@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../l10n/l10n.dart';
 import '../../pages/manage_favorites_view/manage_favorites_view.dart';
 import '../../pages/wallets_view/sub_widgets/favorite_card.dart';
 import '../../themes/stack_colors.dart';
@@ -42,7 +43,7 @@ class DesktopFavoriteWallets extends ConsumerWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              "Favorite wallets",
+              l10n.walletsFavorites,
               style: STextStyles.desktopTextExtraSmall(context).copyWith(
                 color: Theme.of(context)
                     .extension<StackColors>()!
@@ -50,7 +51,7 @@ class DesktopFavoriteWallets extends ConsumerWidget {
               ),
             ),
             CustomTextButton(
-              text: "Edit",
+              text: l10n.commonEdit,
               onTap: () {
                 Navigator.of(context).pushNamed(ManageFavoritesView.routeName);
               },
@@ -124,7 +125,7 @@ class DesktopFavoriteWallets extends ConsumerWidget {
                           width: 4,
                         ),
                         Text(
-                          "Add a favorite",
+                          l10n.walletsAddFavorite,
                           style: STextStyles.itemSubtitle(context).copyWith(
                             fontSize: 18,
                           ),

@@ -13,6 +13,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar_community/isar.dart';
 
 import '../../../db/isar/main_db.dart';
+import '../../../l10n/l10n.dart';
 import '../../../models/isar/models/address_label.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/constants.dart';
@@ -97,7 +98,7 @@ class _EditAddressLabelViewState extends ConsumerState<EditAddressLabelView> {
                     },
                   ),
                   title: Text(
-                    "Edit label",
+                    l10n.receiveEditLabel,
                     style: STextStyles.navBarTitle(context),
                   ),
                 ),
@@ -135,7 +136,7 @@ class _EditAddressLabelViewState extends ConsumerState<EditAddressLabelView> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          "Edit label",
+                          l10n.receiveEditLabel,
                           style: STextStyles.desktopH3(context),
                         ),
                         const DesktopDialogCloseButton(),
@@ -169,7 +170,7 @@ class _EditAddressLabelViewState extends ConsumerState<EditAddressLabelView> {
                               : STextStyles.field(context),
                       focusNode: labelFieldFocusNode,
                       decoration: standardInputDecoration(
-                        "Address label",
+                        l10n.receiveAddressLabel,
                         labelFieldFocusNode,
                         context,
                         desktopMed: isDesktop,
@@ -213,7 +214,7 @@ class _EditAddressLabelViewState extends ConsumerState<EditAddressLabelView> {
                   Padding(
                     padding: const EdgeInsets.all(32),
                     child: PrimaryButton(
-                      label: "Save",
+                      label: l10n.commonSave,
                       onPressed: () async {
                         await MainDB.instance.updateAddressLabel(
                           addressLabel.copyWith(
@@ -241,7 +242,7 @@ class _EditAddressLabelViewState extends ConsumerState<EditAddressLabelView> {
                     style: Theme.of(context)
                         .extension<StackColors>()!
                         .getPrimaryEnabledButtonStyle(context),
-                    child: Text("Save", style: STextStyles.button(context)),
+                    child: Text(l10n.commonSave, style: STextStyles.button(context)),
                   ),
               ],
             ),

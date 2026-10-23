@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../l10n/l10n.dart';
 import '../../../../pages/settings_views/global_settings_view/security_views/auto_lock_timeout_settings_view.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
@@ -21,7 +22,7 @@ class DesktopAutolockTimeoutSettingsDialog extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.all(32),
                 child: Text(
-                  "Auto lock settings",
+                  l10n.autoLockTitle,
                   style: STextStyles.desktopH3(context),
                   textAlign: TextAlign.center,
                 ),

@@ -15,6 +15,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../../../../app_config.dart';
+import '../../../../../l10n/l10n.dart';
 import '../../../../../pages_desktop_specific/desktop_home_view.dart';
 import '../../../../../pages_desktop_specific/desktop_menu.dart';
 import '../../../../../providers/desktop/current_desktop_menu_item.dart';
@@ -82,7 +83,7 @@ class _StackRestoreProgressViewState
                 color: Colors.transparent,
                 child: Center(
                   child: Text(
-                    "Cancelling restore. Please wait.",
+                    l10n.restoreCancelling,
                     style: STextStyles.pageTitleH2(context).copyWith(
                       color: Theme.of(context)
                           .extension<StackColors>()!
@@ -279,7 +280,7 @@ class _StackRestoreProgressViewState
                 },
               ),
               title: Text(
-                "Restoring ${AppConfig.appName}",
+                l10n.restoreRestoringApp(AppConfig.appName),
                 style: STextStyles.navBarTitle(context),
               ),
             ),
@@ -298,7 +299,10 @@ class _StackRestoreProgressViewState
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text("Settings", style: STextStyles.itemSubtitle(context)),
+              Text(
+                l10n.settingsTitle,
+                style: STextStyles.itemSubtitle(context),
+              ),
               const SizedBox(height: 12),
               Consumer(
                 builder: (_, ref, __) {
@@ -334,10 +338,10 @@ class _StackRestoreProgressViewState
                             height: 20,
                             child: _getIconForState(state),
                           ),
-                          title: "Preferences",
+                          title: l10n.restorePreferences,
                           subTitle: state == StackRestoringStatus.failed
                               ? Text(
-                                  "Something went wrong",
+                                  l10n.commonSomethingWentWrong,
                                   style: STextStyles.errorSmall(context),
                                 )
                               : null,
@@ -376,10 +380,10 @@ class _StackRestoreProgressViewState
                               height: 20,
                               child: _getIconForState(state),
                             ),
-                            title: "Preferences",
+                            title: l10n.restorePreferences,
                             subTitle: state == StackRestoringStatus.failed
                                 ? Text(
-                                    "Something went wrong",
+                                    l10n.commonSomethingWentWrong,
                                     style: STextStyles.errorSmall(context),
                                   )
                                 : null,
@@ -421,10 +425,10 @@ class _StackRestoreProgressViewState
                             height: 20,
                             child: _getIconForState(state),
                           ),
-                          title: "Address book",
+                          title: l10n.addressBookTitle,
                           subTitle: state == StackRestoringStatus.failed
                               ? Text(
-                                  "Something went wrong",
+                                  l10n.commonSomethingWentWrong,
                                   style: STextStyles.errorSmall(context),
                                 )
                               : null,
@@ -462,10 +466,10 @@ class _StackRestoreProgressViewState
                               height: 20,
                               child: _getIconForState(state),
                             ),
-                            title: "Address book",
+                            title: l10n.addressBookTitle,
                             subTitle: state == StackRestoringStatus.failed
                                 ? Text(
-                                    "Something went wrong",
+                                    l10n.commonSomethingWentWrong,
                                     style: STextStyles.errorSmall(context),
                                   )
                                 : null,
@@ -508,10 +512,10 @@ class _StackRestoreProgressViewState
                             height: 20,
                             child: _getIconForState(state),
                           ),
-                          title: "Nodes",
+                          title: l10n.restoreNodes,
                           subTitle: state == StackRestoringStatus.failed
                               ? Text(
-                                  "Something went wrong",
+                                  l10n.commonSomethingWentWrong,
                                   style: STextStyles.errorSmall(context),
                                 )
                               : null,
@@ -550,10 +554,10 @@ class _StackRestoreProgressViewState
                               height: 20,
                               child: _getIconForState(state),
                             ),
-                            title: "Nodes",
+                            title: l10n.restoreNodes,
                             subTitle: state == StackRestoringStatus.failed
                                 ? Text(
-                                    "Something went wrong",
+                                    l10n.commonSomethingWentWrong,
                                     style: STextStyles.errorSmall(context),
                                   )
                                 : null,
@@ -562,7 +566,10 @@ class _StackRestoreProgressViewState
                 },
               ),
               const SizedBox(height: 16),
-              Text("Wallets", style: STextStyles.itemSubtitle(context)),
+              Text(
+                l10n.restoreWallets,
+                style: STextStyles.itemSubtitle(context),
+              ),
               const SizedBox(height: 8),
               ...ref
                   .watch(
@@ -602,7 +609,9 @@ class _StackRestoreProgressViewState
                             .extension<StackColors>()!
                             .getPrimaryEnabledButtonStyle(context),
                         child: Text(
-                          _success ? "OK" : "Cancel restore process",
+                          _success
+                              ? l10n.commonOkCaps
+                              : l10n.restoreCancelProcess,
                           style: STextStyles.button(context).copyWith(
                             color: Theme.of(context)
                                 .extension<StackColors>()!
@@ -618,7 +627,7 @@ class _StackRestoreProgressViewState
                                   width: 248,
                                   buttonHeight: ButtonHeight.l,
                                   enabled: true,
-                                  label: "Done",
+                                  label: l10n.commonDone,
                                   onPressed: () async {
                                     const DesktopMenuItemId keyID = .myStack;
 
@@ -654,7 +663,7 @@ class _StackRestoreProgressViewState
                                   width: 248,
                                   buttonHeight: ButtonHeight.l,
                                   enabled: true,
-                                  label: "Cancel restore process",
+                                  label: l10n.restoreCancelProcess,
                                   onPressed: () async {
                                     if (await _requestCancel()) {
                                       await _cancel();

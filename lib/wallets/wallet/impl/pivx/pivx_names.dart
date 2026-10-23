@@ -38,7 +38,7 @@ extension PivxNamesWallet on PivxWallet {
     PivxFunding funding = kPivxAutoFunding,
   }) {
     if (!isShieldAddress(address)) {
-      throw Exception("The PIVX.name address isn't a shield address");
+      throw Exception(l10n.namesNotShieldAddress);
     }
     return prepareSend(
       txData: TxData(

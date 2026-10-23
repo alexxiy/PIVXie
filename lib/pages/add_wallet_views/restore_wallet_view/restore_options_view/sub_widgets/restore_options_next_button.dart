@@ -9,6 +9,7 @@
  */
 
 import 'package:flutter/material.dart';
+import '../../../../../l10n/l10n.dart';
 import '../../../../../themes/stack_colors.dart';
 import '../../../../../utilities/text_styles.dart';
 
@@ -38,7 +39,7 @@ class RestoreOptionsNextButton extends StatelessWidget {
                 .extension<StackColors>()!
                 .getPrimaryDisabledButtonStyle(context),
         child: Text(
-          "Next",
+          l10n.commonNext,
           style: STextStyles.button(context),
         ),
       ),

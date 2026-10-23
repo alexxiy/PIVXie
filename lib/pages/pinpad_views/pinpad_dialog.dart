@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mutex/mutex.dart';
 
+import '../../l10n/l10n.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../providers/global/duress_provider.dart';
 import '../../providers/global/prefs_provider.dart';
@@ -156,7 +157,7 @@ class _PinpadDialogState extends ConsumerState<PinpadDialog> {
           type: FlushBarType.warning,
           message: lockout != null
               ? PinAttempts.lockedMessage(lockout)
-              : "Wrong PIN. Try again.",
+              : l10n.pinWrong,
           context: context,
           iconAsset: Assets.svg.alertCircle,
         ),
@@ -206,7 +207,7 @@ class _PinpadDialogState extends ConsumerState<PinpadDialog> {
                 children: [
                   Center(
                     child: Text(
-                      "Enter PIN",
+                      l10n.pinEnter,
                       style: STextStyles.pageTitleH1(context),
                     ),
                   ),

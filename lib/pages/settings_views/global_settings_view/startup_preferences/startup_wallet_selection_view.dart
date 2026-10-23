@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../../../l10n/l10n.dart';
 import '../../../../providers/providers.dart';
 import '../../../../themes/coin_icon_provider.dart';
 import '../../../../themes/stack_colors.dart';
@@ -60,7 +61,7 @@ class _StartupWalletSelectionViewState
           title: FittedBox(
             fit: BoxFit.scaleDown,
             child: Text(
-              "Select startup wallet",
+              l10n.startupSelectTitle,
               style: STextStyles.navBarTitle(context),
             ),
           ),
@@ -83,7 +84,7 @@ class _StartupWalletSelectionViewState
                           children: [
                             const SizedBox(height: 4),
                             Text(
-                              "Select a wallet to load into immediately on startup",
+                              l10n.startupSelectText,
                               style: STextStyles.smallMed12(context),
                             ),
                             const SizedBox(height: 12),

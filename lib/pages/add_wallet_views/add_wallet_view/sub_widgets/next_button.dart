@@ -11,6 +11,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../l10n/l10n.dart';
 import '../../create_or_restore_wallet_view/create_or_restore_wallet_view.dart';
 import '../../../../providers/providers.dart';
 import '../../../../themes/stack_colors.dart';
@@ -43,7 +44,7 @@ class AddWalletNextButton extends ConsumerWidget {
                 .extension<StackColors>()!
                 .getPrimaryDisabledButtonStyle(context),
       child: Text(
-        "Next",
+        l10n.commonNext,
         style: isDesktop
             ? enabled
                   ? STextStyles.desktopButtonEnabled(context)

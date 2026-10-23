@@ -12,6 +12,7 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../l10n/l10n.dart';
 import '../../../models/transaction_filter.dart';
 import '../../../providers/global/locale_provider.dart';
 import '../../../providers/ui/transaction_filter_provider.dart';
@@ -143,7 +144,7 @@ class _TransactionSearchViewState
               },
             ),
             title: Text(
-              "Transactions filter",
+              l10n.txFilterTitle,
               style: STextStyles.navBarTitle(context),
             ),
           ),
@@ -212,7 +213,7 @@ class _TransactionSearchViewState
                     ),
                     const SizedBox(width: 14),
                     Text(
-                      "All",
+                      l10n.govFilterAll,
                       style:
                           (isDesktop
                                   ? STextStyles.desktopTextSmall(context)
@@ -287,7 +288,7 @@ class _TransactionSearchViewState
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                "Transaction filter",
+                l10n.txFilterTitleDesktop,
                 style: STextStyles.desktopH3(context),
                 textAlign: TextAlign.center,
               ),
@@ -300,7 +301,7 @@ class _TransactionSearchViewState
             alignment: Alignment.centerLeft,
             child: FittedBox(
               child: Text(
-                "Transactions",
+                l10n.receiveTransactions,
                 style: STextStyles.smallMed12(context),
               ),
             ),
@@ -350,7 +351,7 @@ class _TransactionSearchViewState
                                 child: Column(
                                   children: [
                                     Text(
-                                      "Sent",
+                                      l10n.txSent,
                                       style: isDesktop
                                           ? STextStyles.desktopTextSmall(
                                               context,
@@ -406,7 +407,7 @@ class _TransactionSearchViewState
                                 child: Column(
                                   children: [
                                     Text(
-                                      "Received",
+                                      l10n.txReceived,
                                       style: isDesktop
                                           ? STextStyles.desktopTextSmall(
                                               context,
@@ -461,7 +462,7 @@ class _TransactionSearchViewState
                                 child: Column(
                                   children: [
                                     Text(
-                                      "Trades",
+                                      l10n.txTrades,
                                       style: isDesktop
                                           ? STextStyles.desktopTextSmall(
                                               context,
@@ -487,7 +488,7 @@ class _TransactionSearchViewState
           alignment: Alignment.centerLeft,
           child: FittedBox(
             child: Text(
-              "Date",
+              l10n.txDate,
               style: isDesktop
                   ? STextStyles.labelExtraExtraSmall(context)
                   : STextStyles.smallMed12(context),
@@ -513,7 +514,7 @@ class _TransactionSearchViewState
           alignment: Alignment.centerLeft,
           child: FittedBox(
             child: Text(
-              "Amount",
+              l10n.commonAmount,
               style: isDesktop
                   ? STextStyles.labelExtraExtraSmall(context)
                   : STextStyles.smallMed12(context),
@@ -561,7 +562,7 @@ class _TransactionSearchViewState
                   : STextStyles.field(context),
               decoration:
                   standardInputDecoration(
-                    "Enter ${widget.coin.ticker} amount...",
+                    l10n.txEnterAmount(widget.coin.ticker),
                     keywordTextFieldFocusNode,
                     context,
                     desktopMed: isDesktop,
@@ -600,7 +601,7 @@ class _TransactionSearchViewState
           alignment: Alignment.centerLeft,
           child: FittedBox(
             child: Text(
-              "Keyword",
+              l10n.txKeyword,
               style: isDesktop
                   ? STextStyles.labelExtraExtraSmall(context)
                   : STextStyles.smallMed12(context),
@@ -631,7 +632,7 @@ class _TransactionSearchViewState
               onChanged: (_) => setState(() {}),
               decoration:
                   standardInputDecoration(
-                    "Type keyword...",
+                    l10n.txTypeKeyword,
                     keywordTextFieldFocusNode,
                     context,
                     desktopMed: isDesktop,
@@ -671,7 +672,7 @@ class _TransactionSearchViewState
           children: [
             Expanded(
               child: SecondaryButton(
-                label: "Cancel",
+                label: l10n.commonCancel,
                 buttonHeight: isDesktop ? ButtonHeight.l : null,
                 onPressed: () async {
                   if (!isDesktop) {
@@ -695,7 +696,7 @@ class _TransactionSearchViewState
                 onPressed: () async {
                   await _onApplyPressed();
                 },
-                label: "Save",
+                label: l10n.commonSave,
               ),
             ),
             if (isDesktop) const SizedBox(width: 32),

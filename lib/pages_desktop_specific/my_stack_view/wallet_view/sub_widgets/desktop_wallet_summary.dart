@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../../../l10n/l10n.dart';
 import '../../../../pages/wallet_view/sub_widgets/wallet_balance_toggle_sheet.dart';
 import '../../../../pages/wallet_view/sub_widgets/wallet_refresh_button.dart';
 import '../../../../providers/providers.dart';
@@ -90,12 +91,15 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
       final type = ref.watch(publicPrivateBalanceStateProvider);
       final privateBalance = ref.watch(pWalletBalanceSecondary(walletId));
       if (ref.watch(showTotalBalanceProvider)) {
-        title = "Total balance";
+        title = l10n.balanceTotal;
         balanceToShow = balance.total + privateBalance.total;
       } else {
-        title =
-            "${_showAvailable ? "Available" : "Full"} "
-            "${type == BalanceType.private ? "shielded" : "transparent"} balance";
+        title = switch ((_showAvailable, type == BalanceType.private)) {
+          (true, true) => l10n.balanceAvailableShielded,
+          (false, true) => l10n.balanceFullShielded,
+          (true, false) => l10n.balanceAvailableTransparent,
+          (false, false) => l10n.balanceFullTransparent,
+        };
         final selected = type == BalanceType.private ? privateBalance : balance;
         balanceToShow = _showAvailable ? selected.spendable : selected.total;
       }

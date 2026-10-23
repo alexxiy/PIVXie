@@ -13,6 +13,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../l10n/l10n.dart';
 import '../../../../providers/global/duress_provider.dart';
 import '../../../../providers/global/prefs_provider.dart';
 import '../../../../providers/global/secure_store_provider.dart';
@@ -67,20 +68,13 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("Enable duress PIN", style: STextStyles.pageTitleH2(context)),
+            Text(l10n.duressEnable, style: STextStyles.pageTitleH2(context)),
             const SizedBox(height: 8),
             Row(
               children: [
                 Flexible(
                   child: Text(
-                    "When unlocking the app with a duress PIN, only wallets"
-                    " marked as visible in duress mode will be loaded and"
-                    " shown. Be aware that providing a duress PIN instead"
-                    " of your real PIN to law enforcement, border agents,"
-                    " or other authorities may be considered deception and"
-                    " could carry legal consequences depending on your"
-                    " jurisdiction. Use with care and according to your"
-                    " threat model.",
+                    l10n.duressEnableText,
                     style: STextStyles.smallMed14(context),
                   ),
                 ),
@@ -91,14 +85,14 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
               children: [
                 Expanded(
                   child: SecondaryButton(
-                    label: "Cancel",
+                    label: l10n.commonCancel,
                     onPressed: () => Navigator.of(context).pop(false),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: PrimaryButton(
-                    label: "Ok",
+                    label: l10n.commonOk,
                     onPressed: () => Navigator.of(context).pop(true),
                   ),
                 ),
@@ -114,12 +108,12 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
         context,
         RouteGenerator.getRoute(
           shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
-          builder: (_) => const LockscreenView(
+          builder: (_) => LockscreenView(
             showBackButton: true,
             routeOnSuccess: CreateDuressPinView.routeName,
-            biometricsCancelButtonString: "CANCEL",
-            biometricsLocalizedReason: "Authenticate to create duress PIN",
-            biometricsAuthenticationTitle: "Create duress PIN",
+            biometricsCancelButtonString: l10n.commonCancelCaps,
+            biometricsLocalizedReason: l10n.duressAuthReason,
+            biometricsAuthenticationTitle: l10n.duressCreate,
           ),
           settings: const RouteSettings(name: "/createDuressPinLockscreen"),
         ),
@@ -134,14 +128,13 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("Disable duress PIN", style: STextStyles.pageTitleH2(context)),
+            Text(l10n.duressDisable, style: STextStyles.pageTitleH2(context)),
             const SizedBox(height: 8),
             Row(
               children: [
                 Flexible(
                   child: Text(
-                    "Your duress PIN will be deleted. To turn this on "
-                    "again, you'll create a new one.",
+                    l10n.duressDisableText,
                     style: STextStyles.smallMed14(context),
                   ),
                 ),
@@ -152,14 +145,14 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
               children: [
                 Expanded(
                   child: SecondaryButton(
-                    label: "Cancel",
+                    label: l10n.commonCancel,
                     onPressed: () => Navigator.of(context).pop(false),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: PrimaryButton(
-                    label: "Delete",
+                    label: l10n.commonDelete,
                     onPressed: () => Navigator.of(context).pop(true),
                   ),
                 ),
@@ -199,7 +192,10 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
               Navigator.of(context).pop();
             },
           ),
-          title: Text("Security", style: STextStyles.navBarTitle(context)),
+          title: Text(
+            l10n.settingsSecurity,
+            style: STextStyles.navBarTitle(context),
+          ),
         ),
         body: SafeArea(
           child: Padding(
@@ -223,13 +219,12 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                         RouteGenerator.getRoute(
                           shouldUseMaterialRoute:
                               RouteGenerator.useMaterialPageRoute,
-                          builder: (_) => const LockscreenView(
+                          builder: (_) => LockscreenView(
                             showBackButton: true,
                             routeOnSuccess: ChangePinView.routeName,
-                            biometricsCancelButtonString: "CANCEL",
-                            biometricsLocalizedReason:
-                                "Authenticate to change PIN",
-                            biometricsAuthenticationTitle: "Change PIN",
+                            biometricsCancelButtonString: l10n.commonCancelCaps,
+                            biometricsLocalizedReason: l10n.pinChangeAuthReason,
+                            biometricsAuthenticationTitle: l10n.pinChange,
                           ),
                           settings: const RouteSettings(
                             name: "/changepinlockscreen",
@@ -245,7 +240,7 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                       child: Row(
                         children: [
                           Text(
-                            "Change PIN",
+                            l10n.pinChange,
                             style: STextStyles.titleBold12(context),
                             textAlign: TextAlign.left,
                           ),
@@ -274,7 +269,7 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                             children: [
                               Expanded(
                                 child: Text(
-                                  "Enable biometric authentication",
+                                  l10n.securityBiometrics,
                                   style: STextStyles.titleBold12(context),
                                   textAlign: TextAlign.left,
                                 ),
@@ -324,7 +319,7 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                             children: [
                               Expanded(
                                 child: Text(
-                                  "Randomize PIN pad",
+                                  l10n.securityRandomizePad,
                                   style: STextStyles.titleBold12(context),
                                   textAlign: TextAlign.left,
                                 ),
@@ -375,7 +370,7 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                             children: [
                               Expanded(
                                 child: Text(
-                                  "Auto-accept correct PIN",
+                                  l10n.securityAutoAcceptPin,
                                   style: STextStyles.titleBold12(context),
                                   textAlign: TextAlign.left,
                                 ),
@@ -424,7 +419,7 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                             children: [
                               Expanded(
                                 child: Text(
-                                  "Cover in background",
+                                  l10n.securityCover,
                                   style: STextStyles.titleBold12(context),
                                   textAlign: TextAlign.left,
                                 ),
@@ -475,7 +470,7 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                               children: [
                                 Expanded(
                                   child: Text(
-                                    "Disable screenshots",
+                                    l10n.securityNoScreenshots,
                                     style: STextStyles.titleBold12(context),
                                     textAlign: TextAlign.left,
                                   ),
@@ -527,7 +522,7 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                               children: [
                                 Expanded(
                                   child: Text(
-                                    "Duress PIN",
+                                    l10n.securityDuressPin,
                                     style: STextStyles.titleBold12(context),
                                     textAlign: TextAlign.left,
                                   ),
@@ -585,7 +580,7 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                               children: [
                                 Expanded(
                                   child: Text(
-                                    "Biometrics opens duress",
+                                    l10n.securityBiometricsDuress,
                                     style: STextStyles.titleBold12(context),
                                     textAlign: TextAlign.left,
                                   ),
@@ -631,14 +626,13 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                         RouteGenerator.getRoute(
                           shouldUseMaterialRoute:
                               RouteGenerator.useMaterialPageRoute,
-                          builder: (_) => const LockscreenView(
+                          builder: (_) => LockscreenView(
                             showBackButton: true,
                             routeOnSuccess:
                                 AutoLockTimeoutSettingsView.routeName,
-                            biometricsCancelButtonString: "CANCEL",
-                            biometricsLocalizedReason:
-                                "Authenticate to change auto lock settings",
-                            biometricsAuthenticationTitle: "Auto lock settings",
+                            biometricsCancelButtonString: l10n.commonCancelCaps,
+                            biometricsLocalizedReason: l10n.autoLockAuthReason,
+                            biometricsAuthenticationTitle: l10n.autoLockTitle,
                           ),
                           settings: const RouteSettings(
                             name: "/autoLockTimeoutSettingsLockScreen",
@@ -654,7 +648,7 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                       child: Row(
                         children: [
                           Text(
-                            "Auto lock settings",
+                            l10n.autoLockTitle,
                             style: STextStyles.titleBold12(context),
                             textAlign: TextAlign.left,
                           ),

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../l10n/l10n.dart';
 import '../notifications/show_flush_bar.dart';
 import '../themes/stack_colors.dart';
 import '../utilities/clipboard_interface.dart';
@@ -39,7 +40,7 @@ class IconCopyButton extends StatelessWidget {
             unawaited(
               showFloatingFlushBar(
                 type: FlushBarType.info,
-                message: "Copied to clipboard",
+                message: l10n.commonCopiedToClipboard,
                 context: context,
               ),
             );

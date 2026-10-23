@@ -11,6 +11,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../l10n/l10n.dart';
 import '../../../../pages/home_view/payment_links.dart';
 import '../../../../providers/global/wallets_provider.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
@@ -29,7 +30,7 @@ class MyWallet extends ConsumerStatefulWidget {
 }
 
 class _MyWalletState extends ConsumerState<MyWallet> {
-  final titles = ["Send", "Receive"];
+  final titles = [l10n.commonSend, l10n.commonReceive];
 
   late final bool isViewOnly;
 
@@ -42,7 +43,7 @@ class _MyWalletState extends ConsumerState<MyWallet> {
 
     isViewOnly = wallet is ViewOnlyOptionInterface && wallet.isViewOnly;
     if (isViewOnly) {
-      titles.remove("Receive");
+      titles.remove(l10n.commonReceive);
     }
 
     super.initState();

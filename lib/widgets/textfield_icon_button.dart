@@ -10,6 +10,8 @@
 
 import 'package:flutter/material.dart';
 
+import '../l10n/l10n.dart';
+
 class TextFieldIconButton extends StatefulWidget {
   const TextFieldIconButton({
     super.key,
@@ -18,7 +20,7 @@ class TextFieldIconButton extends StatefulWidget {
     this.onTap,
     required this.child,
     this.color = Colors.transparent,
-    this.semanticsLabel = "Button",
+    this.semanticsLabel,
   });
 
   final double width;
@@ -26,7 +28,7 @@ class TextFieldIconButton extends StatefulWidget {
   final VoidCallback? onTap;
   final Widget child;
   final Color color;
-  final String semanticsLabel;
+  final String? semanticsLabel;
 
   @override
   State<TextFieldIconButton> createState() => _TextFieldIconButtonState();
@@ -49,7 +51,7 @@ class _TextFieldIconButtonState extends State<TextFieldIconButton> {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(100),
         child: Semantics(
-          label: widget.semanticsLabel,
+          label: widget.semanticsLabel ?? l10n.commonButton,
           excludeSemantics: true,
           child: RawMaterialButton(
             constraints: BoxConstraints(

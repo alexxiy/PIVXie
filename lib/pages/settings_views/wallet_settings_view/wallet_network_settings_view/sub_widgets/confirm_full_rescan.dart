@@ -9,6 +9,7 @@
  */
 
 import 'package:flutter/material.dart';
+import '../../../../../l10n/l10n.dart';
 import '../../../../../themes/stack_colors.dart';
 import '../../../../../utilities/text_styles.dart';
 import '../../../../../utilities/util.dart';
@@ -39,7 +40,7 @@ class ConfirmFullRescanDialog extends StatelessWidget {
                     left: 32,
                   ),
                   child: Text(
-                    "Rescan blockchain",
+                    l10n.netRescanBlockchain,
                     style: STextStyles.desktopH3(context),
                   ),
                 ),
@@ -57,7 +58,7 @@ class ConfirmFullRescanDialog extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    "This can take a while. If you close the app before it finishes, the rescan starts over.",
+                    l10n.netRescanText,
                     style: STextStyles.desktopTextSmall(context),
                   ),
                   const SizedBox(
@@ -69,7 +70,7 @@ class ConfirmFullRescanDialog extends StatelessWidget {
                         child: SecondaryButton(
                           buttonHeight: ButtonHeight.l,
                           onPressed: Navigator.of(context).pop,
-                          label: "Cancel",
+                          label: l10n.commonCancel,
                         ),
                       ),
                       const SizedBox(
@@ -82,7 +83,7 @@ class ConfirmFullRescanDialog extends StatelessWidget {
                             Navigator.of(context).pop();
                             onConfirm.call();
                           },
-                          label: "Rescan",
+                          label: l10n.netRescan,
                         ),
                       ),
                     ],
@@ -99,15 +100,15 @@ class ConfirmFullRescanDialog extends StatelessWidget {
           return true;
         },
         child: StackDialog(
-          title: "Rescan blockchain",
+          title: l10n.netRescanBlockchain,
           message:
-              "This can take a while. If you close the app before it finishes, the rescan starts over.",
+              l10n.netRescanText,
           leftButton: TextButton(
             style: Theme.of(context)
                 .extension<StackColors>()!
                 .getSecondaryEnabledButtonStyle(context),
             child: Text(
-              "Cancel",
+              l10n.commonCancel,
               style: STextStyles.itemSubtitle12(context),
             ),
             onPressed: () {
@@ -119,7 +120,7 @@ class ConfirmFullRescanDialog extends StatelessWidget {
                 .extension<StackColors>()!
                 .getPrimaryEnabledButtonStyle(context),
             child: Text(
-              "Rescan",
+              l10n.netRescan,
               style: STextStyles.button(context),
             ),
             onPressed: () {

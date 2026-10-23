@@ -3,10 +3,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../l10n/l10n.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/constants.dart';
+import '../../utilities/format.dart';
 import '../../utilities/text_styles.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
 import '../../widgets/icon_widgets/x_icon.dart';
@@ -128,18 +130,18 @@ class PivxVotesBar extends StatelessWidget {
         Row(
           children: [
             Text(
-              "$yeas Yes",
+              l10n.govYesCount(yeas),
               style: STextStyles.w600_12(context).copyWith(color: yes),
             ),
             Text("  ·  ", style: label),
             Text(
-              "$nays No",
+              l10n.govNoCount(nays),
               style: STextStyles.w600_12(context).copyWith(color: no),
             ),
             const Spacer(),
             if (percent != null)
               Text(
-                "${pivxPercent(percent)} net Yes",
+                l10n.govNetYes(pivxPercent(percent)),
                 style: STextStyles.w600_12(context).copyWith(
                   color: percent >= kPivxPassPercent
                       ? yes
@@ -159,9 +161,10 @@ const kPivxPassPercent = 10.0;
 /// "60.5%", "100%", "-3%".
 String pivxPercent(double value) {
   final rounded = (value * 10).round() / 10;
-  return rounded == rounded.roundToDouble()
-      ? "${rounded.toInt()}%"
-      : "${rounded.toStringAsFixed(1)}%";
+  return Format.percent(
+    rounded,
+    decimals: rounded == rounded.roundToDouble() ? 0 : 1,
+  );
 }
 
 /// "MN1 · Yes": how one of the wallet's masternodes voted.
@@ -193,7 +196,7 @@ class PivxVoteChip extends StatelessWidget {
           ),
           const SizedBox(width: 4),
           Text(
-            "$label · ${vote == PivxVote.yes ? "Yes" : "No"}",
+            "$label · ${vote == PivxVote.yes ? l10n.govYes : l10n.govNo}",
             style: STextStyles.w600_12(context).copyWith(color: color),
           ),
         ],
@@ -271,7 +274,7 @@ class PivxShowAllChip extends StatelessWidget {
               Icon(Icons.unfold_more_rounded, size: 12, color: color),
               const SizedBox(width: 4),
               Text(
-                "Show all $count",
+                l10n.govShowAll(count),
                 style: STextStyles.w600_12(context).copyWith(color: color),
               ),
             ],
@@ -313,18 +316,19 @@ class PivxVoteCounts extends StatelessWidget {
       TextSpan(
         children: [
           TextSpan(
-            text: "$yes Yes",
+            text: l10n.govYesCount(yes),
             style: STextStyles.w600_12(context)
                 .copyWith(color: pivxVoteColor(PivxVote.yes, colors)),
           ),
           TextSpan(text: "  ·  ", style: label),
           TextSpan(
-            text: "$no No",
+            text: l10n.govNoCount(no),
             style: STextStyles.w600_12(context)
                 .copyWith(color: pivxVoteColor(PivxVote.no, colors)),
           ),
           TextSpan(
-            text: "  ·  ${masternodes.length - yes - no} not voted",
+            text:
+                "  ·  ${l10n.govNotVotedCount(masternodes.length - yes - no)}",
             style: label,
           ),
         ],
@@ -358,13 +362,15 @@ class PivxMasternodeVoteRow extends StatelessWidget {
     final colors = Theme.of(context).extension<StackColors>()!;
     final v = vote;
     final status = loading
-        ? "Checking…"
+        ? l10n.pivxNamesChecking
         : v == null
-        ? "Not voted"
+        ? l10n.govNotVoted
         : v.canChange
-        ? "Voted ${_ago(v.time)}"
-        : "Voted ${_ago(v.time)} · can change in "
-              "~${pivxDuration(v.changeableAt.difference(DateTime.now()).inSeconds)}";
+        ? l10n.govVotedAgo(_since(v.time))
+        : l10n.govVotedAgoCanChange(
+            _since(v.time),
+            pivxDuration(v.changeableAt.difference(DateTime.now()).inSeconds),
+          );
     final service = masternode.service;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
@@ -386,7 +392,7 @@ class PivxMasternodeVoteRow extends StatelessWidget {
           ),
           if (v != null)
             PivxPill(
-              text: v.vote == PivxVote.yes ? "Yes" : "No",
+              text: v.vote == PivxVote.yes ? l10n.govYes : l10n.govNo,
               color: pivxVoteColor(v.vote, colors),
             )
           else if (!inList)
@@ -397,9 +403,9 @@ class PivxMasternodeVoteRow extends StatelessWidget {
   }
 }
 
-String _ago(int time) {
+String _since(int time) {
   final seconds = DateTime.now().millisecondsSinceEpoch ~/ 1000 - time;
-  return "${pivxDuration(seconds < 0 ? 0 : seconds)} ago";
+  return pivxDuration(seconds < 0 ? 0 : seconds);
 }
 
 /// Search the wallet's masternodes by alias or server address.
@@ -446,7 +452,7 @@ class _PivxMasternodeSearchFieldState extends State<PivxMasternodeSearchField> {
       },
       decoration:
           standardInputDecoration(
-            "Search by alias or IP",
+            l10n.govSearchMasternodes,
             _focus,
             context,
           ).copyWith(
@@ -545,7 +551,7 @@ class PivxSheetLayout extends StatelessWidget {
 Widget pivxNoMasternodeMatches(BuildContext context, String query) => Padding(
   padding: const EdgeInsets.symmetric(vertical: 24),
   child: Text(
-    "No masternode matches \"${query.trim()}\".",
+    l10n.govNoMasternodeMatch(query.trim()),
     textAlign: TextAlign.center,
     style: STextStyles.itemSubtitle(context),
   ),
@@ -600,7 +606,7 @@ class _MasternodeVotesSheetState extends State<_MasternodeVotesSheet> {
     return PivxSheetLayout(
       fullHeight: many,
       header: [
-        Text("Your masternodes", style: STextStyles.pageTitleH2(context)),
+        Text(l10n.govYourMasternodes, style: STextStyles.pageTitleH2(context)),
         const SizedBox(height: 4),
         Text(
           widget.proposalName,
@@ -666,7 +672,7 @@ class PivxCopyRow extends StatelessWidget {
         if (context.mounted) {
           await showFloatingFlushBar(
             type: FlushBarType.info,
-            message: "$title copied",
+            message: l10n.commonCopiedWhat(title),
             iconAsset: Assets.svg.copy,
             context: context,
           );
@@ -720,7 +726,7 @@ Future<void> openPivxProposalUrl(BuildContext context, String url) async {
   if (uri == null || !(uri.scheme == "https" || uri.scheme == "http")) {
     await showFloatingFlushBar(
       type: FlushBarType.warning,
-      message: "Not a web link: $url",
+      message: l10n.govNotWebLink(url),
       context: context,
     );
     return;
@@ -728,17 +734,15 @@ Future<void> openPivxProposalUrl(BuildContext context, String url) async {
   final ok = await showDialog<bool>(
     context: context,
     builder: (context) => StackDialog(
-      title: "Open link?",
-      message:
-          "$url\n\nThe proposal's author set this link. Check it before "
-          "you trust what it shows.",
+      title: l10n.govOpenLink,
+      message: "$url\n\n${l10n.govOpenLinkText}",
       leftButton: TextButton(
         style: Theme.of(context)
             .extension<StackColors>()!
             .getSecondaryEnabledButtonStyle(context),
         onPressed: () => Navigator.of(context).pop(false),
         child: Text(
-          "Cancel",
+          l10n.commonCancel,
           style: STextStyles.button(context).copyWith(
             color: Theme.of(context).extension<StackColors>()!.accentColorDark,
           ),
@@ -749,7 +753,7 @@ Future<void> openPivxProposalUrl(BuildContext context, String url) async {
             .extension<StackColors>()!
             .getPrimaryEnabledButtonStyle(context),
         onPressed: () => Navigator.of(context).pop(true),
-        child: Text("Open", style: STextStyles.button(context)),
+        child: Text(l10n.commonOpen, style: STextStyles.button(context)),
       ),
     ),
   );
@@ -793,26 +797,27 @@ class PivxPayoutStatusLine extends StatelessWidget {
 
     final (String, IconData, Color)? line = paying != null
         ? (
-            "Being paid now, from block ${paying.superblock}",
+            l10n.govBeingPaidNow(paying.superblock),
             Icons.hourglass_top_rounded,
             colors.accentColorBlue,
           )
         : last?.state == PivxPayoutState.notPaid
         ? (
-            "Not paid at block ${last!.superblock}"
-                "${next == null ? "" : " · next payout in ${until(next)}"}",
+            next == null
+                ? l10n.govNotPaidAt(last!.superblock)
+                : l10n.govNotPaidAtNext(last!.superblock, until(next)),
             Icons.error_outline_rounded,
             _readable(colors.accentColorRed, colors),
           )
         : next != null
         ? (
-            "Next payout at block ${next.superblock}, in ${until(next)}",
+            l10n.govNextPayoutAt(next.superblock, until(next)),
             Icons.schedule_rounded,
             colors.textSubtitle1,
           )
         : last != null
         ? (
-            "All payouts made",
+            l10n.govAllPayoutsMade,
             Icons.check_circle_outline_rounded,
             _readable(colors.accentColorGreen, colors),
           )
@@ -859,16 +864,18 @@ class PivxPayoutRow extends StatelessWidget {
     final p = payout;
     final (text, color) = switch (p.state) {
       PivxPayoutState.paid => (
-        "Paid${amount == null ? "" : " $amount"}",
+        amount == null ? l10n.govPaid : l10n.govPaidAmount(amount!),
         _readable(colors.accentColorGreen, colors),
       ),
       PivxPayoutState.notPaid => (
-        "Not paid",
+        l10n.govNotPaid,
         _readable(colors.accentColorRed, colors),
       ),
-      PivxPayoutState.paying => ("Being paid", colors.accentColorBlue),
+      PivxPayoutState.paying => (l10n.govBeingPaid, colors.accentColorBlue),
       PivxPayoutState.upcoming => (
-        "In ${pivxTimeUntilBlock(p.superblock, chainHeight, blockSeconds)}",
+        l10n.govInTime(
+          pivxTimeUntilBlock(p.superblock, chainHeight, blockSeconds),
+        ),
         colors.textSubtitle1,
       ),
     };
@@ -881,7 +888,7 @@ class PivxPayoutRow extends StatelessWidget {
           children: [
             Expanded(
               child: Text(
-                "Block ${p.superblock}",
+                l10n.govBlock(p.superblock),
                 style: STextStyles.w500_14(context),
               ),
             ),

@@ -15,6 +15,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../../l10n/l10n.dart';
 import '../../../providers/providers.dart';
 import '../../../providers/wallet/public_private_balance_state_provider.dart';
 import '../../../providers/wallet/wallet_balance_toggle_state_provider.dart';
@@ -92,12 +93,16 @@ class WalletSummaryInfo extends ConsumerWidget {
     final privateBalance = ref.watch(pWalletBalanceSecondary(walletId));
     if (ref.watch(showTotalBalanceProvider)) {
       // Display only; sends still use the public/private choice.
-      title = "Total balance";
+      title = l10n.balanceTotal;
       balanceToShow = balance.total + privateBalance.total;
     } else {
-      title =
-          "${_showAvailable ? "Available" : "Full"} "
-          "${type == BalanceType.private ? "shielded" : "transparent"} balance";
+      title = type == BalanceType.private
+          ? (_showAvailable
+                ? l10n.balanceAvailableShielded
+                : l10n.balanceFullShielded)
+          : (_showAvailable
+                ? l10n.balanceAvailableTransparent
+                : l10n.balanceFullTransparent);
       final selected = type == BalanceType.private ? privateBalance : balance;
       balanceToShow = _showAvailable ? selected.spendable : selected.total;
     }
@@ -137,7 +142,7 @@ class WalletSummaryInfo extends ConsumerWidget {
                 FittedBox(
                   fit: BoxFit.scaleDown,
                   child: SelectableText(
-                    "(View only)",
+                    l10n.walletViewOnly,
                     style: STextStyles.pageTitleH1(context).copyWith(
                       fontSize: 18,
                       color: Theme.of(context)

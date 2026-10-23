@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../../l10n/l10n.dart';
 import '../../../models/isar/models/contact_entry.dart';
 import '../../../providers/global/address_book_service_provider.dart';
 import '../../../providers/ui/address_book_providers/address_entry_data_provider.dart';
@@ -93,7 +94,7 @@ class _AddNewContactAddressViewState
                   },
                 ),
                 title: Text(
-                  "Add new address",
+                  l10n.contactAddNewAddress,
                   style: STextStyles.navBarTitle(context),
                 ),
               ),
@@ -176,7 +177,7 @@ class _AddNewContactAddressViewState
             children: [
               Expanded(
                 child: SecondaryButton(
-                  label: "Cancel",
+                  label: l10n.commonCancel,
                   buttonHeight: isDesktop ? ButtonHeight.l : null,
                   onPressed: () async {
                     if (!isDesktop && FocusScope.of(context).hasFocus) {
@@ -194,7 +195,7 @@ class _AddNewContactAddressViewState
               const SizedBox(width: 16),
               Expanded(
                 child: PrimaryButton(
-                  label: "Save",
+                  label: l10n.commonSave,
                   enabled: ref.watch(validContactStateProvider([0])),
                   buttonHeight: isDesktop ? ButtonHeight.l : null,
                   onPressed: () async {

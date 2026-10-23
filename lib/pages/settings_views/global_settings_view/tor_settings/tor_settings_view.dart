@@ -15,6 +15,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:lottie/lottie.dart';
 
+import '../../../../l10n/l10n.dart';
 import '../../../../providers/global/prefs_provider.dart';
 import '../../../../services/event_bus/events/global/tor_connection_status_changed_event.dart';
 import '../../../../services/tor_service.dart';
@@ -56,7 +57,7 @@ class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
               Navigator.of(context).pop();
             },
           ),
-          title: Text("Tor settings", style: STextStyles.navBarTitle(context)),
+          title: Text(l10n.settingsTor, style: STextStyles.navBarTitle(context)),
           actions: [
             AspectRatio(
               aspectRatio: 1,
@@ -69,13 +70,11 @@ class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
                     barrierDismissible: true,
                     builder: (context) {
                       return StackDialog(
-                        title: "What is Tor?",
+                        title: l10n.torWhatIs,
                         message:
-                            "Short for \"The Onion Router\", is an open-source software that enables internet communication"
-                            " to remain anonymous by routing internet traffic through a series of layered nodes,"
-                            " to obscure the origin and destination of data.",
+                            l10n.torWhatIsText,
                         rightButton: SecondaryButton(
-                          label: "Close",
+                          label: l10n.commonClose,
                           onPressed: Navigator.of(context).pop,
                         ),
                       );
@@ -106,8 +105,7 @@ class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
                 const SizedBox(height: 8),
                 RoundedWhiteContainer(
                   child: Text(
-                    "With Tor on, the app connects only through Tor. If Tor "
-                    "stops working, the app stops connecting until it's back.",
+                    l10n.torOnlyText,
                     style: STextStyles.itemSubtitle(context),
                   ),
                 ),
@@ -325,13 +323,13 @@ class _TorButtonState extends ConsumerState<_TorButton> {
   String _label(TorConnectionStatus status, StackColors colors) {
     switch (status) {
       case TorConnectionStatus.disconnected:
-        return "Disconnected";
+        return l10n.commonDisconnected;
 
       case TorConnectionStatus.connected:
-        return "Connected";
+        return l10n.commonConnected;
 
       case TorConnectionStatus.connecting:
-        return "Connecting (tap to cancel)";
+        return l10n.torConnectingTapToCancel;
     }
   }
 
@@ -390,7 +388,7 @@ class _TorButtonState extends ConsumerState<_TorButton> {
             padding: const EdgeInsets.symmetric(vertical: 8.0),
             child: Row(
               children: [
-                Text("Tor status", style: STextStyles.titleBold12(context)),
+                Text(l10n.torStatus, style: STextStyles.titleBold12(context)),
                 const Spacer(),
                 Text(
                   _label(_status, Theme.of(context).extension<StackColors>()!),
@@ -436,13 +434,13 @@ class _UpperCaseTorTextState extends ConsumerState<_UpperCaseTorText> {
   String _label(TorConnectionStatus status) {
     switch (status) {
       case TorConnectionStatus.disconnected:
-        return "CONNECT";
+        return l10n.torConnectCaps;
 
       case TorConnectionStatus.connected:
-        return "STOP";
+        return l10n.torStopCaps;
 
       case TorConnectionStatus.connecting:
-        return "CONNECTING";
+        return l10n.torConnectingCaps;
     }
   }
 

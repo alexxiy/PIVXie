@@ -18,6 +18,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar_community/isar.dart';
 
+import '../../../l10n/l10n.dart';
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../models/keys/view_only_wallet_data.dart';
 import '../../../pages/wallet_view/transaction_views/tx_v2/all_transactions_v2_view.dart';
@@ -162,7 +163,7 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                 const SizedBox(width: 20),
               if (ref.watch(pWalletInfo(widget.walletId)).isViewOnly)
                 Text(
-                  "(View only)",
+                  l10n.walletViewOnly,
                   style: STextStyles.desktopTextExtraSmall(context).copyWith(
                     color: Theme.of(context)
                         .extension<StackColors>()!
@@ -238,7 +239,7 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                 SizedBox(
                   width: sendReceiveColumnWidth,
                   child: Text(
-                    "My wallet",
+                    l10n.desktopMyWallet,
                     style: STextStyles.desktopTextExtraSmall(context).copyWith(
                       color: Theme.of(context)
                           .extension<StackColors>()!
@@ -252,7 +253,7 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        "Recent activity",
+                        l10n.walletRecentActivity,
                         style: STextStyles.desktopTextExtraSmall(context)
                             .copyWith(
                               color: Theme.of(context)
@@ -261,7 +262,7 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                             ),
                       ),
                       CustomTextButton(
-                        text: "See all",
+                        text: l10n.walletSeeAll,
                         onTap: () async {
                           await Navigator.of(context).pushNamed(
                             AllTransactionsV2View.routeName,
@@ -387,7 +388,7 @@ Future<void> openDesktopWallet(
   await showLoading(
     whileFuture: wallet.init(),
     context: context,
-    message: "Opening ${wallet.info.name}",
+    message: l10n.walletOpening(wallet.info.name),
     rootNavigator: true,
   );
   if (!context.mounted) return;

@@ -16,6 +16,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:isar_community/isar.dart';
 
 import '../../app_config.dart';
+import '../../l10n/l10n.dart';
 import '../../models/add_wallet_list_entity/sub_classes/coin_entity.dart';
 import '../../providers/providers.dart';
 import '../../services/event_bus/events/wallet_added_event.dart';
@@ -183,7 +184,7 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
           appBar: AppBar(
             leading: const AppBarBackButton(),
             title: Text(
-              "${widget.coin.prettyName} (${widget.coin.ticker}) wallets",
+              l10n.walletsOfCoin(widget.coin.prettyName, widget.coin.ticker),
               style: STextStyles.navBarTitle(context),
             ),
             actions: [
@@ -239,7 +240,7 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
                   : STextStyles.field(context),
               decoration:
                   standardInputDecoration(
-                    "Search...",
+                    l10n.commonSearchEllipsis,
                     searchFieldFocusNode,
                     context,
                     desktopMed: isDesktop,

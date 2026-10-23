@@ -13,6 +13,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../../../app_config.dart';
+import '../../../../l10n/l10n.dart';
 import '../../../../pages/settings_views/global_settings_view/appearance_settings/theme_mode_view.dart';
 import '../../../../providers/global/prefs_provider.dart';
 import '../../../../themes/stack_colors.dart';
@@ -76,11 +77,11 @@ class _LanguageOptionSettings extends ConsumerState<LanguageOptionSettings> {
                           text: TextSpan(
                             children: [
                               TextSpan(
-                                text: "Language",
+                                text: l10n.languageTitle,
                                 style: STextStyles.desktopTextSmall(context),
                               ),
                               TextSpan(
-                                text: "\n\nSelect the language of your wallet. We use your system language by default.",
+                                text: "\n\n${l10n.languageDescription}",
                                 style: STextStyles.desktopTextExtraExtraSmall(
                                   context,
                                 ),
@@ -100,7 +101,7 @@ class _LanguageOptionSettings extends ConsumerState<LanguageOptionSettings> {
                           width: 200,
                           buttonHeight: ButtonHeight.m,
                           enabled: true,
-                          label: "Change language",
+                          label: l10n.languageChange,
                           onPressed: () {
                             chooseLanguage(context);
                           },
@@ -122,7 +123,10 @@ class _LanguageOptionSettings extends ConsumerState<LanguageOptionSettings> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text("Theme", style: STextStyles.desktopTextSmall(context)),
+                    Text(
+                      l10n.settingsTheme,
+                      style: STextStyles.desktopTextSmall(context),
+                    ),
                     const SizedBox(height: 12),
                     for (final mode in AppThemeMode.values)
                       RadioListTile<AppThemeMode>(
@@ -169,11 +173,11 @@ class _LanguageOptionSettings extends ConsumerState<LanguageOptionSettings> {
                       text: TextSpan(
                         children: [
                           TextSpan(
-                            text: "Sound effects",
+                            text: l10n.appearanceSounds,
                             style: STextStyles.desktopTextSmall(context),
                           ),
                           TextSpan(
-                            text: "\n\nPlay sounds, e.g. while a transaction is sent.",
+                            text: "\n\n${l10n.appearanceSoundsText}",
                             style: STextStyles.desktopTextExtraExtraSmall(
                               context,
                             ),

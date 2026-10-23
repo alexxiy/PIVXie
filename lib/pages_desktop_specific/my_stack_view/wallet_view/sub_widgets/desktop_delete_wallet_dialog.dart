@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../../../l10n/l10n.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../providers/desktop/storage_crypto_handler_provider.dart';
 import '../../../../themes/stack_colors.dart';
@@ -95,7 +96,7 @@ class _DesktopDeleteWalletDialog
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.warning,
-            message: "Invalid passphrase!",
+            message: l10n.sendInvalidPassphrase,
             context: context,
           ),
         );
@@ -143,12 +144,12 @@ class _DesktopDeleteWalletDialog
               children: [
                 const SizedBox(height: 16),
                 Text(
-                  "Delete wallet",
+                  l10n.walletDelete,
                   style: STextStyles.desktopH2(context),
                 ),
                 const SizedBox(height: 16),
                 Text(
-                  "Enter your password",
+                  l10n.commonEnterYourPassword,
                   style: STextStyles.desktopTextMedium(context).copyWith(
                     color:
                         Theme.of(context).extension<StackColors>()!.textDark3,
@@ -176,7 +177,7 @@ class _DesktopDeleteWalletDialog
                       }
                     },
                     decoration: standardInputDecoration(
-                      "Enter password",
+                      l10n.commonEnterPassword,
                       passwordFocusNode,
                       context,
                     ).copyWith(
@@ -234,7 +235,7 @@ class _DesktopDeleteWalletDialog
                     SecondaryButton(
                       width: 250,
                       buttonHeight: ButtonHeight.xl,
-                      label: "Cancel",
+                      label: l10n.commonCancel,
                       onPressed: Navigator.of(
                         context,
                         rootNavigator: true,
@@ -245,7 +246,7 @@ class _DesktopDeleteWalletDialog
                       width: 250,
                       buttonHeight: ButtonHeight.xl,
                       enabled: _continueEnabled,
-                      label: "Continue",
+                      label: l10n.commonContinue,
                       onPressed: _continueEnabled
                           ? () async {
                               // add loading indicator

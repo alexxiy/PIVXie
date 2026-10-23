@@ -126,3 +126,5 @@ lib/wl_gen/generated/
 
 /assets/windows/mwebd.exe
 /tool/build
+# generated from lib/l10n/*.arb by flutter gen-l10n
+/lib/l10n/app_localizations*.dart

@@ -17,6 +17,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:isar_community/isar.dart';
 
+import '../../l10n/l10n.dart';
 import '../../models/isar/models/isar_models.dart';
 import '../../models/keys/view_only_wallet_data.dart';
 import '../../notifications/show_flush_bar.dart';
@@ -81,7 +82,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
     final address = await showLoading<String?>(
       whileFuture: wallet.generateNewTransparentAddress(),
       context: context,
-      message: "Generating address",
+      message: l10n.receiveGeneratingAddress,
     );
     if (!mounted) return;
     if (address == null) {
@@ -102,17 +103,23 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
     final address = await showLoading<String>(
       whileFuture: wallet.generateNewShieldAddress(),
       context: context,
-      message: "Generating address",
+      message: l10n.receiveGeneratingAddress,
     );
     if (mounted && address != null) {
       setState(() => _addressMap[AddressType.pivxShield] = address);
     }
   }
 
-  String _addressTypeLabel(AddressType type) =>
+  String _addressTypeLabel(AddressType type, {bool plural = false}) =>
       _supportsPivxShield && type == AddressType.p2pkh
-      ? "Transparent address"
-      : "${type.readableName} address";
+      ? (plural
+            ? l10n.receiveTransparentAddresses
+            : l10n.receiveTransparentAddress)
+      : type == AddressType.pivxShield
+      ? (plural ? l10n.receiveShieldAddresses : l10n.receiveShieldAddress)
+      : (plural
+            ? l10n.receiveTypeAddresses(type.readableName)
+            : l10n.receiveTypeAddress(type.readableName));
 
   StreamSubscription<Address?> _sub(AddressType type) {
     return ref
@@ -133,7 +140,9 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
             if (mounted) {
               setState(() {
                 _addressMap[type] =
-                    event?.value ?? _addressMap[type] ?? "[No address yet]";
+                    event?.value ??
+                    _addressMap[type] ??
+                    l10n.receiveNoAddressYet;
               });
             }
           });
@@ -177,7 +186,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
       _addressMap[wallet.info.mainAddressType] = ref.read(
         pWalletReceivingAddress(walletId),
       );
-      _addressMap[AddressType.pivxShield] = "[Loading shield address]";
+      _addressMap[AddressType.pivxShield] = l10n.receiveLoadingShield;
       (wallet as PivxWallet).getCurrentShieldAddress().then((a) {
         if (mounted && a != null) {
           setState(() => _addressMap[AddressType.pivxShield] = a);
@@ -242,7 +251,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
             },
           ),
           title: Text(
-            "Receive $ticker",
+            l10n.receiveTicker(ticker),
             style: STextStyles.navBarTitle(context),
           ),
           actions: [
@@ -251,7 +260,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
               child: AspectRatio(
                 aspectRatio: 1,
                 child: AppBarIconButton(
-                  semanticsLabel: "Address List Pop-up Button. Opens A Pop-up For Address List Button.",
+                  semanticsLabel: l10n.receiveAddressListSemantics,
                   key: const Key("walletNetworkSettingsAddNewNodeViewButton"),
                   size: 36,
                   shadows: const [],
@@ -303,8 +312,10 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                                               ? (
                                                   walletId: walletId,
                                                   type: type,
-                                                  title:
-                                                      "${_addressTypeLabel(type)}es",
+                                                  title: _addressTypeLabel(
+                                                    type,
+                                                    plural: true,
+                                                  ),
                                                 )
                                               : walletId,
                                         );
@@ -322,7 +333,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                                               horizontal: 12,
                                             ),
                                             child: Text(
-                                              "Address list",
+                                              l10n.receiveAddressList,
                                               style: STextStyles.field(context),
                                             ),
                                           ),
@@ -358,7 +369,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Text(
-                            "Address type",
+                            l10n.receiveAddressType,
                             style: STextStyles.w500_14(context).copyWith(
                               color: Theme.of(context)
                                   .extension<StackColors>()!
@@ -444,7 +455,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                           clipboard.setData(ClipboardData(text: address));
                           showFloatingFlushBar(
                             type: FlushBarType.info,
-                            message: "Copied to clipboard",
+                            message: l10n.commonCopiedToClipboard,
                             iconAsset: Assets.svg.copy,
                             context: context,
                           );
@@ -455,7 +466,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                               Row(
                                 children: [
                                   Text(
-                                    "Your $ticker address",
+                                    l10n.receiveYourAddress(ticker),
                                     style: STextStyles.itemSubtitle(context),
                                   ),
                                   const Spacer(),
@@ -471,7 +482,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                                       ),
                                       const SizedBox(width: 4),
                                       Text(
-                                        "Copy",
+                                        l10n.commonCopy,
                                         style: STextStyles.link2(context),
                                       ),
                                     ],
@@ -498,13 +509,13 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                     ),
                     const SizedBox(height: 12),
                     PrimaryButton(
-                      label: "Copy address",
+                      label: l10n.receiveCopyAddress,
                       onPressed: () {
                         HapticFeedback.lightImpact();
                         clipboard.setData(ClipboardData(text: address));
                         showFloatingFlushBar(
                           type: FlushBarType.info,
-                          message: "Copied to clipboard",
+                          message: l10n.commonCopiedToClipboard,
                           iconAsset: Assets.svg.copy,
                           context: context,
                         );
@@ -513,7 +524,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                     if (canGen) const SizedBox(height: 12),
                     if (canGen)
                       SecondaryButton(
-                        label: "Generate new address",
+                        label: l10n.receiveGenerateNew,
                         onPressed:
                             _supportsPivxShield &&
                                 _walletAddressTypes[_currentIndex] ==
@@ -538,7 +549,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                               ),
                               const SizedBox(height: 20),
                               CustomTextButton(
-                                text: "Advanced options",
+                                text: l10n.receiveAdvancedOptions,
                                 onTap: () async {
                                   unawaited(
                                     Navigator.of(context).push(

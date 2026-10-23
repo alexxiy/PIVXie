@@ -15,6 +15,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../../app_config.dart';
+import '../../../l10n/l10n.dart';
 import '../../../notifications/show_flush_bar.dart';
 import '../../../providers/desktop/storage_crypto_handler_provider.dart';
 import '../../../providers/global/prefs_provider.dart';
@@ -79,7 +80,7 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
       if (pwNew != pwNewRepeat) {
         await Future<void>.delayed(const Duration(seconds: 1));
 
-        return (false, FlushBarType.warning, "The new passwords don't match");
+        return (false, FlushBarType.warning, l10n.passwordNewMismatch);
       } else {
         final success = await ref
             .read(storageCryptoHandlerProvider)
@@ -88,17 +89,17 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
         if (success) {
           await Future<void>.delayed(const Duration(seconds: 1));
 
-          return (true, FlushBarType.success, "Password changed");
+          return (true, FlushBarType.success, l10n.passwordChanged);
         } else {
           await Future<void>.delayed(const Duration(seconds: 1));
 
-          return (false, FlushBarType.warning, "Couldn't change the password");
+          return (false, FlushBarType.warning, l10n.passwordChangeFailed);
         }
       }
     } else {
       await Future<void>.delayed(const Duration(seconds: 1));
 
-      return (false, FlushBarType.warning, "That's not your current password");
+      return (false, FlushBarType.warning, l10n.passwordNotCurrent);
     }
   }
 
@@ -156,13 +157,12 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Change Password",
+                          l10n.passwordChangeTitle,
                           style: STextStyles.desktopTextSmall(context),
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          "Protect your ${AppConfig.appName} with a strong password. ${AppConfig.appName} does not store "
-                          "your password, and is therefore NOT able to restore it. Keep your password safe and secure.",
+                          l10n.passwordChangeText(AppConfig.appName),
                           style: STextStyles.desktopTextExtraExtraSmall(
                             context,
                           ),
@@ -175,7 +175,7 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      "Current password",
+                                      l10n.passwordCurrent,
                                       style:
                                           STextStyles.desktopTextExtraExtraSmall(
                                             context,
@@ -203,7 +203,7 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
                                         autocorrect: false,
                                         decoration:
                                             standardInputDecoration(
-                                              "Enter current password",
+                                              l10n.passwordEnterCurrent,
                                               passwordCurrentFocusNode,
                                               context,
                                             ).copyWith(
@@ -252,7 +252,7 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
                                     ),
                                     const SizedBox(height: 16),
                                     Text(
-                                      "New password",
+                                      l10n.passwordNew,
                                       style:
                                           STextStyles.desktopTextExtraExtraSmall(
                                             context,
@@ -280,7 +280,7 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
                                         autocorrect: false,
                                         decoration:
                                             standardInputDecoration(
-                                              "Enter new password",
+                                              l10n.passwordEnterNew,
                                               passwordFocusNode,
                                               context,
                                             ).copyWith(
@@ -389,7 +389,7 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
                                       ),
                                     const SizedBox(height: 16),
                                     Text(
-                                      "Confirm new password",
+                                      l10n.passwordConfirmNew,
                                       style:
                                           STextStyles.desktopTextExtraExtraSmall(
                                             context,
@@ -417,7 +417,7 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
                                         autocorrect: false,
                                         decoration:
                                             standardInputDecoration(
-                                              "Confirm new password",
+                                              l10n.passwordConfirmNew,
                                               passwordRepeatFocusNode,
                                               context,
                                             ).copyWith(
@@ -469,7 +469,7 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
                                       width: 160,
                                       buttonHeight: ButtonHeight.l,
                                       enabled: shouldEnableSave,
-                                      label: "Save changes",
+                                      label: l10n.commonSaveChanges,
                                       onPressed: () async {
                                         if (_changePWLock) {
                                           return;
@@ -484,7 +484,7 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
                                           ) = (await showLoading(
                                             whileFuture: _attemptChangePW(),
                                             context: context,
-                                            message: "Updating...",
+                                            message: l10n.commonUpdating,
                                             rootNavigator: true,
                                           ))!;
 
@@ -515,7 +515,7 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
                                 width: 210,
                                 buttonHeight: ButtonHeight.m,
                                 enabled: true,
-                                label: "Set up new password",
+                                label: l10n.passwordSetUpNew,
                                 onPressed: () {
                                   setState(() {
                                     changePassword = true;
@@ -550,17 +550,17 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              "Auto lock settings",
+                              l10n.autoLockTitle,
                               style: STextStyles.desktopTextSmall(context),
                             ),
                             const SizedBox(height: 8),
                             Text(
                               autoLockInfo.enabled
-                                  ? "Locks ${AppConfig.appName} after "
-                                        "${autoLockInfo.minutes} "
-                                        "${autoLockInfo.minutes == 1 ? "minute" : "minutes"}"
-                                        " of inactivity"
-                                  : "Off",
+                                  ? l10n.autoLockAfter(
+                                      AppConfig.appName,
+                                      autoLockInfo.minutes,
+                                    )
+                                  : l10n.commonOff,
                               style: STextStyles.desktopTextExtraExtraSmall(
                                 context,
                               ),
@@ -569,7 +569,7 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
                         ),
                         PrimaryButton(
                           buttonHeight: ButtonHeight.xs,
-                          label: "Edit",
+                          label: l10n.commonEdit,
                           width: 101,
                           onPressed: () async {
                             await showDialog<dynamic>(

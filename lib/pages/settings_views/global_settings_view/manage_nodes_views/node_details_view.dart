@@ -15,6 +15,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:tuple/tuple.dart';
 
+import '../../../../l10n/l10n.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../providers/global/active_wallet_provider.dart';
 import '../../../../providers/providers.dart';
@@ -141,7 +142,7 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
               },
             ),
             title: Text(
-              "Node details",
+              l10n.nodeDetails,
               style: STextStyles.navBarTitle(context),
             ),
             actions: [
@@ -215,7 +216,7 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                 children: [
                   const SizedBox(width: 8),
                   const AppBarBackButton(iconSize: 24, size: 40),
-                  Text("Node details", style: STextStyles.desktopH3(context)),
+                  Text(l10n.nodeDetails, style: STextStyles.desktopH3(context)),
                 ],
               ),
               Padding(
@@ -249,7 +250,7 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                         children: [
                           Expanded(
                             child: DeleteButton(
-                              label: "Delete node",
+                              label: l10n.nodeDelete,
                               desktopMed: true,
                               onPressed: () async {
                                 Navigator.of(context).pop();
@@ -271,7 +272,7 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
               children: [
                 Expanded(
                   child: SecondaryButton(
-                    label: "Test connection",
+                    label: l10n.nodeTestConnection,
                     buttonHeight: isDesktop ? ButtonHeight.l : null,
                     onPressed: () async {
                       final node = ref
@@ -308,7 +309,7 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                             unawaited(
                               showFloatingFlushBar(
                                 type: FlushBarType.success,
-                                message: "Server ping success",
+                                message: l10n.nodePingSuccess,
                                 context: context,
                               ),
                             );
@@ -318,7 +319,7 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                             unawaited(
                               showFloatingFlushBar(
                                 type: FlushBarType.warning,
-                                message: "Server unreachable",
+                                message: l10n.nodeUnreachable,
                                 context: context,
                               ),
                             );
@@ -335,7 +336,7 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                         // !nodeId.startsWith(DefaultNodes.defaultNodeIdPrefix)
                         //     ?
                         PrimaryButton(
-                          label: _desktopReadOnly ? "Edit" : "Save",
+                          label: _desktopReadOnly ? l10n.commonEdit : l10n.commonSave,
                           buttonHeight: ButtonHeight.l,
                           onPressed: () async {
                             final shouldSave = _desktopReadOnly == false;

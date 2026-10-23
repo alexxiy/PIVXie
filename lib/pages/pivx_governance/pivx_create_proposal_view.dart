@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../l10n/l10n.dart';
 import '../../providers/global/wallets_provider.dart';
 import '../../route_generator.dart';
 import '../../themes/stack_colors.dart';
@@ -283,7 +284,7 @@ class _PivxCreateProposalViewState
         backgroundColor: colors.background,
         appBar: PageAppBar(
           title: Text(
-            "Create proposal",
+            l10n.govCreateProposal,
             style: STextStyles.navBarTitle(context),
           ),
         ),
@@ -296,25 +297,21 @@ class _PivxCreateProposalViewState
                   children: [
                     RoundedWhiteContainer(
                       child: Text(
-                        "A proposal asks the network to pay you from the "
-                        "budget. Publishing it burns a ${fmt.format(fee)} "
-                        "fee, which is not refunded. Masternodes then "
-                        "vote; describe the proposal on forum.pivx.org "
-                        "first and link it here.",
+                        l10n.govCreateIntro(fmt.format(fee)),
                         style: secondary,
                       ),
                     ),
                     const SizedBox(height: 16),
-                    Text("Name", style: label),
+                    Text(l10n.govProposalName, style: label),
                     const SizedBox(height: 8),
                     _field(
                       controller: _name,
                       focus: _nameFocus,
-                      hint: "e.g. PIVXie-Dev-Q1",
+                      hint: l10n.govProposalNameHint,
                       maxLength: kPivxProposalNameMax,
                     ),
                     const SizedBox(height: 12),
-                    Text("Link to the description", style: label),
+                    Text(l10n.govProposalLink, style: label),
                     const SizedBox(height: 8),
                     _field(
                       controller: _url,
@@ -325,7 +322,7 @@ class _PivxCreateProposalViewState
                       keyboardType: TextInputType.url,
                     ),
                     const SizedBox(height: 12),
-                    Text("Payouts go to", style: label),
+                    Text(l10n.govPayoutsGoTo, style: label),
                     const SizedBox(height: 8),
                     PivxOwnAddressField(
                       walletId: widget.walletId,
@@ -333,15 +330,16 @@ class _PivxCreateProposalViewState
                       onChanged: (a) => setState(() => _payee = a),
                     ),
                     const SizedBox(height: 12),
-                    Text("Amount per payout", style: label),
+                    Text(l10n.govAmountPerPayout, style: label),
                     const SizedBox(height: 8),
                     _field(
                       controller: _amount,
                       focus: _amountFocus,
-                      hint: "Amount (${coin.ticker})",
-                      helper:
-                          "${kPivxProposalMinSats ~/ 100000000} to "
-                          "${fmt.format(wallet.budgetPerSuperblock)}",
+                      hint: l10n.govAmountTicker(coin.ticker),
+                      helper: l10n.govAmountRange(
+                        "${kPivxProposalMinSats ~/ 100000000}",
+                        fmt.format(wallet.budgetPerSuperblock),
+                      ),
                       plain: true,
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
@@ -359,12 +357,13 @@ class _PivxCreateProposalViewState
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  "Payouts",
+                                  l10n.govPayouts,
                                   style: STextStyles.w600_14(context),
                                 ),
                                 Text(
-                                  "One per budget cycle, up to "
-                                  "${wallet.maxProposalPayments}",
+                                  l10n.govPayoutsUpTo(
+                                    wallet.maxProposalPayments,
+                                  ),
                                   style: secondary,
                                 ),
                               ],
@@ -390,7 +389,7 @@ class _PivxCreateProposalViewState
                       ),
                     ),
                     const SizedBox(height: 16),
-                    Text("First payout", style: label),
+                    Text(l10n.govFirstPayout, style: label),
                     const SizedBox(height: 8),
                     if (_starts.isEmpty)
                       const Center(child: CircularProgressIndicator())
@@ -402,8 +401,12 @@ class _PivxCreateProposalViewState
                           for (final s in _starts)
                             ChoiceChip(
                               label: Text(
-                                "Block $s · ~"
-                                "${pivxDuration((s - _height) * coin.targetBlockTimeSeconds)}",
+                                l10n.govBlockIn(
+                                  s,
+                                  pivxDuration(
+                                    (s - _height) * coin.targetBlockTimeSeconds,
+                                  ),
+                                ),
                               ),
                               selected: _start == s,
                               showCheckmark: false,
@@ -431,11 +434,7 @@ class _PivxCreateProposalViewState
                                 _height % wallet.budgetCycleBlocks +
                                 wallet.budgetCycleBlocks) ...[
                       const SizedBox(height: 6),
-                      Text(
-                        "The next payout is too close for the fee to "
-                        "confirm in time.",
-                        style: secondary,
-                      ),
+                      Text(l10n.govPayoutTooClose, style: secondary),
                     ],
                     const SizedBox(height: 16),
                     PivxFundingCard(
@@ -450,24 +449,21 @@ class _PivxCreateProposalViewState
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           _summary(
-                            "Asked in total",
+                            l10n.govAskedInTotal,
                             total == null ? "—" : fmt.format(total),
                           ),
-                          _summary("Fee (burnt)", fmt.format(fee)),
+                          _summary(l10n.govFeeBurnt, fmt.format(fee)),
                           _summary(
                             _funding.coins.isNotEmpty
-                                ? "Selected coins"
+                                ? l10n.govSelectedCoins
                                 : _funding.fromShield
-                                ? "Shielded balance"
-                                : "Transparent balance",
+                                ? l10n.balanceShielded
+                                : l10n.balanceTransparent,
                             fmt.format(balance),
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            "After the fee has "
-                            "${wallet.proposalFeeConfirmations} confirmations "
-                            "PIVXie submits the proposal by itself; keep the "
-                            "wallet syncing until then.",
+                            l10n.govAfterFee(wallet.proposalFeeConfirmations),
                             style: secondary,
                           ),
                         ],
@@ -480,8 +476,8 @@ class _PivxCreateProposalViewState
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                 child: PrimaryButton(
                   label: enoughFunds
-                      ? "Pay ${fmt.format(fee)} and publish"
-                      : "Not enough ${coin.ticker} for the fee",
+                      ? l10n.govPayAndPublish(fmt.format(fee))
+                      : l10n.govNotEnoughForFee(coin.ticker),
                   enabled: enoughFunds && _start != null,
                   onPressed: _pay,
                 ),

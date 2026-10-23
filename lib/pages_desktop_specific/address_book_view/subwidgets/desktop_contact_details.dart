@@ -13,6 +13,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:isar_community/isar.dart';
 
+import '../../../l10n/l10n.dart';
 import '../../../models/isar/models/contact_entry.dart';
 import '../../../pages/home_view/payment_links.dart';
 import '../../../pages/address_book_views/subviews/add_new_contact_address_view.dart';
@@ -128,7 +129,7 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
                       ],
                     ),
                     SecondaryButton(
-                      label: "Options",
+                      label: l10n.commonOptions,
                       width: 96,
                       buttonHeight: ButtonHeight.xxs,
                       onPressed: () async {
@@ -155,13 +156,13 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            "Addresses",
+                            l10n.contactAddresses,
                             style: STextStyles.desktopTextExtraExtraSmall(
                               context,
                             ),
                           ),
                           CustomTextButton(
-                            text: "Add new",
+                            text: l10n.commonAddNew,
                             onTap: () async {
                               ref.refresh(
                                 addressEntryDataProviderFamilyRefresher,
@@ -181,7 +182,7 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
                                             isCompact: true,
                                           ),
                                           Text(
-                                            "Add new address",
+                                            l10n.contactAddNewAddress,
                                             style: STextStyles.desktopH3(
                                               context,
                                             ),
@@ -261,7 +262,7 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
                       Padding(
                         padding: const EdgeInsets.only(top: 20, bottom: 12),
                         child: Text(
-                          "Transaction history",
+                          l10n.receiveTransactionHistory,
                           style: STextStyles.desktopTextExtraExtraSmall(
                             context,
                           ),
@@ -299,7 +300,7 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
                               return RoundedWhiteContainer(
                                 child: Center(
                                   child: Text(
-                                    "No transactions found",
+                                    l10n.commonNoTransactionsFound,
                                     style: STextStyles.itemSubtitle(context),
                                   ),
                                 ),

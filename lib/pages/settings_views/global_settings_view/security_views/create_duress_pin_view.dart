@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../l10n/l10n.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../providers/global/prefs_provider.dart';
 import '../../../../providers/global/secure_store_provider.dart';
@@ -102,7 +103,7 @@ class _CreateDuressPinViewState extends ConsumerState<CreateDuressPinView> {
                   children: [
                     Center(
                       child: Text(
-                        "Create duress PIN",
+                        l10n.duressCreate,
                         style: STextStyles.pageTitleH1(context),
                       ),
                     ),
@@ -147,8 +148,8 @@ class _CreateDuressPinViewState extends ConsumerState<CreateDuressPinView> {
                             showFloatingFlushBar(
                               type: FlushBarType.warning,
                               message: isMainPin
-                                  ? "That's your PIN. Pick a different duress PIN."
-                                  : "PIN not long enough!",
+                                  ? l10n.duressIsMainPin
+                                  : l10n.pinTooShort,
                               iconAsset: Assets.svg.alertCircle,
                               context: context,
                             ),
@@ -172,7 +173,7 @@ class _CreateDuressPinViewState extends ConsumerState<CreateDuressPinView> {
                   children: [
                     Center(
                       child: Text(
-                        "Confirm duress PIN",
+                        l10n.duressConfirm,
                         style: STextStyles.pageTitleH1(context),
                       ),
                     ),
@@ -223,7 +224,7 @@ class _CreateDuressPinViewState extends ConsumerState<CreateDuressPinView> {
                             unawaited(
                               showFloatingFlushBar(
                                 type: FlushBarType.success,
-                                message: "Duress PIN is set up",
+                                message: l10n.duressSet,
                                 context: context,
                                 iconAsset: Assets.svg.check,
                               ),
@@ -250,7 +251,7 @@ class _CreateDuressPinViewState extends ConsumerState<CreateDuressPinView> {
                           unawaited(
                             showFloatingFlushBar(
                               type: FlushBarType.warning,
-                              message: "PIN codes do not match. Try again.",
+                              message: l10n.pinMismatch,
                               context: context,
                               iconAsset: Assets.svg.alertCircle,
                             ),

@@ -294,7 +294,7 @@ extension _PivxShield on PivxWallet {
           bridge.shieldData(state.lastProcessedBlock + 1),
         )) {
           if (_recovering && _recoverCancelled) {
-            throw Exception("Restore cancelled");
+            throw Exception(l10n.restoreCancelled);
           }
           progress(block.height);
           batch.add(block);
@@ -637,7 +637,7 @@ extension _PivxShield on PivxWallet {
         }
       }
       if (lastError != null)
-        throw Exception("Could not download $name: $lastError");
+        throw Exception(l10n.shieldDownloadFailed(name, "$lastError"));
     }
     try {
       await libPivxShield.loadProver(
@@ -663,16 +663,10 @@ extension _PivxShield on PivxWallet {
       return await _buildShieldSend(txData: txData, fromShield: fromShield);
     } catch (e) {
       if (e.toString().contains("Not enough balance")) {
-        throw Exception(
-          "Insufficient funds to pay the transaction fee. Lower the amount "
-          "or tick \"Subtract fee from amount\".",
-        );
+        throw Exception(l10n.sendInsufficientForFee);
       }
       if (e.toString().contains("below the dust limit")) {
-        throw Exception(
-          "After the fee, the amount is too small to send to a transparent "
-          "address.",
-        );
+        throw Exception(l10n.shieldTooSmallAfterFee);
       }
       rethrow;
     }
@@ -684,10 +678,10 @@ extension _PivxShield on PivxWallet {
   }) async {
     final recipients = txData.recipients!;
     if (recipients.length != 1) {
-      throw Exception("Shield transactions support a single recipient");
+      throw Exception(l10n.shieldSingleRecipient);
     }
     if (utf8.encode(txData.memo ?? "").length > 512) {
-      throw Exception("Shielded memo is too long (max 512 bytes)");
+      throw Exception(l10n.shieldMemoTooLong);
     }
     final recipient = recipients.first;
     final state = await _loadShield();
@@ -698,7 +692,7 @@ extension _PivxShield on PivxWallet {
     // A proposal fee or a delegation: an output script, not an address.
     final special = _specialOutput(txData, recipient.address, own);
     if (special != null && !fromShield) {
-      throw Exception("Only the shield balance can pay to this output here");
+      throw Exception(l10n.shieldOnlyShieldPays);
     }
 
     final height = (await chainHeight) + 1;
@@ -715,7 +709,7 @@ extension _PivxShield on PivxWallet {
                 as String?;
       if (custom != null && custom.isNotEmpty) {
         if (!isShieldAddress(custom)) {
-          throw Exception("Change must go to a shield address");
+          throw Exception(l10n.shieldChangeMustBeShield);
         }
         changeAddress = custom;
       } else {
@@ -728,7 +722,7 @@ extension _PivxShield on PivxWallet {
         (p, n) => p + (n["value"] as num).toInt(),
       );
       if (available < recipient.amount.raw.toInt()) {
-        throw Exception("Insufficient shield balance");
+        throw Exception(l10n.shieldInsufficient);
       }
       result = await libPivxShield.createTransaction(
         notes: notes,
@@ -813,9 +807,7 @@ extension _PivxShield on PivxWallet {
     if (special != null &&
         special.ours &&
         amount < BigInt.from(kPivxMinDelegationSats)) {
-      throw Exception(
-        "A delegation must be at least 1 ${cryptoCurrency.ticker} after the fee",
-      );
+      throw Exception(l10n.csMinDelegationAfterFee(cryptoCurrency.ticker));
     }
     final nullifiers = List<String>.from(result["nullifiers"] as List);
     final txid = result["txid"] as String;

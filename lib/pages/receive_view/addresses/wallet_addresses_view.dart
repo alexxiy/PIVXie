@@ -14,6 +14,7 @@ import 'package:isar_community/isar.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../../db/isar/main_db.dart';
+import '../../../l10n/l10n.dart';
 import '../../../models/isar/models/isar_models.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/text_styles.dart';
@@ -147,7 +148,7 @@ class _WalletAddressesViewState extends ConsumerState<WalletAddressesView> {
                 ),
                 titleSpacing: 0,
                 title: Text(
-                  widget.title ?? "Wallet addresses",
+                  widget.title ?? l10n.receiveWalletAddresses,
                   style: STextStyles.navBarTitle(context),
                 ),
               ),

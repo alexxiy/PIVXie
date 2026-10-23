@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/l10n.dart';
 import '../services/node_service.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 import '../widgets/conditional_parent.dart';
@@ -51,12 +52,8 @@ Future<bool> checkShowNodeTorSettingsMismatch({
               children: [
                 Text(
                   prefs.useTor
-                      ? "Tor is on, but this wallet's node is set to be used "
-                            "without Tor, so the wallet won't sync. Change the "
-                            "node's settings, or turn Tor off."
-                      : "This wallet's node is set to be used only over Tor, "
-                            "and Tor is off, so the wallet won't sync. Change "
-                            "the node's settings, or turn Tor on.",
+                      ? l10n.nodeTorMismatchTorOn
+                      : l10n.nodeTorMismatchTorOff,
                   style: STextStyles.w600_16(context),
                 ),
                 SizedBox(height: Util.isDesktop ? 32 : 24),
@@ -67,7 +64,7 @@ Future<bool> checkShowNodeTorSettingsMismatch({
                           child: SecondaryButton(
                             buttonHeight:
                                 Util.isDesktop ? ButtonHeight.l : null,
-                            label: "Cancel",
+                            label: l10n.commonCancel,
                             onPressed: () {
                               Navigator.of(context).pop(false);
                             },
@@ -78,7 +75,7 @@ Future<bool> checkShowNodeTorSettingsMismatch({
                     Expanded(
                       child: PrimaryButton(
                         buttonHeight: Util.isDesktop ? ButtonHeight.l : null,
-                        label: "Continue",
+                        label: l10n.commonContinue,
                         onPressed: () {
                           Navigator.of(context).pop(true);
                         },

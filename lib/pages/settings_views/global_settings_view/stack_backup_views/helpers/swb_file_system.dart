@@ -15,6 +15,7 @@ import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 
 import '../../../../../app_config.dart';
+import '../../../../../l10n/l10n.dart';
 import '../../../../../utilities/fs.dart';
 
 class SWBFileSystem {
@@ -66,13 +67,13 @@ class SWBFileSystem {
     final PlatformFile? result;
     if (Platform.isAndroid || Platform.isIOS) {
       result = await FilePicker.pickFile(
-        dialogTitle: "Load backup file",
+        dialogTitle: l10n.backupLoadFile,
         initialDirectory: _startPath!.path,
         type: FileType.any,
       );
     } else {
       result = await FilePicker.pickFile(
-        dialogTitle: "Load backup file",
+        dialogTitle: l10n.backupLoadFile,
         initialDirectory: _startPath!.path,
         type: FileType.custom,
         allowedExtensions: ['bin', 'swb'],

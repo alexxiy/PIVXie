@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../l10n/l10n.dart';
 import '../../providers/global/wallets_provider.dart';
 import '../../services/pivx_name/pivx_names_registrar.dart';
 import '../../themes/stack_colors.dart';
@@ -156,12 +157,12 @@ class _PivxNamesStatusViewState extends ConsumerState<PivxNamesStatusView> {
   String get _success {
     final name = pivxNamesUnbroken(_t.name);
     return switch (_t.op) {
-      "BUY" => "You've bought $name!",
-      "UPD" => "$name now points to its new address!",
-      "CHG" => "$name now belongs to its new owner!",
-      "LST" => "$name is listed on the marketplace!",
-      "ULT" => "$name is off the marketplace!",
-      _ => "You've registered $name!",
+      "BUY" => l10n.pivxNamesDoneBuy(name),
+      "UPD" => l10n.pivxNamesDoneDestination(name),
+      "CHG" => l10n.pivxNamesDoneOwner(name),
+      "LST" => l10n.pivxNamesDoneList(name),
+      "ULT" => l10n.pivxNamesDoneUnlist(name),
+      _ => l10n.pivxNamesDoneRegister(name),
     };
   }
 
@@ -170,8 +171,8 @@ class _PivxNamesStatusViewState extends ConsumerState<PivxNamesStatusView> {
     final m = seconds ~/ 60;
     final s = seconds % 60;
     return [
-      if (m > 0) "$m ${m == 1 ? "minute" : "minutes"}",
-      if (s > 0 || m == 0) "$s ${s == 1 ? "second" : "seconds"}",
+      if (m > 0) l10n.pivxNamesMinutes(m),
+      if (s > 0 || m == 0) l10n.pivxNamesSeconds(s),
     ].join(" ");
   }
 
@@ -182,51 +183,47 @@ class _PivxNamesStatusViewState extends ConsumerState<PivxNamesStatusView> {
     final seconds = p?.seconds;
     return switch (status) {
       null when _txId == null => (
-        "Looking for your payment…",
-        "Waiting for your payment to reach the network.",
+        l10n.pivxNamesLookingForPayment,
+        l10n.pivxNamesLookingForPaymentText,
       ),
       null => (
-        "Waiting for confirmation",
-        "Your transaction is on the network.",
+        l10n.pivxNamesWaitingConfirmation,
+        l10n.pivxNamesWaitingConfirmationText,
       ),
       PivxNamesTxStatus.confirmingPayment => (
-        "Confirmed $confirmations/$_paymentConfirmations",
-        "Waiting for the payment's confirmations.",
+        l10n.pivxNamesConfirmed(confirmations, _paymentConfirmations),
+        l10n.pivxNamesWaitingPaymentConfirmations,
       ),
       PivxNamesTxStatus.pendingRefund => (
-        "Confirmed $confirmations/$_refundConfirmations",
-        "Waiting for the refund's confirmations.",
+        l10n.pivxNamesConfirmed(confirmations, _refundConfirmations),
+        l10n.pivxNamesWaitingRefundConfirmations,
       ),
       PivxNamesTxStatus.pendingProof || PivxNamesTxStatus.queuedProof => (
-        "Waiting for the ZK proof…",
+        l10n.pivxNamesWaitingProof,
         seconds != null && seconds > 0
-            ? "It starts in about ${_time(seconds)}."
-            : "It's about to start.",
+            ? l10n.pivxNamesProofStartsIn(_time(seconds))
+            : l10n.pivxNamesProofAboutToStart,
       ),
       PivxNamesTxStatus.processingProof => (
-        "Creating the ZK proof…",
-        "Checking the cryptographic proofs.",
+        l10n.pivxNamesCreatingProof,
+        l10n.pivxNamesCreatingProofText,
       ),
       PivxNamesTxStatus.submittingProof => (
-        "Submitting the ZK proof…",
-        "Almost done.",
+        l10n.pivxNamesSubmittingProof,
+        l10n.pivxNamesAlmostDone,
       ),
-      PivxNamesTxStatus.done => ("Congrats!", _success),
+      PivxNamesTxStatus.done => (l10n.pivxNamesCongrats, _success),
       PivxNamesTxStatus.refunded => (
-        "Payment refunded",
-        "Something in the payment was wrong, or someone else got the name "
-            "first. The amount is back in your PIVX.name balance (My "
-            "Balance).",
+        l10n.pivxNamesPaymentRefunded,
+        l10n.pivxNamesPaymentRefundedText,
       ),
       PivxNamesTxStatus.orphaned => (
-        "Payment unsuccessful",
-        "The transaction seems to be orphaned because of PIVX network "
-            "issues.",
+        l10n.pivxNamesPaymentUnsuccessful,
+        l10n.pivxNamesPaymentUnsuccessfulText,
       ),
       PivxNamesTxStatus.rejected => (
-        "Transaction not accepted",
-        "PIVX.name rejected the transaction because it doesn't follow the "
-            "protocol rules.",
+        l10n.pivxNamesTxRejected,
+        l10n.pivxNamesTxRejectedText,
       ),
     };
   }
@@ -331,8 +328,8 @@ class _PivxNamesStatusViewState extends ConsumerState<PivxNamesStatusView> {
                               const SizedBox(width: 8),
                               Text(
                                 _polling
-                                    ? "Checking…"
-                                    : "Next check in ${_countdown}s",
+                                    ? l10n.pivxNamesChecking
+                                    : l10n.pivxNamesNextCheckIn(_countdown),
                                 style: STextStyles.w600_14(context),
                               ),
                             ],
@@ -342,8 +339,7 @@ class _PivxNamesStatusViewState extends ConsumerState<PivxNamesStatusView> {
                     if (_offline && !_final) ...[
                       const SizedBox(height: 8),
                       Text(
-                        "Couldn't reach PIVX.name. Trying again at the next "
-                        "check.",
+                        l10n.pivxNamesOfflineRetry,
                         textAlign: TextAlign.center,
                         style: STextStyles.w500_12(context)
                             .copyWith(color: colors.textSubtitle1),
@@ -363,9 +359,7 @@ class _PivxNamesStatusViewState extends ConsumerState<PivxNamesStatusView> {
                             const SizedBox(width: 10),
                             Expanded(
                               child: Text(
-                                "You can close this screen: nothing stops. "
-                                "Follow the payment in My Transactions and "
-                                "tap it there to come back here.",
+                                l10n.pivxNamesCanClose,
                                 style: STextStyles.w500_12(context),
                               ),
                             ),
@@ -377,15 +371,20 @@ class _PivxNamesStatusViewState extends ConsumerState<PivxNamesStatusView> {
                       const SizedBox(height: 16),
                       Center(
                         child: TextButton.icon(
-                          onPressed: () =>
-                              pivxNamesCopy(context, txId, "Transaction ID"),
+                          onPressed: () => pivxNamesCopy(
+                            context,
+                            txId,
+                            l10n.commonTransactionId,
+                          ),
                           icon: Icon(
                             Icons.copy_rounded,
                             size: 14,
                             color: colors.textSubtitle1,
                           ),
                           label: Text(
-                            "Transaction ${pivxNamesShortId(txId)}",
+                            l10n.pivxNamesTransactionShort(
+                              pivxNamesShortId(txId),
+                            ),
                             style: STextStyles.w500_12(context)
                                 .copyWith(color: colors.textSubtitle1),
                           ),
@@ -401,7 +400,7 @@ class _PivxNamesStatusViewState extends ConsumerState<PivxNamesStatusView> {
                   children: [
                     Expanded(
                       child: SecondaryButton(
-                        label: "My Transactions",
+                        label: l10n.pivxNamesMyTransactions,
                         onPressed: () => Navigator.of(context)
                             .pushReplacementNamed(
                               PivxNamesSection.transactions.routeName,
@@ -412,7 +411,7 @@ class _PivxNamesStatusViewState extends ConsumerState<PivxNamesStatusView> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: PrimaryButton(
-                        label: _final ? "Done" : "Close",
+                        label: _final ? l10n.commonDone : l10n.commonClose,
                         onPressed: () => Navigator.of(context).pop(),
                       ),
                     ),

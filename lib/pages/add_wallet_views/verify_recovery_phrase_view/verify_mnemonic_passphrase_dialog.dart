@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../../l10n/l10n.dart';
 import '../../../notifications/show_flush_bar.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
@@ -46,7 +47,7 @@ class _VerifyMnemonicPassphraseDialogState
     } else {
       showFloatingFlushBar(
         type: FlushBarType.warning,
-        message: "Passphrase does not match",
+        message: l10n.verifyPassphraseMismatch,
         context: context,
       );
     }
@@ -83,7 +84,7 @@ class _VerifyMnemonicPassphraseDialogState
                 Padding(
                   padding: const EdgeInsets.only(left: 32),
                   child: Text(
-                    "Verify mnemonic passphrase",
+                    l10n.verifyMnemonicPassphrase,
                     style: STextStyles.desktopH3(context),
                   ),
                 ),
@@ -108,7 +109,7 @@ class _VerifyMnemonicPassphraseDialogState
           children: [
             if (!Util.isDesktop)
               Text(
-                "Verify BIP39 passphrase",
+                l10n.verifyPassphrase,
                 style: STextStyles.pageTitleH2(context),
               ),
             const SizedBox(height: 24),
@@ -128,7 +129,7 @@ class _VerifyMnemonicPassphraseDialogState
                 autocorrect: false,
                 decoration:
                     standardInputDecoration(
-                      "Enter your BIP39 passphrase",
+                      l10n.verifyEnterPassphrase,
                       passwordFocusNode,
                       context,
                     ).copyWith(
@@ -175,7 +176,7 @@ class _VerifyMnemonicPassphraseDialogState
                 children: [
                   Expanded(
                     child: SecondaryButton(
-                      label: "Cancel",
+                      label: l10n.commonCancel,
                       onPressed: Navigator.of(
                         context,
                         rootNavigator: Util.isDesktop,
@@ -186,7 +187,10 @@ class _VerifyMnemonicPassphraseDialogState
                   Expanded(child: child),
                 ],
               ),
-              child: PrimaryButton(label: "Verify", onPressed: _verify),
+              child: PrimaryButton(
+                label: l10n.verifyAction,
+                onPressed: _verify,
+              ),
             ),
           ],
         ),

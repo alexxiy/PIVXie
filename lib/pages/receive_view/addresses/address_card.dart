@@ -23,6 +23,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../../../db/isar/main_db.dart';
+import '../../../l10n/l10n.dart';
 import '../../../models/isar/models/isar_models.dart';
 import '../../../notifications/show_flush_bar.dart';
 import '../../../themes/coin_icon_provider.dart';
@@ -102,7 +103,7 @@ class _AddressCardState extends ConsumerState<AddressCard> {
             unawaited(
               showFloatingFlushBar(
                 type: FlushBarType.success,
-                message: "${uri.toFilePath()} saved!",
+                message: l10n.receiveSaved(uri.toFilePath()),
                 context: context,
               ),
             );
@@ -116,7 +117,7 @@ class _AddressCardState extends ConsumerState<AddressCard> {
         await SharePlus.instance.share(
           ShareParams(
             files: [XFile("${tempDir.path}/qrcode.png")],
-            text: "Receive URI QR Code",
+            text: l10n.receiveQrShareText,
           ),
         );
       }
@@ -185,14 +186,17 @@ class _AddressCardState extends ConsumerState<AddressCard> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      label!.value.isNotEmpty ? label!.value : "No label",
+                      label!.value.isNotEmpty
+                          ? label!.value
+                          : l10n.receiveNoLabel,
                       style: STextStyles.itemSubtitle(context),
                       textAlign: TextAlign.left,
                     ),
                     SimpleEditButton(
                       editValue: label!.value,
-                      editLabel: 'label',
-                      overrideTitle: 'Edit label',
+                      editTitle: l10n.receiveEditLabel,
+                      editLabel: l10n.receiveLabel,
+                      overrideTitle: l10n.receiveEditLabel,
                       disableIcon: true,
                       onValueChanged: (value) {
                         MainDB.instance.putAddressLabel(
@@ -218,7 +222,7 @@ class _AddressCardState extends ConsumerState<AddressCard> {
                   Row(
                     children: [
                       CustomTextButton(
-                        text: "Copy address",
+                        text: l10n.receiveCopyAddress,
                         onTap: () {
                           widget.clipboard
                               .setData(ClipboardData(text: address.value))
@@ -227,7 +231,7 @@ class _AddressCardState extends ConsumerState<AddressCard> {
                                   unawaited(
                                     showFloatingFlushBar(
                                       type: FlushBarType.info,
-                                      message: "Copied to clipboard",
+                                      message: l10n.commonCopiedToClipboard,
                                       context: context,
                                     ),
                                   );
@@ -237,7 +241,7 @@ class _AddressCardState extends ConsumerState<AddressCard> {
                       ),
                       const SizedBox(width: 16),
                       CustomTextButton(
-                        text: "Show QR code",
+                        text: l10n.receiveShowQr,
                         onTap: () async {
                           await showDialog<void>(
                             context: context,
@@ -281,7 +285,7 @@ class _AddressCardState extends ConsumerState<AddressCard> {
                                         if (!isDesktop)
                                           Expanded(
                                             child: SecondaryButton(
-                                              label: "Share",
+                                              label: l10n.commonShare,
                                               buttonHeight: isDesktop
                                                   ? ButtonHeight.l
                                                   : null,
@@ -309,7 +313,7 @@ class _AddressCardState extends ConsumerState<AddressCard> {
                                                 // save works on linux at the moment
                                                 await _capturePng(true);
                                               },
-                                              label: "Save",
+                                              label: l10n.commonSave,
                                               icon: SvgPicture.asset(
                                                 Assets.svg.arrowDown,
                                                 width: 20,

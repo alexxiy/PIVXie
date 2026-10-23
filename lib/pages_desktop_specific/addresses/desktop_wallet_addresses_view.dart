@@ -14,6 +14,7 @@ import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar_community/isar.dart';
 
+import '../../l10n/l10n.dart';
 import '../../models/isar/models/isar_models.dart';
 import '../../pages/receive_view/addresses/address_details_view.dart';
 import '../../providers/db/main_db_provider.dart';
@@ -98,7 +99,10 @@ class _DesktopWalletAddressesViewState
                 onPressed: Navigator.of(context).pop,
               ),
               const SizedBox(width: 12),
-              Text("Address list", style: STextStyles.desktopH3(context)),
+              Text(
+                l10n.receiveAddressList,
+                style: STextStyles.desktopH3(context),
+              ),
               const Spacer(),
             ],
           ),

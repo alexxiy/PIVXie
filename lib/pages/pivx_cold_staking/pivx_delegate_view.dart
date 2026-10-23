@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import '../../l10n/l10n.dart';
 import '../../providers/global/barcode_scanner_provider.dart';
 import '../../providers/global/wallets_provider.dart';
 import '../../route_generator.dart';
@@ -330,38 +331,29 @@ class _PivxDelegateViewState extends ConsumerState<PivxDelegateView> {
                 children: [
                   Expanded(
                     child: Text(
-                      "Easiest: masternode.space",
+                      l10n.csEasiest,
                       style: STextStyles.w600_14(context),
                     ),
                   ),
                   PivxPill(
-                    text: "No server needed",
+                    text: l10n.csNoServer,
                     color: colors.accentColorGreen,
                   ),
                 ],
               ),
               const SizedBox(height: 6),
               Text(
-                "masternode.space runs the staker for you. No server to "
-                "rent and no technical setup.",
+                l10n.csEasiestText,
                 style: STextStyles.itemSubtitle(context),
               ),
               const SizedBox(height: 12),
-              _step(
-                1,
-                "On masternode.space, open the main menu, choose PIVX Cold "
-                "Staking, turn it on and copy your staker address.",
-              ),
-              _step(2, "Paste the staker address below and delegate."),
-              _step(
-                3,
-                "Back on masternode.space, enter your owner address so the "
-                "staker accepts your coins:",
-              ),
-              PivxCopyRow(title: "Your owner address", value: owner),
+              _step(1, l10n.csStep1),
+              _step(2, l10n.csStep2),
+              _step(3, l10n.csStep3),
+              PivxCopyRow(title: l10n.csYourOwnerAddress, value: owner),
               const SizedBox(height: 8),
               PrimaryButton(
-                label: "Open masternode.space",
+                label: l10n.mnOpenMasternodeSpace,
                 onPressed: () => launchUrl(
                   Uri.parse(_kMasternodeSpaceUrl),
                   mode: LaunchMode.externalApplication,
@@ -385,7 +377,7 @@ class _PivxDelegateViewState extends ConsumerState<PivxDelegateView> {
                     children: [
                       Expanded(
                         child: Text(
-                          "Or use your own PIVX node (VPS)",
+                          l10n.csOwnNode,
                           style: STextStyles.w600_14(context),
                         ),
                       ),
@@ -406,26 +398,24 @@ class _PivxDelegateViewState extends ConsumerState<PivxDelegateView> {
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
                       Text(
-                        "On a server running PIVX Core that stays online, "
-                        "create a staker address:",
+                        l10n.csOwnNode1,
                         style: STextStyles.itemSubtitle(context),
                       ),
                       _code("$cli getnewstakingaddress \"PIVXie\""),
                       Text(
-                        "Whitelist your owner address so the node stakes "
-                        "your coins:",
+                        l10n.csOwnNode2,
                         style: STextStyles.itemSubtitle(context),
                       ),
                       _code("$cli delegatoradd $owner"),
                       Text(
-                        "If the node's wallet is encrypted, unlock it for "
-                        "staking only:",
+                        l10n.csOwnNode3,
                         style: STextStyles.itemSubtitle(context),
                       ),
-                      _code("$cli walletpassphrase \"your passphrase\" 0 true"),
+                      _code(
+                        "$cli walletpassphrase \"${l10n.csYourPassphrase}\" 0 true",
+                      ),
                       Text(
-                        "Staking is on by default; \"$cli getstakingstatus\" "
-                        "shows whether the node is staking.",
+                        l10n.csOwnNode4("$cli getstakingstatus"),
                         style: STextStyles.itemSubtitle(context),
                       ),
                     ],
@@ -457,7 +447,7 @@ class _PivxDelegateViewState extends ConsumerState<PivxDelegateView> {
         backgroundColor: colors.background,
         appBar: PageAppBar(
           title: Text(
-            _delegating ? "Delegate more" : "Start cold staking",
+            _delegating ? l10n.csDelegateMore : l10n.csStart,
             style: STextStyles.navBarTitle(context),
           ),
         ),
@@ -472,13 +462,13 @@ class _PivxDelegateViewState extends ConsumerState<PivxDelegateView> {
                       children: [
                         Expanded(
                           child: Text(
-                            "Get a staker address",
+                            l10n.csGetStaker,
                             style: STextStyles.w600_14(context),
                           ),
                         ),
                         if (_delegating)
                           CustomTextButton(
-                            text: _showGuide ? "Hide" : "Show how",
+                            text: _showGuide ? l10n.commonHide : l10n.csShowHow,
                             onTap: () =>
                                 setState(() => _showGuide = !_showGuide),
                           ),
@@ -487,22 +477,22 @@ class _PivxDelegateViewState extends ConsumerState<PivxDelegateView> {
                     const SizedBox(height: 8),
                     if (_showGuide) ...[_guide(), const SizedBox(height: 8)],
                     const SizedBox(height: 12),
-                    Text("Staker address", style: label),
+                    Text(l10n.csStakerAddressLabel, style: label),
                     const SizedBox(height: 8),
                     _field(
                       controller: _staker,
                       focus: _stakerFocus,
-                      hint: "Starts with \"${wallet.stakingAddressLetter}\"",
+                      hint: l10n.csStartsWith(wallet.stakingAddressLetter),
                       suffix: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           IconButton(
-                            tooltip: "Paste",
+                            tooltip: l10n.commonPaste,
                             onPressed: _paste,
                             icon: const ClipboardIcon(),
                           ),
                           IconButton(
-                            tooltip: "Scan QR code",
+                            tooltip: l10n.qrScanTitle,
                             onPressed: _scan,
                             icon: const QrCodeIcon(),
                           ),
@@ -510,13 +500,13 @@ class _PivxDelegateViewState extends ConsumerState<PivxDelegateView> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    Text("Owner address", style: label),
+                    Text(l10n.csOwnerAddress, style: label),
                     const SizedBox(height: 8),
                     PivxOwnAddressField(
                       walletId: widget.walletId,
                       value: _owner,
                       tags: {
-                        for (final o in _owners) o: "owns your delegations",
+                        for (final o in _owners) o: l10n.csOwnsDelegations,
                       },
                       onChanged: (a) => setState(() => _owner = a),
                     ),
@@ -524,12 +514,8 @@ class _PivxDelegateViewState extends ConsumerState<PivxDelegateView> {
                       padding: const EdgeInsets.only(left: 12, top: 4),
                       child: Text(
                         _owners.isNotEmpty && !_owners.contains(_owner)
-                            ? "A different owner than your current "
-                                  "delegations: whitelist it on your staker "
-                                  "too."
-                            : "The coins stay at this address of your "
-                                  "wallet. The staker can stake them but "
-                                  "never spend them.",
+                            ? l10n.csDifferentOwner
+                            : l10n.csOwnerExplained,
                         style: STextStyles.label(context).copyWith(
                           color: _owners.isNotEmpty && !_owners.contains(_owner)
                               ? colors.accentColorOrange
@@ -540,9 +526,9 @@ class _PivxDelegateViewState extends ConsumerState<PivxDelegateView> {
                     const SizedBox(height: 16),
                     Row(
                       children: [
-                        Expanded(child: Text("Amount", style: label)),
+                        Expanded(child: Text(l10n.commonAmount, style: label)),
                         CustomTextButton(
-                          text: "Max",
+                          text: l10n.commonMax,
                           onTap: () => setState(() {
                             _subtractFee = true;
                             _amount.text = available.decimal.toString();
@@ -554,8 +540,8 @@ class _PivxDelegateViewState extends ConsumerState<PivxDelegateView> {
                     _field(
                       controller: _amount,
                       focus: _amountFocus,
-                      hint: "Amount (${coin.ticker})",
-                      helper: "Available: ${fmt.format(available)}",
+                      hint: l10n.govAmountTicker(coin.ticker),
+                      helper: l10n.csAvailable(fmt.format(available)),
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
                       ),
@@ -577,7 +563,7 @@ class _PivxDelegateViewState extends ConsumerState<PivxDelegateView> {
                           ),
                           Expanded(
                             child: Text(
-                              "Subtract fee from amount",
+                              l10n.sendSubtractFee,
                               style: STextStyles.w500_14(context),
                             ),
                           ),
@@ -596,17 +582,14 @@ class _PivxDelegateViewState extends ConsumerState<PivxDelegateView> {
                       }),
                     ),
                     const SizedBox(height: 12),
-                    Text(
-                      "Delegated coins start staking after about $startsIn.",
-                      style: secondary,
-                    ),
+                    Text(l10n.csStartsAfter(startsIn), style: secondary),
                   ],
                 ),
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                 child: PrimaryButton(
-                  label: "Delegate",
+                  label: l10n.csDelegate,
                   enabled: _owner != null,
                   onPressed: _delegate,
                 ),

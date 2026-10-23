@@ -15,6 +15,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:tuple/tuple.dart';
 
+import '../../../../l10n/l10n.dart';
 import '../../../../themes/coin_icon_provider.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
@@ -75,7 +76,7 @@ class _CoinNodesViewState extends ConsumerState<CoinNodesView> {
                 ),
                 const SizedBox(width: 12),
                 Text(
-                  "${widget.coin.prettyName} nodes",
+                  l10n.nodesOfCoin(widget.coin.prettyName),
                   style: STextStyles.desktopH3(context),
                   textAlign: TextAlign.center,
                 ),
@@ -95,7 +96,7 @@ class _CoinNodesViewState extends ConsumerState<CoinNodesView> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "${widget.coin.prettyName} nodes",
+                    l10n.nodesOfCoin(widget.coin.prettyName),
                     style: STextStyles.desktopTextExtraSmall(context).copyWith(
                       color: Theme.of(context)
                           .extension<StackColors>()!
@@ -104,7 +105,7 @@ class _CoinNodesViewState extends ConsumerState<CoinNodesView> {
                     textAlign: TextAlign.left,
                   ),
                   CustomTextButton(
-                    text: "Add new node",
+                    text: l10n.nodeAddNew,
                     onTap: () {
                       Navigator.of(context).pushNamed(
                         AddEditNodeView.routeName,
@@ -148,7 +149,7 @@ class _CoinNodesViewState extends ConsumerState<CoinNodesView> {
               },
             ),
             title: Text(
-              "${widget.coin.prettyName} nodes",
+              l10n.nodesOfCoin(widget.coin.prettyName),
               style: STextStyles.navBarTitle(context),
             ),
             actions: [

@@ -13,6 +13,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:isar_community/isar.dart';
 
+import '../../../l10n/l10n.dart';
 import '../../../models/isar/models/isar_models.dart';
 import '../../../pages/receive_view/addresses/address_card.dart';
 import '../../../providers/db/main_db_provider.dart';
@@ -164,7 +165,7 @@ class _DesktopAddressListState extends ConsumerState<DesktopAddressList> {
                     : STextStyles.field(context),
                 decoration:
                     standardInputDecoration(
-                      "Search...",
+                      l10n.commonSearchEllipsis,
                       searchFieldFocusNode,
                       context,
                       desktopMed: isDesktop,

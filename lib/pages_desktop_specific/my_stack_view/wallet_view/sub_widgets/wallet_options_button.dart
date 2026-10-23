@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../../../l10n/l10n.dart';
 import '../../../../providers/global/wallets_provider.dart';
 import '../../../../route_generator.dart';
 import '../../../../themes/stack_colors.dart';
@@ -37,13 +38,13 @@ enum _WalletOptions {
   String get prettyName {
     switch (this) {
       case _WalletOptions.signMessage:
-        return "Sign message";
+        return l10n.signAction;
       case _WalletOptions.walletKeys:
-        return "Wallet seed";
+        return l10n.walletSeed;
       case _WalletOptions.addAccount:
-        return "Add account";
+        return l10n.accountsAdd;
       case _WalletOptions.deleteWallet:
-        return "Delete wallet";
+        return l10n.walletDelete;
     }
   }
 }
@@ -74,7 +75,7 @@ class AddressListButton extends StatelessWidget {
             ),
             const SizedBox(width: 6),
             Text(
-              "Address list",
+              l10n.receiveAddressList,
               style: STextStyles.desktopMenuItemSelected(context),
             ),
           ],

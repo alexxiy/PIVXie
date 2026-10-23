@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:lottie/lottie.dart';
 
+import '../../../l10n/l10n.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/text_styles.dart';
@@ -67,7 +68,7 @@ class _SendingTransactionDialogState
               const TxSendAnimation(width: 420),
               const SizedBox(height: 24),
               Text(
-                "Sending transaction",
+                l10n.sendSendingTransaction,
                 style: STextStyles.desktopH3(context),
               ),
               const SizedBox(height: 24),
@@ -83,7 +84,7 @@ class _SendingTransactionDialogState
         },
         child: StackDialog(
           header: const TxSendAnimation(),
-          title: "Sending transaction",
+          title: l10n.sendSendingTransaction,
           icon: ProgressAndSuccess(controller: _progressAndSuccessController!),
         ),
       );

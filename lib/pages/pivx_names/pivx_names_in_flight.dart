@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../l10n/l10n.dart';
 import '../../services/pivx_name/pivx_names_registrar.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/text_styles.dart';
@@ -108,7 +109,7 @@ class PivxNamesInFlightNote extends StatelessWidget {
         const SizedBox(width: 8),
         Expanded(
           child: Text(
-            "Your payment for this name is being processed.",
+            l10n.pivxNamesInFlight,
             style: STextStyles.w500_12(context)
                 .copyWith(color: colors.textSubtitle1),
           ),
@@ -116,7 +117,7 @@ class PivxNamesInFlightNote extends StatelessWidget {
         const SizedBox(width: 8),
         IntrinsicWidth(
           child: SecondaryButton(
-            label: "Follow it",
+            label: l10n.pivxNamesFollowIt,
             buttonHeight: Util.isDesktop ? ButtonHeight.s : null,
             padding: const EdgeInsets.symmetric(horizontal: 16),
             onPressed: () => Navigator.of(context)

@@ -11,6 +11,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../../l10n/l10n.dart';
 import '../../../../../providers/global/prefs_provider.dart';
 import '../../../../../themes/stack_colors.dart';
 import '../../../../../utilities/constants.dart';
@@ -23,11 +24,11 @@ class BackupFrequencyTypeSelectSheet extends ConsumerWidget {
   String prettyFrequencyType(BackupFrequencyType type) {
     switch (type) {
       case BackupFrequencyType.everyTenMinutes:
-        return "Every 10 minutes";
+        return l10n.backupEveryTenMinutes;
       case BackupFrequencyType.everyAppStart:
-        return "Every app start";
+        return l10n.backupEveryAppStart;
       case BackupFrequencyType.afterClosingAWallet:
-        return "After closing a cryptocurrency wallet";
+        return l10n.backupAfterClosingWallet;
     }
   }
 
@@ -75,7 +76,7 @@ class BackupFrequencyTypeSelectSheet extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      "Auto Backup frequency",
+                      l10n.backupAutoFrequency,
                       style: STextStyles.pageTitleH2(context),
                       textAlign: TextAlign.left,
                     ),

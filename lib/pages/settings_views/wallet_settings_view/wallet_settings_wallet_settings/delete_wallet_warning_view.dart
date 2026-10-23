@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app_config.dart';
+import '../../../../l10n/l10n.dart';
 import '../../../../models/keys/view_only_wallet_data.dart';
 import '../../../../providers/providers.dart';
 import '../../../../themes/stack_colors.dart';
@@ -54,7 +55,7 @@ class DeleteWalletWarningView extends ConsumerWidget {
                 const SizedBox(height: 32),
                 Center(
                   child: Text(
-                    "Attention!",
+                    l10n.walletAttention,
                     style: STextStyles.pageTitleH1(context),
                   ),
                 ),
@@ -64,13 +65,9 @@ class DeleteWalletWarningView extends ConsumerWidget {
                       .extension<StackColors>()!
                       .warningBackground,
                   child: Text(
-                    "You're about to permanently delete this wallet.\n\n"
-                    "After that, the only way to get to your funds is your "
-                    "recovery phrase.\n\n"
-                    "${AppConfig.appName} doesn't keep a copy of it and can't "
-                    "restore your wallet.\n\n"
+                    "${l10n.walletDeleteWarning(AppConfig.appName)}\n\n"
                     "${extra == null ? "" : "$extra\n\n"}"
-                    "SAVE YOUR RECOVERY PHRASE FIRST.",
+                    "${l10n.walletDeleteSaveFirst}",
                     style: STextStyles.baseXS(context).copyWith(
                       color: Theme.of(context)
                           .extension<StackColors>()!
@@ -87,7 +84,7 @@ class DeleteWalletWarningView extends ConsumerWidget {
                     Navigator.pop(context);
                   },
                   child: Text(
-                    "Cancel",
+                    l10n.commonCancel,
                     style: STextStyles.button(context).copyWith(
                       color: Theme.of(context)
                           .extension<StackColors>()!
@@ -132,7 +129,9 @@ class DeleteWalletWarningView extends ConsumerWidget {
                     }
                   },
                   child: Text(
-                    "View ${walletSecretTitle(ref.read(pWallets).getWallet(walletId)).toLowerCase()}",
+                    walletSecretViewLabel(
+                      ref.read(pWallets).getWallet(walletId),
+                    ),
                     style: STextStyles.button(context),
                   ),
                 ),

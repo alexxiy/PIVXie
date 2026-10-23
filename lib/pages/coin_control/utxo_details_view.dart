@@ -15,6 +15,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar_community/isar.dart';
 
 import '../../db/isar/main_db.dart';
+import '../../l10n/l10n.dart';
 import '../../models/isar/models/isar_models.dart';
 import '../../providers/global/wallets_provider.dart';
 import '../../themes/stack_colors.dart';
@@ -127,7 +128,7 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
               },
             ),
             title: Text(
-              "Output details",
+              l10n.coinControlOutputDetails,
               style: STextStyles.navBarTitle(context),
             ),
           ),
@@ -169,7 +170,7 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
                         Padding(
                           padding: const EdgeInsets.only(left: 32),
                           child: Text(
-                            "Output details",
+                            l10n.coinControlOutputDetails,
                             style: STextStyles.desktopH3(context),
                           ),
                         ),
@@ -204,7 +205,9 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
                             const SizedBox(height: 20),
                             SecondaryButton(
                               buttonHeight: ButtonHeight.l,
-                              label: utxo!.isBlocked ? "Unfreeze" : "Freeze",
+                              label: utxo!.isBlocked
+                                  ? l10n.coinControlUnfreeze
+                                  : l10n.coinControlFreeze,
                               onPressed: _toggleFreeze,
                             ),
                           ],
@@ -257,10 +260,10 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
                       ),
                       Text(
                         utxo!.isBlocked
-                            ? "Frozen"
+                            ? l10n.coinControlFrozen
                             : confirmed
-                            ? "Available"
-                            : "Unconfirmed",
+                            ? l10n.coinControlAvailable
+                            : l10n.coinControlUnconfirmed,
                         style: STextStyles.w500_14(context).copyWith(
                           color: utxo!.isBlocked
                               ? const Color(0xFF7FA2D4) // todo theme
@@ -292,7 +295,7 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            "Label",
+                            l10n.receiveLabel,
                             style: STextStyles.w500_14(context).copyWith(
                               color: Theme.of(context)
                                   .extension<StackColors>()!
@@ -301,7 +304,8 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
                           ),
                           SimpleEditButton(
                             editValue: utxo!.name,
-                            editLabel: "label",
+                            editTitle: l10n.receiveEditLabel,
+                            editLabel: l10n.receiveLabel,
                             onValueChanged: (newName) {
                               MainDB.instance.putUTXO(
                                 utxo!.copyWith(name: newName),
@@ -331,7 +335,7 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            "Address",
+                            l10n.commonAddress,
                             style: STextStyles.w500_14(context).copyWith(
                               color: Theme.of(context)
                                   .extension<StackColors>()!
@@ -365,7 +369,7 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              "Address label",
+                              l10n.receiveAddressLabel,
                               style: STextStyles.w500_14(context).copyWith(
                                 color: Theme.of(context)
                                     .extension<StackColors>()!
@@ -398,7 +402,7 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            "Transaction ID",
+                            l10n.commonTransactionId,
                             style: STextStyles.w500_14(context).copyWith(
                               color: Theme.of(context)
                                   .extension<StackColors>()!
@@ -428,7 +432,7 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "Confirmations",
+                        l10n.txConfirmations,
                         style: STextStyles.w500_14(context).copyWith(
                           color: Theme.of(context)
                               .extension<StackColors>()!
@@ -466,7 +470,7 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Text(
-                                  "Freeze reason",
+                                  l10n.coinControlFreezeReason,
                                   style: STextStyles.w500_14(context).copyWith(
                                     color: Theme.of(context)
                                         .extension<StackColors>()!
@@ -475,7 +479,8 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
                                 ),
                                 SimpleEditButton(
                                   editValue: utxo!.blockedReason ?? "",
-                                  editLabel: "freeze reason",
+                                  editTitle: l10n.coinControlEditFreezeReason,
+                                  editLabel: l10n.coinControlFreezeReason,
                                   onValueChanged: (newReason) {
                                     MainDB.instance.putUTXO(
                                       utxo!.copyWith(blockedReason: newReason),
@@ -498,7 +503,9 @@ class _UtxoDetailsViewState extends ConsumerState<UtxoDetailsView> {
                 if (!isDesktop) const Spacer(),
                 if (!isDesktop)
                   SecondaryButton(
-                    label: utxo!.isBlocked ? "Unfreeze" : "Freeze",
+                    label: utxo!.isBlocked
+                        ? l10n.coinControlUnfreeze
+                        : l10n.coinControlFreeze,
                     onPressed: _toggleFreeze,
                   ),
                 if (!isDesktop) const SizedBox(height: 16),

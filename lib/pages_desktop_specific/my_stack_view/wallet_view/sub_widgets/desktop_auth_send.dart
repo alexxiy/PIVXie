@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../../../l10n/l10n.dart';
 import '../../../../providers/desktop/storage_crypto_handler_provider.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
@@ -113,13 +114,15 @@ class _DesktopAuthSendState extends ConsumerState<DesktopAuthSend> {
         SvgPicture.asset(Assets.svg.keys, width: 100),
         const SizedBox(height: 56),
         Text(
-          widget.title ?? "Confirm transaction",
+          widget.title ?? l10n.sendConfirmTransaction,
           style: STextStyles.desktopH3(context),
         ),
         const SizedBox(height: 16),
         Text(
           widget.message ??
-              "Enter your wallet password to send ${widget.tokenTicker ?? widget.coin.ticker}",
+              l10n.sendEnterPasswordToSend(
+                widget.tokenTicker ?? widget.coin.ticker,
+              ),
           style: STextStyles.desktopTextMedium(context).copyWith(
             color: Theme.of(context).extension<StackColors>()!.textDark3,
           ),
@@ -145,7 +148,7 @@ class _DesktopAuthSendState extends ConsumerState<DesktopAuthSend> {
             },
             decoration:
                 standardInputDecoration(
-                  "Enter password",
+                  l10n.commonEnterPassword,
                   passwordFocusNode,
                   context,
                 ).copyWith(
@@ -193,7 +196,7 @@ class _DesktopAuthSendState extends ConsumerState<DesktopAuthSend> {
           children: [
             Expanded(
               child: SecondaryButton(
-                label: "Cancel",
+                label: l10n.commonCancel,
                 buttonHeight: ButtonHeight.l,
                 onPressed: Navigator.of(context).pop,
               ),
@@ -202,7 +205,7 @@ class _DesktopAuthSendState extends ConsumerState<DesktopAuthSend> {
             Expanded(
               child: PrimaryButton(
                 enabled: _confirmEnabled,
-                label: "Confirm",
+                label: l10n.commonConfirm,
                 buttonHeight: ButtonHeight.l,
                 onPressed: _confirmPressed,
               ),

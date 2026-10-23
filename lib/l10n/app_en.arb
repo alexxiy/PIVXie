@@ -1,0 +1,4125 @@
+{
+  "@@locale": "en",
+  "languageDevice": "Device language",
+  "@languageDevice": {
+    "description": "First choice in the language list: follow the phone's or computer's language."
+  },
+  "languageEnglish": "English",
+  "languageGerman": "German",
+  "languageSpanish": "Spanish",
+  "languagePortuguese": "Portuguese",
+  "languageTurkish": "Turkish",
+  "languageAzerbaijani": "Azerbaijani",
+  "languageRussian": "Russian",
+  "languageBelarusian": "Belarusian",
+  "languageUkrainian": "Ukrainian",
+  "languageVietnamese": "Vietnamese",
+  "languageChinese": "Chinese",
+  "languageKorean": "Korean",
+  "languageJapanese": "Japanese",
+  "languageTitle": "Language",
+  "languageSelect": "Select language",
+  "languageChange": "Change language",
+  "languageDescription": "The language of your wallet. By default it follows your device.",
+  "commonSearch": "Search",
+  "commonCancel": "Cancel",
+  "commonSaveChanges": "Save changes",
+  "logLevelCurrent": "Current level: {level}",
+  "@logLevelCurrent": {
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
+  "logLevelPrivacyWarning": "<b>Privacy Warning:</b> Selecting <b>Trace</b> or <b>Debug</b> may log sensitive metadata, such as transaction details, amounts, addresses, or network activity. While <b>Info</b> logs are less likely to contain sensitive data, they may still include some. No private keys, mnemonics, or credentials will ever be logged, but enabling these levels could expose information that might compromise privacy if accessed by unauthorized parties.",
+  "@logLevelPrivacyWarning": {
+    "description": "Keep <b> and </b> around the words to bold: the log level names Trace, Debug and Info stay in English."
+  },
+  "privateKeyShowWif": "Show WIF private key",
+  "privateKeyAuthReason": "Authenticate to show WIF private key",
+  "privateKeyWif": "Private key (WIF)",
+  "commonCancelCaps": "CANCEL",
+  "@commonCancelCaps": {
+    "description": "Cancel button of the system's fingerprint prompt, in capitals where the language has them."
+  },
+  "commonLoading": "Loading...",
+  "commonShow": "Show",
+  "commonSearchEllipsis": "Search...",
+  "blockExplorerOpenFailedTitle": "Could not open in block explorer",
+  "blockExplorerOpenFailed": "Failed to open \"{url}\"",
+  "@blockExplorerOpenFailed": {
+    "placeholders": {
+      "url": {
+        "type": "String"
+      }
+    }
+  },
+  "commonNeverShowAgain": "Never show again",
+  "blockExplorerOutsideTor": "Your browser opens it outside of Tor.",
+  "blockExplorerWarningTransaction": "You are about to view this transaction in a block explorer. The explorer may log your IP address and link it to the transaction. Only proceed if you trust {explorer}.",
+  "@blockExplorerWarningTransaction": {
+    "placeholders": {
+      "explorer": {
+        "type": "String"
+      }
+    }
+  },
+  "blockExplorerWarningAddress": "You are about to view this address in a block explorer. The explorer may log your IP address and link it to the address. Only proceed if you trust {explorer}.",
+  "@blockExplorerWarningAddress": {
+    "placeholders": {
+      "explorer": {
+        "type": "String"
+      }
+    }
+  },
+  "commonAttention": "Attention",
+  "commonContinue": "Continue",
+  "commonCopiedToClipboard": "Copied to clipboard",
+  "commonCopy": "Copy",
+  "commonEdit": "Edit",
+  "pinBackspaceSemantics": "Backspace Button. Deletes The Last Digit.",
+  "@pinBackspaceSemantics": {
+    "description": "Screen reader label of the PIN pad's delete key."
+  },
+  "backButtonSemantics": "Back Button. Takes Back To Previous Page.",
+  "@backButtonSemantics": {
+    "description": "Screen reader label of the back arrow."
+  },
+  "datePickerFrom": "From...",
+  "datePickerTo": "To...",
+  "commonOk": "Ok",
+  "torOff": "Tor off",
+  "qrScanTitle": "Scan QR code",
+  "qrScanNoCamera": "No camera found. Use Select file to scan a QR code from an image.",
+  "qrScanSelectFile": "Select file",
+  "qrScanNoFileSelected": "No file selected",
+  "qrScanFileError": "Error selecting file.",
+  "qrScanDecodeFailed": "Failed to decode image.",
+  "qrScanNoCode": "No QR code found in the image.",
+  "qrScanProcessError": "Error processing the image. Please try again.",
+  "qrScanFlashlight": "Flashlight",
+  "commonClose": "Close",
+  "detailWillAppearHere": "{title} will appear here",
+  "@detailWillAppearHere": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "emojiSelect": "Select emoji",
+  "walletNameEmpty": "Empty wallet name not allowed.",
+  "walletRenamed": "Wallet renamed",
+  "walletNameExists": "Wallet named \"{name}\" already exists",
+  "@walletNameExists": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "favoritesRemove": "Remove from favorites",
+  "favoritesAdd": "Add to favorites",
+  "mnemonicAccountNote": "This wallet is account {account} of its recovery phrase. Restoring the phrase in PIVXie brings back every account with history, and Add account brings back the others. In MyPIVXWallet, use Add account until you reach account {account}.",
+  "@mnemonicAccountNote": {
+    "description": "\"Add account\" is the name of a button.",
+    "placeholders": {
+      "account": {
+        "type": "int"
+      }
+    }
+  },
+  "mnemonicPassphraseNote": "This wallet also has a passphrase. To restore it you need the passphrase as well as these words: the words alone open a different, empty wallet.",
+  "mnemonicShowPassphrase": "Show passphrase",
+  "commonConnect": "Connect",
+  "nodeConnectFailed": "Could not connect to node",
+  "commonDetails": "Details",
+  "commonConnected": "Connected",
+  "commonDisconnected": "Disconnected",
+  "nodeOptions": "Node options",
+  "memoHint": "Sent privately with the payment",
+  "memoBytes": "{bytes} / {max} bytes",
+  "@memoBytes": {
+    "placeholders": {
+      "bytes": {
+        "type": "int"
+      },
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "torSettingsSemantics": "Tor Settings Button. Takes To Tor Settings Page.",
+  "walletOpening": "Opening {name}",
+  "@walletOpening": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "walletOpen": "Open wallet",
+  "commonMore": "More",
+  "commonButton": "Button",
+  "@commonButton": {
+    "description": "Screen reader label of a button without its own."
+  },
+  "pivxNamesTitle": "Names",
+  "@pivxNamesTitle": {
+    "description": "The PIVX Name screens' title: PIVX names (domain-like names such as john.pivx)."
+  },
+  "pivxNamesMyNames": "My Names",
+  "pivxNamesMyBalance": "My Balance",
+  "pivxNamesMyTransactions": "My Transactions",
+  "pivxNamesMarketplace": "Marketplace",
+  "pivxNamesAbout": "About PIVX Name",
+  "pivxNamesMenu": "Names menu",
+  "pivxNamesInfoHowTitle": "How it works",
+  "pivxNamesInfoHow1": "Get your own name, like john.pivx, and share it to get paid instead of a long address.",
+  "pivxNamesInfoHow2": "Your names are yours: keep them, sell them on the marketplace or give them to someone else. Only you can change them.",
+  "pivxNamesInfoBenefitsTitle": "Benefits",
+  "pivxNamesInfoBenefits1": "No renewal fees. Once registered, a name is yours for good.",
+  "pivxNamesInfoBenefits2": "Names are stored on-chain, where nobody can alter or remove them.",
+  "pivxNamesInfoBenefits3": "Private by design: a name says nothing about your finances.",
+  "pivxNamesInfoControlTitle": "Control",
+  "pivxNamesInfoControl1": "Point your name to a new address at any time. People keep paying john.pivx and never need to know.",
+  "pivxNamesInfoControl2": "Hand a name to a new owner. That takes a signature with your key, so only you can do it.",
+  "pivxNamesInfoControl3": "List names on the marketplace and earn from popular ones.",
+  "pivxNamesInfoQuestionTitle": "Have a question?",
+  "pivxNamesInfoTelegram": "Join us on Telegram",
+  "pivxNamesInfoDocs": "Read the docs",
+  "pivxNamesInfoSlogan": "Let's support privacy and make it simpler.",
+  "commonPageOf": "{page} / {count}",
+  "@commonPageOf": {
+    "placeholders": {
+      "page": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "commonFinish": "Finish",
+  "commonSkip": "Skip",
+  "commonNext": "Next",
+  "pivxNamesStepCheck": "Check",
+  "pivxNamesStepPay": "Pay",
+  "pivxNamesStepDone": "Done!",
+  "pivxNamesStatusSent": "Sent",
+  "pivxNamesStatusCode": "Status {code}",
+  "@pivxNamesStatusCode": {
+    "placeholders": {
+      "code": {
+        "type": "String"
+      }
+    }
+  },
+  "commonTryAgain": "Try again",
+  "commonSomethingWentWrong": "Something went wrong",
+  "commonSomethingWentWrongError": "Something went wrong: {error}",
+  "@commonSomethingWentWrongError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "commonCopiedWhat": "{what} copied",
+  "@commonCopiedWhat": {
+    "description": "A short note after copying, e.g. \"Address copied\". {what} is a noun such as Address or Memo: phrase it so it works for any of them.",
+    "placeholders": {
+      "what": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesInvalidName": "Use letters, numbers and single hyphens (not at the start or end), up to {max} characters with the zone.",
+  "@pivxNamesInvalidName": {
+    "description": "The zone is the ending of a name: .pivx, .private, .secure or .safe.",
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "pivxNamesUnreachable": "Couldn't reach PIVX.name. Please try again.",
+  "pivxNamesBuyName": "Buy name",
+  "pivxNamesBuyConfirm": "Do you want to buy {name} for {amount}?",
+  "@pivxNamesBuyConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesBuy": "Buy",
+  "pivxNamesUnlistTitle": "Unlist from sale",
+  "pivxNamesUnlistConfirm": "Take {name} off the marketplace?",
+  "@pivxNamesUnlistConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesUnlist": "Unlist",
+  "pivxNamesZone": "Zone",
+  "pivxNamesZoneSample": "name",
+  "@pivxNamesZoneSample": {
+    "description": "Placeholder in the zone list while the name field is empty: \"name.pivx\". Lowercase, letters a-z only if possible."
+  },
+  "pivxNamesAvailableFor": "is available for {amount}",
+  "@pivxNamesAvailableFor": {
+    "description": "Shown on its own line under a name, e.g. \"my-shop.pivx\" / \"is available for 10 PIV\".",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesGetItNow": "Get it now",
+  "pivxNamesListedFor": "is listed on the marketplace for {amount}",
+  "@pivxNamesListedFor": {
+    "description": "Shown on its own line under a name.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesUnlistItNow": "Unlist it now",
+  "pivxNamesBuyItNow": "Buy it now",
+  "pivxNamesTaken": "{name} is already taken.",
+  "@pivxNamesTaken": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesGetYourName": "Get your <b>PIVX name</b>",
+  "@pivxNamesGetYourName": {
+    "description": "The words between <b> and </b> show in color."
+  },
+  "pivxNamesIntro": "Register an easy name for your PIVX address, and getting paid is as simple as sharing it.",
+  "pivxNamesHowDoesItWork": "How does it work?",
+  "pivxNamesRegisterYourName": "Register your name",
+  "pivxNamesEnterName": "Enter the name you want",
+  "pivxNamesChecking": "Checking…",
+  "pivxNamesCheck": "Check",
+  "pivxNamesInFlight": "Your payment for this name is being processed.",
+  "pivxNamesFollowIt": "Follow it",
+  "pivxNamesFlowRegister": "Register {name}",
+  "@pivxNamesFlowRegister": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesFlowBuy": "Buy {name}",
+  "@pivxNamesFlowBuy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesFlowChangeDestination": "Change destination",
+  "@pivxNamesFlowChangeDestination": {
+    "description": "The destination is the address a name points to: payments to the name go there."
+  },
+  "pivxNamesFlowChangeOwner": "Change owner",
+  "pivxNamesFlowList": "List on the marketplace",
+  "pivxNamesFlowChangePrice": "Change sell price",
+  "pivxNamesFlowUnlist": "Unlist {name}",
+  "@pivxNamesFlowUnlist": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesSigning": "Signing",
+  "pivxNamesMemoTooLong": "This doesn't fit in a payment memo. Choose a shorter name.",
+  "pivxNamesSigningFailed": "Signing failed",
+  "pivxNamesChooseAddress": "Choose an address",
+  "pivxNamesAlreadyPointsHere": "{name} already points to this address.",
+  "@pivxNamesAlreadyPointsHere": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesInvalidShieldAddress": "That isn't a valid shield address. Check it for typos.",
+  "pivxNamesShieldOnly": "A name can only point to a shield address. It starts with \"ps1\".",
+  "pivxNamesOwnKey": "That's your own key: the name is yours.",
+  "pivxNamesInvalidPublicKey": "That isn't a valid public key. It's 64 characters, 0-9 and a-f.",
+  "pivxNamesInvalidPrice": "Enter a price above 0 and up to {max}, with up to {decimals, plural, =1{1 decimal} other{{decimals} decimals}}.",
+  "@pivxNamesInvalidPrice": {
+    "placeholders": {
+      "max": {
+        "type": "String"
+      },
+      "decimals": {
+        "type": "int"
+      }
+    }
+  },
+  "pivxNamesInvalidPriceWhole": "Enter a price above 0 and up to {max}, without decimals.",
+  "@pivxNamesInvalidPriceWhole": {
+    "placeholders": {
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesWherePoint": "Where should {name} point?",
+  "@pivxNamesWherePoint": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesWherePointText": "Choose one of your shield addresses, or enter another one. Anyone who pays {name} pays this address, and you can change it later.",
+  "@pivxNamesWherePointText": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesNewDestination": "Choose the new destination",
+  "pivxNamesNewDestinationText": "Payments to {name} will go to this address. People keep paying the name and never need to know.",
+  "@pivxNamesNewDestinationText": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesWhoOwns": "Who will own {name}?",
+  "@pivxNamesWhoOwns": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesWhoOwnsText": "Paste the public key of the new owner. They find it in My Names, in PIVXie or on pivx.name.",
+  "pivxNamesSetPrice": "Set the price for {name}",
+  "@pivxNamesSetPrice": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesSetNewPrice": "Set a new price for {name}",
+  "@pivxNamesSetNewPrice": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesSetPriceText": "Anyone can buy the name for this price on the marketplace. The price then goes to your PIVX.name balance (My Balance), to withdraw to your wallet.",
+  "pivxNamesCostRegistration": "Registration: {amount}, plus the network fee.",
+  "@pivxNamesCostRegistration": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesCostPrice": "Price: {amount}, plus the network fee.",
+  "@pivxNamesCostPrice": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesCostChange": "This change costs {amount}, plus the network fee.",
+  "@pivxNamesCostChange": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesMyAddresses": "My addresses",
+  "pivxNamesAnotherAddress": "Another address",
+  "pivxNamesShieldAddress": "Shield address",
+  "commonPaste": "Paste",
+  "pivxNamesCurrentDestination": "current destination",
+  "@pivxNamesCurrentDestination": {
+    "description": "A tag next to the address the name points to now, in a list of addresses."
+  },
+  "pivxNamesNewOwnerKey": "New owner's public key",
+  "pivxNamesNewOwnerWarning": "The new owner gets {name} and full control of it. Only they can give it back.",
+  "@pivxNamesNewOwnerWarning": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesPrice": "Price",
+  "pivxNamesListedNow": "Listed for {amount} now",
+  "@pivxNamesListedNow": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesNoteRegister": "PIVX.name: register {name}",
+  "@pivxNamesNoteRegister": {
+    "description": "A note saved with the payment in the wallet's history.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesNoteBuy": "PIVX.name: buy {name}",
+  "@pivxNamesNoteBuy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesNoteDestination": "PIVX.name: new destination for {name}",
+  "@pivxNamesNoteDestination": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesNoteOwner": "PIVX.name: new owner for {name}",
+  "@pivxNamesNoteOwner": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesNoteList": "PIVX.name: list {name}",
+  "@pivxNamesNoteList": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesNoteUnlist": "PIVX.name: unlist {name}",
+  "@pivxNamesNoteUnlist": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesPayToRegister": "Pay to register {name}",
+  "@pivxNamesPayToRegister": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesPayForChange": "Pay to process the change",
+  "pivxNamesPaymentExplained": "Your wallet makes this payment to PIVX.name with the memo inside. The memo is the command, and PIVX.name acts on it once the payment is confirmed. PIVX.name publishes its viewing key, so anyone can read the memo, but there's nothing secret in it.",
+  "pivxNamesToPivxName": "To PIVX.name",
+  "commonAddress": "Address",
+  "commonAmount": "Amount",
+  "pivxNamesShieldedMemo": "Shielded memo",
+  "commonMemo": "Memo",
+  "pivxNamesAddedForYou": "Added for you",
+  "pivxNamesFeeOnTop": "The network fee comes on top: PIVX.name needs the exact amount, and refunds a payment that differs.",
+  "pivxNamesCreateTransaction": "Create transaction",
+  "pivxNamesBalanceUpdated": "Balance updated: {amount}",
+  "@pivxNamesBalanceUpdated": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesLoadBalanceFailed": "Couldn't load the balance. {error}",
+  "@pivxNamesLoadBalanceFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesWithdraw": "Withdraw",
+  "pivxNamesWithdrawConfirm": "Withdraw {amount} to {address}? You'll get about {net} after the service fee ({fee}%).",
+  "@pivxNamesWithdrawConfirm": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "address": {
+        "type": "String"
+      },
+      "net": {
+        "type": "String"
+      },
+      "fee": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesAskingPayout": "Asking PIVX.name to pay out",
+  "pivxNamesWithdrawalFailedText": "The withdrawal failed",
+  "pivxNamesWithdrawalFailed": "Withdrawal failed",
+  "pivxNamesWithdrawDone": "Done! About {amount} is on its way to your wallet.",
+  "@pivxNamesWithdrawDone": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesYourBalance": "Your balance",
+  "commonUnavailable": "Unavailable",
+  "commonRefresh": "Refresh",
+  "pivxNamesBalanceExplained": "Payments PIVX.name couldn't use come back here, and so does the price of a name you sell. Withdraw them to your wallet whenever you like.",
+  "pivxNamesWithdrawTo": "Withdraw to",
+  "pivxNamesYouGetAbout": "You'll get about {amount} after the service fee ({fee}%).",
+  "@pivxNamesYouGetAbout": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "fee": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesMinimumWithdrawal": "The minimum withdrawal is {amount}. Your balance stays here until it reaches that.",
+  "@pivxNamesMinimumWithdrawal": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesLoadNamesFailed": "Couldn't load the names. {error}",
+  "@pivxNamesLoadNamesFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesYours": "Yours",
+  "pivxNamesChangePrice": "Change price",
+  "pivxNamesMarketplaceIntro": "Find and buy PIVX names from other users.",
+  "pivxNamesSearchOnSale": "Search names on sale",
+  "pivxNamesNoMatch": "No names match your search.",
+  "pivxNamesNoneOnSale": "There are no names for sale right now.",
+  "pivxNamesSellMyNames": "Sell my names",
+  "pivxNamesLoadMyNamesFailed": "Couldn't load your names. {error}",
+  "@pivxNamesLoadMyNamesFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesListedForShort": "Listed for {amount}",
+  "@pivxNamesListedForShort": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesActionUnlistNote": "Take it off the marketplace",
+  "pivxNamesActionDestinationNote": "Point it to another shield address",
+  "pivxNamesActionOwnerNote": "Give it to someone else's public key",
+  "pivxNamesActionList": "List on marketplace",
+  "pivxNamesActionListNote": "Put it up for sale",
+  "commonPublicKey": "Public key",
+  "pivxNamesYourPublicKey": "Your public key",
+  "pivxNamesPublicKeyExplained": "Your names belong to this key. It comes from your recovery phrase: open pivx.name with the same phrase and you'll find the same names. Share it with anyone who wants to give you a name.",
+  "pivxNamesOnSale": "On sale: {amount}",
+  "@pivxNamesOnSale": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesActive": "Active",
+  "pivxNamesPointsTo": "Points to {address}",
+  "@pivxNamesPointsTo": {
+    "description": "{address} is an address's name in the wallet, or the address itself.",
+    "placeholders": {
+      "address": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesPointsElsewhere": "Points to an address not on this wallet's list",
+  "pivxNamesManage": "Manage",
+  "pivxNamesMyNamesIntro": "Manage where your names point and who owns them.",
+  "pivxNamesSearchMine": "Search your names",
+  "pivxNamesNoneYet": "You haven't registered a PIVX name yet.",
+  "pivxNamesRegisterFirst": "Register your first name",
+  "pivxNamesDoneBuy": "You've bought {name}!",
+  "@pivxNamesDoneBuy": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesDoneDestination": "{name} now points to its new address!",
+  "@pivxNamesDoneDestination": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesDoneOwner": "{name} now belongs to its new owner!",
+  "@pivxNamesDoneOwner": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesDoneList": "{name} is listed on the marketplace!",
+  "@pivxNamesDoneList": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesDoneUnlist": "{name} is off the marketplace!",
+  "@pivxNamesDoneUnlist": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesDoneRegister": "You've registered {name}!",
+  "@pivxNamesDoneRegister": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesMinutes": "{count, plural, =1{1 minute} other{{count} minutes}}",
+  "@pivxNamesMinutes": {
+    "description": "Part of {time} in \"It starts in about {time}.\", before the seconds: use the form that fits there.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pivxNamesSeconds": "{count, plural, =1{1 second} other{{count} seconds}}",
+  "@pivxNamesSeconds": {
+    "description": "Part of {time} in \"It starts in about {time}.\", after the minutes: use the form that fits there.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pivxNamesLookingForPayment": "Looking for your payment…",
+  "pivxNamesLookingForPaymentText": "Waiting for your payment to reach the network.",
+  "pivxNamesWaitingConfirmation": "Waiting for confirmation",
+  "pivxNamesWaitingConfirmationText": "Your transaction is on the network.",
+  "pivxNamesConfirmed": "Confirmed {count}/{needed}",
+  "@pivxNamesConfirmed": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "needed": {
+        "type": "int"
+      }
+    }
+  },
+  "pivxNamesWaitingPaymentConfirmations": "Waiting for the payment's confirmations.",
+  "pivxNamesWaitingRefundConfirmations": "Waiting for the refund's confirmations.",
+  "pivxNamesWaitingProof": "Waiting for the ZK proof…",
+  "pivxNamesProofStartsIn": "It starts in about {time}.",
+  "@pivxNamesProofStartsIn": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesProofAboutToStart": "It's about to start.",
+  "pivxNamesCreatingProof": "Creating the ZK proof…",
+  "pivxNamesCreatingProofText": "Checking the cryptographic proofs.",
+  "pivxNamesSubmittingProof": "Submitting the ZK proof…",
+  "pivxNamesAlmostDone": "Almost done.",
+  "pivxNamesCongrats": "Congrats!",
+  "pivxNamesPaymentRefunded": "Payment refunded",
+  "pivxNamesPaymentRefundedText": "Something in the payment was wrong, or someone else got the name first. The amount is back in your PIVX.name balance (My Balance).",
+  "pivxNamesPaymentUnsuccessful": "Payment unsuccessful",
+  "pivxNamesPaymentUnsuccessfulText": "The transaction seems to be orphaned because of PIVX network issues.",
+  "pivxNamesTxRejected": "Transaction not accepted",
+  "pivxNamesTxRejectedText": "PIVX.name rejected the transaction because it doesn't follow the protocol rules.",
+  "pivxNamesNextCheckIn": "Next check in {seconds}s",
+  "@pivxNamesNextCheckIn": {
+    "placeholders": {
+      "seconds": {
+        "type": "int"
+      }
+    }
+  },
+  "pivxNamesOfflineRetry": "Couldn't reach PIVX.name. Trying again at the next check.",
+  "pivxNamesCanClose": "You can close this screen: nothing stops. Follow the payment in My Transactions and tap it there to come back here.",
+  "commonTransactionId": "Transaction ID",
+  "pivxNamesTransactionShort": "Transaction {id}",
+  "@pivxNamesTransactionShort": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "commonDone": "Done",
+  "pivxNamesLoadTransactionsFailed": "Couldn't load the transactions. {error}",
+  "@pivxNamesLoadTransactionsFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesTransactionMemo": "Transaction memo",
+  "pivxNamesIncoming": "Incoming",
+  "@pivxNamesIncoming": {
+    "description": "Tab: the user's payments to PIVX.name."
+  },
+  "pivxNamesRefunds": "Refunds",
+  "@pivxNamesRefunds": {
+    "description": "Tab: withdrawals from the PIVX.name balance."
+  },
+  "pivxNamesConfirmations": "{progress} confirmations",
+  "@pivxNamesConfirmations": {
+    "description": "{progress} is like 2/3: confirmations so far and needed.",
+    "placeholders": {
+      "progress": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesShowMemo": "Show memo",
+  "pivxNamesSentWaiting": "Sent. Waiting for PIVX.name to see it.",
+  "pivxNamesFeePercent": "Fee {fee}%",
+  "@pivxNamesFeePercent": {
+    "placeholders": {
+      "fee": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesRefundsIntro": "Your withdrawals from My Balance.",
+  "pivxNamesIncomingIntro": "Your payments to PIVX.name. Tap one in progress to follow it.",
+  "pivxNamesNoWithdrawals": "No withdrawals yet.",
+  "pivxNamesNoPayments": "No payments to PIVX.name yet.",
+  "pivxNamesTxConfirmingPayment": "Confirming payment",
+  "pivxNamesTxPendingProof": "Waiting for the proof",
+  "pivxNamesTxQueuedProof": "Proof queued",
+  "pivxNamesTxProcessingProof": "Creating the proof",
+  "pivxNamesTxSubmittingProof": "Submitting the proof",
+  "pivxNamesTxOrphaned": "Orphaned",
+  "pivxNamesTxPendingRefund": "Refund pending",
+  "pivxNamesTxRefunded": "Refunded",
+  "pivxNamesTxRejectedLabel": "Rejected",
+  "pivxNamesRefundWaiting": "Waiting",
+  "pivxNamesRefundQueued": "Queued",
+  "pivxNamesRefundPaid": "Paid",
+  "pivxNamesRefundError": "Error",
+  "pivxNamesUnreachableError": "Couldn't reach PIVX.name ({error})",
+  "@pivxNamesUnreachableError": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesRefused": "PIVX.name refused the request",
+  "pivxNamesBadAnswerHttp": "PIVX.name sent an answer the app doesn't understand (HTTP {status})",
+  "@pivxNamesBadAnswerHttp": {
+    "placeholders": {
+      "status": {
+        "type": "int"
+      }
+    }
+  },
+  "pivxNamesBadAnswer": "PIVX.name sent an answer the app doesn't understand",
+  "pivxNamesClockOff": "PIVX.name turned the request down because this device's clock is off. Set the right time and try again.",
+  "pivxNamesWrongNetwork": "PIVX.name answered for {got}, not {expected}",
+  "@pivxNamesWrongNetwork": {
+    "placeholders": {
+      "got": {
+        "type": "String"
+      },
+      "expected": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesNotValidName": "{name} isn't a valid PIVX name",
+  "@pivxNamesNotValidName": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNamesWithdrawUnexpected": "The withdrawal failed: PIVX.name sent an unexpected answer",
+  "sendInvalidAddress": "Invalid address",
+  "sendNamesMainnetOnly": "Names like alice.pivx work on mainnet only",
+  "sendNameInvalid": "Names use letters, digits and single hyphens, like alice.pivx",
+  "sendEnterAddress": "Enter {ticker} address",
+  "@sendEnterAddress": {
+    "placeholders": {
+      "ticker": {
+        "type": "String"
+      }
+    }
+  },
+  "sendEnterAddressOrName": "Enter {ticker} address or .pivx name",
+  "@sendEnterAddressOrName": {
+    "placeholders": {
+      "ticker": {
+        "type": "String"
+      }
+    }
+  },
+  "pivxNameErrorUnreachable": "Couldn't reach the PIVX.name server.",
+  "pivxNameErrorIndexer": "The PIVX.name server sent an answer PIVXie can't use.",
+  "pivxNameErrorChainUnavailable": "Too few BNB Smart Chain servers answered to check the name. Try again later.",
+  "pivxNameErrorChainDisagreement": "BNB Smart Chain servers gave different answers about the PIVX.name registry, so names can't be checked right now.",
+  "pivxNameErrorEpoch": "The PIVX.name registry has changed its rules or rolled back. This version of PIVXie won't send to names until it's updated.",
+  "pivxNameErrorUnanchored": "The PIVX.name server answered from a registry state that was never published on BNB Smart Chain. This can mean the server is misbehaving.",
+  "pivxNameErrorBadRecord": "The record the PIVX.name server sent doesn't match the registry on chain.",
+  "pivxNameErrorUnavailable": "Checking names isn't available here.",
+  "sendNameIsContact": "{name} is also a contact",
+  "@sendNameIsContact": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sendNameIsContactText": "To pay your contact, pick it from the address book. To pay the name registered on PIVX.name, rename the contact first, so the two can't be mixed up.",
+  "sendNameNotCaughtUp": "PIVX.name still hasn't caught up with the registry on chain. Try again later.",
+  "sendNameCheckFailed": "Something went wrong while checking {name}.",
+  "@sendNameCheckFailed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sendNameChecking": "Checking {name}",
+  "@sendNameChecking": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sendNameWaiting": "Waiting for PIVX.name",
+  "sendNameNotFound": "Name not found",
+  "sendNameCantSend": "Can't send to {name}",
+  "@sendNameCantSend": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sendNameCheckingText": "Looking up the address and checking it against the PIVX.name registry on BNB Smart Chain.",
+  "sendNameWaitingMissing": "PIVX.name doesn't know {name} yet, and it is still processing the latest registry update. If the name was registered in the last few minutes, wait here; otherwise check the spelling.",
+  "@sendNameWaitingMissing": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sendNameWaitingText": "PIVX.name is still processing the latest registry update, so its answer for {name} may be out of date. This usually takes a few minutes; PIVXie continues once it's done.",
+  "@sendNameWaitingText": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sendNameNotRegistered": "{name} isn't registered on PIVX.name. Check the spelling.",
+  "@sendNameNotRegistered": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sendColdStakingWith": "Cold staking with staker {address}",
+  "@sendColdStakingWith": {
+    "placeholders": {
+      "address": {
+        "type": "String"
+      }
+    }
+  },
+  "sendProposalFeeBurnt": "Proposal fee, burnt (proposal {proposal})",
+  "@sendProposalFeeBurnt": {
+    "placeholders": {
+      "proposal": {
+        "type": "String"
+      }
+    }
+  },
+  "sendNameChecked": "Checked against the PIVX.name registry on BNB Smart Chain",
+  "sendChangeTo": "Change: {amount} to",
+  "@sendChangeTo": {
+    "description": "Followed by an address on the next line.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "sendForeignChange": "This change address isn't one of this wallet's, so the change goes to whoever owns it.",
+  "sendNameMismatch": "This payment doesn't match the address {name} points to.",
+  "@sendNameMismatch": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sendNameRecheckFailed": "Couldn't check {name} again before sending. {error}",
+  "@sendNameRecheckFailed": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "sendNameChanged": "{name} now points to a different address than the one shown. Go back and preview the payment again to see the new address.",
+  "@sendNameChanged": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sendNameBehind": "PIVX.name is processing a registry update, so {name} can't be checked right now. Try again in a few minutes.",
+  "@sendNameBehind": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sendNameGone": "{name} is no longer registered on PIVX.name.",
+  "@sendNameGone": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sendNotSent": "Not sent",
+  "sendBroadcastFailed": "Broadcast transaction failed",
+  "sendConfirmTransaction": "Confirm transaction",
+  "sendConfirmUnitTransaction": "Confirm {unit} transaction",
+  "@sendConfirmUnitTransaction": {
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "sendUnit": "Send {unit}",
+  "@sendUnit": {
+    "description": "{unit} is a coin's ticker, like PIV.",
+    "placeholders": {
+      "unit": {
+        "type": "String"
+      }
+    }
+  },
+  "sendRecipient": "Recipient",
+  "sendTransactionFee": "Transaction fee",
+  "sendNote": "Note",
+  "sendSendTo": "Send to",
+  "sendNoteOptional": "Note (optional)",
+  "sendTypeSomething": "Type something...",
+  "sendTotalAmountToSend": "Total amount to send",
+  "sendTotalAmount": "Total amount",
+  "commonSend": "Send",
+  "sendInvalidPassphrase": "Invalid passphrase",
+  "sendAuthReason": "Authenticate to send transaction",
+  "sendConfirmTransactionTitle": "Confirm Transaction",
+  "commonCalculating": "Calculating",
+  "@commonCalculating": {
+    "description": "Shown with 0 to 3 dots added while it lasts."
+  },
+  "sendConfirmSendAll": "Confirm send all",
+  "sendConfirmSendAllText": "You are about to send your entire balance. Would you like to continue?",
+  "commonYes": "Yes",
+  "sendTransactionFailed": "Transaction failed",
+  "sendAllSelected": "Send all selected",
+  "sendAllTicker": "Send all {ticker}",
+  "@sendAllTicker": {
+    "placeholders": {
+      "ticker": {
+        "type": "String"
+      }
+    }
+  },
+  "balanceShielded": "Shielded balance",
+  "balanceTransparent": "Transparent balance",
+  "balanceAvailable": "Available balance",
+  "sendClearAddressSemantics": "Clear Button. Clears The Address Field Input.",
+  "sendPasteAddressSemantics": "Paste Button. Pastes From Clipboard To Address Field Input.",
+  "sendAddressBookSemantics": "Address Book Button. Opens Address Book For Address Field.",
+  "sendScanQrSemantics": "Scan QR Button. Opens Camera For Scanning QR Code.",
+  "sendSendFrom": "Send from",
+  "sendSubtractFee": "Subtract fee from amount",
+  "sendChangeAddress": "Change address",
+  "sendAutomatic": "Automatic",
+  "coinControlTitle": "Coin control",
+  "sendSelectCoins": "Select coins",
+  "sendSelectedCoins": "Selected coins ({count})",
+  "@sendSelectedCoins": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sendShieldedMemoOptional": "Shielded memo (optional)",
+  "sendNoteHint": "Only in your history, never sent",
+  "sendNetworkFeeEstimated": "Network fee (estimated)",
+  "sendPreview": "Preview",
+  "sendGeneratingTransaction": "Generating transaction",
+  "balanceSelect": "Select balance",
+  "addressShieldN": "Shield #{index}",
+  "@addressShieldN": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "addressChangeN": "Change #{index}",
+  "@addressChangeN": {
+    "description": "An address's default name: a change address, number {index}.",
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "addressReceivingN": "Receiving #{index}",
+  "@addressReceivingN": {
+    "placeholders": {
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "sendNotShieldAddress": "Not a shield PIVX address",
+  "sendNotTransparentAddress": "Not a transparent PIVX address",
+  "sendAutomaticShieldChange": "This wallet's shield change address",
+  "sendAutomaticNewChange": "A new change address of this wallet",
+  "sendOtherShieldAddress": "Other shield address",
+  "sendOtherTransparentAddress": "Other transparent address",
+  "sendForeignChangeWarning": "This address isn't one of this wallet's. The change would go to whoever owns it.",
+  "sendUseThisAddress": "Use this address",
+  "sendPayFrom": "Pay from",
+  "sendNotesToSpend": "Notes to spend",
+  "sendCoinsToSpend": "Coins to spend",
+  "sendChosenAutomatically": "Chosen automatically",
+  "sendCoinsSelected": "{count} selected · {total}",
+  "@sendCoinsSelected": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "commonReset": "Reset",
+  "commonChoose": "Choose",
+  "sendAutomaticNewPrivate": "Automatic (a new private address)",
+  "sendAutomaticNewChangeShort": "Automatic (a new change address)",
+  "commonChange": "Change",
+  "@commonChange": {
+    "description": "A button: change (edit) a setting."
+  },
+  "addressCreateNew": "Create a new address",
+  "addressSearchHint": "Search by address or label",
+  "addressNoMatch": "No addresses match",
+  "sendSendingTransaction": "Sending transaction",
+  "feeTimeHours": "{hours, plural, =1{~1 hour} other{~{hours} hours}}",
+  "@feeTimeHours": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "feeTimeMinutes": "~{minutes} minutes",
+  "@feeTimeMinutes": {
+    "description": "{minutes} can be 1, 2 or 2.5 and so on: an abbreviation such as \"min\" is fine.",
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "feeRate": "Fee rate",
+  "feeTimeOneMinute": "~1 minute",
+  "govCreateProposal": "Create proposal",
+  "govCreateIntro": "A proposal asks the network to pay you from the budget. Publishing it burns a {fee} fee, which is not refunded. Masternodes then vote; describe the proposal on forum.pivx.org first and link it here.",
+  "@govCreateIntro": {
+    "placeholders": {
+      "fee": {
+        "type": "String"
+      }
+    }
+  },
+  "govProposalName": "Name",
+  "govProposalNameHint": "e.g. PIVXie-Dev-Q1",
+  "govProposalLink": "Link to the description",
+  "govPayoutsGoTo": "Payouts go to",
+  "govAmountPerPayout": "Amount per payout",
+  "govAmountTicker": "Amount ({ticker})",
+  "@govAmountTicker": {
+    "placeholders": {
+      "ticker": {
+        "type": "String"
+      }
+    }
+  },
+  "govAmountRange": "{min} to {max}",
+  "@govAmountRange": {
+    "placeholders": {
+      "min": {
+        "type": "String"
+      },
+      "max": {
+        "type": "String"
+      }
+    }
+  },
+  "govPayouts": "Payouts",
+  "govPayoutsUpTo": "One per budget cycle, up to {max}",
+  "@govPayoutsUpTo": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "govFirstPayout": "First payout",
+  "govBlockIn": "Block {block} · ~{time}",
+  "@govBlockIn": {
+    "placeholders": {
+      "block": {
+        "type": "int"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "govPayoutTooClose": "The next payout is too close for the fee to confirm in time.",
+  "govAskedInTotal": "Asked in total",
+  "govFeeBurnt": "Fee (burnt)",
+  "govSelectedCoins": "Selected coins",
+  "govAfterFee": "After the fee has {count} confirmations PIVXie submits the proposal by itself; keep the wallet syncing until then.",
+  "@govAfterFee": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "govPayAndPublish": "Pay {fee} and publish",
+  "@govPayAndPublish": {
+    "placeholders": {
+      "fee": {
+        "type": "String"
+      }
+    }
+  },
+  "govNotEnoughForFee": "Not enough {ticker} for the fee",
+  "@govNotEnoughForFee": {
+    "placeholders": {
+      "ticker": {
+        "type": "String"
+      }
+    }
+  },
+  "govTabPast": "Past",
+  "govTabCurrent": "Current",
+  "govTabFuture": "Future",
+  "govFilterAll": "All",
+  "govFilterPassing": "Passing",
+  "govFilterNotPassing": "Not passing",
+  "govFilterWaiting": "Waiting",
+  "govNonePassing": "No passing proposals.",
+  "govNoneNotPassing": "No not passing proposals.",
+  "govNoneWaiting": "No waiting proposals.",
+  "govTitle": "Governance",
+  "govNoneLater": "No proposals for later payouts yet.",
+  "govNoneNext": "No proposals for the next payout.",
+  "govPastNetwork": "Finished proposals the network still knows.",
+  "govPastArchive": "Finished proposals, from pivx.org and the network.",
+  "govPastIncognito": "Only the finished proposals the network still knows: the full history comes from pivx.org, which Incognito mode doesn't contact.",
+  "@govPastIncognito": {
+    "description": "Incognito is the app's privacy mode, named in its settings."
+  },
+  "govNoneFinished": "No finished proposals.",
+  "govBudgetPerPayout": "Budget per payout",
+  "govMonthlyBudget": "Monthly budget",
+  "govAllocatedIfHold": "Allocated if votes hold",
+  "govAllocated": "Allocated",
+  "govAvailable": "{amount} available",
+  "@govAvailable": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "govNextPayoutIn": "Next payout in ~{time} (block {block})",
+  "@govNextPayoutIn": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "block": {
+        "type": "int"
+      }
+    }
+  },
+  "govToPass": "To pass: {votes} net Yes {votes, plural, =1{vote} other{votes}} (more than 10% of {masternodes} masternodes online)",
+  "@govToPass": {
+    "placeholders": {
+      "votes": {
+        "type": "int"
+      },
+      "masternodes": {
+        "type": "int"
+      }
+    }
+  },
+  "govFromBlock": "from block {block}",
+  "@govFromBlock": {
+    "placeholders": {
+      "block": {
+        "type": "int"
+      }
+    }
+  },
+  "govPaidOf": "{paid} of {total} paid",
+  "@govPaidOf": {
+    "placeholders": {
+      "paid": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "govPaymentsLeft": "{left} of {total} {total, plural, =1{payment} other{payments}} left",
+  "@govPaymentsLeft": {
+    "placeholders": {
+      "left": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "govFailed": "Failed",
+  "govYourProposal": "Your proposal",
+  "commonRemove": "Remove",
+  "govFeeSent": "Fee sent; waiting for it to be mined",
+  "govFeeConfirming": "Fee confirming: {count} of {needed}. Then PIVXie submits it (keep the wallet syncing).",
+  "@govFeeConfirming": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "needed": {
+        "type": "int"
+      }
+    }
+  },
+  "govSubmitting": "Submitting to the network…",
+  "govPassed": "Passed",
+  "govTotalYes": "{amount} in total · {percent} Yes",
+  "@govTotalYes": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "govLoadFailed": "Couldn't load the proposals",
+  "govNodeNoData": "The node you are connected to doesn't offer governance data. Try another PIVX node in the network settings.",
+  "govYesCount": "{count} Yes",
+  "@govYesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "govNoCount": "{count} No",
+  "@govNoCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "govNetYes": "{percent} net Yes",
+  "@govNetYes": {
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      }
+    }
+  },
+  "govYes": "Yes",
+  "@govYes": {
+    "description": "A vote for a proposal."
+  },
+  "govNo": "No",
+  "@govNo": {
+    "description": "A vote against a proposal."
+  },
+  "govShowAll": "Show all {count}",
+  "@govShowAll": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "govNotVotedCount": "{count} not voted",
+  "@govNotVotedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "govNotVoted": "Not voted",
+  "govVotedAgo": "Voted {time} ago",
+  "@govVotedAgo": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "govVotedAgoCanChange": "Voted {time} ago · can change in ~{wait}",
+  "@govVotedAgoCanChange": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "wait": {
+        "type": "String"
+      }
+    }
+  },
+  "govSearchMasternodes": "Search by alias or IP",
+  "govNoMasternodeMatch": "No masternode matches \"{query}\".",
+  "@govNoMasternodeMatch": {
+    "placeholders": {
+      "query": {
+        "type": "String"
+      }
+    }
+  },
+  "govYourMasternodes": "Your masternodes",
+  "govNotWebLink": "Not a web link: {url}",
+  "@govNotWebLink": {
+    "placeholders": {
+      "url": {
+        "type": "String"
+      }
+    }
+  },
+  "govOpenLink": "Open link?",
+  "govOpenLinkText": "The proposal's author set this link. Check it before you trust what it shows.",
+  "commonOpen": "Open",
+  "govBeingPaidNow": "Being paid now, from block {block}",
+  "@govBeingPaidNow": {
+    "placeholders": {
+      "block": {
+        "type": "int"
+      }
+    }
+  },
+  "govNotPaidAt": "Not paid at block {block}",
+  "@govNotPaidAt": {
+    "placeholders": {
+      "block": {
+        "type": "int"
+      }
+    }
+  },
+  "govNotPaidAtNext": "Not paid at block {block} · next payout in {time}",
+  "@govNotPaidAtNext": {
+    "placeholders": {
+      "block": {
+        "type": "int"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "govNextPayoutAt": "Next payout at block {block}, in {time}",
+  "@govNextPayoutAt": {
+    "placeholders": {
+      "block": {
+        "type": "int"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "govAllPayoutsMade": "All payouts made",
+  "govPaid": "Paid",
+  "govPaidAmount": "Paid {amount}",
+  "@govPaidAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "govNotPaid": "Not paid",
+  "govBeingPaid": "Being paid",
+  "govInTime": "In {time}",
+  "@govInTime": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "govBlock": "Block {block}",
+  "@govBlock": {
+    "placeholders": {
+      "block": {
+        "type": "int"
+      }
+    }
+  },
+  "govProposal": "Proposal",
+  "govInvalid": "Invalid: {reason}",
+  "@govInvalid": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "govUnknownReason": "unknown reason",
+  "govPerSuperblock": "Per superblock",
+  "govInTotal": "In total",
+  "govOf": "{count} of {total}",
+  "@govOf": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "govSuperblocks": "Superblocks",
+  "govSuperblock": "Superblock",
+  "govNewProposalsDayOld": "New proposals can only be funded once they are a day old (5 minutes on testnet).",
+  "govBudgetUsedUp": "Enough votes, but the budget is used up by proposals with more votes.",
+  "govVotes": "Votes",
+  "govPassesWith": "Passes with {votes} net Yes {votes, plural, =1{vote} other{votes}} (more than 10% of {masternodes} masternodes online)",
+  "@govPassesWith": {
+    "placeholders": {
+      "votes": {
+        "type": "int"
+      },
+      "masternodes": {
+        "type": "int"
+      }
+    }
+  },
+  "govAbstained": "{count} abstained",
+  "@govAbstained": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "govPayoutsExplained": "One per superblock, if the proposal passes then. Checked on the blockchain.",
+  "govPayoutsCheckFailed": "Couldn't check the payouts",
+  "govVotingNeedsMasternode": "Voting takes a masternode. This wallet has none; add one under Masternodes.",
+  "govVotesLoadFailed": "Couldn't load your votes",
+  "govPaymentAddress": "Payment address",
+  "govOpenInExplorer": "Open in the block explorer",
+  "govProposalHash": "Proposal hash",
+  "govFeeTransaction": "Fee transaction",
+  "govVoteNo": "Vote No",
+  "govVoteYes": "Vote Yes",
+  "govAlreadyVotedYes": "Already voted Yes",
+  "govAlreadyVotedNo": "Already voted No",
+  "govCanChangeIn": "Can change its vote in ~{time}",
+  "@govCanChangeIn": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "govSelectedOf": "{count} of {total} selected",
+  "@govSelectedOf": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "commonSelectNone": "Select none",
+  "commonSelectAll": "Select all",
+  "govAcceptedOf": "{count} of {total} accepted",
+  "@govAcceptedOf": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "govFailedCount": "{count} failed",
+  "@govFailedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "govVoteExplained": "Each masternode signs its vote with its private key. A vote can be changed once an hour.",
+  "govVoting": "Voting… {count} of {total}",
+  "@govVoting": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "total": {
+        "type": "int"
+      }
+    }
+  },
+  "govSelectMasternode": "Select a masternode",
+  "govVoteYesWith": "Vote Yes with {count} {count, plural, =1{masternode} other{masternodes}}",
+  "@govVoteYesWith": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "govVoteNoWith": "Vote No with {count} {count, plural, =1{masternode} other{masternodes}}",
+  "@govVoteNoWith": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "govSigningSending": "Signing and sending…",
+  "govVoteAccepted": "Vote accepted",
+  "mnInvalidKey": "Invalid masternode private key",
+  "mnInvalidServer": "Invalid server address",
+  "mnCreateNote": "Create masternode {alias}",
+  "@mnCreateNote": {
+    "description": "A note saved with the collateral payment in the wallet's history.",
+    "placeholders": {
+      "alias": {
+        "type": "String"
+      }
+    }
+  },
+  "mnNotAKey": "Not a {coin} masternode private key",
+  "@mnNotAKey": {
+    "placeholders": {
+      "coin": {
+        "type": "String"
+      }
+    }
+  },
+  "mnAddExisting": "Add existing masternode",
+  "mnCreate": "Create masternode",
+  "mnAddExistingIntro": "For a masternode that already runs, e.g. after restoring this wallet. Nothing is sent or started: PIVXie only records it and freezes its collateral.",
+  "mnAlias": "Masternode alias",
+  "mnAliasHint": "e.g. MN1",
+  "mnCollateralOutput": "Collateral output",
+  "mnCollateral": "Collateral",
+  "mnNoCollateralOutput": "No unspent output of exactly {amount} in this wallet. A masternode's collateral is one output of exactly that amount.",
+  "@mnNoCollateralOutput": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "mnServerIpOptional": "Server IP (optional)",
+  "mnServerIpHint": "e.g. 203.0.113.5 or 203.0.113.5:{port}",
+  "@mnServerIpHint": {
+    "placeholders": {
+      "port": {
+        "type": "int"
+      }
+    }
+  },
+  "mnSendToNewAddress": "Send {amount} to a new address",
+  "@mnSendToNewAddress": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "mnAddressLabelExample": "Address label (optional), e.g. {alias} collateral",
+  "@mnAddressLabelExample": {
+    "placeholders": {
+      "alias": {
+        "type": "String"
+      }
+    }
+  },
+  "mnAddressLabelOptional": "Address label (optional)",
+  "mnSendToMyAddress": "Send {amount} to one of my addresses",
+  "@mnSendToMyAddress": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "mnPrivateKey": "Masternode private key",
+  "mnGenerateKey": "Generate one",
+  "mnHaveKey": "I have a key",
+  "mnPasteKey": "Paste the masternode private key",
+  "mnNewKey": "New",
+  "@mnNewKey": {
+    "description": "A button: generate a new masternode key."
+  },
+  "mnKeyExplained": "The masternode private key identifies your masternode on the network. It can't spend your coins, but keep it private. You will find it again in the masternode details.",
+  "mnAdd": "Add masternode",
+  "mnSendCollateral": "Send collateral",
+  "mnIsRunning": "Masternode is running",
+  "mnRestartWarning": "Restarting puts it back at the end of the payment queue: no rewards for days. Only restart it if it's really down.",
+  "mnRestart": "Restart",
+  "mnStarting": "Starting masternode",
+  "mnStartFailed": "Could not start the masternode",
+  "mnStartSent": "Start message sent. The masternode shows as enabled after its first ping, usually within a few minutes.",
+  "mnShowKey": "Show masternode key",
+  "mnShowKeyReason": "Unlock to show the masternode private key",
+  "commonHide": "Hide",
+  "mnCollateralTx": "Collateral transaction",
+  "mnOutputIndex": "Output index",
+  "mnHostTitle": "Host on masternode.space",
+  "mnHostText": "Give masternode.space these three values when you order hosting for this masternode. Your collateral never leaves this wallet.",
+  "mnCopyAll": "Copy all",
+  "mnHostingCopied": "Hosting details copied",
+  "mnOpenMasternodeSpace": "Open masternode.space",
+  "mnRemoveTitle": "Remove masternode?",
+  "mnRemoveText": "PIVXie forgets this masternode and unfreezes its collateral, so it can be spent. If the masternode is running, spending the collateral stops it.",
+  "mnMasternode": "Masternode",
+  "mnStatus": "Status",
+  "mnStart": "Start masternode",
+  "mnStartText": "Once the server runs PIVX Core with this masternode's private key, enter its IP address and start it. Start it again if it shows as missing or expired.",
+  "mnServerIpExample": "Server IP, e.g. 203.0.113.5",
+  "mnCollateralAddress": "Collateral address",
+  "mnEasiest": "Easiest: host it on masternode.space",
+  "mnEasiestText": "masternode.space runs the server for you: no VPS to rent, set up or keep online. You only give them the collateral transaction, its output index and the masternode private key.",
+  "mnShowWhatNeeded": "Show what masternode.space needs",
+  "mnOwnVps": "Or run it on your own VPS",
+  "mnOwnVpsTextReplaceIp": "Install PIVX Core on the server, add these lines to its pivx.conf (replace YOUR_VPS_IP with the server's public IP), make sure port {port} is reachable and restart pivxd. Then start the masternode above.",
+  "@mnOwnVpsTextReplaceIp": {
+    "description": "Keep YOUR_VPS_IP as it is: it is the placeholder in the lines below.",
+    "placeholders": {
+      "port": {
+        "type": "int"
+      }
+    }
+  },
+  "mnOwnVpsText": "Install PIVX Core on the server, add these lines to its pivx.conf, make sure port {port} is reachable and restart pivxd. Then start the masternode above.",
+  "@mnOwnVpsText": {
+    "placeholders": {
+      "port": {
+        "type": "int"
+      }
+    }
+  },
+  "mnConfLine": "masternode.conf line, for a PIVX Core controller wallet:",
+  "mnRemove": "Remove masternode",
+  "mnTitle": "Masternodes",
+  "mnNoneYet": "No masternodes yet",
+  "mnNoneYetText": "A masternode locks a collateral of {amount} in this wallet and earns rewards while a server runs it. The collateral stays yours and is frozen so it can't be spent by accident.",
+  "@mnNoneYetText": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "mnEnabled": "Enabled",
+  "mnEarned": "Earned",
+  "mnServer": "Server",
+  "mnNotSet": "Not set",
+  "mnActiveFor": "Active for",
+  "mnLastPaid": "Last paid",
+  "durationAgo": "{time} ago",
+  "@durationAgo": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "mnNotYet": "Not yet",
+  "durationSeconds": "{count} s",
+  "@durationSeconds": {
+    "description": "Short units: seconds, minutes, hours and days, e.g. \"3 d 4 h\".",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "durationMinutes": "{count} min",
+  "@durationMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "durationHours": "{count} h",
+  "@durationHours": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "durationDays": "{count} d",
+  "@durationDays": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "mnStatusMissing": "Not started",
+  "mnStatusUnknown": "Unknown",
+  "mnStatusEnabled": "Enabled",
+  "mnStatusPreEnabled": "Pre-enabled",
+  "mnStatusExpired": "Expired",
+  "mnStatusNewStartRequired": "New start required",
+  "mnStatusRemove": "Removed",
+  "mnStatusPoseBan": "Banned",
+  "accountsAddedOne": "This recovery phrase has another account with history. PIVXie added it as a separate wallet, {names}, which is still syncing.",
+  "@accountsAddedOne": {
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "accountsAddedMany": "This recovery phrase has other accounts with history. PIVXie added them as separate wallets, which are still syncing: {names}.",
+  "@accountsAddedMany": {
+    "description": "{names} is a list of wallet names in quotes.",
+    "placeholders": {
+      "names": {
+        "type": "String"
+      }
+    }
+  },
+  "accountsAddTitle": "Add account {account}?",
+  "@accountsAddTitle": {
+    "placeholders": {
+      "account": {
+        "type": "int"
+      }
+    }
+  },
+  "accountsAddText": "Account {account} of this recovery phrase becomes a separate wallet, “{name}”, with its own addresses and balance. It's the same account {account} as in MyPIVXWallet, so any coins it already holds show up once it has synced.",
+  "@accountsAddText": {
+    "placeholders": {
+      "account": {
+        "type": "int"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "accountsAdd": "Add account",
+  "accountsAdding": "Adding account {account}",
+  "@accountsAdding": {
+    "placeholders": {
+      "account": {
+        "type": "int"
+      }
+    }
+  },
+  "accountsAddFailed": "Couldn't add the account: {error}",
+  "@accountsAddFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "accountsAdded": "Added “{name}”. It's syncing now.",
+  "@accountsAdded": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "csFromStakes": "{amount} from {count} {count, plural, =1{stake} other{stakes}}",
+  "@csFromStakes": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "csRewardsSoFar": "Rewards so far: {rewards}",
+  "@csRewardsSoFar": {
+    "placeholders": {
+      "rewards": {
+        "type": "String"
+      }
+    }
+  },
+  "csStartsIn": "Starts staking in ~{time}",
+  "@csStartsIn": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "csStaking": "Staking",
+  "csHowItWorks": "How cold staking works",
+  "csInfo1": "Your coins earn staking rewards while they stay in this wallet. A staker, a PIVX node that is always online, stakes them for you, but it can never spend or move them. Rewards are added to your delegated coins.",
+  "csInfo2": "To take coins out of cold staking, just spend them. Tap an output and choose Withdraw, and the coins return to your regular balance.",
+  "@csInfo2": {
+    "description": "\"Withdraw\" is the name of a button."
+  },
+  "csInfo3": "Delegated coins are frozen, so a normal send never uses them by accident.",
+  "csInfo4": "Delegated coins sit at an owner address of this wallet. A staker only stakes coins whose owner address it has on its whitelist, so give it every owner address you delegate from. The list groups your delegations by owner address.",
+  "csIncludesReward": "Includes {amount} from its latest stake; earlier rewards are part of the amount",
+  "@csIncludesReward": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "csStaker": "Staker",
+  "csOwnerYours": "Owner (your address)",
+  "csTransaction": "Transaction",
+  "csRewardMaturity": "New rewards can be spent after {count} confirmations, in ~{time}.",
+  "@csRewardMaturity": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "csWithdrawText": "Withdrawing ends cold staking for these coins and moves them back to your regular balance. The network fee comes out of the amount.",
+  "csTitle": "Cold staking",
+  "csDelegated": "Delegated",
+  "csDelegatedOutputs": "Delegated outputs",
+  "csWithdrawAll": "Withdraw all",
+  "csDelegateMore": "Delegate more",
+  "csEarnTitle": "Earn rewards with your PIV",
+  "csEarnText": "Delegate coins to a staker and earn staking rewards without keeping a PIVX Core wallet online on your PC or server. Your coins never leave your wallet, and you can take them back at any time.",
+  "csStart": "Start cold staking",
+  "csReward": "Reward",
+  "csLatestStake": "+{amount} latest stake",
+  "@csLatestStake": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "csStakerAddress": "Staker {address}",
+  "@csStakerAddress": {
+    "placeholders": {
+      "address": {
+        "type": "String"
+      }
+    }
+  },
+  "csOwnerTitle": "Owner · {address}",
+  "@csOwnerTitle": {
+    "placeholders": {
+      "address": {
+        "type": "String"
+      }
+    }
+  },
+  "csDelegatedAmount": "{amount} delegated",
+  "@csDelegatedAmount": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "csDelegatedRewards": "{amount} delegated · rewards: {rewards}",
+  "@csDelegatedRewards": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "rewards": {
+        "type": "String"
+      }
+    }
+  },
+  "csEasiest": "Easiest: masternode.space",
+  "csNoServer": "No server needed",
+  "csEasiestText": "masternode.space runs the staker for you. No server to rent and no technical setup.",
+  "csStep1": "On masternode.space, open the main menu, choose PIVX Cold Staking, turn it on and copy your staker address.",
+  "@csStep1": {
+    "description": "\"PIVX Cold Staking\" is the name of a menu item on masternode.space, which is in English."
+  },
+  "csStep2": "Paste the staker address below and delegate.",
+  "csStep3": "Back on masternode.space, enter your owner address so the staker accepts your coins:",
+  "csYourOwnerAddress": "Your owner address",
+  "csOwnNode": "Or use your own PIVX node (VPS)",
+  "csOwnNode1": "On a server running PIVX Core that stays online, create a staker address:",
+  "csOwnNode2": "Whitelist your owner address so the node stakes your coins:",
+  "csOwnNode3": "If the node's wallet is encrypted, unlock it for staking only:",
+  "csYourPassphrase": "your passphrase",
+  "@csYourPassphrase": {
+    "description": "A placeholder inside a command line: the user types their own passphrase there."
+  },
+  "csOwnNode4": "Staking is on by default; \"{command}\" shows whether the node is staking.",
+  "@csOwnNode4": {
+    "placeholders": {
+      "command": {
+        "type": "String"
+      }
+    }
+  },
+  "csGetStaker": "Get a staker address",
+  "csShowHow": "Show how",
+  "csStakerAddressLabel": "Staker address",
+  "csStartsWith": "Starts with \"{letter}\"",
+  "@csStartsWith": {
+    "placeholders": {
+      "letter": {
+        "type": "String"
+      }
+    }
+  },
+  "csOwnerAddress": "Owner address",
+  "csOwnsDelegations": "owns your delegations",
+  "@csOwnsDelegations": {
+    "description": "A tag next to an address in a list."
+  },
+  "csDifferentOwner": "A different owner than your current delegations: whitelist it on your staker too.",
+  "csOwnerExplained": "The coins stay at this address of your wallet. The staker can stake them but never spend them.",
+  "commonMax": "Max",
+  "csAvailable": "Available: {amount}",
+  "@csAvailable": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "csStartsAfter": "Delegated coins start staking after about {time}.",
+  "@csStartsAfter": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "csDelegate": "Delegate",
+  "receiveSaved": "{path} saved!",
+  "@receiveSaved": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "receiveQrShareText": "Receive URI QR Code",
+  "receiveNoLabel": "No label",
+  "receiveEditLabel": "Edit label",
+  "receiveCopyAddress": "Copy address",
+  "receiveShowQr": "Show QR code",
+  "commonShare": "Share",
+  "commonSave": "Save",
+  "receiveAddressQr": "Address QR code",
+  "receiveAddressDetails": "Address details",
+  "receiveViewQr": "View QR code",
+  "receiveTransactionHistory": "Transaction history",
+  "receiveLabel": "Label",
+  "receiveDerivationPath": "Derivation path",
+  "receiveDiversifier": "Diversifier",
+  "@receiveDiversifier": {
+    "description": "A technical value of a shield address."
+  },
+  "receiveIndex": "Index",
+  "receiveType": "Type",
+  "receiveSubType": "Sub type",
+  "receiveTransactions": "Transactions",
+  "receiveTags": "Tags",
+  "receiveTagsPlaceholder": "Tags will appear here",
+  "receiveAddressLabel": "Address label",
+  "receiveWalletAddresses": "Wallet addresses",
+  "receiveInvalidAmount": "Invalid amount",
+  "receiveNewQr": "New QR code",
+  "receiveGenerateQr": "Generate QR code",
+  "receiveQrWillAppearMemo": "The new QR code with your address, amount and shielded memo will appear in the pop up window.",
+  "receiveQrWillAppear": "The new QR code with your address and amount will appear in the pop up window.",
+  "receiveQrWillAppearNote": "The new QR code with your address, amount and note will appear in the pop up window.",
+  "receiveAmountOptional": "Amount (Optional)",
+  "receiveMemoOptional": "Shielded memo (Optional)",
+  "receiveNoteOptional": "Note (Optional)",
+  "receiveGeneratingAddress": "Generating address",
+  "receiveTransparentAddress": "Transparent address",
+  "receiveTransparentAddresses": "Transparent addresses",
+  "receiveShieldAddress": "Shield address",
+  "receiveShieldAddresses": "Shield addresses",
+  "receiveTypeAddress": "{type} address",
+  "@receiveTypeAddress": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "receiveTypeAddresses": "{type} addresses",
+  "@receiveTypeAddresses": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      }
+    }
+  },
+  "receiveNoAddressYet": "[No address yet]",
+  "receiveLoadingShield": "[Loading shield address]",
+  "receiveTicker": "Receive {ticker}",
+  "@receiveTicker": {
+    "placeholders": {
+      "ticker": {
+        "type": "String"
+      }
+    }
+  },
+  "receiveAddressListSemantics": "Address List Pop-up Button. Opens A Pop-up For Address List Button.",
+  "receiveAddressList": "Address list",
+  "receiveAddressType": "Address type",
+  "receiveYourAddress": "Your {ticker} address",
+  "@receiveYourAddress": {
+    "placeholders": {
+      "ticker": {
+        "type": "String"
+      }
+    }
+  },
+  "receiveGenerateNew": "Generate new address",
+  "receiveAdvancedOptions": "Advanced options",
+  "walletTransactionsPlaceholder": "Transactions will appear here",
+  "walletBalance": "Wallet balance",
+  "balanceTotal": "Total balance",
+  "balanceAvailableTransparent": "Available transparent balance",
+  "balanceFullTransparent": "Full transparent balance",
+  "balanceAvailableShielded": "Available shielded balance",
+  "balanceFullShielded": "Full shielded balance",
+  "walletRefreshSemantics": "Refresh Button. Refreshes The Values In Summary.",
+  "walletViewOnly": "(View only)",
+  "txEditNote": "Edit note",
+  "txFilterTitle": "Transactions filter",
+  "txFilterTitleDesktop": "Transaction filter",
+  "txSent": "Sent",
+  "txReceived": "Received",
+  "txTrades": "Trades",
+  "txDate": "Date",
+  "txEnterAmount": "Enter {ticker} amount...",
+  "@txEnterAmount": {
+    "placeholders": {
+      "ticker": {
+        "type": "String"
+      }
+    }
+  },
+  "txKeyword": "Keyword",
+  "txTypeKeyword": "Type keyword...",
+  "txFilter": "Filter",
+  "txFromDate": "From {date}",
+  "@txFromDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "txToDate": "To {date}",
+  "@txToDate": {
+    "placeholders": {
+      "date": {
+        "type": "String"
+      }
+    }
+  },
+  "txReceivingAddress": "Receiving address",
+  "txReceivingAddresses": "Receiving addresses",
+  "txSentTo": "Sent to",
+  "txDetails": "Transaction details",
+  "txColdStakingReward": "Cold staking reward",
+  "txOnChainNote": "On chain note",
+  "txPending": "Pending",
+  "txBlockHeight": "Block height",
+  "txConfirmations": "Confirmations",
+  "txSubType": "Tx sub type",
+  "txColdStakingAddress": "Cold staking address",
+  "txShielded": "Shielded",
+  "txNewCoins": "New coins",
+  "@txNewCoins": {
+    "description": "The input of a staking reward: newly created coins, no address."
+  },
+  "txChange": "Change",
+  "@txChange": {
+    "description": "A tag on a transaction output: change that came back to the wallet."
+  },
+  "txInputs": "Inputs",
+  "txOutputs": "Outputs",
+  "txOpenInExplorer": "Open in block explorer",
+  "walletAnonymizing": "Anonymizing balance",
+  "walletNoFundsToPrivatize": "No funds available to privatize!",
+  "walletPrivatizeSubmitted": "Privatize transaction submitted",
+  "walletPrivatizeFailed": "Privatize all failed",
+  "walletReason": "Reason: {reason}",
+  "@walletReason": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "walletNetworkSemantics": "Network Button. Takes To Network Status Page.",
+  "walletAddressBookSemantics": "Address Book Button. Takes To Address Book.",
+  "walletSettingsSemantics": "Settings Button. Takes To Wallet Settings Page.",
+  "walletAttention": "Attention!",
+  "walletPrivatizeConfirm": "You're about to privatize all of your public funds.",
+  "walletPrivatizeFunds": "Privatize funds",
+  "walletSeeAll": "See all",
+  "commonReceive": "Receive",
+  "addressBookTitle": "Address book",
+  "addressBookFavorites": "Favorites",
+  "addressBookFavoritesEmpty": "Your favorite contacts will appear here",
+  "addressBookAllContacts": "All contacts",
+  "addressBookNoContactsFound": "No contacts found",
+  "addressBookNoContacts": "No contacts yet",
+  "addressBookNoContactsText": "Save the people you pay often, then pick them when you send.",
+  "addressBookAddContact": "Add contact",
+  "contactDetails": "Contact details",
+  "contactDeleteTitle": "Delete {name}?",
+  "@contactDeleteTitle": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "contactDeleteText": "Contact will be deleted permanently!",
+  "commonDelete": "Delete",
+  "contactDeleted": "{name} deleted",
+  "@contactDeleted": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "contactAddresses": "Addresses",
+  "commonAddNew": "Add new",
+  "commonNoTransactionsFound": "No transactions found",
+  "contactNoCoinAddresses": "No {coin} addresses found",
+  "@contactNoCoinAddresses": {
+    "placeholders": {
+      "coin": {
+        "type": "String"
+      }
+    }
+  },
+  "contactAddNewAddress": "Add new address",
+  "contactNew": "New contact",
+  "contactEdit": "Edit contact",
+  "contactEnterName": "Enter contact name",
+  "contactAddressN": "Address {number}",
+  "@contactAddressN": {
+    "description": "The contact's first, second… address.",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "contactAddAnother": "+ Add another address",
+  "contactPasteAddress": "Paste address",
+  "addressKindShielded": "Shielded",
+  "@addressKindShielded": {
+    "description": "A kind of address (shielded, exchange, transparent), shown as \"Shielded (PIV)\"."
+  },
+  "addressKindExchange": "Exchange",
+  "@addressKindExchange": {
+    "description": "A kind of address (shielded, exchange, transparent), shown as \"Exchange (PIV)\"."
+  },
+  "addressKindTransparent": "Transparent",
+  "@addressKindTransparent": {
+    "description": "A kind of address (shielded, exchange, transparent), shown as \"Transparent (PIV)\"."
+  },
+  "commonConfirmationsCount": "{count, plural, =1{1 confirmation} other{{count} confirmations}}",
+  "@commonConfirmationsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "commonUnselectAll": "Unselect all",
+  "coinControlQuantity": "Quantity",
+  "@coinControlQuantity": {
+    "description": "How many coins (outputs) are selected."
+  },
+  "coinControlBytes": "Bytes",
+  "@coinControlBytes": {
+    "description": "The size of the transaction in bytes."
+  },
+  "coinControlFee": "Fee",
+  "coinControlAfterFee": "After fee",
+  "coinControlInsufficient": "Insufficient",
+  "@coinControlInsufficient": {
+    "description": "The change when the selected coins don't cover the amount."
+  },
+  "coinControlSortedAscending": "Sorted ascending. Tap for descending.",
+  "coinControlSortedDescending": "Sorted descending. Tap for ascending.",
+  "coinControlTransparent": "Transparent",
+  "@coinControlTransparent": {
+    "description": "A switch: show transparent outputs."
+  },
+  "coinControlShield": "Shield",
+  "@coinControlShield": {
+    "description": "A switch: show shield notes."
+  },
+  "coinControlExplainNotes": "Choose which shield notes a send uses, and freeze the ones you want to keep. Tap a note's circle to select it.",
+  "coinControlExplainOutputs": "Choose which outputs a send uses, and freeze the ones you want to keep. Tap an output's circle to select it.",
+  "coinControlAvailableOutputs": "Available outputs",
+  "coinControlFrozenOutputs": "Frozen outputs",
+  "coinControlShowAllOutputs": "Show all outputs",
+  "coinControlOutputs": "{count, plural, =1{1 output} other{{count} outputs}}",
+  "@coinControlOutputs": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "coinControlSelected": "{count, plural, other{{count} selected}}",
+  "@coinControlSelected": {
+    "description": "How many coins are selected; followed by their total amount.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "coinControlUnfreeze": "Unfreeze",
+  "coinControlFreeze": "Freeze",
+  "@coinControlFreeze": {
+    "description": "Freeze coins: keep them from being spent."
+  },
+  "coinControlSelectedAmount": "Selected amount",
+  "coinControlAmountToSend": "Amount to send",
+  "coinControlUseCoins": "Use coins",
+  "coinControlOutputDetails": "Output details",
+  "coinControlFrozen": "Frozen",
+  "coinControlAvailable": "Available",
+  "coinControlUnconfirmed": "Unconfirmed",
+  "coinControlFreezeReason": "Freeze reason",
+  "coinControlEditFreezeReason": "Edit freeze reason",
+  "coinControlSortByConfirmations": "Sort by confirmations",
+  "coinControlSortByAddress": "Sort by address",
+  "coinControlSortByAmount": "Sort by amount",
+  "appEmptyWallets": "Create your first PIVX wallet",
+  "appTagline": "Your privacy. Your keys. Your PIVX.",
+  "@appTagline": {
+    "description": "The app's slogan."
+  },
+  "appAlreadyRunning": "{app} is already running. Close the other window and try again.",
+  "@appAlreadyRunning": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "introRestoreBackup": "Restore from {app} backup",
+  "@introRestoreBackup": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "introTermsLink": "Terms of service",
+  "@introTermsLink": {
+    "description": "A link inside introAgreeOne/introAgreeTwo: use the form that fits there."
+  },
+  "introPrivacyLink": "Privacy policy",
+  "@introPrivacyLink": {
+    "description": "A link inside introAgreeOne/introAgreeTwo: use the form that fits there."
+  },
+  "introAgreeOne": "By using {app}, you agree to the {link}",
+  "@introAgreeOne": {
+    "description": "{link} is introTermsLink or introPrivacyLink.",
+    "placeholders": {
+      "app": {
+        "type": "String"
+      },
+      "link": {
+        "type": "String"
+      }
+    }
+  },
+  "introAgreeTwo": "By using {app}, you agree to the {first} and {second}",
+  "@introAgreeTwo": {
+    "description": "{first} is introTermsLink, {second} introPrivacyLink.",
+    "placeholders": {
+      "app": {
+        "type": "String"
+      },
+      "first": {
+        "type": "String"
+      },
+      "second": {
+        "type": "String"
+      }
+    }
+  },
+  "introGetStarted": "Get started",
+  "introCreateNew": "Create new {app}",
+  "@introCreateNew": {
+    "description": "Desktop: set up the app with a new password.",
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "privacyChooseExperience": "Choose your {app} experience",
+  "@privacyChooseExperience": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "privacyChangeLater": "You can change it later in Settings",
+  "privacyEasyText": "CoinGecko enabled: (24 hour price change shown in-app, total wallet value shown in USD or other currency).",
+  "privacyEasyRecommended": "Recommended for most crypto users.",
+  "privacyIncognitoText": "CoinGecko disabled (price changes not shown, no wallet value shown in other currencies).",
+  "privacyIncognitoRecommended": "Recommended for the privacy conscious.",
+  "privacyEasy": "Easy Crypto",
+  "@privacyEasy": {
+    "description": "A mode of the app: prices from CoinGecko on."
+  },
+  "privacyRecommended": "Recommended",
+  "privacyIncognito": "Incognito",
+  "@privacyIncognito": {
+    "description": "A mode of the app: no calls to price services."
+  },
+  "privacyConscious": "Privacy conscious",
+  "pinUnlockReason": "Authenticate to unlock {app}",
+  "@pinUnlockReason": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "pinUnlockTitle": "Unlock {app}",
+  "@pinUnlockTitle": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "homeTapBackToExit": "Tap back again to exit",
+  "homeSettingsSemantics": "Settings Button. Takes To Settings Page.",
+  "paymentLinkNoAddress": "The payment link has no valid PIVX address",
+  "paymentLinkNoWallet": "No {coin} wallet to pay from",
+  "@paymentLinkNoWallet": {
+    "placeholders": {
+      "coin": {
+        "type": "String"
+      }
+    }
+  },
+  "paymentLinkCloseWallet": "Close the open wallet first",
+  "paymentPayTo": "Pay to {name}",
+  "@paymentPayTo": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "paymentPayFrom": "Pay from",
+  "@paymentPayFrom": {
+    "description": "Title of a list of wallets to pay from."
+  },
+  "walletsFavorites": "Favorite wallets",
+  "walletsDragToReorder": "Drag to change wallet order.",
+  "pinCreate": "Create a PIN",
+  "pinProtects": "This PIN protects access to your wallet.",
+  "pinTooShort": "PIN not long enough!",
+  "pinConfirm": "Confirm PIN",
+  "commonSkipCaps": "SKIP",
+  "@commonSkipCaps": {
+    "description": "Skip button of the system's fingerprint prompt, in capitals where the language has them."
+  },
+  "pinFingerprintReason": "You can use your fingerprint to unlock the wallet and confirm transactions.",
+  "pinFingerprintTitle": "Enable fingerprint authentication",
+  "pinSaveFailed": "Couldn't save the PIN. Try again.",
+  "pinMismatch": "PIN codes do not match. Try again.",
+  "pinSaving": "Saving your PIN…",
+  "pinWrong": "Wrong PIN. Try again.",
+  "pinEnter": "Enter PIN",
+  "pinWrongPassword": "Wrong password",
+  "pinLoadingWallets": "Loading wallets...",
+  "pinUseBiometrics": "Use biometrics",
+  "pinLockedSeconds": "{count, plural, =1{Too many wrong PINs. Try again in 1 second.} other{Too many wrong PINs. Try again in {count} seconds.}}",
+  "@pinLockedSeconds": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "pinLockedMinutes": "{count, plural, =1{Too many wrong PINs. Try again in 1 minute.} other{Too many wrong PINs. Try again in {count} minutes.}}",
+  "@pinLockedMinutes": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "walletsOfCoin": "{coin} ({ticker}) wallets",
+  "@walletsOfCoin": {
+    "placeholders": {
+      "coin": {
+        "type": "String"
+      },
+      "ticker": {
+        "type": "String"
+      }
+    }
+  },
+  "walletsAddWallet": "Add Wallet",
+  "walletsAddFavorite": "Add a favorite",
+  "walletsCount": "{count, plural, =1{1 wallet} other{{count} wallets}}",
+  "@walletsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "walletsAll": "All wallets",
+  "addWalletTitle": "Add wallet",
+  "addWalletSelectCurrency": "Select wallet currency",
+  "addWalletCreateOrRestore": "Create a new wallet or restore an existing wallet from seed.",
+  "addWalletOfCoin": "Add {coin} wallet",
+  "@addWalletOfCoin": {
+    "placeholders": {
+      "coin": {
+        "type": "String"
+      }
+    }
+  },
+  "addWalletCreateNew": "Create new wallet",
+  "addWalletRestore": "Restore wallet",
+  "addWalletNameYour": "Name your {coin} wallet",
+  "@addWalletNameYour": {
+    "placeholders": {
+      "coin": {
+        "type": "String"
+      }
+    }
+  },
+  "addWalletEnterLabel": "Enter a label for your wallet (e.g. Savings)",
+  "addWalletEnterName": "Enter wallet name",
+  "addWalletRandomNameSemantics": "Generate Random Wallet Name Button. Generates A Random Name For Wallet.",
+  "addWalletClearNameSemantics": "Clear Wallet Name Field Button. Clears the wallet name field.",
+  "addWalletRollDice": "Roll the dice to pick a random name.",
+  "addWalletOptions": "Wallet options",
+  "addWalletWordSeed": "{count} word seed",
+  "@addWalletWordSeed": {
+    "description": "A recovery phrase length to choose: 12, 18 or 24 words.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "addWalletPassphraseText": "You may add a BIP39 passphrase. This is optional. You will need BOTH your seed and your passphrase to recover the wallet.",
+  "addWalletPassphrase": "BIP39 passphrase",
+  "addWalletCopySemantics": "Copy Button. Copies The Recovery Phrase To Clipboard.",
+  "addWalletRecoveryPhraseTitle": "Recovery Phrase",
+  "addWalletWriteDown": "Please write down your recovery phrase in the correct order and save it to keep your funds secure. You will also be asked to verify the words on the next screen.",
+  "commonCopyToClipboard": "Copy to clipboard",
+  "addWalletSavedPhrase": "I saved my recovery phrase",
+  "addWalletGenerating": "Generating...",
+  "addWalletCreateError": "Create Wallet Error",
+  "commonUnknownError": "Unknown error",
+  "addWalletExplainSemantics": "Question Button. Opens A Dialog For Recovery Phrase Explanation.",
+  "addWalletWarningDesktop": "On the next screen you will see {count} words that make up your recovery phrase.\n\nPlease write it down. Keep it safe and never share it with anyone. Your recovery phrase is the only way you can access your funds if you forget your PIN, lose your phone, etc.\n\n{app} does not keep nor is able to restore your recover phrase. Only you have access to your wallet.",
+  "@addWalletWarningDesktop": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "addWalletImportant": "Important",
+  "newWalletGiven": "On the next screen you will be given <b>{count} words</b>. They are your <b>recovery phrase</b>.",
+  "@newWalletGiven": {
+    "description": "Keep the <b> tags around the words to highlight.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "addWalletWriteThemDown": "Write them down.",
+  "addWalletKeepSafe": "Keep them safe.",
+  "addWalletDontShow": "Do not show them to anyone.",
+  "addWalletUnderstand": "I understand that {app} does not keep my recovery phrase and cannot restore it. If I lose it, I will not be able to access my funds.",
+  "@addWalletUnderstand": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "addWalletViewPhrase": "View recovery phrase",
+  "explainTitle": "Recovery phrase explained",
+  "explainCarAnalogy": "The car analogy.",
+  "explainCar": "You can drive your car when your have your car keys. If you lose your car keys, you can’t drive you car. If someone steals your car keys, they can steal your car. If someone copies your car keys, they can also steal your car.",
+  "explainCrypto": "Cryptocurrency works the same way. These recovery phrase words we’re about to show you are like the car keys in the metaphor above.",
+  "explainLose": "If you lose these words, you can’t access your money. If someone steals these words, they can access and steal your money. If someone copies these words, they can access and steal your money.",
+  "explainNobody": "If your funds are lost or stolen because of you don’t write down your recovery phrase or keep it safe, then NOBODY, NOT EVEN US, can help you recover your money.",
+  "restoreMayTakeWhileLines": "Restoring your wallet may take a while.\nPlease do not exit this screen once the process is started.",
+  "restoreAction": "Restore",
+  "@restoreAction": {
+    "description": "A button: start restoring the wallet."
+  },
+  "restoreAreYouReady": "Are you ready?",
+  "restoreMayTakeWhile": "Restoring your wallet may take a while. Please do not exit this screen once the process is started.",
+  "restoreOptions": "Restore options",
+  "restoreSeed": "Seed",
+  "@restoreSeed": {
+    "description": "A switch: restore from the recovery phrase."
+  },
+  "restoreViewOnly": "View Only",
+  "@restoreViewOnly": {
+    "description": "A switch: restore a watch-only wallet from a public key."
+  },
+  "restoreChooseLength": "Choose recovery phrase length",
+  "restoreWords": "{count} words",
+  "@restoreWords": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "commonAdvanced": "Advanced",
+  "restorePassphraseText": "If the recovery phrase you are about to restore was created with an optional BIP39 passphrase you can enter it here.",
+  "restoreNotXpub": "That isn't a {coin} extended public key.",
+  "@restoreNotXpub": {
+    "placeholders": {
+      "coin": {
+        "type": "String"
+      }
+    }
+  },
+  "restoreUseAccountXpub": "Use the extended public key of the account ({path}).",
+  "@restoreUseAccountXpub": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  },
+  "restoreXpubEmpty": "Extended public key is empty",
+  "restoreEnterViewOnly": "Enter view only details",
+  "restoreXpub": "Extended public key",
+  "restoreInvalidSeed": "Invalid seed phrase!",
+  "restoreScanSemantics": "View QR Code Button. Opens Camera To Scan QR Code For Restoring Wallet.",
+  "restorePasteSemantics": "Paste Button. Pastes From Clipboard For Restoring Wallet.",
+  "restoreRecoveryPhrase": "Recovery phrase",
+  "restoreEnterPhrase": "Enter your {count}-word recovery phrase.",
+  "@restoreEnterPhrase": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "restoreCheckSpelling": "Please check spelling",
+  "restorePhraseLength": "Phrase length",
+  "restoreFailed": "Restore failed",
+  "restoreSucceeded": "Wallet restored",
+  "restoreAccessNow": "You may access your wallet now.",
+  "restoreRestoringEllipsis": "Restoring wallet...",
+  "restoreDontExitLines": "Restoring your wallet may take a while.\nPlease do not exit this screen.",
+  "restoreRestoring": "Restoring wallet",
+  "restoreDontExit": "This may take a while. Please do not exit this screen.",
+  "verifyPassphraseMismatch": "Passphrase does not match",
+  "verifyMnemonicPassphrase": "Verify mnemonic passphrase",
+  "verifyPassphrase": "Verify BIP39 passphrase",
+  "verifyEnterPassphrase": "Enter your BIP39 passphrase",
+  "verifyAction": "Verify",
+  "verifyCorrect": "Correct! Your wallet is set up.",
+  "verifyIncorrect": "Incorrect. Please try again.",
+  "verifyTitle": "Verify recovery phrase",
+  "verifySelectWord": "Select word number",
+  "@verifySelectWord": {
+    "description": "Followed by the number of the word to pick."
+  },
+  "verifyTapWord": "Tap word number",
+  "@verifyTapWord": {
+    "description": "Followed by the number of the word to pick."
+  },
+  "settingsAbout": "About",
+  "aboutVersion": "Version",
+  "aboutBuildNumber": "Build number",
+  "aboutBuildCommit": "Build commit",
+  "aboutBuildSignature": "Build signature",
+  "aboutWebsite": "Website",
+  "settingsLogging": "Logging",
+  "advancedShowTestnet": "Show testnet coins",
+  "advancedEnableCoinControl": "Enable coin control",
+  "advancedExperience": "{app} Experience",
+  "@advancedExperience": {
+    "description": "The privacy mode setting: Easy crypto or Incognito.",
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "advancedEasyCrypto": "Easy crypto",
+  "@advancedEasyCrypto": {
+    "description": "A mode of the app: prices from CoinGecko on."
+  },
+  "explorerManage": "Manage block explorers",
+  "explorerOfCoin": "{coin} block explorer",
+  "@explorerOfCoin": {
+    "placeholders": {
+      "coin": {
+        "type": "String"
+      }
+    }
+  },
+  "explorerChange": "Change block explorer",
+  "unitsTitle": "Units",
+  "@unitsTitle": {
+    "description": "Coin units such as PIV and mPIV."
+  },
+  "logsChooseLocation": "Choose Log Save location",
+  "logsShareText": "{app} logs",
+  "@logsShareText": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "logsPreparing": "Preparing logs...",
+  "logsSave": "Save logs",
+  "logsSaved": "Logs saved",
+  "logsExporting": "Exporting logs...",
+  "logsExportFailed": "Failed to export logs",
+  "logsLocation": "Log files location",
+  "logsSaveTo": "Save to...",
+  "logsRestartNote": "NOTE: {app} must be restarted in order for changes to take effect.",
+  "@logsRestartNote": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "logsShare": "Share logs",
+  "logsSaveToFile": "Save logs to a file",
+  "logsSelectLocation": "Select log save location",
+  "logsCannotUseLocation": "Cannot use chosen location",
+  "logsChangePathFailed": "Failed to change logs path",
+  "unitsCoinUnits": "Coin units",
+  "unitsEdit": "Edit {coin} units",
+  "@unitsEdit": {
+    "placeholders": {
+      "coin": {
+        "type": "String"
+      }
+    }
+  },
+  "unitsMaxPrecision": "Maximum precision",
+  "explorerEditText": "Edit your block explorer above. Keep in mind that every block explorer has a slightly different URL scheme.\n\nPaste in your block explorer of choice, then put [TXID] where the transaction ID should go, and {app} will fill in the transaction ID there.",
+  "@explorerEditText": {
+    "description": "Keep [TXID] as it is.",
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsAppearance": "Appearance",
+  "settingsTheme": "Theme",
+  "appearanceSounds": "Sound effects",
+  "appearanceSoundsText": "Play sounds, e.g. while a transaction is sent",
+  "themeSystem": "System default",
+  "themeSystemText": "Follow the device's light or dark mode",
+  "themeLight": "Light",
+  "themeLightText": "Always light",
+  "themeDark": "Dark",
+  "themeDarkText": "Always dark",
+  "settingsCurrency": "Currency",
+  "deleteAccountConfirm": "Delete all wallets and settings?",
+  "deleteAccountDeleting": "Deleting everything",
+  "deleteAccountPartly": "Some of it couldn't be deleted. Try again.",
+  "settingsDeleteAccount": "Delete account",
+  "deleteAccountText": "{app} has no account: everything stays on this phone. Deleting it removes all of it: every wallet with its keys, the address book, your PIN and your settings. Nothing is kept on any server.\n\nMake sure you have the recovery phrase of every wallet first: without it, its funds are lost.",
+  "@deleteAccountText": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "commonConfirm": "Confirm",
+  "settingsTitle": "Settings",
+  "settingsBackupRestore": "{app} backup & restore",
+  "@settingsBackupRestore": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsBackupAuthReason": "Authenticate to access {app} backup & restore settings",
+  "@settingsBackupAuthReason": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsBackupAuthTitle": "{app} backup",
+  "@settingsBackupAuthTitle": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsSecurity": "Security",
+  "settingsTor": "Tor settings",
+  "settingsManageNodes": "Manage nodes",
+  "settingsSyncing": "Syncing preferences",
+  "settingsStartup": "Startup",
+  "settingsSupport": "Support",
+  "settingsDevOptions": "Dev options",
+  "settingsResetLogLocation": "Reset log location",
+  "nodeUnreachableTitle": "Server currently unreachable",
+  "nodeSaveAnyway": "Save this node anyway?",
+  "nodeEdit": "Edit node",
+  "nodeAdd": "Add node",
+  "nodeAddNew": "Add new node",
+  "nodeTestConnection": "Test connection",
+  "nodePingSuccess": "Server ping success",
+  "nodeUnreachable": "Server unreachable",
+  "nodeName": "Node name",
+  "nodeIpAddress": "IP address",
+  "nodePort": "Port",
+  "nodeUseSsl": "Use SSL",
+  "nodeOnlyTor": "Only over Tor",
+  "nodeOnlyWithoutTor": "Only without Tor",
+  "nodeBoth": "Both",
+  "@nodeBoth": {
+    "description": "Connect to the node both over Tor and without it."
+  },
+  "nodesOfCoin": "{coin} nodes",
+  "@nodesOfCoin": {
+    "placeholders": {
+      "coin": {
+        "type": "String"
+      }
+    }
+  },
+  "nodesCount": "{count, plural, =1{1 node} other{{count} nodes}}",
+  "@nodesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "nodesDefault": "Default",
+  "@nodesDefault": {
+    "description": "The node list holds only the default node."
+  },
+  "nodeDetails": "Node details",
+  "nodeDelete": "Delete node",
+  "autoLockTitle": "Auto lock settings",
+  "autoLockEnable": "Lock automatically",
+  "autoLockMinutes": "Minutes",
+  "pinCreateNew": "Create new PIN",
+  "pinIsDuress": "That's your duress PIN. Pick a different one.",
+  "pinConfirmNew": "Confirm new PIN",
+  "pinNewSet": "New PIN is set up",
+  "duressCreate": "Create duress PIN",
+  "@duressCreate": {
+    "description": "A duress PIN unlocks the app showing only some wallets, for when someone forces you to unlock it."
+  },
+  "duressIsMainPin": "That's your PIN. Pick a different duress PIN.",
+  "duressConfirm": "Confirm duress PIN",
+  "duressSet": "Duress PIN is set up",
+  "duressEnable": "Enable duress PIN",
+  "duressEnableText": "When unlocking the app with a duress PIN, only wallets marked as visible in duress mode will be loaded and shown. Be aware that providing a duress PIN instead of your real PIN to law enforcement, border agents, or other authorities may be considered deception and could carry legal consequences depending on your jurisdiction. Use with care and according to your threat model.",
+  "duressAuthReason": "Authenticate to create duress PIN",
+  "duressDisable": "Disable duress PIN",
+  "duressDisableText": "Your duress PIN will be deleted. To turn this on again, you'll create a new one.",
+  "pinChangeAuthReason": "Authenticate to change PIN",
+  "pinChange": "Change PIN",
+  "securityBiometrics": "Enable biometric authentication",
+  "securityRandomizePad": "Randomize PIN pad",
+  "securityAutoAcceptPin": "Auto-accept correct PIN",
+  "securityCover": "Cover in background",
+  "@securityCover": {
+    "description": "Hide the app's content in the app switcher."
+  },
+  "securityNoScreenshots": "Disable screenshots",
+  "securityDuressPin": "Duress PIN",
+  "securityBiometricsDuress": "Biometrics opens duress",
+  "@securityBiometricsDuress": {
+    "description": "Unlocking with biometrics opens the app in duress mode."
+  },
+  "autoLockAuthReason": "Authenticate to change auto lock settings",
+  "startupTitle": "Startup preferences",
+  "startupHomeScreen": "Home screen",
+  "startupAppHomeScreen": "{app} home screen",
+  "@startupAppHomeScreen": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "startupSpecificWallet": "Specific wallet",
+  "startupSpecificWalletText": "Select a specific wallet to load into on startup",
+  "startupSelectWallet": "Select wallet...",
+  "startupSelectTitle": "Select startup wallet",
+  "startupSelectText": "Select a wallet to load into immediately on startup",
+  "syncingTitle": "Syncing",
+  "syncingCurrentOnly": "Sync only currently open wallet",
+  "syncingCurrentOnlyText": "Sync only the wallet that you are using",
+  "syncingAll": "Sync all wallets at startup",
+  "syncingAllText": "All of your wallets will start syncing when you open the app",
+  "syncingSelected": "Sync only selected wallets at startup",
+  "syncingSelectedText": "Only the wallets you select will start syncing when you open the app",
+  "syncingSelectWallets": "Select wallets to sync",
+  "syncingSelectWalletsEllipsis": "Select wallets...",
+  "syncingChooseWallets": "Choose the wallets to sync automatically at startup",
+  "torWhatIs": "What is Tor?",
+  "torWhatIsText": "Short for \"The Onion Router\", is an open-source software that enables internet communication to remain anonymous by routing internet traffic through a series of layered nodes, to obscure the origin and destination of data.",
+  "torOnlyText": "With Tor on, the app connects only through Tor. If Tor stops working, the app stops connecting until it's back.",
+  "torConnectingTapToCancel": "Connecting (tap to cancel)",
+  "torStatus": "Tor status",
+  "torConnectCaps": "CONNECT",
+  "@torConnectCaps": {
+    "description": "A button, in capitals where the language has them."
+  },
+  "torStopCaps": "STOP",
+  "@torStopCaps": {
+    "description": "A button, in capitals where the language has them."
+  },
+  "torConnectingCaps": "CONNECTING",
+  "@torConnectingCaps": {
+    "description": "In capitals where the language has them."
+  },
+  "supportText": "If you need support or want to report a bug, ask the PIVX community on any of these channels!",
+  "supportEmail": "Email",
+  "supportScamTitle": "Important: Protect Yourself from Scammers!",
+  "supportScamOfficial": "All official support for <b>{app}</b> in <b>{channel}</b> is provided <b>ONLY</b> in public channels.",
+  "@supportScamOfficial": {
+    "description": "{channel} is Telegram, Discord and the like. Keep the <b> tags around the words to highlight.",
+    "placeholders": {
+      "app": {
+        "type": "String"
+      },
+      "channel": {
+        "type": "String"
+      }
+    }
+  },
+  "supportScamNoDms": "Never trust direct messages (DMs) from anyone claiming to be support staff.",
+  "supportScamNoShare": "Do not share personal information, wallet details, or private keys.",
+  "supportScamMoney": "If someone asks you to send them money or crypto, they are a scammer.",
+  "supportScamNever": "Our support staff will <b>*never*</b> contact you privately first. They will only help you in the public chat.",
+  "@supportScamNever": {
+    "description": "Keep the <b> tags around the words to highlight."
+  },
+  "supportIUnderstandCaps": "I UNDERSTAND",
+  "@supportIUnderstandCaps": {
+    "description": "A button, in capitals where the language has them."
+  },
+  "backupSecondsAgo": "{count, plural, =1{1 second ago} other{{count} seconds ago}}",
+  "@backupSecondsAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "backupMinutesAgo": "{count, plural, =1{1 minute ago} other{{count} minutes ago}}",
+  "@backupMinutesAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "backupHoursAgo": "{count, plural, =1{1 hour ago} other{{count} hours ago}}",
+  "@backupHoursAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "backupDaysAgo": "{count, plural, =1{1 day ago} other{{count} days ago}}",
+  "@backupDaysAgo": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "backupEnableAuto": "Enable Auto Backup",
+  "backupEnableAutoText": "To enable Auto Backup, you need to create a backup file.",
+  "commonBack": "Back",
+  "backupDisableAuto": "Disable Auto Backup",
+  "backupDisableAutoText": "You are turning off Auto Backup. You can turn it back on at any time. Your previous Auto Backup file will not be deleted. Remember to backup your wallets manually so you don't lose important information.",
+  "commonDisable": "Disable",
+  "backupAuto": "Auto Backup",
+  "backupAutoText": "Auto Backup is a custom {app} feature that offers a convenient backup of your data.\n\nTo ensure maximum security, we recommend using a unique password that you haven't used anywhere else on the internet before. Your password is not stored.",
+  "@backupAutoText": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "backupMoreInfo": "For more information, please see our website",
+  "@backupMoreInfo": {
+    "description": "Followed by the website's address."
+  },
+  "backupNow": "Back up now",
+  "backupBackedUp": "Backed up {when}",
+  "@backupBackedUp": {
+    "description": "{when} is backupSecondsAgo and the like, or a date.",
+    "placeholders": {
+      "when": {
+        "type": "String"
+      }
+    }
+  },
+  "backupAutoFile": "Auto Backup file",
+  "backupSavedTo": "Saved to",
+  "backupPassphrase": "Passphrase",
+  "backupAutoFrequency": "Auto Backup frequency",
+  "backupEditAuto": "Edit Auto Backup",
+  "backupEncryptingInitial": "Encrypting initial backup",
+  "backupShouldntTakeLong": "This shouldn't take long",
+  "backupAutoEnabledSavedTo": "{app} Auto Backup enabled and saved to:",
+  "@backupAutoEnabledSavedTo": {
+    "description": "Followed by the file's path.",
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "backupEnableAutoFailed": "Failed to enable Auto Backup",
+  "backupCreateAuto": "Create Auto Backup",
+  "backupCreateFile": "Create your backup file",
+  "backupCreatePassphrase": "Create passphrase",
+  "backupConfirmPassphrase": "Confirm passphrase",
+  "backupCreate": "Create backup",
+  "backupEncrypting": "Encrypting backup",
+  "backupSavedToColon": "Backup saved to:",
+  "@backupSavedToColon": {
+    "description": "Followed by the file's path."
+  },
+  "backupAppSavedTo": "{app} backup saved to:",
+  "@backupAppSavedTo": {
+    "description": "Followed by the file's path.",
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "backupCreateFailed": "Backup creation failed",
+  "commonUnexpectedError": "Unexpected error",
+  "backupChooseLocation": "Choose file location",
+  "backupCreateAPassphrase": "Create a passphrase",
+  "restoreCancelProcess": "Cancel restore process",
+  "restoreCancelRevert": "Cancelling will revert any changes that may have been applied",
+  "restoreYesCancel": "Yes, cancel",
+  "restoreCancelProcessTitle": "Cancel Restore Process",
+  "restoreCancelText": "If you cancel, the restore will not complete, and the wallets will not appear in your {app}.",
+  "@restoreCancelText": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "restoreKeepRestoring": "Keep restoring",
+  "restoreCancelAnyway": "Cancel anyway",
+  "backupUpdatingAuto": "Updating Auto Backup",
+  "backupAutoSavedTo": "{app} Auto Backup saved to:",
+  "@backupAutoSavedTo": {
+    "description": "Followed by the file's path.",
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "backupUpdateAutoFailed": "Failed to update Auto Backup",
+  "backupCreateYour": "Create your backup",
+  "backupEveryTenMinutes": "Every 10 minutes",
+  "backupEveryAppStartup": "Every app startup",
+  "backupEveryAppStart": "Every app start",
+  "backupAfterClosingWallet": "After closing a cryptocurrency wallet",
+  "backupNoDirectory": "Directory not chosen",
+  "backupDirectoryMissing": "Directory does not exist",
+  "backupPassphraseRequired": "A passphrase is required",
+  "backupLoadFile": "Load backup file",
+  "restoreFromFile": "Restore from file",
+  "commonEnterPassword": "Enter password",
+  "restoreDecrypting": "Decrypting {app} backup file",
+  "@restoreDecrypting": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "restoreDecryptFailed": "Failed to decrypt backup file",
+  "restoreChooseFile": "Choose file...",
+  "restoreEnterPassphrase": "Enter passphrase",
+  "restoreFileMissing": "Backup file does not exist",
+  "restoreApp": "Restore {app}",
+  "@restoreApp": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "backupCreateManual": "Create manual backup",
+  "backupRestore": "Restore backup",
+  "restoreCancelling": "Cancelling restore. Please wait.",
+  "restoreRestoringApp": "Restoring {app}",
+  "@restoreRestoringApp": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "restorePreferences": "Preferences",
+  "restoreNodes": "Nodes",
+  "restoreWallets": "Wallets",
+  "commonOkCaps": "OK",
+  "restoreWalletFailedRetry": "Unable to restore. Tap icon to retry.",
+  "restoreShowPhrase": "Show recovery phrase",
+  "signTitle": "Sign / verify message",
+  "signTabSign": "Sign",
+  "signNoKey": "This wallet has no key for {address}",
+  "@signNoKey": {
+    "placeholders": {
+      "address": {
+        "type": "String"
+      }
+    }
+  },
+  "signFailed": "Couldn't sign: {error}",
+  "@signFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "signNotAddress": "Not a {ticker} address",
+  "@signNotAddress": {
+    "placeholders": {
+      "ticker": {
+        "type": "String"
+      }
+    }
+  },
+  "signOnlyRegular": "Only a regular {ticker} address (not a script or shielded one) can sign messages",
+  "@signOnlyRegular": {
+    "placeholders": {
+      "ticker": {
+        "type": "String"
+      }
+    }
+  },
+  "signBadFormat": "The signature isn't in a valid format",
+  "signExplain": "Prove you own an address: anyone can check the signature against the address and the exact message. Signing doesn't spend anything. Only transparent addresses can sign.",
+  "signMessage": "Message",
+  "signMessageToSign": "Message to sign",
+  "signSigning": "Signing…",
+  "signAction": "Sign message",
+  "signSignature": "Signature",
+  "signCopy": "Copy signature",
+  "signCopied": "Signature copied",
+  "signVerifyExplain": "Check that a message was signed with an address's key. The message must match exactly, spaces and line breaks included.",
+  "signTickerAddress": "{ticker} address",
+  "@signTickerAddress": {
+    "placeholders": {
+      "ticker": {
+        "type": "String"
+      }
+    }
+  },
+  "signSignedMessage": "Signed message",
+  "signVerifyAction": "Verify message",
+  "signValid": "Valid: this address signed this message.",
+  "signNotValid": "Not valid: this address didn't sign this message, or the message was changed.",
+  "walletKeys": "Wallet keys",
+  "@walletKeys": {
+    "description": "What a view-only wallet holds instead of a seed: its public keys."
+  },
+  "walletSeed": "Wallet seed",
+  "walletViewKeys": "View wallet keys",
+  "walletViewSeed": "View wallet seed",
+  "walletDeleteWarning": "You're about to permanently delete this wallet.\n\nAfter that, the only way to get to your funds is your recovery phrase.\n\n{app} doesn't keep a copy of it and can't restore your wallet.",
+  "@walletDeleteWarning": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "walletDeleteSaveFirst": "SAVE YOUR RECOVERY PHRASE FIRST.",
+  "walletSeedText": "Write down your recovery phrase and keep it safe. Never share it with anyone. It's the only way to get to your funds if you forget your PIN, lose your phone, and so on.\n\n{app} doesn't keep a copy and can't restore it for you. Only you have access to your wallet.",
+  "@walletSeedText": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "walletShowQr": "Show QR Code",
+  "walletSeedQr": "Recovery phrase QR code",
+  "netRescanBlockchain": "Rescan blockchain",
+  "netRescanText": "This can take a while. If you close the app before it finishes, the rescan starts over.",
+  "netRescan": "Rescan",
+  "netRescanning": "Rescanning blockchain",
+  "netRescanCompleted": "Rescan completed",
+  "netRescanFailed": "Rescan failed",
+  "netTitle": "Network",
+  "netBlockchainStatus": "Blockchain status",
+  "netResync": "Resync",
+  "netSynchronized": "Synchronized",
+  "netSynchronizing": "Synchronizing",
+  "@netSynchronizing": {
+    "description": "Shown with 0 to 3 dots after it, as an animation."
+  },
+  "netUnableToSync": "Unable to synchronize",
+  "netCheckConnection": "Please check your internet connection and make sure your current node is not having issues.",
+  "netCurrentHeight": "Current height",
+  "commonDisconnect": "Disconnect",
+  "commonConnecting": "Connecting...",
+  "walletViewRecoveryDataReason": "Authenticate to view recovery data",
+  "walletViewRecoveryData": "View recovery data",
+  "walletViewPhraseReason": "Authenticate to view recovery phrase",
+  "walletSettings": "Wallet settings",
+  "walletWillBeDeleted": "Thanks! Your wallet will be deleted.",
+  "walletBackupDataText": "Please write down your backup data. Keep it safe and never share it with anyone. Your backup data is the only way you can access your wallet if you forget your PIN, lose your phone, etc.\n\n{app} does not keep nor is able to restore your backup data. Only you have access to your wallet.",
+  "@walletBackupDataText": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "walletRename": "Rename wallet",
+  "walletName": "Wallet name",
+  "commonWarningExclaim": "Warning!",
+  "walletReuseWarning": "Reusing addresses reduces your privacy and security. Are you sure you want to reuse addresses by default?",
+  "walletReuseAddress": "Reuse receiving address",
+  "walletShowInDuress": "Show in duress",
+  "@walletShowInDuress": {
+    "description": "Show this wallet when the app is unlocked with the duress PIN."
+  },
+  "walletDeleteConfirm": "Do you want to delete {name}?",
+  "@walletDeleteConfirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "walletDeleteReason": "Authenticate to delete wallet",
+  "walletDelete": "Delete wallet",
+  "desktopAddressBook": "Address Book",
+  "@desktopAddressBook": {
+    "description": "Desktop: a menu item and its page's title."
+  },
+  "desktopMyWallets": "My Wallets",
+  "@desktopMyWallets": {
+    "description": "Desktop: a menu item and its page's title."
+  },
+  "desktopExit": "Exit",
+  "@desktopExit": {
+    "description": "Desktop menu: closes the app."
+  },
+  "desktopExitToMyWallets": "Exit to My Wallets",
+  "desktopMyWallet": "My wallet",
+  "@desktopMyWallet": {
+    "description": "Desktop: the wallet page's Send and Receive panel."
+  },
+  "addressBookContactsEmpty": "Your contacts will appear here",
+  "commonOptions": "Options",
+  "contactDelete": "Delete contact",
+  "coinControlChooseForSend": "Choose which outputs this send uses.",
+  "coinControlClearSelection": "Clear selection",
+  "coinControlClearSelectionCount": "Clear selection ({count})",
+  "@coinControlClearSelectionCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "commonApply": "Apply",
+  "coinControlSortBy": "Sort by...",
+  "walletsAddNew": "Add new wallet",
+  "walletRecentActivity": "Recent activity",
+  "contactUseAddress": "Use address",
+  "walletWriteDownNext": "Please write down your recovery phrase in the correct order and save it to keep your funds secure. You will be shown your recovery phrase on the next screen.",
+  "walletDecryptionErrorText": "Could not retrieve wallet keys/mnemonic phrase/seed.\n\nAre you certain you would like to continue with wallet deletion?",
+  "walletDecryptionError": "Decryption error",
+  "sendEnterPasswordToSend": "Enter your wallet password to send {ticker}",
+  "@sendEnterPasswordToSend": {
+    "placeholders": {
+      "ticker": {
+        "type": "String"
+      }
+    }
+  },
+  "commonEnterYourPassword": "Enter your password",
+  "receiveYourShieldAddress": "Your {ticker} shield address",
+  "@receiveYourShieldAddress": {
+    "placeholders": {
+      "ticker": {
+        "type": "String"
+      }
+    }
+  },
+  "receiveCreateNewQr": "Create new QR code",
+  "sendNoteHintLong": "Just for you: kept in your history, never sent",
+  "@sendNoteHintLong": {
+    "description": "The hint of a send's private note."
+  },
+  "sendPreviewSend": "Preview send",
+  "featureCoinControlText": "Choose which outputs to spend and freeze the ones to keep",
+  "featureMasternodesText": "Create, start and follow your masternodes",
+  "featureColdStakingText": "Delegate coins to a staker and earn rewards while they stay yours",
+  "featureGovernanceText": "Budget proposals: follow them and vote with your masternodes",
+  "featureNamesText": "Register a PIVX name, and manage or sell your names",
+  "featurePrivatizeText": "Move your whole transparent balance to your shield balance",
+  "walletMoreFeatures": "More features",
+  "netUnableToSyncShort": "Unable to sync",
+  "walletWriteDownDesktop": "Write down your recovery phrase in the right order and keep it safe. It's the only way to get to your funds if this computer is lost or you forget your password.",
+  "passwordRequired": "A password is required",
+  "passwordMismatch": "Password does not match",
+  "commonInitializing": "Initializing...",
+  "commonErrorWith": "Error: {error}",
+  "@commonErrorWith": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "passwordIsSetUp": "Your password is set up",
+  "passwordCreateTitle": "Create a password",
+  "passwordCreateText": "Protect your funds with a strong password",
+  "passwordCreate": "Create password",
+  "passwordConfirm": "Confirm password",
+  "passwordResetNewText": "To <b>create a new {app}</b>, we need to <b>delete your old wallets</b>. Make sure you have the recovery phrase of each one: without it, its funds are lost.\n\n{appName} closes when it's done. Open it again to start over.",
+  "@passwordResetNewText": {
+    "description": "The text between <b> and </b> is bold.",
+    "placeholders": {
+      "app": {
+        "type": "String"
+      },
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "passwordResetRestoreText": "To <b>restore from backup</b>, we need to <b>delete your old wallets</b>. Make sure you have the recovery phrase of each one: without it, its funds are lost.\n\n{appName} closes when it's done. Open it again to restore your backup.",
+  "@passwordResetRestoreText": {
+    "description": "The text between <b> and </b> is bold.",
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "passwordDeleteAndClose": "Delete and close",
+  "passwordDeletingFailed": "Deleting failed: {error}",
+  "@passwordDeletingFailed": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "passwordTakeMeBack": "Take me back!",
+  "passwordForgot": "Forgot password?",
+  "passwordVerifying": "Verifying password...",
+  "passwordInvalid": "Invalid password",
+  "passwordUnlockText": "Enter your wallet password to unlock {app}",
+  "@passwordUnlockText": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "passwordUnlock": "Unlock",
+  "passwordForgotText": "{appName} doesn't keep your password, so it can't be recovered. Start over with a new password, or restore your wallets from a {app} backup file.",
+  "@passwordForgotText": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      },
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "restoreFromBackup": "Restore from backup",
+  "restoreUseBackupFile": "Use your {app} backup file to restore your wallets, address book, and wallet preferences.",
+  "@restoreUseBackupFile": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "commonCheckingEllipsis": "Checking...",
+  "settingsBackupAndRestore": "Backup and restore",
+  "advancedText": "Configure these settings only if you know what you are doing!",
+  "commonView": "View",
+  "backupManual": "Manual Backup",
+  "backupManualText": "Create manual backup to easily transfer your data between devices. You will create a backup file that can be later used in the Restore option. Use a strong password to encrypt your data.",
+  "backupAutoEnabled": "{app} Auto Backup enabled!",
+  "@backupAutoEnabled": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "currencySelect": "Select currency",
+  "currencyText": "Select a fiat currency to evaluate your crypto assets. We use CoinGecko conversion rates when displaying your balance and transaction amounts.",
+  "currencyChange": "Change currency",
+  "nodesSelectCoin": "Select a coin to see nodes",
+  "passwordNewMismatch": "The new passwords don't match",
+  "passwordChanged": "Password changed",
+  "passwordChangeFailed": "Couldn't change the password",
+  "passwordNotCurrent": "That's not your current password",
+  "passwordChangeTitle": "Change Password",
+  "passwordChangeText": "Protect your {app} with a strong password. {app} does not store your password, and is therefore NOT able to restore it. Keep your password safe and secure.",
+  "@passwordChangeText": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "passwordCurrent": "Current password",
+  "passwordEnterCurrent": "Enter current password",
+  "passwordNew": "New password",
+  "passwordEnterNew": "Enter new password",
+  "passwordConfirmNew": "Confirm new password",
+  "commonUpdating": "Updating...",
+  "passwordSetUpNew": "Set up new password",
+  "autoLockAfter": "{count, plural, =1{Locks {app} after 1 minute of inactivity} other{Locks {app} after {count} minutes of inactivity}}",
+  "@autoLockAfter": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "commonOff": "Off",
+  "startupChooseText": "Choose what opens after you unlock {app}.",
+  "@startupChooseText": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "startupMyWalletsText": "The list of your wallets",
+  "startupOpenWallet": "Open this wallet",
+  "syncingText": "Set up your syncing preferences for all wallets in your {app}.",
+  "@syncingText": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "syncingChangePreferences": "Change preferences",
+  "torConnectTo": "Connect to Tor",
+  "torConnectingTo": "Connecting to Tor",
+  "torDisconnectFrom": "Disconnect from Tor",
+  "torOneClick": "Connect to the Tor Network with one click.",
+  "addressNonWallet": "Non wallet/unknown",
+  "commonUnknown": "Unknown",
+  "addressReceiving": "Receiving",
+  "txMasternodeReward": "Masternode reward",
+  "txProposalPayment": "Proposal payment",
+  "txReceiving": "Receiving",
+  "@txReceiving": {
+    "description": "An incoming transaction that isn't confirmed yet. Followed by \"(1/6)\": its confirmations."
+  },
+  "txSending": "Sending",
+  "@txSending": {
+    "description": "An outgoing transaction that isn't confirmed yet. Followed by \"(1/6)\": its confirmations."
+  },
+  "txSentToSelf": "Sent to self",
+  "txStakingReward": "Staking reward",
+  "txBlockReward": "Block reward",
+  "txDelegated": "Delegated",
+  "txDelegating": "Delegating",
+  "txUndelegated": "Undelegated",
+  "txUndelegating": "Undelegating",
+  "txShielding": "Shielding",
+  "txUnshielded": "Unshielded",
+  "txUnshielding": "Unshielding",
+  "txBurned": "Burned",
+  "txBurning": "Burning",
+  "txStakingRewards": "Staking rewards",
+  "txMasternodeRewards": "Masternode rewards",
+  "txColdStakingRewards": "Cold staking rewards",
+  "txProposalPayments": "Proposal payments",
+  "feeFast": "Fast",
+  "feeAverage": "Average",
+  "feeSlow": "Slow",
+  "feeCustom": "Custom",
+  "govStatusPassing": "Passing",
+  "@govStatusPassing": {
+    "description": "A proposal's status: it's in the budget the next superblock pays."
+  },
+  "govStatusPassingNotFunded": "Passing, not funded",
+  "govStatusNotPassing": "Not passing",
+  "govStatusWaiting": "Waiting",
+  "@govStatusWaiting": {
+    "description": "A proposal's status: too new to be funded yet."
+  },
+  "govStatusFinished": "Finished",
+  "passwordRules": "Use at least {count} characters, with upper- and lower-case letters, a number and a symbol.",
+  "@passwordRules": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "passwordNeedUpper": "an upper-case letter",
+  "@passwordNeedUpper": {
+    "description": "Goes into \"add …\" (passwordAdd)."
+  },
+  "passwordNeedLower": "a lower-case letter",
+  "@passwordNeedLower": {
+    "description": "Goes into \"add …\" (passwordAdd)."
+  },
+  "passwordNeedNumber": "a number",
+  "@passwordNeedNumber": {
+    "description": "Goes into \"add …\" (passwordAdd)."
+  },
+  "passwordNeedSymbol": "a symbol",
+  "@passwordNeedSymbol": {
+    "description": "Goes into \"add …\" (passwordAdd)."
+  },
+  "passwordAdd": "add {things}",
+  "@passwordAdd": {
+    "description": "What a new password still needs, e.g. \"add a number and a symbol\". Starts a sentence when the password is long enough (its first letter is then capitalized), or follows \"Use at least 7 characters and\".",
+    "placeholders": {
+      "things": {
+        "type": "String"
+      }
+    }
+  },
+  "commonListAnd": "{list} and {last}",
+  "@commonListAnd": {
+    "description": "The end of a list, e.g. \"a number, a symbol and an upper-case letter\": list is the first items, joined with commonListComma.",
+    "placeholders": {
+      "list": {
+        "type": "String"
+      },
+      "last": {
+        "type": "String"
+      }
+    }
+  },
+  "commonListComma": "{list}, {item}",
+  "@commonListComma": {
+    "description": "Adds an item to a list, e.g. \"a number, a symbol\": list is the items so far. Use your language's list separator.",
+    "placeholders": {
+      "list": {
+        "type": "String"
+      },
+      "item": {
+        "type": "String"
+      }
+    }
+  },
+  "passwordAddSentence": "{adding}.",
+  "@passwordAddSentence": {
+    "description": "passwordAdd as a sentence of its own, its first letter already capitalized. Use your language's full stop.",
+    "placeholders": {
+      "adding": {
+        "type": "String"
+      }
+    }
+  },
+  "passwordTooShort": "Use at least {count} characters.",
+  "@passwordTooShort": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "passwordTooShortAnd": "Use at least {count} characters and {adding}.",
+  "@passwordTooShortAnd": {
+    "description": "adding is passwordAdd, e.g. \"add a number\".",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      },
+      "adding": {
+        "type": "String"
+      }
+    }
+  },
+  "currencyName": "{code, select, AUD{Australian Dollar} AED{United Arab Emirates Dirham} ARS{Argentine Peso} BDT{Bangladeshi Taka} BHD{Bahraini Dinar} BMD{Bermudan Dollar} BRL{Brazilian Real} CAD{Canadian Dollar} CHF{Swiss Franc} CLP{Chilean Peso} CNY{Chinese Yuan} CZK{Czech Koruna} DKK{Danish Krone} EUR{Euro} GBP{Pound sterling} HKD{Hong Kong Dollar} HUF{Hungarian Forint} IDR{Indonesian Rupiah} ILS{Israeli New Shekel} INR{Indian Rupee} JPY{Japanese Yen} KRW{South Korean won} KWD{Kuwaiti Dinar} LKR{Sri Lankan Rupee} MMK{Myanmar Kyat} MXN{Mexican Peso} MYR{Malaysian Ringgit} NGN{Nigerian Naira} NOK{Norwegian Krone} NZD{New Zealand Dollar} PHP{Philippine peso} PKR{Pakistani Rupee} PLN{Polish złoty} RUB{Russian Ruble} SAR{Saudi Riyal} SEK{Swedish Krona} SGD{Singapore Dollar} THB{Thai Baht} TRY{Turkish lira} TWD{New Taiwan dollar} UAH{Ukrainian hryvnia} USD{United States Dollar} VEF{Venezuelan Bolívar} VND{Vietnamese dong} ZAR{South African Rand} XDR{Special Drawing Rights} XAG{Silver Ounce} XAU{Gold Ounce} other{{name}}}",
+  "@currencyName": {
+    "description": "A currency's name by its code. Other codes (cryptocurrencies) keep their English name.",
+    "placeholders": {
+      "code": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "appIsAlreadyRunning": "{app} is already running.",
+  "@appIsAlreadyRunning": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "appCloseOtherWindow": "Close the other window and try again.",
+  "restoreAuthReason": "Authenticate to restore {app} backup",
+  "@restoreAuthReason": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "restoreAuthTitle": "Restore {app} backup",
+  "@restoreAuthTitle": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "pinUnlockBiometricsReason": "Unlock your {app} using biometrics",
+  "@pinUnlockBiometricsReason": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "routeErrorTitle": "Navigation error",
+  "routeErrorText": "Error handling route, this is not supposed to happen. Try restarting the app.",
+  "cameraAccessNeeded": "Camera access needed",
+  "cameraAccessText": "Scanning QR codes needs the camera. Allow it in the settings?",
+  "cameraOpenSettings": "Open settings",
+  "cameraSettingsFailed": "Could not open app settings",
+  "cameraSettingsFailedText": "Open your phone's settings and allow the camera for {app} there.",
+  "@cameraSettingsFailedText": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "nodeTorMismatchTorOn": "Tor is on, but this wallet's node is set to be used without Tor, so the wallet won't sync. Change the node's settings, or turn Tor off.",
+  "nodeTorMismatchTorOff": "This wallet's node is set to be used only over Tor, and Tor is off, so the wallet won't sync. Change the node's settings, or turn Tor on.",
+  "accountsSuffix": "(account {account})",
+  "@accountsSuffix": {
+    "description": "Added to a wallet's name for its other accounts, e.g. \"Savings (account 2)\".",
+    "placeholders": {
+      "account": {
+        "type": "int"
+      }
+    }
+  },
+  "nodeUseWithoutTor": "This node is set to be used without Tor",
+  "@nodeUseWithoutTor": {
+    "description": "Why a node isn't used: Tor is on, and the node is set up for direct connections only."
+  },
+  "nodeUseOnlyOverTor": "This node is set to be used only over Tor",
+  "@nodeUseOnlyOverTor": {
+    "description": "Why a node isn't used: Tor is off, and the node is set up for Tor only."
+  },
+  "shieldNoTransparentFunds": "No transparent funds to shield",
+  "sendChangeMustBeTransparent": "Change must go to a transparent PIVX address",
+  "sendStakerOnlyForDelegating": "Staker addresses are only for delegating",
+  "@sendStakerOnlyForDelegating": {
+    "description": "Sending to a cold staking (staker) address outside the delegation screen."
+  },
+  "csMinDelegation": "A delegation must be at least 1 {ticker}",
+  "@csMinDelegation": {
+    "placeholders": {
+      "ticker": {
+        "type": "String"
+      }
+    }
+  },
+  "csMinDelegationAfterFee": "A delegation must be at least 1 {ticker} after the fee",
+  "@csMinDelegationAfterFee": {
+    "placeholders": {
+      "ticker": {
+        "type": "String"
+      }
+    }
+  },
+  "sendInvalidPivxAddress": "Invalid PIVX address: {address}",
+  "@sendInvalidPivxAddress": {
+    "placeholders": {
+      "address": {
+        "type": "String"
+      }
+    }
+  },
+  "sendBelowDust": "Amount is below the dust limit",
+  "@sendBelowDust": {
+    "description": "\"Dust\": an amount so small the network refuses it."
+  },
+  "shieldNotAvailable": "Shield is not available",
+  "sendInsufficientBalance": "Insufficient balance",
+  "sendTooSmallForFee": "Amount is too small to pay the transaction fee",
+  "sendInsufficientForFee": "Insufficient funds to pay the transaction fee. Lower the amount or tick \"Subtract fee from amount\".",
+  "@sendInsufficientForFee": {
+    "description": "\"Subtract fee from amount\" is the checkbox on the send screen: use the same words as there."
+  },
+  "sendFeeEstimateTooLow": "Fee estimate too low ({fee} < {required}); please retry",
+  "@sendFeeEstimateTooLow": {
+    "description": "Amounts in satoshis.",
+    "placeholders": {
+      "fee": {
+        "type": "String"
+      },
+      "required": {
+        "type": "String"
+      }
+    }
+  },
+  "sendWrongInputValue": "The server reported a wrong value for {output}; not signing",
+  "@sendWrongInputValue": {
+    "description": "{output}: a transaction ID and output number, \"txid:0\".",
+    "placeholders": {
+      "output": {
+        "type": "String"
+      }
+    }
+  },
+  "walletViewOnlyCannotSign": "View only wallets cannot sign",
+  "sendDelegatedRetry": "Delegated coins are only spent when you pick them; please retry",
+  "sendSigningDataMissing": "Failed to fetch signing data. Local db corrupt. Rescan wallet.",
+  "csNotOwner": "Not the owner of delegated output {txid}",
+  "@csNotOwner": {
+    "placeholders": {
+      "txid": {
+        "type": "String"
+      }
+    }
+  },
+  "walletDeleteMasternodeKeys": "This wallet's masternode keys aren't part of the recovery phrase. Note them first (in each masternode's details), or you'll have to set the masternodes up again.",
+  "walletDeletePendingProposals": "Proposals still waiting to be submitted will be lost, along with the fees already paid for them.",
+  "receiveAddressGap": "You already have 20 unused addresses. Use one of them first: a wallet restored from the recovery phrase only looks 20 addresses past the last used one.",
+  "restoreCancelled": "Restore cancelled",
+  "shieldDownloadFailed": "Could not download {name}: {error}",
+  "@shieldDownloadFailed": {
+    "description": "{name}: a file of the shield prover, e.g. \"sapling-output.params\".",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "shieldTooSmallAfterFee": "After the fee, the amount is too small to send to a transparent address.",
+  "shieldSingleRecipient": "Shield transactions support a single recipient",
+  "shieldMemoTooLong": "Shielded memo is too long (max 512 bytes)",
+  "shieldOnlyShieldPays": "Only the shield balance can pay to this output here",
+  "shieldChangeMustBeShield": "Change must go to a shield address",
+  "shieldInsufficient": "Insufficient shield balance",
+  "csEnterStaker": "Enter the staker address",
+  "csRegularAddress": "This is a regular address. Staker addresses start with \"{letter}\".",
+  "@csRegularAddress": {
+    "placeholders": {
+      "letter": {
+        "type": "String"
+      }
+    }
+  },
+  "csInvalidStaker": "Not a valid staker address",
+  "commonEnterAmount": "Enter an amount",
+  "csMinimum": "The minimum is 1 {ticker}",
+  "@csMinimum": {
+    "placeholders": {
+      "ticker": {
+        "type": "String"
+      }
+    }
+  },
+  "csMoreThanAvailable": "More than your available balance",
+  "csDelegationNote": "Cold staking delegation",
+  "@csDelegationNote": {
+    "description": "The note saved with a delegation transaction."
+  },
+  "csNothingToWithdraw": "Nothing to withdraw",
+  "csWithdrawNote": "Withdrawn from cold staking",
+  "@csWithdrawNote": {
+    "description": "The note saved with a withdrawal transaction."
+  },
+  "govArchiveFailed": "pivx.org answered {code}",
+  "@govArchiveFailed": {
+    "description": "Loading past proposals from pivx.org failed. {code}: an HTTP status code.",
+    "placeholders": {
+      "code": {
+        "type": "int"
+      }
+    }
+  },
+  "govEnterName": "Enter a name",
+  "commonAtMostChars": "{count, plural, =1{At most 1 character} other{At most {count} characters}}",
+  "@commonAtMostChars": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "govNameChars": "Letters, digits, spaces and . , ; - _ / : ? @ ( ) only",
+  "@govNameChars": {
+    "description": "The characters a proposal name may have. Keep the symbols as they are."
+  },
+  "govEnterUrl": "Enter the link to the proposal's description",
+  "govInvalidUrl": "Not a valid web link (https://…)",
+  "govAmountAtLeast": "At least {amount} {ticker}",
+  "@govAmountAtLeast": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "ticker": {
+        "type": "String"
+      }
+    }
+  },
+  "govAmountAtMost": "At most {amount} {ticker} (the whole budget)",
+  "@govAmountAtMost": {
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "ticker": {
+        "type": "String"
+      }
+    }
+  },
+  "govEnterPayAddress": "Enter the address to pay",
+  "govTransparentAddress": "A transparent {ticker} address (D…)",
+  "@govTransparentAddress": {
+    "placeholders": {
+      "ticker": {
+        "type": "String"
+      }
+    }
+  },
+  "govPaymentsRange": "Between 1 and {max} payments",
+  "@govPaymentsRange": {
+    "placeholders": {
+      "max": {
+        "type": "int"
+      }
+    }
+  },
+  "govFeeNote": "Proposal fee: {name}",
+  "@govFeeNote": {
+    "description": "The note saved with a proposal's fee transaction.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "govStartPassed": "Its start (block {block}) passed before the fee was confirmed",
+  "@govStartPassed": {
+    "description": "Why a proposal couldn't be submitted.",
+    "placeholders": {
+      "block": {
+        "type": "int"
+      }
+    }
+  },
+  "govMnKeyMissing": "The private key of {masternode} is missing",
+  "@govMnKeyMissing": {
+    "placeholders": {
+      "masternode": {
+        "type": "String"
+      }
+    }
+  },
+  "govMnUnknown": "The network doesn't know this masternode (start it first)",
+  "govVoteNotAccepted": "The vote was not accepted",
+  "mnEnterAlias": "Enter a masternode alias",
+  "mnAliasChars": "Only letters, digits, \"_\", \"-\" and \".\"",
+  "mnAliasTaken": "Another masternode is already called \"{alias}\"",
+  "@mnAliasTaken": {
+    "placeholders": {
+      "alias": {
+        "type": "String"
+      }
+    }
+  },
+  "mnAliasRequired": "Masternode alias is required",
+  "mnCollateralNotFound": "Collateral output not found",
+  "mnInvalidIpv6": "Invalid IPv6 address",
+  "mnInvalidPort": "Invalid port",
+  "mnEnterIp": "Enter the server's IP address",
+  "mnMainnetPortOnly": "Port {port} is for mainnet masternodes only",
+  "@mnMainnetPortOnly": {
+    "placeholders": {
+      "port": {
+        "type": "int"
+      }
+    }
+  },
+  "mnMustUsePort": "Masternodes must use port {port}",
+  "@mnMustUsePort": {
+    "placeholders": {
+      "port": {
+        "type": "int"
+      }
+    }
+  },
+  "mnCollateralGone": "The collateral output is not in this wallet anymore",
+  "mnCollateralConfirmations": "The collateral needs {needed} confirmations ({count} so far)",
+  "@mnCollateralConfirmations": {
+    "placeholders": {
+      "needed": {
+        "type": "int"
+      },
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "mnKeyNotFound": "Masternode private key not found",
+  "mnCollateralNotWallet": "The collateral address is not a wallet address",
+  "namesNotShieldAddress": "The PIVX.name address isn't a shield address",
+  "txWrongFromServer": "The server sent a wrong transaction for {txid}",
+  "@txWrongFromServer": {
+    "placeholders": {
+      "txid": {
+        "type": "String"
+      }
+    }
+  },
+  "bridgeNoAddressIndex": "This bridge has no address index: it's older than pivx-bridge 0.5, or runs without ADDR_INDEX",
+  "@bridgeNoAddressIndex": {
+    "description": "A bridge is the server the wallet syncs from. Keep \"pivx-bridge\" and \"ADDR_INDEX\" as they are."
+  },
+  "bridgeNoAddressIndexShort": "This bridge has no address index (ADDR_INDEX)",
+  "bridgeNodeUnreachable": "The bridge's PIVX node is not reachable ({error})",
+  "@bridgeNodeUnreachable": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "bridgeWrongChain": "Bridge serves \"{chain}\", wallet expects {network}",
+  "@bridgeWrongChain": {
+    "description": "{chain} and {network}: network names such as \"main\" or \"test\".",
+    "placeholders": {
+      "chain": {
+        "type": "String"
+      },
+      "network": {
+        "type": "String"
+      }
+    }
+  },
+  "bridgeUnexpectedGenesis": "Unexpected genesis block {hash}",
+  "@bridgeUnexpectedGenesis": {
+    "placeholders": {
+      "hash": {
+        "type": "String"
+      }
+    }
+  },
+  "bridgeTorTurnedOn": "Tor was turned on",
+  "bridgeNoRoute": "This bridge has no /{route}: it's older than pivx-bridge 0.5, or runs without the address index (ADDR_INDEX)",
+  "@bridgeNoRoute": {
+    "description": "{route}: a part of the bridge's web address, e.g. \"address\".",
+    "placeholders": {
+      "route": {
+        "type": "String"
+      }
+    }
+  },
+  "logsNoneFound": "No logs found in {path}",
+  "@logsNoneFound": {
+    "placeholders": {
+      "path": {
+        "type": "String"
+      }
+    }
+  }
+}

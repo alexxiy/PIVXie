@@ -13,6 +13,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar_community/isar.dart';
 
 import '../../db/isar/main_db.dart';
+import '../../l10n/l10n.dart';
 import '../../models/isar/models/isar_models.dart';
 import '../../pages/coin_control/utxo_details_view.dart';
 import '../../themes/stack_colors.dart';
@@ -198,11 +199,11 @@ class _UtxoRowState extends ConsumerState<UtxoRow> {
               ),
               const SizedBox(width: 10),
               widget.compact
-                  ? CustomTextButton(text: "Details", onTap: _details)
+                  ? CustomTextButton(text: l10n.commonDetails, onTap: _details)
                   : SecondaryButton(
                       width: 120,
                       buttonHeight: ButtonHeight.xs,
-                      label: "Details",
+                      label: l10n.commonDetails,
                       onPressed: _details,
                     ),
             ],

@@ -13,6 +13,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../app_config.dart';
+import '../../../l10n/l10n.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/constants.dart';
@@ -50,7 +51,10 @@ class SupportView extends StatelessWidget {
                   Navigator.of(context).pop();
                 },
               ),
-              title: Text("Support", style: STextStyles.navBarTitle(context)),
+              title: Text(
+                l10n.settingsSupport,
+                style: STextStyles.navBarTitle(context),
+              ),
             ),
             body: SafeArea(
               child: Padding(padding: const EdgeInsets.all(16), child: child),
@@ -63,7 +67,7 @@ class SupportView extends StatelessWidget {
         children: [
           RoundedWhiteContainer(
             child: Text(
-              "If you need support or want to report a bug, ask the PIVX community on any of these channels!",
+              l10n.supportText,
               style: STextStyles.smallMed12(context),
             ),
           ),
@@ -77,7 +81,7 @@ class SupportView extends StatelessWidget {
                 SupportChannel.discord => "Discord",
                 SupportChannel.reddit => "Reddit",
                 SupportChannel.x => "X",
-                SupportChannel.email => "Email",
+                SupportChannel.email => l10n.supportEmail,
               },
               buttonText: link.text,
               iconAsset: switch (link.channel) {
@@ -88,6 +92,7 @@ class SupportView extends StatelessWidget {
                 SupportChannel.email => Assets.svg.envelope,
               },
               isDesktop: isDesktop,
+              email: link.channel == SupportChannel.email,
             ),
           ],
         ],
@@ -104,6 +109,7 @@ class AboutItem extends StatelessWidget {
     required this.buttonText,
     required this.iconAsset,
     required this.isDesktop,
+    this.email = false,
   });
 
   final String linkUrl;
@@ -111,6 +117,9 @@ class AboutItem extends StatelessWidget {
   final String buttonText;
   final String iconAsset;
   final bool isDesktop;
+
+  /// An email address: opened without the scam warning.
+  final bool email;
 
   @override
   Widget build(BuildContext context) {
@@ -127,7 +136,7 @@ class AboutItem extends StatelessWidget {
           ),
         ),
         onPressed: () async {
-          if (label == "Email") {
+          if (email) {
             await launchUrl(
               Uri.parse(linkUrl),
               mode: LaunchMode.externalApplication,
@@ -225,81 +234,35 @@ class ScamWarningDialog extends StatelessWidget {
                     : STextStyles.w500_14(context),
                 children: [
                   TextSpan(
-                    text: "Important: Protect Yourself from Scammers!\n\n",
+                    text: "${l10n.supportScamTitle}\n\n",
                     style: Util.isDesktop
                         ? STextStyles.desktopH2(context)
                         : STextStyles.pageTitleH2(context),
                   ),
-                  const TextSpan(
-                    text: "All official support for ",
-                    style: TextStyle(fontWeight: FontWeight.normal),
-                  ),
-                  const TextSpan(
-                    text: AppConfig.appName,
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  const TextSpan(
-                    text: " in ",
-                    style: TextStyle(fontWeight: FontWeight.normal),
-                  ),
-                  TextSpan(
-                    text: channel,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  const TextSpan(
-                    text: " is provided ",
-                    style: TextStyle(fontWeight: FontWeight.normal),
-                  ),
-                  const TextSpan(
-                    text: "ONLY",
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  const TextSpan(
-                    text: " in public channels.\n\n",
-                    style: TextStyle(fontWeight: FontWeight.normal),
+                  ...l10nSpans(
+                    "${l10n.supportScamOfficial(AppConfig.appName, channel)}\n\n",
+                    style: const TextStyle(fontWeight: FontWeight.normal),
+                    bold: const TextStyle(fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
             ),
-            const _Bullet(
-              text:
-                  "Never trust direct messages (DMs) from anyone"
-                  " claiming to be support staff.\n",
-            ),
-            const _Bullet(
-              text:
-                  "Do not share personal information,"
-                  " wallet details, or private keys.\n",
-            ),
-            const _Bullet(
-              text:
-                  "If someone asks you to send them money or crypto,"
-                  " they are a scammer.\n\n",
-            ),
+            _Bullet(text: "${l10n.supportScamNoDms}\n"),
+            _Bullet(text: "${l10n.supportScamNoShare}\n"),
+            _Bullet(text: "${l10n.supportScamMoney}\n\n"),
             RichText(
               text: TextSpan(
                 style: Util.isDesktop
                     ? STextStyles.w500_16(context)
                     : STextStyles.w500_14(context),
-                children: const [
-                  TextSpan(
-                    text: "Our support staff will ",
-                    style: TextStyle(fontWeight: FontWeight.normal),
+                children: l10nSpans(
+                  l10n.supportScamNever,
+                  style: const TextStyle(fontWeight: FontWeight.normal),
+                  bold: const TextStyle(
+                    fontStyle: FontStyle.italic,
+                    fontWeight: FontWeight.bold,
                   ),
-                  TextSpan(
-                    text: "*never*",
-                    style: TextStyle(
-                      fontStyle: FontStyle.italic,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  TextSpan(
-                    text:
-                        " contact you privately first. "
-                        "They will only help you in the public chat.",
-                    style: TextStyle(fontWeight: FontWeight.normal),
-                  ),
-                ],
+                ),
               ),
             ),
             SizedBox(height: Util.isDesktop ? 40 : 32),
@@ -313,7 +276,7 @@ class ScamWarningDialog extends StatelessWidget {
                   child: PrimaryButton(
                     width: Util.isDesktop ? 240 : null,
                     buttonHeight: Util.isDesktop ? ButtonHeight.l : null,
-                    label: "I UNDERSTAND",
+                    label: l10n.supportIUnderstandCaps,
                     onPressed: onUnderstandPressed,
                   ),
                 ),

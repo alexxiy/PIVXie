@@ -140,14 +140,15 @@ class JDropdownIconButton<T> extends StatefulWidget {
   const JDropdownIconButton({
     super.key,
     required this.items,
-    required this.displayPrefix,
+    required this.itemLabel,
     this.onSelectionChanged,
     this.groupValue,
     this.redrawOnScreenSizeChanged = false,
     this.mobileAppBar = false,
   });
 
-  final String displayPrefix;
+  /// The text of an item in the menu.
+  final String Function(T value) itemLabel;
   final void Function(T?)? onSelectionChanged;
   final T? groupValue;
   final Set<T> items;
@@ -196,7 +197,7 @@ class _JDropdownIconButtonState<T> extends State<JDropdownIconButton<T>> {
                   (e) => _JDropdownButtonItem<T>(
                     value: e,
                     groupValue: widget.groupValue,
-                    displayPrefix: widget.displayPrefix,
+                    itemLabel: widget.itemLabel,
                     onSelected: (T value) {
                       widget.onSelectionChanged?.call(value);
                       close();
@@ -341,14 +342,14 @@ class _JDropdownButtonItem<T> extends StatelessWidget {
     required this.groupValue,
     required this.onSelected,
     this.height = 53,
-    this.displayPrefix,
+    this.itemLabel,
   });
 
   final T value;
   final T? groupValue;
   final double height;
   final void Function(T) onSelected;
-  final String? displayPrefix;
+  final String Function(T value)? itemLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -370,9 +371,7 @@ class _JDropdownButtonItem<T> extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Text(
-              displayPrefix == null
-                  ? value.toString()
-                  : "$displayPrefix ${value.toString().toLowerCase()}",
+              itemLabel?.call(value) ?? value.toString(),
               style: STextStyles.desktopTextExtraSmall(context).copyWith(
                 color: Theme.of(context).extension<StackColors>()!.textDark,
               ),

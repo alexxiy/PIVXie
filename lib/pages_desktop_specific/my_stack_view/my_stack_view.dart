@@ -11,6 +11,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../l10n/l10n.dart';
 import '../../pages/settings_views/global_settings_view/hidden_settings.dart';
 import '../../pages/wallets_view/sub_widgets/empty_wallets.dart';
 import '../../utilities/text_styles.dart';
@@ -112,7 +113,7 @@ class _DesktopMyStackTitleState extends ConsumerState<DesktopMyStackTitle> {
           ),
         ),
         const SizedBox(width: 12),
-        Text("My Wallets", style: STextStyles.desktopH3(context)),
+        Text(l10n.desktopMyWallets, style: STextStyles.desktopH3(context)),
       ],
     );
   }

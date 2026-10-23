@@ -14,6 +14,7 @@ import 'package:isar_community/isar.dart';
 import 'package:tuple/tuple.dart';
 
 import 'app_config.dart';
+import 'l10n/l10n.dart';
 import 'models/add_wallet_list_entity/add_wallet_list_entity.dart';
 import 'models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import 'models/isar/models/isar_models.dart';
@@ -219,12 +220,12 @@ class RouteGenerator {
         );
 
       case ChooseCoinView.routeName:
-        if (args is Tuple3<String, String, String>) {
+        if (args is Tuple3<String, String Function(CryptoCurrency), String>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => ChooseCoinView(
               title: args.item1,
-              coinAdditional: args.item2,
+              coinLabel: args.item2,
               nextRouteName: args.item3,
             ),
             settings: RouteSettings(name: settings.name),
@@ -267,12 +268,13 @@ class RouteGenerator {
         return _routeError("${settings.name} invalid args: ${args.toString()}");
 
       case SingleFieldEditView.routeName:
-        if (args is Tuple2<String, String>) {
+        if (args is Tuple3<String, String, String>) {
           return getRoute(
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) => SingleFieldEditView(
               initialValue: args.item1,
-              label: args.item2,
+              title: args.item2,
+              label: args.item3,
             ),
             settings: RouteSettings(name: settings.name),
           );
@@ -1549,13 +1551,9 @@ class RouteGenerator {
     final Widget errorView = Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.black,
-        title: const Text('Navigation error'),
+        title: Text(l10n.routeErrorTitle),
       ),
-      body: Center(
-        child: Text(
-          'Error handling route, this is not supposed to happen. Try restarting the app.\n$message',
-        ),
-      ),
+      body: Center(child: Text('${l10n.routeErrorText}\n$message')),
     );
 
     return getRoute<T>(

@@ -1,3 +1,4 @@
+import '../l10n/l10n.dart';
 import '../models/isar/models/contact_entry.dart';
 import '../wallets/crypto_currency/coins/pivx.dart';
 
@@ -7,10 +8,10 @@ extension ContactAddressTitle on ContactAddressEntry {
   String get kind {
     final c = coin;
     if (c is Pivx) {
-      if (c.isShieldAddress(address)) return "Shielded";
-      if (c.isExchangeAddress(address)) return "Exchange";
+      if (c.isShieldAddress(address)) return l10n.addressKindShielded;
+      if (c.isExchangeAddress(address)) return l10n.addressKindExchange;
     }
-    return "Transparent";
+    return l10n.addressKindTransparent;
   }
 
   /// "Shielded (PIV)".

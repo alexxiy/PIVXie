@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../../../l10n/l10n.dart';
 import '../../../../providers/providers.dart';
 import '../../../../themes/coin_icon_provider.dart';
 import '../../../../themes/stack_colors.dart';
@@ -51,7 +52,10 @@ class _ManageNodesViewState extends ConsumerState<ManageNodesView> {
               Navigator.of(context).pop();
             },
           ),
-          title: Text("Manage nodes", style: STextStyles.navBarTitle(context)),
+          title: Text(
+            l10n.settingsManageNodes,
+            style: STextStyles.navBarTitle(context),
+          ),
         ),
         body: SafeArea(
           child: Padding(
@@ -102,11 +106,13 @@ class _ManageNodesViewState extends ConsumerState<ManageNodesView> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      "${coin.prettyName} nodes",
+                                      l10n.nodesOfCoin(coin.prettyName),
                                       style: STextStyles.titleBold12(context),
                                     ),
                                     Text(
-                                      count > 1 ? "$count nodes" : "Default",
+                                      count > 1
+                                          ? l10n.nodesCount(count)
+                                          : l10n.nodesDefault,
                                       style: STextStyles.label(context),
                                     ),
                                   ],

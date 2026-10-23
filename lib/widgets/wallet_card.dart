@@ -13,6 +13,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../l10n/l10n.dart';
 import '../pages/wallet_view/wallet_view.dart';
 import '../pages_desktop_specific/my_stack_view/wallet_view/desktop_wallet_view.dart';
 import '../providers/providers.dart';
@@ -58,7 +59,7 @@ class SimpleWalletCard extends ConsumerWidget {
       await showLoading(
         whileFuture: wallet.init(),
         context: context,
-        message: 'Opening ${wallet.info.name}',
+        message: l10n.walletOpening(wallet.info.name),
         rootNavigator: Util.isDesktop,
       );
       if (popPrevious) nav.pop();

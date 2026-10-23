@@ -9,6 +9,7 @@
  */
 
 import 'package:flutter/material.dart';
+import '../../../../l10n/l10n.dart';
 import '../../../../utilities/text_styles.dart';
 
 class CreateRestoreWalletSubTitle extends StatelessWidget {
@@ -22,7 +23,7 @@ class CreateRestoreWalletSubTitle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Text(
-      "Create a new wallet or restore an existing wallet from seed.",
+      l10n.addWalletCreateOrRestore,
       textAlign: TextAlign.center,
       style: isDesktop
           ? STextStyles.desktopSubtitleH2(context)

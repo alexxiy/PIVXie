@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../l10n/l10n.dart';
 import '../providers/global/wallets_provider.dart';
 import '../themes/stack_colors.dart';
 import '../utilities/text_styles.dart';
@@ -65,23 +66,11 @@ class _MnemonicPassphraseNoteState
           children: [
             if (_account > 0)
               _note(context, [
-                Text(
-                  "This wallet is account $_account of its recovery phrase. "
-                  "Restoring the phrase in PIVXie brings back every account "
-                  "with history, and Add account brings back the others. In "
-                  "MyPIVXWallet, use Add account until you reach account "
-                  "$_account.",
-                  style: style,
-                ),
+                Text(l10n.mnemonicAccountNote(_account), style: style),
               ]),
             if (passphrase != null && passphrase.isNotEmpty)
               _note(context, [
-                Text(
-                  "This wallet also has a passphrase. To restore it you need "
-                  "the passphrase as well as these words: the words alone "
-                  "open a different, empty wallet.",
-                  style: style,
-                ),
+                Text(l10n.mnemonicPassphraseNote, style: style),
                 const SizedBox(height: 8),
                 _shown
                     ? SelectableText(
@@ -89,7 +78,7 @@ class _MnemonicPassphraseNoteState
                         style: style.copyWith(fontWeight: FontWeight.w600),
                       )
                     : CustomTextButton(
-                        text: "Show passphrase",
+                        text: l10n.mnemonicShowPassphrase,
                         onTap: () => setState(() => _shown = true),
                       ),
               ]),

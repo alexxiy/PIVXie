@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../../l10n/l10n.dart';
 import '../../../models/isar/models/contact_entry.dart';
 import '../../../services/pivx_name/pivx_name.dart';
 import '../../../services/pivx_name/pivx_name_resolver.dart';
@@ -26,17 +27,33 @@ String? pivxNameFor(CryptoCurrency coin, String? input) =>
 /// What's wrong with a recipient that is neither an address nor a usable
 /// name.
 String recipientInputError(CryptoCurrency coin, String input) {
-  if (!looksLikePivxName(input)) return "Invalid address";
+  if (!looksLikePivxName(input)) return l10n.sendInvalidAddress;
   return PivxNameService.forCoin(coin) == null
-      ? "Names like alice.pivx work on mainnet only"
-      : "Names use letters, digits and single hyphens, like alice.pivx";
+      ? l10n.sendNamesMainnetOnly
+      : l10n.sendNameInvalid;
 }
 
 /// Placeholder of the recipient field.
 String recipientHint(CryptoCurrency coin) =>
     PivxNameService.forCoin(coin) == null
-    ? "Enter ${coin.ticker} address"
-    : "Enter ${coin.ticker} address or .pivx name";
+    ? l10n.sendEnterAddress(coin.ticker)
+    : l10n.sendEnterAddressOrName(coin.ticker);
+
+/// [e]'s message in the language on screen. The resolver writes English,
+/// with what it knows of the case; other languages get the gist of each kind.
+String pivxNameErrorText(PivxNameException e, {bool detail = false}) {
+  if (l10n.localeName == "en") return detail ? e.toString() : e.message;
+  return switch (e.kind) {
+    PivxNameError.indexerUnreachable => l10n.pivxNameErrorUnreachable,
+    PivxNameError.indexerError => l10n.pivxNameErrorIndexer,
+    PivxNameError.chainUnavailable => l10n.pivxNameErrorChainUnavailable,
+    PivxNameError.chainDisagreement => l10n.pivxNameErrorChainDisagreement,
+    PivxNameError.unreviewedEpoch => l10n.pivxNameErrorEpoch,
+    PivxNameError.unanchoredRoot => l10n.pivxNameErrorUnanchored,
+    PivxNameError.badRecord => l10n.pivxNameErrorBadRecord,
+    PivxNameError.unavailable => l10n.pivxNameErrorUnavailable,
+  };
+}
 
 /// Looks [name] up for a payment, behind a dialog, and returns the verified
 /// result; null when the user cancels or it can't be verified (the dialog
@@ -60,11 +77,8 @@ Future<PivxNameVerified?> lookUpPivxNameForSend({
   if (contacts.any((c) => c.name.trim().toLowerCase() == name)) {
     await _showMessage(
       context,
-      title: "$name is also a contact",
-      message:
-          "To pay your contact, pick it from the address book. To pay the "
-          "name registered on PIVX.name, rename the contact first, so the "
-          "two can't be mixed up.",
+      title: l10n.sendNameIsContact(name),
+      message: l10n.sendNameIsContactText,
     );
     return null;
   }
@@ -91,7 +105,7 @@ Future<void> _showMessage(
           buttons: [
             PrimaryButton(
               buttonHeight: ButtonHeight.l,
-              label: "Ok",
+              label: l10n.commonOk,
               onPressed: Navigator.of(context).pop,
             ),
           ],
@@ -101,7 +115,7 @@ Future<void> _showMessage(
           message: message,
           rightButton: _mobileButton(
             context,
-            "Ok",
+            l10n.commonOk,
             Navigator.of(context).pop,
             primary: true,
           ),
@@ -204,9 +218,7 @@ class _PivxNameLookupDialogState extends State<PivxNameLookupDialog> {
       _stopPolling();
       setState(() {
         _stage = _Stage.failed;
-        _failure =
-            "PIVX.name still hasn't caught up with the registry on chain. "
-            "Try again later.";
+        _failure = l10n.sendNameNotCaughtUp;
         _failureDetail = null;
         _canRetry = true;
       });
@@ -233,11 +245,11 @@ class _PivxNameLookupDialogState extends State<PivxNameLookupDialog> {
     setState(() {
       _stage = _Stage.failed;
       if (e is PivxNameException) {
-        _failure = e.message;
-        _failureDetail = e.detail;
+        _failure = pivxNameErrorText(e);
+        _failureDetail = l10n.localeName == "en" ? e.detail : null;
         _canRetry = e.isTransient;
       } else {
-        _failure = "Something went wrong while checking ${widget.name}.";
+        _failure = l10n.sendNameCheckFailed(widget.name);
         _failureDetail = null;
         _canRetry = true;
       }
@@ -256,26 +268,19 @@ class _PivxNameLookupDialogState extends State<PivxNameLookupDialog> {
   }
 
   String get _title => switch (_stage) {
-    _Stage.checking => "Checking ${widget.name}",
-    _Stage.waiting => "Waiting for PIVX.name",
-    _Stage.notRegistered => "Name not found",
-    _Stage.failed => "Can't send to ${widget.name}",
+    _Stage.checking => l10n.sendNameChecking(widget.name),
+    _Stage.waiting => l10n.sendNameWaiting,
+    _Stage.notRegistered => l10n.sendNameNotFound,
+    _Stage.failed => l10n.sendNameCantSend(widget.name),
   };
 
   String get _message => switch (_stage) {
-    _Stage.checking =>
-      "Looking up the address and checking it against the PIVX.name "
-          "registry on BNB Smart Chain.",
-    _Stage.waiting when _nameMissing =>
-      "PIVX.name doesn't know ${widget.name} yet, and it is still processing "
-          "the latest registry update. If the name was registered in the "
-          "last few minutes, wait here; otherwise check the spelling.",
-    _Stage.waiting =>
-      "PIVX.name is still processing the latest registry update, so its "
-          "answer for ${widget.name} may be out of date. This usually takes "
-          "a few minutes; PIVXie continues once it's done.",
-    _Stage.notRegistered =>
-      "${widget.name} isn't registered on PIVX.name. Check the spelling.",
+    _Stage.checking => l10n.sendNameCheckingText,
+    _Stage.waiting when _nameMissing => l10n.sendNameWaitingMissing(
+      widget.name,
+    ),
+    _Stage.waiting => l10n.sendNameWaitingText(widget.name),
+    _Stage.notRegistered => l10n.sendNameNotRegistered(widget.name),
     _Stage.failed =>
       _failureDetail == null ? _failure! : "$_failure\n\n$_failureDetail",
   };
@@ -285,7 +290,7 @@ class _PivxNameLookupDialogState extends State<PivxNameLookupDialog> {
   @override
   Widget build(BuildContext context) {
     final retry = _stage == _Stage.failed && _canRetry;
-    final closeLabel = _busy ? "Cancel" : "Close";
+    final closeLabel = _busy ? l10n.commonCancel : l10n.commonClose;
 
     final Widget dialog;
     if (Util.isDesktop) {
@@ -302,7 +307,7 @@ class _PivxNameLookupDialogState extends State<PivxNameLookupDialog> {
           if (retry)
             PrimaryButton(
               buttonHeight: ButtonHeight.l,
-              label: "Try again",
+              label: l10n.commonTryAgain,
               onPressed: _retry,
             ),
         ],
@@ -314,7 +319,7 @@ class _PivxNameLookupDialogState extends State<PivxNameLookupDialog> {
         icon: _busy ? const RotatingArrows(width: 24, height: 24) : null,
         leftButton: retry ? _mobileButton(context, closeLabel, _close) : null,
         rightButton: retry
-            ? _mobileButton(context, "Try again", _retry, primary: true)
+            ? _mobileButton(context, l10n.commonTryAgain, _retry, primary: true)
             : _mobileButton(context, closeLabel, _close),
       );
     }

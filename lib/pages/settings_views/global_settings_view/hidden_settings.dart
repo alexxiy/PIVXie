@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../../l10n/l10n.dart';
 import '../../../providers/providers.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
@@ -51,7 +52,7 @@ class HiddenSettings extends StatelessWidget {
               onPressed: Navigator.of(context).pop,
             ),
           ),
-          title: Text("Dev options", style: STextStyles.navBarTitle(context)),
+          title: Text(l10n.settingsDevOptions, style: STextStyles.navBarTitle(context)),
         ),
         body: SafeArea(
           child: Padding(
@@ -79,7 +80,7 @@ class HiddenSettings extends StatelessWidget {
                                 },
                                 child: RoundedWhiteContainer(
                                   child: Text(
-                                    "Reset log location",
+                                    l10n.settingsResetLogLocation,
                                     style: STextStyles.button(context).copyWith(
                                       color: Theme.of(context)
                                           .extension<StackColors>()!

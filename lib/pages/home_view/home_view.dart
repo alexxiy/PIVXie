@@ -16,6 +16,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../app_config.dart';
+import '../../l10n/l10n.dart';
 import '../../providers/global/prefs_provider.dart';
 import '../../providers/ui/home_view_index_provider.dart';
 import '../../route_generator.dart';
@@ -89,15 +90,16 @@ class _HomeViewState extends ConsumerState<HomeView> {
         context,
         RouteGenerator.getRoute(
           shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
-          builder: (_) => const LockscreenView(
+          builder: (_) => LockscreenView(
             showBackButton: false,
             popOnSuccess: true,
             routeOnSuccessArguments: true,
             routeOnSuccess: "",
-            biometricsCancelButtonString: "CANCEL",
-            biometricsLocalizedReason:
-                "Authenticate to unlock ${AppConfig.appName}",
-            biometricsAuthenticationTitle: "Unlock ${AppConfig.appName}",
+            biometricsCancelButtonString: l10n.commonCancelCaps,
+            biometricsLocalizedReason: l10n.pinUnlockReason(AppConfig.appName),
+            biometricsAuthenticationTitle: l10n.pinUnlockTitle(
+              AppConfig.appName,
+            ),
           ),
           settings: const RouteSettings(name: "/unlockTimedOutAppScreen"),
         ),
@@ -151,7 +153,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
           onPopInvokedWithResult: (didPop, result) {
             if (didPop && result != false) _exitEnabled = true;
           },
-          child: const StackDialog(title: "Tap back again to exit"),
+          child: StackDialog(title: l10n.homeTapBackToExit),
         ),
       ).timeout(
         timeout,
@@ -323,7 +325,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
                 child: AspectRatio(
                   aspectRatio: 1,
                   child: AppBarIconButton(
-                    semanticsLabel: "Settings Button. Takes To Settings Page.",
+                    semanticsLabel: l10n.homeSettingsSemantics,
                     key: const Key("walletsViewSettingsButton"),
                     size: 36,
                     shadows: const [],

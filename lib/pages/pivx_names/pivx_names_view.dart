@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../l10n/l10n.dart';
 import '../../providers/global/wallets_provider.dart';
 import '../../services/pivx_name/pivx_name.dart';
 import '../../services/pivx_name/pivx_names_protocol.dart';
@@ -97,9 +98,7 @@ class _PivxNamesViewState extends ConsumerState<PivxNamesView> {
     if (!isValidPivxNamesLabel(label) || _name.length > kPivxNameMaxLength) {
       setState(() {
         _result = null;
-        _error =
-            "Use letters, numbers and single hyphens (not at the start or "
-            "end), up to $kPivxNameMaxLength characters with the zone.";
+        _error = l10n.pivxNamesInvalidName(kPivxNameMaxLength);
       });
       return;
     }
@@ -116,7 +115,7 @@ class _PivxNamesViewState extends ConsumerState<PivxNamesView> {
         setState(
           () => _error = e is PivxNamesException && e.fromServer
               ? e.message
-              : "Couldn't reach PIVX.name. Please try again.",
+              : l10n.pivxNamesUnreachable,
         );
       }
     } finally {
@@ -139,11 +138,12 @@ class _PivxNamesViewState extends ConsumerState<PivxNamesView> {
   Future<void> _buy(PivxNamesListed l) async {
     final ok = await pivxNamesConfirm(
       context,
-      title: "Buy name",
-      message:
-          "Do you want to buy ${pivxNamesUnbroken(l.name)} for "
-          "${pivxNamesAmount(l.price, ref, _wallet)}?",
-      action: "Buy",
+      title: l10n.pivxNamesBuyName,
+      message: l10n.pivxNamesBuyConfirm(
+        pivxNamesUnbroken(l.name),
+        pivxNamesAmount(l.price, ref, _wallet),
+      ),
+      action: l10n.pivxNamesBuy,
     );
     if (!ok || !mounted) return;
     await startPivxNamesFlow(
@@ -162,9 +162,9 @@ class _PivxNamesViewState extends ConsumerState<PivxNamesView> {
   Future<void> _unlist(PivxNamesListed l) async {
     final ok = await pivxNamesConfirm(
       context,
-      title: "Unlist from sale",
-      message: "Take ${pivxNamesUnbroken(l.name)} off the marketplace?",
-      action: "Unlist",
+      title: l10n.pivxNamesUnlistTitle,
+      message: l10n.pivxNamesUnlistConfirm(pivxNamesUnbroken(l.name)),
+      action: l10n.pivxNamesUnlist,
     );
     if (!ok || !mounted) return;
     await startPivxNamesFlow(
@@ -194,13 +194,13 @@ class _PivxNamesViewState extends ConsumerState<PivxNamesView> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text("Zone", style: STextStyles.pageTitleH2(context)),
+              Text(l10n.pivxNamesZone, style: STextStyles.pageTitleH2(context)),
               const SizedBox(height: 8),
               for (final z in kPivxNameZones)
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   title: PivxNamesNameText(
-                    "${_label.text.isEmpty ? "name" : _label.text}.$z",
+                    "${_label.text.isEmpty ? l10n.pivxNamesZoneSample : _label.text}.$z",
                   ),
                   trailing: ".$z" == _zone
                       ? Icon(Icons.check_rounded, color: colors.accentColorBlue)
@@ -288,18 +288,20 @@ class _PivxNamesViewState extends ConsumerState<PivxNamesView> {
     return switch (result) {
       PivxNamesAvailable() => box(
         color: green,
-        text: "is available for ${pivxNamesAmount(result.price, ref, wallet)}",
-        action: "Get it now",
+        text: l10n.pivxNamesAvailableFor(
+          pivxNamesAmount(result.price, ref, wallet),
+        ),
+        action: l10n.pivxNamesGetItNow,
         onTap: () => _register(result),
       ),
       PivxNamesListed() => box(
         color: purple,
-        text:
-            "is listed on the marketplace for "
-            "${pivxNamesAmount(result.price, ref, wallet)}",
+        text: l10n.pivxNamesListedFor(
+          pivxNamesAmount(result.price, ref, wallet),
+        ),
         action: result.owner != null && result.owner == _ownKey
-            ? "Unlist it now"
-            : "Buy it now",
+            ? l10n.pivxNamesUnlistItNow
+            : l10n.pivxNamesBuyItNow,
         onTap: () => result.owner != null && result.owner == _ownKey
             ? _unlist(result)
             : _buy(result),
@@ -312,7 +314,7 @@ class _PivxNamesViewState extends ConsumerState<PivxNamesView> {
             const SizedBox(width: 6),
             Expanded(
               child: Text(
-                "${pivxNamesUnbroken(result.name)} is already taken.",
+                l10n.pivxNamesTaken(pivxNamesUnbroken(result.name)),
                 style: STextStyles.w600_14(context)
                     .copyWith(color: colors.textError),
               ),
@@ -360,10 +362,10 @@ class _PivxNamesViewState extends ConsumerState<PivxNamesView> {
               Text.rich(
                 TextSpan(
                   children: [
-                    const TextSpan(text: "Get your "),
-                    TextSpan(
-                      text: "PIVX name",
-                      style: TextStyle(color: colors.accentColorBlue),
+                    ...l10nSpans(
+                      l10n.pivxNamesGetYourName,
+                      style: const TextStyle(),
+                      bold: TextStyle(color: colors.accentColorBlue),
                     ),
                   ],
                 ),
@@ -372,15 +374,14 @@ class _PivxNamesViewState extends ConsumerState<PivxNamesView> {
               ),
               const SizedBox(height: 8),
               Text(
-                "Register an easy name for your PIVX address, and getting "
-                "paid is as simple as sharing it.",
+                l10n.pivxNamesIntro,
                 textAlign: TextAlign.center,
                 style: STextStyles.itemSubtitle(context),
               ),
               const SizedBox(height: 10),
               Center(
                 child: CustomTextButton(
-                  text: "How does it work?",
+                  text: l10n.pivxNamesHowDoesItWork,
                   onTap: () => showPivxNamesInfo(context),
                 ),
               ),
@@ -391,7 +392,7 @@ class _PivxNamesViewState extends ConsumerState<PivxNamesView> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Text(
-                      "Register your name",
+                      l10n.pivxNamesRegisterYourName,
                       style: STextStyles.w600_16(context),
                     ),
                     const SizedBox(height: 12),
@@ -424,7 +425,7 @@ class _PivxNamesViewState extends ConsumerState<PivxNamesView> {
                         style: STextStyles.field(context),
                         decoration:
                             standardInputDecoration(
-                              "Enter the name you want",
+                              l10n.pivxNamesEnterName,
                               _focus,
                               context,
                             ).copyWith(
@@ -467,14 +468,14 @@ class _PivxNamesViewState extends ConsumerState<PivxNamesView> {
                     const SizedBox(height: 12),
                     _checking
                         ? SecondaryButton(
-                            label: "Checking…",
+                            label: l10n.pivxNamesChecking,
                             enabled: false,
                             buttonHeight: Util.isDesktop
                                 ? ButtonHeight.l
                                 : null,
                           )
                         : PrimaryButton(
-                            label: "Check",
+                            label: l10n.pivxNamesCheck,
                             enabled: _label.text.isNotEmpty,
                             buttonHeight: Util.isDesktop
                                 ? ButtonHeight.l

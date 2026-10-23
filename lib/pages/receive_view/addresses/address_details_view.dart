@@ -13,6 +13,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:isar_community/isar.dart';
 
 import '../../../db/isar/main_db.dart';
+import '../../../l10n/l10n.dart';
 import '../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../models/isar/models/isar_models.dart';
 import '../../../providers/db/main_db_provider.dart';
@@ -79,7 +80,7 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                 Padding(
                   padding: const EdgeInsets.only(left: 32),
                   child: Text(
-                    "Address QR code",
+                    l10n.receiveAddressQr,
                     style: STextStyles.desktopH3(context),
                   ),
                 ),
@@ -163,7 +164,7 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
             ),
             titleSpacing: 0,
             title: Text(
-              "Address details",
+              l10n.receiveAddressDetails,
               style: STextStyles.navBarTitle(context),
             ),
           ),
@@ -207,7 +208,7 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              "Address details",
+                              l10n.receiveAddressDetails,
                               style:
                                   STextStyles.desktopTextExtraExtraSmall(
                                     context,
@@ -218,7 +219,7 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                                   ),
                             ),
                             CustomTextButton(
-                              text: "View QR code",
+                              text: l10n.receiveViewQr,
                               onTap: _showDesktopAddressQrCode,
                             ),
                           ],
@@ -236,7 +237,7 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              "Transaction history",
+                              l10n.receiveTransactionHistory,
                               style:
                                   STextStyles.desktopTextExtraExtraSmall(
                                     context,
@@ -284,7 +285,7 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                   ),
                 if (!isDesktop) const SizedBox(height: 16),
                 DetailItem(
-                  title: "Address",
+                  title: l10n.commonAddress,
                   detail: address.value,
                   button: isDesktop
                       ? IconCopyButton(data: address.value)
@@ -292,11 +293,12 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                 ),
                 const _Div(height: 12),
                 DetailItem(
-                  title: "Label",
+                  title: l10n.receiveLabel,
                   detail: label!.value,
                   button: SimpleEditButton(
                     editValue: label!.value,
-                    editLabel: 'label',
+                    editTitle: l10n.receiveEditLabel,
+                    editLabel: l10n.receiveLabel,
                     onValueChanged: (value) {
                       MainDB.instance.putAddressLabel(
                         label!.copyWith(label: value),
@@ -309,33 +311,33 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                 if (address.derivationPath != null) const _Div(height: 12),
                 if (address.derivationPath != null)
                   DetailItem(
-                    title: "Derivation path",
+                    title: l10n.receiveDerivationPath,
                     detail: address.derivationPath!.value,
                     button: Container(),
                   ),
                 if (address.type == AddressType.spark) const _Div(height: 12),
                 if (address.type == AddressType.spark)
                   DetailItem(
-                    title: "Diversifier",
+                    title: l10n.receiveDiversifier,
                     detail: address.derivationIndex.toString(),
                     button: Container(),
                   ),
                 if (address.type == AddressType.mweb) const _Div(height: 12),
                 if (address.type == AddressType.mweb)
                   DetailItem(
-                    title: "Index",
+                    title: l10n.receiveIndex,
                     detail: address.derivationIndex.toString(),
                     button: Container(),
                   ),
                 const _Div(height: 12),
                 DetailItem(
-                  title: "Type",
+                  title: l10n.receiveType,
                   detail: address.type.readableName,
                   button: Container(),
                 ),
                 const _Div(height: 12),
                 DetailItem(
-                  title: "Sub type",
+                  title: l10n.receiveSubType,
                   detail: address.subType.prettyName,
                   button: Container(),
                 ),
@@ -355,7 +357,7 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                 if (!isDesktop) const SizedBox(height: 20),
                 if (!isDesktop)
                   Text(
-                    "Transactions",
+                    l10n.receiveTransactions,
                     textAlign: TextAlign.left,
                     style: STextStyles.itemSubtitle(context).copyWith(
                       color: Theme.of(context)
@@ -491,7 +493,7 @@ class _Tags extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text("Tags", style: STextStyles.itemSubtitle(context)),
+              Text(l10n.receiveTags, style: STextStyles.itemSubtitle(context)),
               Container(),
               // SimpleEditButton(
               //   onPressedOverride: () {
@@ -508,7 +510,7 @@ class _Tags extends StatelessWidget {
                   children: tags!.map((e) => AddressTag(tag: e)).toList(),
                 )
               : Text(
-                  "Tags will appear here",
+                  l10n.receiveTagsPlaceholder,
                   style: STextStyles.w500_14(context).copyWith(
                     color: Theme.of(context)
                         .extension<StackColors>()!

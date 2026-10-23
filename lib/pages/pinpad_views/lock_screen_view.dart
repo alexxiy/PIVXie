@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:mutex/mutex.dart';
 
+import '../../l10n/l10n.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../providers/global/secure_store_provider.dart';
 import '../../providers/providers.dart';
@@ -154,7 +155,7 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
           ),
           opaqueBG: true,
           context: context,
-          message: "Loading wallets...",
+          message: l10n.pinLoadingWallets,
         );
 
         if (loadSuccess == null || loadSuccess == false) {
@@ -356,7 +357,7 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
             type: FlushBarType.warning,
             message: lockout != null
                 ? PinAttempts.lockedMessage(lockout)
-                : "Wrong PIN. Try again.",
+                : l10n.pinWrong,
             context: context,
             iconAsset: Assets.svg.alertCircle,
           ),
@@ -402,7 +403,7 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
                       if (ref.read(prefsChangeNotifierProvider).useBiometrics ==
                           true)
                         CustomTextButton(
-                          text: "Use biometrics",
+                          text: l10n.pinUseBiometrics,
                           onTap: () async {
                             await _checkUseBiometrics();
                           },
@@ -428,7 +429,7 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
                     children: [
                       Center(
                         child: Text(
-                          "Enter PIN",
+                          l10n.pinEnter,
                           style: STextStyles.pageTitleH1(context),
                         ),
                       ),

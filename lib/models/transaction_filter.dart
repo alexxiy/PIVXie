@@ -8,28 +8,40 @@
  *
  */
 
+import '../l10n/l10n.dart';
 import '../utilities/amount/amount.dart';
 import 'isar/models/blockchain_data/transaction_type.dart';
 import 'isar/models/blockchain_data/v2/transaction_v2.dart';
 
 /// PIVX history categories the filter can select.
 enum PivxTxCategory {
-  sent("Sent"),
-  received("Received"),
-  sentToSelf("Sent to self"),
-  stakingReward("Staking rewards"),
-  masternodeReward("Masternode rewards"),
-  coldStakingReward("Cold staking rewards"),
-  proposalPayment("Proposal payments"),
-  delegation("Delegated"),
-  undelegation("Undelegated"),
-  shield("Shielded"),
-  unshield("Unshielded"),
-  burn("Burned");
+  sent,
+  received,
+  sentToSelf,
+  stakingReward,
+  masternodeReward,
+  coldStakingReward,
+  proposalPayment,
+  delegation,
+  undelegation,
+  shield,
+  unshield,
+  burn;
 
-  const PivxTxCategory(this.label);
-
-  final String label;
+  String get label => switch (this) {
+    sent => l10n.txSent,
+    received => l10n.txReceived,
+    sentToSelf => l10n.txSentToSelf,
+    stakingReward => l10n.txStakingRewards,
+    masternodeReward => l10n.txMasternodeRewards,
+    coldStakingReward => l10n.txColdStakingRewards,
+    proposalPayment => l10n.txProposalPayments,
+    delegation => l10n.txDelegated,
+    undelegation => l10n.txUndelegated,
+    shield => l10n.txShielded,
+    unshield => l10n.txUnshielded,
+    burn => l10n.txBurned,
+  };
 
   /// The categories [tx] belongs to: its own, and that of a second kind
   /// in the same block (a cold staking reward that also paid our

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../l10n/l10n.dart';
 import '../../providers/global/wallets_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount_formatter.dart';
@@ -146,7 +147,10 @@ class _PivxProposalViewState extends ConsumerState<PivxProposalView> {
           backgroundColor: colors.background,
           appBar: PageAppBar(
             onBack: () => Navigator.of(context).pop(_voted),
-            title: Text("Proposal", style: STextStyles.navBarTitle(context)),
+            title: Text(
+              l10n.govProposal,
+              style: STextStyles.navBarTitle(context),
+            ),
           ),
           body: SafeArea(
             child: Column(
@@ -210,7 +214,9 @@ class _PivxProposalViewState extends ConsumerState<PivxProposalView> {
                             if (!p.isValid) ...[
                               const SizedBox(height: 8),
                               Text(
-                                "Invalid: ${p.invalidReason ?? "unknown reason"}",
+                                l10n.govInvalid(
+                                  p.invalidReason ?? l10n.govUnknownReason,
+                                ),
                                 style: STextStyles.w500_12(context)
                                     .copyWith(color: colors.textError),
                               ),
@@ -219,64 +225,67 @@ class _PivxProposalViewState extends ConsumerState<PivxProposalView> {
                             Row(
                               children: [
                                 fact(
-                                  "Per superblock",
+                                  l10n.govPerSuperblock,
                                   fmt.format(p.monthlyPayment),
                                 ),
-                                fact("In total", fmt.format(p.totalPayment)),
+                                fact(
+                                  l10n.govInTotal,
+                                  fmt.format(p.totalPayment),
+                                ),
                               ],
                             ),
                             const SizedBox(height: 12),
                             Row(
                               children: [
                                 Expanded(
-                                  child: FutureBuilder<List<PivxProposalPayout>>(
-                                    future: _payouts,
-                                    builder: (context, snapshot) {
-                                      final payouts = snapshot.data;
-                                      final paid = payouts
-                                          ?.where(
-                                            (e) =>
-                                                e.state == PivxPayoutState.paid,
-                                          )
-                                          .length;
-                                      return Row(
-                                        children: [
-                                          fact(
-                                            "Paid",
-                                            paid == null
-                                                ? "…"
-                                                : "$paid of ${p.totalPayments}",
-                                          ),
-                                        ],
-                                      );
-                                    },
-                                  ),
+                                  child:
+                                      FutureBuilder<List<PivxProposalPayout>>(
+                                        future: _payouts,
+                                        builder: (context, snapshot) {
+                                          final payouts = snapshot.data;
+                                          final paid = payouts
+                                              ?.where(
+                                                (e) =>
+                                                    e.state ==
+                                                    PivxPayoutState.paid,
+                                              )
+                                              .length;
+                                          return Row(
+                                            children: [
+                                              fact(
+                                                l10n.govPaid,
+                                                paid == null
+                                                    ? "…"
+                                                    : l10n.govOf(
+                                                        paid,
+                                                        p.totalPayments,
+                                                      ),
+                                              ),
+                                            ],
+                                          );
+                                        },
+                                      ),
                                 ),
                                 if (p.totalPayments > 1)
                                   fact(
-                                    "Superblocks",
+                                    l10n.govSuperblocks,
                                     "${p.blockStart} – $lastSuperblock",
                                   )
                                 else
-                                  fact("Superblock", "${p.blockStart}"),
+                                  fact(l10n.govSuperblock, "${p.blockStart}"),
                               ],
                             ),
                             if (p.status == PivxProposalStatus.waiting) ...[
                               const SizedBox(height: 12),
                               Text(
-                                "New proposals can only be funded once "
-                                "they are a day old (5 minutes on testnet).",
+                                l10n.govNewProposalsDayOld,
                                 style: secondary,
                               ),
                             ],
                             if (p.status ==
                                 PivxProposalStatus.passingNotFunded) ...[
                               const SizedBox(height: 12),
-                              Text(
-                                "Enough votes, but the budget is used up by "
-                                "proposals with more votes.",
-                                style: secondary,
-                              ),
+                              Text(l10n.govBudgetUsedUp, style: secondary),
                             ],
                           ],
                         ),
@@ -287,7 +296,10 @@ class _PivxProposalViewState extends ConsumerState<PivxProposalView> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            Text("Votes", style: STextStyles.w600_14(context)),
+                            Text(
+                              l10n.govVotes,
+                              style: STextStyles.w600_14(context),
+                            ),
                             const SizedBox(height: 10),
                             PivxVotesBar(
                               yeas: p.yeas,
@@ -296,15 +308,18 @@ class _PivxProposalViewState extends ConsumerState<PivxProposalView> {
                             ),
                             const SizedBox(height: 4),
                             Text(
-                              "Passes with ${g.requiredNetYes} net Yes "
-                              "${g.requiredNetYes == 1 ? "vote" : "votes"} "
-                              "(more than 10% of ${g.enabledMasternodes} "
-                              "masternodes online)",
+                              l10n.govPassesWith(
+                                g.requiredNetYes,
+                                g.enabledMasternodes,
+                              ),
                               style: secondary,
                             ),
                             if (p.abstains > 0) ...[
                               const SizedBox(height: 4),
-                              Text("${p.abstains} abstained", style: secondary),
+                              Text(
+                                l10n.govAbstained(p.abstains),
+                                style: secondary,
+                              ),
                             ],
                           ],
                         ),
@@ -316,22 +331,18 @@ class _PivxProposalViewState extends ConsumerState<PivxProposalView> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             Text(
-                              "Payouts",
+                              l10n.govPayouts,
                               style: STextStyles.w600_14(context),
                             ),
                             const SizedBox(height: 4),
-                            Text(
-                              "One per superblock, if the proposal passes "
-                              "then. Checked on the blockchain.",
-                              style: secondary,
-                            ),
+                            Text(l10n.govPayoutsExplained, style: secondary),
                             const SizedBox(height: 4),
                             FutureBuilder<List<PivxProposalPayout>>(
                               future: _payouts,
                               builder: (context, snapshot) {
                                 if (snapshot.hasError) {
                                   return Text(
-                                    "Couldn't check the payouts",
+                                    l10n.govPayoutsCheckFailed,
                                     style: secondary,
                                   );
                                 }
@@ -384,14 +395,13 @@ class _PivxProposalViewState extends ConsumerState<PivxProposalView> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             Text(
-                              "Your masternodes",
+                              l10n.govYourMasternodes,
                               style: STextStyles.w600_14(context),
                             ),
                             const SizedBox(height: 8),
                             if (masternodes.isEmpty)
                               Text(
-                                "Voting takes a masternode. This wallet has "
-                                "none; add one under Masternodes.",
+                                l10n.govVotingNeedsMasternode,
                                 style: secondary,
                               )
                             else
@@ -400,7 +410,7 @@ class _PivxProposalViewState extends ConsumerState<PivxProposalView> {
                                 builder: (context, snapshot) {
                                   if (snapshot.hasError) {
                                     return Text(
-                                      "Couldn't load your votes",
+                                      l10n.govVotesLoadFailed,
                                       style: secondary,
                                     );
                                   }
@@ -464,9 +474,9 @@ class _PivxProposalViewState extends ConsumerState<PivxProposalView> {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             PivxCopyRow(
-                              title: "Payment address",
+                              title: l10n.govPaymentAddress,
                               value: p.paymentAddress,
-                              openTooltip: "Open in the block explorer",
+                              openTooltip: l10n.govOpenInExplorer,
                               onOpen: () => openInBlockExplorer(
                                 context,
                                 ref,
@@ -474,13 +484,16 @@ class _PivxProposalViewState extends ConsumerState<PivxProposalView> {
                                   coin: wallet.cryptoCurrency,
                                   address: p.paymentAddress,
                                 ),
-                                what: "address",
+                                address: true,
                               ),
                             ),
-                            PivxCopyRow(title: "Proposal hash", value: p.hash),
+                            PivxCopyRow(
+                              title: l10n.govProposalHash,
+                              value: p.hash,
+                            ),
                             if (p.feeHash.isNotEmpty)
                               PivxCopyRow(
-                                title: "Fee transaction",
+                                title: l10n.govFeeTransaction,
                                 value: p.feeHash,
                               ),
                           ],
@@ -496,14 +509,14 @@ class _PivxProposalViewState extends ConsumerState<PivxProposalView> {
                       children: [
                         Expanded(
                           child: SecondaryButton(
-                            label: "Vote No",
+                            label: l10n.govVoteNo,
                             onPressed: () => _vote(PivxVote.no),
                           ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: PrimaryButton(
-                            label: "Vote Yes",
+                            label: l10n.govVoteYes,
                             onPressed: () => _vote(PivxVote.yes),
                           ),
                         ),
@@ -564,11 +577,13 @@ class _VoteSheetState extends State<_VoteSheet> {
     final v = widget.current[m.id];
     if (v == null) return null;
     if (v.vote == widget.vote) {
-      return "Already voted ${widget.vote == PivxVote.yes ? "Yes" : "No"}";
+      return widget.vote == PivxVote.yes
+          ? l10n.govAlreadyVotedYes
+          : l10n.govAlreadyVotedNo;
     }
     if (!v.canChange) {
       final wait = v.changeableAt.difference(DateTime.now()).inSeconds;
-      return "Can change its vote in ~${pivxDuration(wait)}";
+      return l10n.govCanChangeIn(pivxDuration(wait));
     }
     return null;
   }
@@ -637,7 +652,7 @@ class _VoteSheetState extends State<_VoteSheet> {
             const SizedBox(width: 10),
             Expanded(
               child: Text(
-                "Vote ${yes ? "Yes" : "No"}",
+                yes ? l10n.govVoteYes : l10n.govVoteNo,
                 style: STextStyles.pageTitleH2(context),
               ),
             ),
@@ -660,13 +675,15 @@ class _VoteSheetState extends State<_VoteSheet> {
             children: [
               Expanded(
                 child: Text(
-                  "${_selected.length} of ${_masternodes.length} selected",
+                  l10n.govSelectedOf(_selected.length, _masternodes.length),
                   style: secondary,
                 ),
               ),
               if (_results.isEmpty && selectable.isNotEmpty)
                 CustomTextButton(
-                  text: allSelected ? "Select none" : "Select all",
+                  text: allSelected
+                      ? l10n.commonSelectNone
+                      : l10n.commonSelectAll,
                   onTap: () => setState(
                     () => allSelected
                         ? _selected.removeAll(selectable)
@@ -691,10 +708,10 @@ class _VoteSheetState extends State<_VoteSheet> {
           Text.rich(
             TextSpan(
               children: [
-                TextSpan(text: "$done of ${_results.length} accepted"),
+                TextSpan(text: l10n.govAcceptedOf(done, _results.length)),
                 if (failed > 0)
                   TextSpan(
-                    text: " · $failed failed",
+                    text: " · ${l10n.govFailedCount(failed)}",
                     style: TextStyle(color: colors.textError),
                   ),
               ],
@@ -703,25 +720,22 @@ class _VoteSheetState extends State<_VoteSheet> {
           ),
           const SizedBox(height: 4),
         ],
-        Text(
-          "Each masternode signs its vote with its private key. A vote "
-          "can be changed once an hour.",
-          style: secondary,
-        ),
+        Text(l10n.govVoteExplained, style: secondary),
         const SizedBox(height: 16),
         if (_finished)
           PrimaryButton(
-            label: "Done",
+            label: l10n.commonDone,
             onPressed: () => Navigator.of(context).pop(done > 0),
           )
         else
           PrimaryButton(
             label: _running
-                ? "Voting… ${done + failed} of ${_results.length}"
+                ? l10n.govVoting(done + failed, _results.length)
                 : _selected.isEmpty
-                ? "Select a masternode"
-                : "Vote ${yes ? "Yes" : "No"} with ${_selected.length} "
-                      "masternode${_selected.length == 1 ? "" : "s"}",
+                ? l10n.govSelectMasternode
+                : yes
+                ? l10n.govVoteYesWith(_selected.length)
+                : l10n.govVoteNoWith(_selected.length),
             enabled: !_running && _selected.isNotEmpty,
             onPressed: _run,
           ),
@@ -755,20 +769,20 @@ class _VoteSheetState extends State<_VoteSheet> {
         );
       case _Result.pending:
         trailing = Icon(Icons.more_horiz_rounded, color: colors.textSubtitle2);
-        subtitle = "Waiting";
+        subtitle = l10n.govFilterWaiting;
       case _Result.running:
         trailing = const SizedBox(
           width: 20,
           height: 20,
           child: CircularProgressIndicator(strokeWidth: 2),
         );
-        subtitle = "Signing and sending…";
+        subtitle = l10n.govSigningSending;
       case _Result.done:
         trailing = Icon(
           Icons.check_circle_rounded,
           color: pivxVoteColor(PivxVote.yes, colors),
         );
-        subtitle = "Vote accepted";
+        subtitle = l10n.govVoteAccepted;
       case _Result.failed:
         trailing = Icon(Icons.error_rounded, color: colors.textError);
         subtitle = result!.$2;

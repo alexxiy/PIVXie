@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/l10n.dart';
 import '../themes/stack_colors.dart';
 import '../utilities/text_styles.dart';
 import '../utilities/util.dart';
@@ -47,7 +48,7 @@ class DetailItem extends StatelessWidget {
     }
 
     if (detail.isEmpty && showEmptyDetail) {
-      _detail = detailPlaceholder ?? "$title will appear here";
+      _detail = detailPlaceholder ?? l10n.detailWillAppearHere(title);
       detailStyle = detailStyle.copyWith(
         color: Theme.of(context).extension<StackColors>()!.textSubtitle3,
       );

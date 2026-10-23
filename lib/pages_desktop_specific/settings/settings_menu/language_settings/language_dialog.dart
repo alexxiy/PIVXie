@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../../../l10n/l10n.dart';
 import '../../../../providers/global/prefs_provider.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
@@ -39,24 +40,18 @@ class _LanguageDialog extends ConsumerState<LanguageDialog> {
 
   late final FocusNode searchLanguageFocusNode;
 
-  final languages = Language.values.map((e) => e.description).toList();
+  /// null is the device's language.
+  static const List<Language?> _choices = [null, ...Language.values];
 
-  late String current;
-  late List<String> listWithoutSelected;
+  late List<Language?> _shown;
 
-  void onTap(int index) {
-    if (index == 0 || current.isEmpty) {
-      // ignore if already selected language
-      return;
-    }
-    current = listWithoutSelected[index];
-    listWithoutSelected.remove(current);
-    listWithoutSelected.insert(0, current);
-    ref.read(prefsChangeNotifierProvider).language = current;
-  }
+  /// Saved with "Save changes".
+  late Language? _picked = Language.fromCode(
+    ref.read(prefsChangeNotifierProvider).language,
+  );
 
   BorderRadius? _borderRadius(int index) {
-    if (index == 0 && listWithoutSelected.length == 1) {
+    if (index == 0 && _shown.length == 1) {
       return BorderRadius.circular(
         Constants.size.circularBorderRadius,
       );
@@ -66,7 +61,7 @@ class _LanguageDialog extends ConsumerState<LanguageDialog> {
           Constants.size.circularBorderRadius,
         ),
       );
-    } else if (index == listWithoutSelected.length - 1) {
+    } else if (index == _shown.length - 1) {
       return BorderRadius.vertical(
         bottom: Radius.circular(
           Constants.size.circularBorderRadius,
@@ -78,10 +73,13 @@ class _LanguageDialog extends ConsumerState<LanguageDialog> {
 
   String filter = "";
 
-  List<String> _filtered() {
-    return listWithoutSelected
+  List<Language?> _filtered() {
+    final f = filter.toLowerCase();
+    return _choices
         .where(
-          (element) => element.toLowerCase().contains(filter.toLowerCase()),
+          (e) =>
+              languageTitle(e).toLowerCase().contains(f) ||
+              languageSubtitle(e).toLowerCase().contains(f),
         )
         .toList();
   }
@@ -106,15 +104,7 @@ class _LanguageDialog extends ConsumerState<LanguageDialog> {
 
   @override
   Widget build(BuildContext context) {
-    current = ref
-        .watch(prefsChangeNotifierProvider.select((value) => value.language));
-
-    listWithoutSelected = languages;
-    if (current.isNotEmpty) {
-      listWithoutSelected.remove(current);
-      listWithoutSelected.insert(0, current);
-    }
-    listWithoutSelected = _filtered();
+    _shown = _filtered();
 
     return DesktopDialog(
       maxHeight: 700,
@@ -127,7 +117,7 @@ class _LanguageDialog extends ConsumerState<LanguageDialog> {
               Padding(
                 padding: const EdgeInsets.all(32),
                 child: Text(
-                  "Select language",
+                  l10n.languageSelect,
                   style: STextStyles.desktopH3(context),
                   textAlign: TextAlign.center,
                 ),
@@ -168,7 +158,7 @@ class _LanguageDialog extends ConsumerState<LanguageDialog> {
                                   ),
                                   textAlign: TextAlign.left,
                                   decoration: standardInputDecoration(
-                                    "Search",
+                                    l10n.commonSearch,
                                     searchLanguageFocusNode,
                                     context,
                                   ).copyWith(
@@ -229,6 +219,11 @@ class _LanguageDialog extends ConsumerState<LanguageDialog> {
                       SliverList(
                         delegate: SliverChildBuilderDelegate(
                           (context, index) {
+                            final language = _shown[index];
+                            final selected = language == _picked;
+                            final title = languageTitle(language);
+                            final subtitle = languageSubtitle(language);
+                            void select() => setState(() => _picked = language);
                             return Container(
                               decoration: BoxDecoration(
                                 color: Theme.of(context)
@@ -239,7 +234,7 @@ class _LanguageDialog extends ConsumerState<LanguageDialog> {
                               child: Padding(
                                 padding: const EdgeInsets.all(4),
                                 key: Key(
-                                  "desktopSelectLanguage_${listWithoutSelected[index]}",
+                                  "desktopSelectLanguage_${language?.code ?? "device"}",
                                 ),
                                 child: Padding(
                                   padding: const EdgeInsets.symmetric(
@@ -247,7 +242,7 @@ class _LanguageDialog extends ConsumerState<LanguageDialog> {
                                   ),
                                   child: RoundedContainer(
                                     padding: const EdgeInsets.all(0),
-                                    color: index == 0
+                                    color: selected
                                         ? Theme.of(context)
                                             .extension<StackColors>()!
                                             .currencyListItemBG
@@ -255,9 +250,7 @@ class _LanguageDialog extends ConsumerState<LanguageDialog> {
                                             .extension<StackColors>()!
                                             .popupBG,
                                     child: RawMaterialButton(
-                                      onPressed: () async {
-                                        onTap(index);
-                                      },
+                                      onPressed: select,
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(
                                           Constants.size.circularBorderRadius,
@@ -277,47 +270,39 @@ class _LanguageDialog extends ConsumerState<LanguageDialog> {
                                                     .extension<StackColors>()!
                                                     .radioButtonIconEnabled,
                                                 value: true,
-                                                groupValue: index == 0,
-                                                onChanged: (_) {
-                                                  onTap(index);
-                                                },
+                                                groupValue: selected,
+                                                onChanged: (_) => select(),
                                               ),
                                             ),
                                             const SizedBox(
                                               width: 12,
                                             ),
-                                            Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                Text(
-                                                  listWithoutSelected[index],
-                                                  key: (index == 0)
-                                                      ? const Key(
-                                                          "desktopSettingsSelectedLanguageText",
-                                                        )
-                                                      : null,
-                                                  style:
-                                                      STextStyles.largeMedium14(
-                                                    context,
+                                            Expanded(
+                                              child: Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                    title,
+                                                    style: STextStyles
+                                                        .largeMedium14(
+                                                      context,
+                                                    ),
                                                   ),
-                                                ),
-                                                const SizedBox(
-                                                  height: 2,
-                                                ),
-                                                Text(
-                                                  listWithoutSelected[index],
-                                                  key: (index == 0)
-                                                      ? const Key(
-                                                          "desktopSettingsSelectedLanguageTextDescription",
-                                                        )
-                                                      : null,
-                                                  style:
-                                                      STextStyles.itemSubtitle(
-                                                    context,
-                                                  ),
-                                                ),
-                                              ],
+                                                  if (subtitle != title) ...[
+                                                    const SizedBox(
+                                                      height: 2,
+                                                    ),
+                                                    Text(
+                                                      subtitle,
+                                                      style: STextStyles
+                                                          .itemSubtitle(
+                                                        context,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ],
+                                              ),
                                             ),
                                           ],
                                         ),
@@ -328,7 +313,7 @@ class _LanguageDialog extends ConsumerState<LanguageDialog> {
                               ),
                             );
                           },
-                          childCount: listWithoutSelected.length,
+                          childCount: _shown.length,
                         ),
                       ),
                     ],
@@ -344,7 +329,7 @@ class _LanguageDialog extends ConsumerState<LanguageDialog> {
               children: [
                 Expanded(
                   child: SecondaryButton(
-                    label: "Cancel",
+                    label: l10n.commonCancel,
                     onPressed: () {
                       Navigator.of(context).pop();
                     },
@@ -355,8 +340,12 @@ class _LanguageDialog extends ConsumerState<LanguageDialog> {
                 ),
                 Expanded(
                   child: PrimaryButton(
-                    label: "Save Changes",
-                    onPressed: () {},
+                    label: l10n.commonSaveChanges,
+                    onPressed: () {
+                      ref.read(prefsChangeNotifierProvider).language =
+                          _picked?.code ?? "";
+                      Navigator.of(context).pop();
+                    },
                   ),
                 ),
               ],

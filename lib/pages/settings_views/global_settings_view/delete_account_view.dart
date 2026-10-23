@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app_config.dart';
+import '../../../l10n/l10n.dart';
 import '../../../notifications/show_flush_bar.dart';
 import '../../../providers/global/node_service_provider.dart';
 import '../../../providers/global/secure_store_provider.dart';
@@ -48,7 +49,7 @@ class _DeleteAccountViewState extends ConsumerState<DeleteAccountView> {
       barrierDismissible: true,
       context: context,
       builder: (_) => StackDialog(
-        title: "Delete all wallets and settings?",
+        title: l10n.deleteAccountConfirm,
         leftButton: TextButton(
           style: Theme.of(context)
               .extension<StackColors>()!
@@ -57,7 +58,7 @@ class _DeleteAccountViewState extends ConsumerState<DeleteAccountView> {
             Navigator.pop(context);
           },
           child: Text(
-            "Cancel",
+            l10n.commonCancel,
             style: STextStyles.button(context).copyWith(
               color: Theme.of(context)
                   .extension<StackColors>()!
@@ -77,7 +78,7 @@ class _DeleteAccountViewState extends ConsumerState<DeleteAccountView> {
                 nodeService: ref.read(nodeServiceChangeNotifierProvider),
               ).then((_) => true),
               context: context,
-              message: "Deleting everything",
+              message: l10n.deleteAccountDeleting,
             );
             if (deleted != true) {
               if (mounted) {
@@ -85,7 +86,7 @@ class _DeleteAccountViewState extends ConsumerState<DeleteAccountView> {
                 unawaited(
                   showFloatingFlushBar(
                     type: FlushBarType.warning,
-                    message: "Some of it couldn't be deleted. Try again.",
+                    message: l10n.deleteAccountPartly,
                     context: context,
                   ),
                 );
@@ -99,7 +100,7 @@ class _DeleteAccountViewState extends ConsumerState<DeleteAccountView> {
               ).pushNamedAndRemoveUntil(IntroView.routeName, (route) => false);
             }
           },
-          child: Text("Delete", style: STextStyles.button(context)),
+          child: Text(l10n.commonDelete, style: STextStyles.button(context)),
         ),
       ),
     );
@@ -126,7 +127,7 @@ class _DeleteAccountViewState extends ConsumerState<DeleteAccountView> {
                 },
               ),
               title: Text(
-                "Delete account",
+                l10n.settingsDeleteAccount,
                 style: STextStyles.navBarTitle(context),
               ),
             ),
@@ -136,17 +137,15 @@ class _DeleteAccountViewState extends ConsumerState<DeleteAccountView> {
           children: [
             RoundedWhiteContainer(
               child: Text(
-                "${AppConfig.appName} has no account: everything stays on "
-                "this phone. Deleting it removes all of it: every wallet with "
-                "its keys, the address book, your PIN and your settings. "
-                "Nothing is kept on any server.\n\n"
-                "Make sure you have the recovery phrase of every wallet "
-                "first: without it, its funds are lost.",
+                l10n.deleteAccountText(AppConfig.appName),
                 style: STextStyles.smallMed12(context),
               ),
             ),
             const Spacer(),
-            PrimaryButton(label: "Confirm", onPressed: onConfirmDeleteAccount),
+            PrimaryButton(
+              label: l10n.commonConfirm,
+              onPressed: onConfirmDeleteAccount,
+            ),
           ],
         ),
       ),

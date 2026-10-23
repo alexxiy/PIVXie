@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 
+import '../../../../l10n/l10n.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
@@ -59,13 +60,13 @@ class _RestoringDialogState extends State<RestoringDialog> {
             const RotatingArrows(width: 40, height: 40),
             const Spacer(flex: 2),
             Text(
-              "Restoring wallet...",
+              l10n.restoreRestoringEllipsis,
               style: STextStyles.desktopH2(context),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 16),
             Text(
-              "Restoring your wallet may take a while.\nPlease do not exit this screen.",
+              l10n.restoreDontExitLines,
               style: STextStyles.desktopTextMedium(context).copyWith(
                 color: Theme.of(context).extension<StackColors>()!.textDark3,
               ),
@@ -80,7 +81,7 @@ class _RestoringDialogState extends State<RestoringDialog> {
             Padding(
               padding: const EdgeInsets.only(left: 32, right: 32, bottom: 32),
               child: SecondaryButton(
-                label: "Cancel",
+                label: l10n.commonCancel,
                 width: 272.5,
                 onPressed: () async {
                   await onCancel.call();
@@ -99,8 +100,8 @@ class _RestoringDialogState extends State<RestoringDialog> {
           return false;
         },
         child: StackDialog(
-          title: "Restoring wallet",
-          message: "This may take a while. Please do not exit this screen.",
+          title: l10n.restoreRestoring,
+          message: l10n.restoreDontExit,
           content: widget.walletId == null
               ? null
               : WalletSyncProgress(walletId: widget.walletId!),
@@ -109,7 +110,10 @@ class _RestoringDialogState extends State<RestoringDialog> {
             style: Theme.of(context)
                 .extension<StackColors>()!
                 .getSecondaryEnabledButtonStyle(context),
-            child: Text("Cancel", style: STextStyles.itemSubtitle12(context)),
+            child: Text(
+              l10n.commonCancel,
+              style: STextStyles.itemSubtitle12(context),
+            ),
             onPressed: () async {
               await onCancel.call();
               if (mounted) {

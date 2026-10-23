@@ -11,6 +11,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../l10n/l10n.dart';
 import '../../../providers/wallet/public_private_balance_state_provider.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/amount/amount_formatter.dart';
@@ -75,7 +76,7 @@ class _FiroBalanceSelectionSheetState
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Select balance",
+                    l10n.balanceSelect,
                     style: STextStyles.pageTitleH2(context),
                     textAlign: TextAlign.left,
                   ),
@@ -133,7 +134,7 @@ class _FiroBalanceSelectionSheetState
                                 // Row(
                                 //   children: [
                                 Text(
-                                  "Shielded balance",
+                                  l10n.balanceShielded,
                                   style: STextStyles.titleBold12(context),
                                   textAlign: TextAlign.left,
                                 ),
@@ -211,7 +212,7 @@ class _FiroBalanceSelectionSheetState
                                 // Row(
                                 //   children: [
                                 Text(
-                                  "Transparent balance",
+                                  l10n.balanceTransparent,
                                   style: STextStyles.titleBold12(context),
                                   textAlign: TextAlign.left,
                                 ),

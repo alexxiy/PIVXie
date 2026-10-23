@@ -16,6 +16,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../../app_config.dart';
+import '../../../l10n/l10n.dart';
 import '../../../pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import '../../../pages/settings_views/global_settings_view/manage_nodes_views/coin_nodes_view.dart';
 import '../../../pages/settings_views/sub_widgets/nodes_list.dart';
@@ -136,12 +137,12 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        "Manage nodes",
+                        l10n.settingsManageNodes,
                         style: STextStyles.desktopTextSmall(context),
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        "Select a coin to see nodes",
+                        l10n.nodesSelectCoin,
                         style: STextStyles.desktopTextExtraExtraSmall(context),
                       ),
                       const SizedBox(height: 20),
@@ -160,7 +161,7 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
                           style: STextStyles.field(context),
                           decoration:
                               standardInputDecoration(
-                                "Search",
+                                l10n.commonSearch,
                                 searchNodeFocusNode,
                                 context,
                               ).copyWith(
@@ -280,15 +281,15 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
                                               CrossAxisAlignment.start,
                                           children: [
                                             Text(
-                                              "${coin.prettyName} nodes",
+                                              l10n.nodesOfCoin(coin.prettyName),
                                               style: STextStyles.titleBold12(
                                                 context,
                                               ),
                                             ),
                                             Text(
                                               count > 1
-                                                  ? "$count nodes"
-                                                  : "Default",
+                                                  ? l10n.nodesCount(count)
+                                                  : l10n.nodesDefault,
                                               style: STextStyles.label(context),
                                             ),
                                           ],
@@ -333,17 +334,20 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
           children: [
             SvgPicture.asset(Assets.svg.circleNode, width: 48, height: 48),
             const SizedBox(height: 16),
-            Text("Manage nodes", style: STextStyles.desktopTextSmall(context)),
+            Text(
+              l10n.settingsManageNodes,
+              style: STextStyles.desktopTextSmall(context),
+            ),
             const SizedBox(height: 16),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  "${coin.prettyName} nodes",
+                  l10n.nodesOfCoin(coin.prettyName),
                   style: STextStyles.desktopTextExtraExtraSmall(context),
                 ),
                 CustomTextButton(
-                  text: "Add new node",
+                  text: l10n.nodeAddNew,
                   onTap: () => Navigator.of(context).pushNamed(
                     AddEditNodeView.routeName,
                     arguments: Tuple4(

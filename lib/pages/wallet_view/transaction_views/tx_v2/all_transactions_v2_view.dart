@@ -15,8 +15,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:intl/intl.dart';
 import 'package:isar_community/isar.dart';
 
+import '../../../../l10n/l10n.dart';
 import '../../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../../../models/isar/models/contact_entry.dart';
 import '../../../../models/isar/models/isar_models.dart';
@@ -268,7 +270,7 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
     for (int i = 0; i < transactions.length; i++) {
       final tx = transactions[i];
       final date = DateTime.fromMillisecondsSinceEpoch(tx.timestamp * 1000);
-      final label = "${Constants.monthMap[date.month]} ${date.year}";
+      final label = DateFormat.yMMMM(l10n.localeName).format(date);
       final first = label != month;
       if (first) {
         rows.add((header: label, tx: null, first: rows.isEmpty, last: false));
@@ -392,7 +394,10 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
                     onPressed: Navigator.of(context).pop,
                   ),
                   const SizedBox(width: 12),
-                  Text("Transactions", style: STextStyles.desktopH3(context)),
+                  Text(
+                    l10n.receiveTransactions,
+                    style: STextStyles.desktopH3(context),
+                  ),
                 ],
               ),
             )
@@ -414,7 +419,7 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
                 },
               ),
               title: Text(
-                "Transactions",
+                l10n.receiveTransactions,
                 style: STextStyles.navBarTitle(context),
               ),
               actions: [
@@ -493,7 +498,7 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
                               : STextStyles.field(context),
                           decoration:
                               standardInputDecoration(
-                                "Search...",
+                                l10n.commonSearchEllipsis,
                                 searchFieldFocusNode,
                                 context,
                                 desktopMed: isDesktop,
@@ -541,7 +546,7 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
                     SecondaryButton(
                       buttonHeight: ButtonHeight.l,
                       width: 200,
-                      label: "Filter",
+                      label: l10n.txFilter,
                       icon: SvgPicture.asset(
                         Assets.svg.filter,
                         color: Theme.of(context)
@@ -646,7 +651,7 @@ class _TransactionFilterOptionBarState
         );
       }
       if (_filter!.sent && categories == null) {
-        const label = "Sent";
+        final label = l10n.txSent;
         final item = TransactionFilterOptionBarItem(
           label: label,
           onPressed: (s) {
@@ -664,7 +669,7 @@ class _TransactionFilterOptionBarState
         items.add(item);
       }
       if (_filter!.received && categories == null) {
-        const label = ("Received");
+        final label = l10n.txReceived;
         final item = TransactionFilterOptionBarItem(
           label: label,
           onPressed: (s) {
@@ -683,7 +688,9 @@ class _TransactionFilterOptionBarState
       }
 
       if (_filter!.from != null) {
-        final label = "From ${_filter!.from!.toString().split(" ").first}";
+        final label = l10n.txFromDate(
+          _filter!.from!.toString().split(" ").first,
+        );
         items.add(
           TransactionFilterOptionBarItem(
             label: label,
@@ -692,7 +699,7 @@ class _TransactionFilterOptionBarState
         );
       }
       if (_filter!.to != null) {
-        final label = "To ${_filter!.to!.toString().split(" ").first}";
+        final label = l10n.txToDate(_filter!.to!.toString().split(" ").first);
         items.add(
           TransactionFilterOptionBarItem(
             label: label,

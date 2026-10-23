@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../../../l10n/l10n.dart';
 import '../../../../providers/providers.dart';
 import '../../../../themes/coin_icon_provider.dart';
 import '../../../../themes/stack_colors.dart';
@@ -55,7 +56,7 @@ class WalletSyncingOptionsView extends ConsumerWidget {
               title: FittedBox(
                 fit: BoxFit.scaleDown,
                 child: Text(
-                  "Sync only selected wallets at startup",
+                  l10n.syncingSelected,
                   style: STextStyles.navBarTitle(context),
                 ),
               ),
@@ -92,7 +93,7 @@ class WalletSyncingOptionsView extends ConsumerWidget {
                       children: [
                         const SizedBox(height: 4),
                         Text(
-                          "Choose the wallets to sync automatically at startup",
+                          l10n.syncingChooseWallets,
                           style: STextStyles.smallMed12(context),
                         ),
                         const SizedBox(height: 12),

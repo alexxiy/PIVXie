@@ -14,13 +14,13 @@ import 'package:decimal/decimal.dart';
 import 'package:isar_community/isar.dart';
 
 import '../../exceptions/main_db/main_db_exception.dart';
+import '../../l10n/l10n.dart';
 import '../../models/isar/models/block_explorer.dart';
 import '../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
 import '../../models/isar/models/contact_entry.dart';
 import '../../models/isar/models/isar_models.dart';
 import '../../models/isar/stack_theme.dart';
 import '../../utilities/amount/amount.dart';
-import '../../utilities/extensions/extensions.dart';
 import '../../utilities/stack_file_system.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../wallets/isar/models/wallet_info.dart';

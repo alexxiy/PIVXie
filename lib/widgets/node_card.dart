@@ -15,6 +15,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:tuple/tuple.dart';
 
+import '../l10n/l10n.dart';
 import '../notifications/show_flush_bar.dart';
 import '../pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import '../pages/settings_views/global_settings_view/manage_nodes_views/node_details_view.dart';
@@ -163,7 +164,7 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                   children: [
                     const SizedBox(width: 66),
                     CustomTextButton(
-                      text: "Connect",
+                      text: l10n.commonConnect,
                       enabled: _status == "Disconnected",
                       onTap: () async {
                         final nodeFormData = NodeFormData()
@@ -190,7 +191,7 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                                 showFloatingFlushBar(
                                   type: FlushBarType.warning,
                                   iconAsset: Assets.svg.circleAlert,
-                                  message: "Could not connect to node",
+                                  message: l10n.nodeConnectFailed,
                                   context: context,
                                 ),
                               );
@@ -212,7 +213,7 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                     ),
                     const SizedBox(width: 48),
                     CustomTextButton(
-                      text: "Details",
+                      text: l10n.commonDetails,
                       onTap: () {
                         Navigator.of(context).pushNamed(
                           NodeDetailsView.routeName,
@@ -269,7 +270,7 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                   children: [
                     Text(_node.name, style: STextStyles.titleBold12(context)),
                     const SizedBox(height: 2),
-                    Text(_status, style: STextStyles.label(context)),
+                    Text(_status == "Connected" ? l10n.commonConnected : l10n.commonDisconnected, style: STextStyles.label(context)),
                   ],
                 ),
                 const Spacer(),

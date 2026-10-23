@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 
+import '../../../../../l10n/l10n.dart';
 import '../../../../../utilities/util.dart';
 import '../../../../../widgets/animated_widgets/rotating_arrows.dart';
 import '../../../../../widgets/conditional_parent.dart';
@@ -37,8 +38,8 @@ class RescanningDialog extends StatelessWidget {
           child: child,
         ),
         child: StackDialog(
-          title: "Rescanning blockchain",
-          message: "This may take a while. Please do not exit this screen.",
+          title: l10n.netRescanning,
+          message: l10n.restoreDontExit,
           content: walletId == null
               ? null
               : WalletSyncProgress(walletId: walletId!),

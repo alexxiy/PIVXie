@@ -11,6 +11,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../l10n/l10n.dart';
 import '../../../providers/wallet/public_private_balance_state_provider.dart';
 import '../../../providers/wallet/wallet_balance_toggle_state_provider.dart';
 import '../../../themes/stack_colors.dart';
@@ -96,7 +97,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                 Padding(
                   padding: const EdgeInsets.only(left: 8.0),
                   child: Text(
-                    "Wallet balance",
+                    l10n.walletBalance,
                     style: isDesktop
                         ? STextStyles.desktopH3(context)
                         : STextStyles.pageTitleH2(context),
@@ -105,7 +106,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                 ),
                 const SizedBox(height: 24),
                 BalanceSelector(
-                  title: "Total balance",
+                  title: l10n.balanceTotal,
                   coin: coin,
                   balance: balance.total + balancePrivate.total,
                   onPressed: () {
@@ -121,7 +122,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                 ),
                 const SizedBox(height: 12),
                 BalanceSelector(
-                  title: "Available transparent balance",
+                  title: l10n.balanceAvailableTransparent,
                   coin: coin,
                   balance: balance.spendable,
                   onPressed: () {
@@ -145,7 +146,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                 ),
                 const SizedBox(height: 12),
                 BalanceSelector(
-                  title: "Full transparent balance",
+                  title: l10n.balanceFullTransparent,
                   coin: coin,
                   balance: balance.total,
                   onPressed: () {
@@ -169,7 +170,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                 ),
                 const SizedBox(height: 12),
                 BalanceSelector(
-                  title: "Available shielded balance",
+                  title: l10n.balanceAvailableShielded,
                   coin: coin,
                   balance: balancePrivate.spendable,
                   onPressed: () {
@@ -193,7 +194,7 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                 ),
                 const SizedBox(height: 12),
                 BalanceSelector(
-                  title: "Full shielded balance",
+                  title: l10n.balanceFullShielded,
                   coin: coin,
                   balance: balancePrivate.total,
                   onPressed: () {

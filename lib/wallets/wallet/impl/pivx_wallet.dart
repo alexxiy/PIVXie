@@ -11,6 +11,7 @@ import 'package:decimal/decimal.dart';
 import 'package:isar_community/isar.dart';
 import 'package:mutex/mutex.dart';
 
+import '../../../l10n/l10n.dart';
 import '../../../models/balance.dart';
 import '../../../models/coinlib/exp2pkh_address.dart';
 import '../../../models/input.dart';
@@ -187,9 +188,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     // As the warning on opening the wallet says: such a node isn't used.
     if (prefs.useTor ? !node.torEnabled : !node.clearnetEnabled) {
       throw PivxBridgeException(
-        prefs.useTor
-            ? "This node is set to be used without Tor"
-            : "This node is set to be used only over Tor",
+        prefs.useTor ? l10n.nodeUseWithoutTor : l10n.nodeUseOnlyOverTor,
       );
     }
     final key = "${node.host}|${node.port}|${node.useSSL}|${prefs.useTor}";
@@ -1335,7 +1334,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     final amount = info.cachedBalance.spendable;
     if (amount <=
         Amount.zeroWith(fractionDigits: cryptoCurrency.fractionDigits)) {
-      throw Exception("No transparent funds to shield");
+      throw Exception(l10n.shieldNoTransparentFunds);
     }
     final prepared = await prepareSend(
       txData: TxData(
@@ -1574,7 +1573,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
         : (jsonDecode(txData.otherData!) as Map)[kPivxChangeAddress] as String?;
     if (custom != null && custom.isNotEmpty) {
       if (!cryptoCurrency.isTransparentAddress(custom)) {
-        throw Exception("Change must go to a transparent PIVX address");
+        throw Exception(l10n.sendChangeMustBeTransparent);
       }
       return custom;
     }
@@ -1663,25 +1662,23 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
       // A delegation: cold staking output to this staker.
       if (isStakingAddress(r.address)) {
         if (coldStakeOwner == null) {
-          throw Exception("Staker addresses are only for delegating");
+          throw Exception(l10n.sendStakerOnlyForDelegating);
         }
         if (r.amount.raw < BigInt.from(kPivxMinDelegationSats)) {
-          throw Exception(
-            "A delegation must be at least 1 ${cryptoCurrency.ticker}",
-          );
+          throw Exception(l10n.csMinDelegation(cryptoCurrency.ticker));
         }
         continue;
       }
       if (!cryptoCurrency.validateAddress(r.address)) {
-        throw Exception("Invalid PIVX address: ${r.address}");
+        throw Exception(l10n.sendInvalidPivxAddress(r.address));
       }
       if (isShieldAddress(r.address)) continue;
       if (r.amount.raw < cryptoCurrency.dustLimit.raw) {
-        throw Exception("Amount is below the dust limit");
+        throw Exception(l10n.sendBelowDust);
       }
     }
     if (fromShield || recipients.any((r) => isShieldAddress(r.address))) {
-      if (!_shieldSupported) throw Exception("Shield is not available");
+      if (!_shieldSupported) throw Exception(l10n.shieldNotAvailable);
       return _prepareShieldSend(txData: txData, fromShield: fromShield);
     }
 
@@ -1722,7 +1719,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     final feeFromAmount = subtractFee;
 
     if (target > available) {
-      throw Exception("Insufficient balance");
+      throw Exception(l10n.sendInsufficientBalance);
     }
 
     // ---- choose inputs -----------------------------------------------------
@@ -1764,14 +1761,11 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
       );
       final amount = target - sizeFee;
       if (amount < cryptoCurrency.dustLimit.raw) {
-        throw Exception("Amount is too small to pay the transaction fee");
+        throw Exception(l10n.sendTooSmallForFee);
       }
       if (isStakingAddress(recipient.address) &&
           amount < BigInt.from(kPivxMinDelegationSats)) {
-        throw Exception(
-          "A delegation must be at least 1 ${cryptoCurrency.ticker} "
-          "after the fee",
-        );
+        throw Exception(l10n.csMinDelegationAfterFee(cryptoCurrency.ticker));
       }
       outputs = [
         recipient.copyWith(
@@ -1812,10 +1806,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
             feePerByte,
       );
       if (inSum < target + feeNoChange) {
-        throw Exception(
-          "Insufficient funds to pay the transaction fee. Lower the amount "
-          "or tick \"Subtract fee from amount\".",
-        );
+        throw Exception(l10n.sendInsufficientForFee);
       }
       final change = inSum - target - feeWithChange;
       outputs = [...recipients];
@@ -1850,7 +1841,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     // never broadcast below the relay minimum.
     final required = BigInt.from(built.size * cryptoCurrency.minFeePerByte);
     if (fee < required) {
-      throw Exception("Fee estimate too low ($fee < $required); please retry");
+      throw Exception(l10n.sendFeeEstimateTooLow("$fee", "$required"));
     }
 
     // Change to an address outside the wallet leaves it like the payment.
@@ -1897,10 +1888,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
       final outputs = _prevOuts[u.txid]!;
       if (u.vout >= outputs.length ||
           outputs[u.vout].value != BigInt.from(u.value)) {
-        throw Exception(
-          "The server reported a wrong value for ${u.txid}:${u.vout}; "
-          "not signing",
-        );
+        throw Exception(l10n.sendWrongInputValue("${u.txid}:${u.vout}"));
       }
     }
   }
@@ -1920,23 +1908,19 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     coinlib.HDPrivateKey? root,
     bool verifyValues = true,
   }) async {
-    if (isViewOnly) throw Exception("View only wallets cannot sign");
+    if (isViewOnly) throw Exception(l10n.walletViewOnlyCannotSign);
     root ??= await getRootHDNode();
     if (verifyValues) await _verifyInputValues(utxos);
     if (verifyValues &&
         !coldStake &&
         utxos.any((u) => pivxParseColdStakeScript(_prevScript(u)) != null)) {
-      throw Exception(
-        "Delegated coins are only spent when you pick them; please retry",
-      );
+      throw Exception(l10n.sendDelegatedRetry);
     }
     final result = <StandardInput>[];
     for (final u in utxos) {
       final address = await mainDB.getAddress(walletId, u.address!);
       if (address?.derivationPath == null) {
-        throw Exception(
-          "Failed to fetch signing data. Local db corrupt. Rescan wallet.",
-        );
+        throw Exception(l10n.sendSigningDataMissing);
       }
       result.add(
         StandardInput(
@@ -1972,9 +1956,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
         // Owner spend: the key must be the script's owner.
         final hash = coinlib.hash160(input.key!.publicKey.data);
         if (hash.toHex != p2cs.owner.toHex) {
-          throw Exception(
-            "Not the owner of delegated output ${input.utxo.txid}",
-          );
+          throw Exception(l10n.csNotOwner(input.utxo.txid));
         }
         coldInputs = true;
       }
@@ -2129,22 +2111,15 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
 String? pivxDeleteWarning(Wallet wallet) {
   if (wallet is! PivxWallet) return null;
   final warnings = [
-    if (wallet.masternodes.isNotEmpty)
-      "This wallet's masternode keys aren't part of the recovery phrase. "
-          "Note them first (in each masternode's details), or you'll have "
-          "to set the masternodes up again.",
+    if (wallet.masternodes.isNotEmpty) l10n.walletDeleteMasternodeKeys,
     if (wallet.pendingProposals.any((p) => p.error == null))
-      "Proposals still waiting to be submitted will be lost, along with "
-          "the fees already paid for them.",
+      l10n.walletDeletePendingProposals,
   ];
   return warnings.isEmpty ? null : warnings.join("\n\n");
 }
 
 /// Why "New address" gave none: see [PivxWallet.generateNewTransparentAddress].
-const pivxAddressGapMessage =
-    "You already have 20 unused addresses. Use one of them first: a wallet "
-    "restored from the recovery phrase only looks 20 addresses past the "
-    "last used one.";
+String get pivxAddressGapMessage => l10n.receiveAddressGap;
 
 /// Chain (0 receiving, 1 change) and index of a bridge token path such as
 /// `m/44'/119'/0'/0/5`; null for any other path.

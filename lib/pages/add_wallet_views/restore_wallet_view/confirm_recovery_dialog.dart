@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import '../../../l10n/l10n.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/text_styles.dart';
@@ -42,7 +43,7 @@ class ConfirmRecoveryDialog extends StatelessWidget {
             ),
             const Spacer(),
             Text(
-              "Restore wallet",
+              l10n.addWalletRestore,
               style: STextStyles.desktopH2(context),
               textAlign: TextAlign.center,
             ),
@@ -50,7 +51,7 @@ class ConfirmRecoveryDialog extends StatelessWidget {
               height: 16,
             ),
             Text(
-              "Restoring your wallet may take a while.\nPlease do not exit this screen once the process is started.",
+              l10n.restoreMayTakeWhileLines,
               style: STextStyles.desktopTextMedium(context).copyWith(
                 color: Theme.of(context).extension<StackColors>()!.textDark3,
               ),
@@ -67,7 +68,7 @@ class ConfirmRecoveryDialog extends StatelessWidget {
                 children: [
                   Expanded(
                     child: SecondaryButton(
-                      label: "Cancel",
+                      label: l10n.commonCancel,
                       onPressed: () {
                         Navigator.of(context).pop();
                       },
@@ -78,7 +79,7 @@ class ConfirmRecoveryDialog extends StatelessWidget {
                   ),
                   Expanded(
                     child: PrimaryButton(
-                      label: "Restore",
+                      label: l10n.restoreAction,
                       onPressed: () {
                         Navigator.of(context).pop();
                         onConfirm.call();
@@ -97,17 +98,17 @@ class ConfirmRecoveryDialog extends StatelessWidget {
           return true;
         },
         child: StackDialog(
-          title: "Are you ready?",
+          title: l10n.restoreAreYouReady,
           message:
-              "Restoring your wallet may take a while. Please do not exit this screen once the process is started.",
+              l10n.restoreMayTakeWhile,
           leftButton: SecondaryButton(
-            label: "Cancel",
+            label: l10n.commonCancel,
             onPressed: () {
               Navigator.of(context).pop();
             },
           ),
           rightButton: PrimaryButton(
-            label: "Restore",
+            label: l10n.restoreAction,
             onPressed: () {
               Navigator.of(context).pop();
               onConfirm.call();

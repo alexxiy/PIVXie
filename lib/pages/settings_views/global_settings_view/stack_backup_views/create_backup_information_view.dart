@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 
+import '../../../../l10n/l10n.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../widgets/background.dart';
@@ -37,7 +38,7 @@ class CreateBackupInfoView extends StatelessWidget {
               Navigator.of(context).pop();
             },
           ),
-          title: Text("Create backup", style: STextStyles.navBarTitle(context)),
+          title: Text(l10n.backupCreate, style: STextStyles.navBarTitle(context)),
         ),
         body: SafeArea(
           child: Padding(
@@ -79,7 +80,7 @@ class CreateBackupInfoView extends StatelessWidget {
                               ).pushNamed(CreateBackupView.routeName);
                             },
                             child: Text(
-                              "Next",
+                              l10n.commonNext,
                               style: STextStyles.button(context),
                             ),
                           ),

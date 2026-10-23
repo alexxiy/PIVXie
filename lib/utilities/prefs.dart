@@ -192,7 +192,8 @@ class Prefs extends ChangeNotifier {
 
   // language
 
-  String _language = Language.englishUS.description;
+  /// A [Language.code], or "" for the device's language.
+  String _language = "";
 
   String get language => _language;
 
@@ -209,11 +210,11 @@ class Prefs extends ChangeNotifier {
   }
 
   Future<String> _getPreferredLanguage() async {
-    return await DB.instance.get<dynamic>(
-          boxName: DB.boxNamePrefs,
-          key: "language",
-        ) as String? ??
-        Language.englishUS.description;
+    final stored = await DB.instance.get<dynamic>(
+      boxName: DB.boxNamePrefs,
+      key: "language",
+    ) as String?;
+    return Language.fromCode(stored)?.code ?? "";
   }
 
   // base currency

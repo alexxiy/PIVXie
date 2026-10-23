@@ -14,6 +14,7 @@ import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../l10n/l10n.dart';
 import '../../../providers/global/wallets_provider.dart';
 import '../../../services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import '../../../services/event_bus/global_event_bus.dart';
@@ -100,7 +101,7 @@ class _RefreshButtonState extends ConsumerState<WalletRefreshButton> {
       height: isDesktop ? 22 : 36,
       width: isDesktop ? 22 : 36,
       child: Semantics(
-        label: "Refresh Button. Refreshes The Values In Summary.",
+        label: l10n.walletRefreshSemantics,
         excludeSemantics: true,
         child: MaterialButton(
           color: isDesktop

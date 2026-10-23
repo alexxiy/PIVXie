@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../../../l10n/l10n.dart';
 import '../../../../models/keys/key_data_interface.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../providers/desktop/storage_crypto_handler_provider.dart';
@@ -105,7 +106,7 @@ class _UnlockWalletKeysDesktopState
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.warning,
-            message: "Invalid passphrase!",
+            message: l10n.sendInvalidPassphrase,
             context: context,
           ),
         );
@@ -154,7 +155,7 @@ class _UnlockWalletKeysDesktopState
           ),
           const SizedBox(height: 16),
           Text(
-            "Enter your password",
+            l10n.commonEnterYourPassword,
             style: STextStyles.desktopTextMedium(context).copyWith(
               color: Theme.of(context).extension<StackColors>()!.textDark3,
             ),
@@ -183,7 +184,7 @@ class _UnlockWalletKeysDesktopState
                 },
                 decoration:
                     standardInputDecoration(
-                      "Enter password",
+                      l10n.commonEnterPassword,
                       passwordFocusNode,
                       context,
                     ).copyWith(
@@ -243,14 +244,14 @@ class _UnlockWalletKeysDesktopState
               children: [
                 Expanded(
                   child: SecondaryButton(
-                    label: "Cancel",
+                    label: l10n.commonCancel,
                     onPressed: Navigator.of(context, rootNavigator: true).pop,
                   ),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
                   child: PrimaryButton(
-                    label: "Continue",
+                    label: l10n.commonContinue,
                     enabled: continueEnabled,
                     onPressed: continueEnabled ? enterPassphrase : null,
                   ),

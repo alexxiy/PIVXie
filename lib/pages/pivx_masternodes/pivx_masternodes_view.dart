@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../l10n/l10n.dart';
 import '../../providers/global/wallets_provider.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/amount/amount.dart';
@@ -86,7 +87,7 @@ class _PivxMasternodesViewState extends ConsumerState<PivxMasternodesView> {
       child: Scaffold(
         backgroundColor: colors.background,
         appBar: PageAppBar(
-          title: Text("Masternodes", style: STextStyles.navBarTitle(context)),
+          title: Text(l10n.mnTitle, style: STextStyles.navBarTitle(context)),
         ),
         body: SafeArea(
           child: Padding(
@@ -125,7 +126,7 @@ class _PivxMasternodesViewState extends ConsumerState<PivxMasternodesView> {
                 ),
                 const SizedBox(height: 12),
                 PrimaryButton(
-                  label: "Create masternode",
+                  label: l10n.mnCreate,
                   onPressed: () => _open(
                     PivxCreateMasternodeView.routeName,
                     widget.walletId,
@@ -133,7 +134,7 @@ class _PivxMasternodesViewState extends ConsumerState<PivxMasternodesView> {
                 ),
                 const SizedBox(height: 8),
                 SecondaryButton(
-                  label: "Add existing masternode",
+                  label: l10n.mnAddExisting,
                   onPressed: () => _open(PivxCreateMasternodeView.routeName, (
                     walletId: widget.walletId,
                     existing: true,
@@ -162,17 +163,15 @@ class _Empty extends StatelessWidget {
         Center(child: _MasternodeIcon(color: colors.textSubtitle1, size: 56)),
         const SizedBox(height: 24),
         Text(
-          "No masternodes yet",
+          l10n.mnNoneYet,
           textAlign: TextAlign.center,
           style: STextStyles.pageTitleH2(context),
         ),
         const SizedBox(height: 8),
         Text(
-          "A masternode locks a collateral of "
-          "${wallet.masternodeCollateral.decimal} "
-          "${wallet.cryptoCurrency.ticker} in this wallet and earns rewards "
-          "while a server runs it. The collateral stays yours and is "
-          "frozen so it can't be spent by accident.",
+          l10n.mnNoneYetText(
+            "${wallet.masternodeCollateral.decimal} ${wallet.cryptoCurrency.ticker}",
+          ),
           textAlign: TextAlign.center,
           style: STextStyles.itemSubtitle(context),
         ),
@@ -238,9 +237,9 @@ class PivxMasternodesSummary extends ConsumerWidget {
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
           child: Row(
             children: [
-              stat("Masternodes", "${masternodes.length}"),
-              stat("Enabled", enabled == null ? "…" : "$enabled"),
-              stat("Earned", earned == null ? "…" : fmt.format(earned)),
+              stat(l10n.mnTitle, "${masternodes.length}"),
+              stat(l10n.mnEnabled, enabled == null ? "…" : "$enabled"),
+              stat(l10n.mnEarned, earned == null ? "…" : fmt.format(earned)),
             ],
           ),
         );
@@ -316,7 +315,7 @@ class PivxMasternodeCard extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            mn.label.isEmpty ? "Masternode" : mn.label,
+                            mn.label.isEmpty ? l10n.mnMasternode : mn.label,
                             style: STextStyles.w600_16(context),
                           ),
                           const SizedBox(height: 6),
@@ -333,24 +332,24 @@ class PivxMasternodeCard extends ConsumerWidget {
                 ),
                 const SizedBox(height: 6),
                 Divider(height: 16, color: colors.backgroundAppBar),
-                row("Server", mn.service ?? "Not set"),
+                row(l10n.mnServer, mn.service ?? l10n.mnNotSet),
                 row(
-                  "Collateral",
+                  l10n.mnCollateral,
                   "${fmt.format(wallet.masternodeCollateral)} · "
                       "${mn.txid.substring(0, 8)}…:${mn.vout}",
                 ),
                 if (info != null && info.activeSeconds > 0)
-                  row("Active for", pivxDuration(info.activeSeconds)),
+                  row(l10n.mnActiveFor, pivxDuration(info.activeSeconds)),
                 if (info != null &&
                     info.status != "MISSING" &&
                     info.status != "UNKNOWN")
                   row(
-                    "Last paid",
+                    l10n.mnLastPaid,
                     info.lastPaid > 0
-                        ? "${pivxDuration(_now() - info.lastPaid)} ago"
-                        : "Not yet",
+                        ? l10n.durationAgo(pivxDuration(_now() - info.lastPaid))
+                        : l10n.mnNotYet,
                   ),
-                if (d != null) row("Earned", fmt.format(d.earned)),
+                if (d != null) row(l10n.mnEarned, fmt.format(d.earned)),
               ],
             ),
           ),
@@ -380,11 +379,19 @@ class _MasternodeIcon extends StatelessWidget {
 
 /// "3 d 4 h", "2 h 15 min", "12 min", "40 s".
 String pivxDuration(int seconds) {
-  if (seconds < 60) return "${seconds.clamp(0, 59)} s";
+  if (seconds < 60) return l10n.durationSeconds(seconds.clamp(0, 59));
   final m = seconds ~/ 60, h = m ~/ 60, d = h ~/ 24;
-  if (d > 0) return h % 24 > 0 ? "$d d ${h % 24} h" : "$d d";
-  if (h > 0) return m % 60 > 0 ? "$h h ${m % 60} min" : "$h h";
-  return "$m min";
+  if (d > 0) {
+    return h % 24 > 0
+        ? "${l10n.durationDays(d)} ${l10n.durationHours(h % 24)}"
+        : l10n.durationDays(d);
+  }
+  if (h > 0) {
+    return m % 60 > 0
+        ? "${l10n.durationHours(h)} ${l10n.durationMinutes(m % 60)}"
+        : l10n.durationHours(h);
+  }
+  return l10n.durationMinutes(m);
 }
 
 Color pivxMasternodeStatusColor(String status, StackColors colors) {
@@ -402,9 +409,15 @@ Color pivxMasternodeStatusColor(String status, StackColors colors) {
 }
 
 String _statusText(String status) => switch (status) {
-  "…" => "Checking…",
-  "MISSING" => "Not started",
-  "UNKNOWN" => "Unknown",
+  "…" => l10n.pivxNamesChecking,
+  "MISSING" => l10n.mnStatusMissing,
+  "UNKNOWN" => l10n.mnStatusUnknown,
+  "ENABLED" => l10n.mnStatusEnabled,
+  "PRE_ENABLED" => l10n.mnStatusPreEnabled,
+  "EXPIRED" => l10n.mnStatusExpired,
+  "NEW_START_REQUIRED" => l10n.mnStatusNewStartRequired,
+  "REMOVE" => l10n.mnStatusRemove,
+  "POSE_BAN" => l10n.mnStatusPoseBan,
   _ => status[0] + status.substring(1).toLowerCase().replaceAll("_", "-"),
 };
 

@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../l10n/l10n.dart';
 import '../../pages/address_book_views/subviews/add_address_book_entry_view.dart';
 import '../../providers/global/address_book_service_provider.dart';
 import '../../themes/stack_colors.dart';
@@ -103,7 +104,10 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
         leading: Row(
           children: [
             const SizedBox(width: 24),
-            Text("Address Book", style: STextStyles.desktopH3(context)),
+            Text(
+              l10n.desktopAddressBook,
+              style: STextStyles.desktopH3(context),
+            ),
           ],
         ),
       ),
@@ -127,7 +131,7 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
               style: STextStyles.field(context),
               decoration:
                   standardInputDecoration(
-                    "Search",
+                    l10n.commonSearch,
                     _searchFocusNode,
                     context,
                   ).copyWith(
@@ -170,7 +174,7 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
             children: [
               PrimaryButton(
                 width: 184,
-                label: "Add new",
+                label: l10n.commonAddNew,
                 buttonHeight: ButtonHeight.l,
                 icon: SvgPicture.asset(
                   Assets.svg.circlePlus,
@@ -186,7 +190,9 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
           upperLabel: favorites.isEmpty && allContacts.isEmpty
               ? null
               : Text(
-                  favorites.isEmpty ? "All contacts" : "Favorites",
+                  favorites.isEmpty
+                      ? l10n.addressBookAllContacts
+                      : l10n.addressBookFavorites,
                   style: STextStyles.smallMed12(context),
                 ),
           lowerLabel: favorites.isEmpty
@@ -194,7 +200,7 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
               : Padding(
                   padding: const EdgeInsets.only(top: 20, bottom: 12),
                   child: Text(
-                    "All contacts",
+                    l10n.addressBookAllContacts,
                     style: STextStyles.smallMed12(context),
                   ),
                 ),
@@ -204,7 +210,7 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
                     : RoundedWhiteContainer(
                         child: Center(
                           child: Text(
-                            "Your favorite contacts will appear here",
+                            l10n.addressBookFavoritesEmpty,
                             style: STextStyles.itemSubtitle(context),
                           ),
                         ),
@@ -273,7 +279,7 @@ class _DesktopAddressBook extends ConsumerState<DesktopAddressBook> {
                     : RoundedWhiteContainer(
                         child: Center(
                           child: Text(
-                            "Your contacts will appear here",
+                            l10n.addressBookContactsEmpty,
                             style: STextStyles.itemSubtitle(context),
                           ),
                         ),

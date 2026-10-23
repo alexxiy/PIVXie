@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../app_config.dart';
+import '../../../../l10n/l10n.dart';
 import '../../../../providers/global/prefs_provider.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
@@ -29,7 +30,10 @@ class AppearanceView extends StatelessWidget {
           leading: AppBarBackButton(
             onPressed: () => Navigator.of(context).pop(),
           ),
-          title: Text("Appearance", style: STextStyles.navBarTitle(context)),
+          title: Text(
+            l10n.settingsAppearance,
+            style: STextStyles.navBarTitle(context),
+          ),
         ),
         body: SafeArea(
           child: Padding(
@@ -44,7 +48,7 @@ class AppearanceView extends StatelessWidget {
                       SettingsListButton(
                         iconAssetName: Assets.svg.language,
                         iconSize: 18,
-                        title: "Language",
+                        title: l10n.languageTitle,
                         onPressed: () =>
                             Navigator.of(context)
                                 .pushNamed(LanguageSettingsView.routeName),
@@ -54,7 +58,7 @@ class AppearanceView extends StatelessWidget {
                         SettingsListButton(
                           iconAssetName: Assets.svg.sun,
                           iconSize: 18,
-                          title: "Theme",
+                          title: l10n.settingsTheme,
                           onPressed: () =>
                               Navigator.of(context)
                                   .pushNamed(ThemeModeView.routeName),
@@ -73,13 +77,12 @@ class AppearanceView extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                "Sound effects",
+                                l10n.appearanceSounds,
                                 style: STextStyles.titleBold12(context),
                               ),
                               const SizedBox(height: 2),
                               Text(
-                                "Play sounds, e.g. while a transaction "
-                                "is sent",
+                                l10n.appearanceSoundsText,
                                 style: STextStyles.itemSubtitle(context),
                               ),
                             ],

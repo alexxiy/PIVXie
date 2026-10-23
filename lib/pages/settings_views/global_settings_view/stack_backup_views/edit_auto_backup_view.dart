@@ -19,6 +19,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:stack_wallet_backup/stack_wallet_backup.dart';
 
 import '../../../../app_config.dart';
+import '../../../../l10n/l10n.dart';
 import '../../../../providers/global/prefs_provider.dart';
 import '../../../../providers/global/secure_store_provider.dart';
 import '../../../../themes/stack_colors.dart';
@@ -139,8 +140,8 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
           return fileToSavePath;
         }(),
         context: context,
-        message: "Updating Auto Backup",
-        subMessage: "This shouldn't take long",
+        message: l10n.backupUpdatingAuto,
+        subMessage: l10n.backupShouldntTakeLong,
         delay: const Duration(seconds: 1),
         onException: (e) => ex = e,
       );
@@ -157,7 +158,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
             context: context,
             barrierDismissible: false,
             builder: (_) => StackOkDialog(
-              title: "${AppConfig.prefix} Auto Backup saved to:",
+              title: l10n.backupAutoSavedTo(AppConfig.prefix),
               message: savedPath,
             ),
           );
@@ -176,7 +177,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
             context: context,
             barrierDismissible: false,
             builder: (_) => StackOkDialog(
-              title: "Failed to update Auto Backup",
+              title: l10n.backupUpdateAutoFailed,
               message: ex?.toString(),
             ),
           );
@@ -249,7 +250,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
               },
             ),
             title: Text(
-              "Edit Auto Backup",
+              l10n.backupEditAuto,
               style: STextStyles.navBarTitle(context),
             ),
           ),
@@ -278,10 +279,10 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
             : CrossAxisAlignment.stretch,
         children: [
           if (!isDesktop)
-            Text("Create your backup", style: STextStyles.smallMed12(context)),
+            Text(l10n.backupCreateYour, style: STextStyles.smallMed12(context)),
           if (isDesktop)
             Text(
-              "Choose file location",
+              l10n.backupChooseLocation,
               style: STextStyles.desktopTextExtraSmall(context).copyWith(
                 color: Theme.of(context).extension<StackColors>()!.textDark3,
               ),
@@ -313,7 +314,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
               controller: fileLocationController,
               style: STextStyles.field(context),
               decoration: InputDecoration(
-                hintText: "Save to...",
+                hintText: l10n.logsSaveTo,
                 hintStyle: STextStyles.fieldLabel(context),
                 suffixIcon: UnconstrainedBox(
                   child: Row(
@@ -345,7 +346,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
           if (isDesktop) const SizedBox(height: 24),
           if (isDesktop)
             Text(
-              "Create a passphrase",
+              l10n.backupCreateAPassphrase,
               style: STextStyles.desktopTextExtraSmall(context).copyWith(
                 color: Theme.of(context).extension<StackColors>()!.textDark3,
               ),
@@ -366,7 +367,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
               autocorrect: false,
               decoration:
                   standardInputDecoration(
-                    "Create passphrase",
+                    l10n.backupCreatePassphrase,
                     passwordFocusNode,
                     context,
                   ).copyWith(
@@ -468,7 +469,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
               autocorrect: false,
               decoration:
                   standardInputDecoration(
-                    "Confirm passphrase",
+                    l10n.backupConfirmPassphrase,
                     passwordRepeatFocusNode,
                     context,
                   ).copyWith(
@@ -512,7 +513,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
           ),
           SizedBox(height: isDesktop ? 24 : 32),
           Text(
-            "Auto Backup frequency",
+            l10n.backupAutoFrequency,
             style: isDesktop
                 ? STextStyles.desktopTextExtraSmall(context).copyWith(
                     color: Theme.of(context)
@@ -532,13 +533,13 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                     String message = "";
                     switch (e) {
                       case BackupFrequencyType.everyTenMinutes:
-                        message = "Every 10 minutes";
+                        message = l10n.backupEveryTenMinutes;
                         break;
                       case BackupFrequencyType.everyAppStart:
-                        message = "Every app startup";
+                        message = l10n.backupEveryAppStartup;
                         break;
                       case BackupFrequencyType.afterClosingAWallet:
-                        message = "After closing a cryptocurrency wallet";
+                        message = l10n.backupAfterClosingWallet;
                         break;
                     }
 
@@ -665,7 +666,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
               children: [
                 Expanded(
                   child: SecondaryButton(
-                    label: "Cancel",
+                    label: l10n.commonCancel,
                     buttonHeight: ButtonHeight.l,
                     onPressed: Navigator.of(context).pop,
                   ),
@@ -673,7 +674,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                 const SizedBox(width: 16),
                 Expanded(
                   child: PrimaryButton(
-                    label: "Save",
+                    label: l10n.commonSave,
                     buttonHeight: ButtonHeight.l,
                     enabled: shouldEnableCreate,
                     onPressed: onSavePressed,
@@ -691,7 +692,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                         .extension<StackColors>()!
                         .getPrimaryDisabledButtonStyle(context),
               onPressed: !shouldEnableCreate ? null : onSavePressed,
-              child: Text("Save", style: STextStyles.button(context)),
+              child: Text(l10n.commonSave, style: STextStyles.button(context)),
             ),
         ],
       ),

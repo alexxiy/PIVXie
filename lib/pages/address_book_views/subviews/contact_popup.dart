@@ -16,6 +16,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:tuple/tuple.dart';
 
+import '../../../l10n/l10n.dart';
 import '../../../models/send_view_auto_fill_data.dart';
 import '../../../notifications/show_flush_bar.dart';
 import '../../../providers/global/active_wallet_provider.dart';
@@ -154,7 +155,7 @@ class ContactPopUp extends ConsumerWidget {
                                           horizontal: 18,
                                         ),
                                         child: Text(
-                                          "Details",
+                                          l10n.commonDetails,
                                           style: STextStyles.buttonSmall(
                                             context,
                                           ),
@@ -179,7 +180,11 @@ class ContactPopUp extends ConsumerWidget {
                                   child: RoundedWhiteContainer(
                                     child: Center(
                                       child: Text(
-                                        "No ${ref.watch(pWalletCoin(active!)).prettyName} addresses found",
+                                        l10n.contactNoCoinAddresses(
+                                          ref
+                                              .watch(pWalletCoin(active!))
+                                              .prettyName,
+                                        ),
                                         style: STextStyles.itemSubtitle(
                                           context,
                                         ),
@@ -245,7 +250,8 @@ class ContactPopUp extends ConsumerWidget {
                                               );
                                               showFloatingFlushBar(
                                                 type: FlushBarType.info,
-                                                message: "Copied to clipboard",
+                                                message: l10n
+                                                    .commonCopiedToClipboard,
                                                 iconAsset: Assets.svg.copy,
                                                 context: context,
                                               );

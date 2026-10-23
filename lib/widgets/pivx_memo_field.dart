@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
+import '../l10n/l10n.dart';
 import '../themes/stack_colors.dart';
 import '../utilities/constants.dart';
 import '../utilities/text_styles.dart';
@@ -87,13 +88,13 @@ class PivxMemoField extends StatelessWidget {
     required this.controller,
     required this.focusNode,
     this.onChanged,
-    this.hint = "Sent privately with the payment",
+    this.hint,
   });
 
   final TextEditingController controller;
   final FocusNode focusNode;
   final VoidCallback? onChanged;
-  final String hint;
+  final String? hint;
 
   @override
   Widget build(BuildContext context) {
@@ -126,7 +127,7 @@ class PivxMemoField extends StatelessWidget {
                 onChanged: (_) => onChanged?.call(),
                 decoration:
                     standardInputDecoration(
-                      hint,
+                      hint ?? l10n.memoHint,
                       focusNode,
                       context,
                       desktopMed: isDesktop,
@@ -157,7 +158,7 @@ class PivxMemoField extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(top: 4, right: 4),
                 child: Text(
-                  "$bytes / $kPivxMaxMemoBytes bytes",
+                  l10n.memoBytes(bytes, kPivxMaxMemoBytes),
                   textAlign: TextAlign.right,
                   style: STextStyles.label(context).copyWith(
                     color: bytes > kPivxMaxMemoBytes

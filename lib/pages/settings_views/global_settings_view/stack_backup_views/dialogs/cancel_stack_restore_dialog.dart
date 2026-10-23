@@ -11,6 +11,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../../app_config.dart';
+import '../../../../../l10n/l10n.dart';
 import '../../../../../themes/stack_colors.dart';
 import '../../../../../utilities/text_styles.dart';
 import '../../../../../utilities/util.dart';
@@ -33,15 +34,15 @@ class CancelStackRestoreDialog extends StatelessWidget {
       },
       child: !Util.isDesktop
           ? StackDialog(
-              title: "Cancel restore process",
+              title: l10n.restoreCancelProcess,
               message:
-                  "Cancelling will revert any changes that may have been applied",
+                  l10n.restoreCancelRevert,
               leftButton: TextButton(
                 style: Theme.of(context)
                     .extension<StackColors>()!
                     .getSecondaryEnabledButtonStyle(context),
                 child: Text(
-                  "Back",
+                  l10n.commonBack,
                   style: STextStyles.itemSubtitle12(context),
                 ),
                 onPressed: () {
@@ -53,7 +54,7 @@ class CancelStackRestoreDialog extends StatelessWidget {
                     .extension<StackColors>()!
                     .getPrimaryEnabledButtonStyle(context),
                 child: Text(
-                  "Yes, cancel",
+                  l10n.restoreYesCancel,
                   style: STextStyles.itemSubtitle12(context).copyWith(
                     color: Theme.of(context)
                         .extension<StackColors>()!
@@ -78,7 +79,7 @@ class CancelStackRestoreDialog extends StatelessWidget {
                 child: Column(
                   children: [
                     Text(
-                      "Cancel Restore Process",
+                      l10n.restoreCancelProcessTitle,
                       style: STextStyles.desktopH3(context),
                     ),
                     const SizedBox(height: 24),
@@ -89,8 +90,7 @@ class CancelStackRestoreDialog extends StatelessWidget {
                             .extension<StackColors>()!
                             .snackBarBackError,
                         child: Text(
-                          "If you cancel, the restore will not complete, and "
-                          "the wallets will not appear in your ${AppConfig.prefix}.",
+                          l10n.restoreCancelText(AppConfig.prefix),
                           style: STextStyles.desktopTextMedium(context),
                         ),
                       ),
@@ -103,7 +103,7 @@ class CancelStackRestoreDialog extends StatelessWidget {
                           width: 248,
                           buttonHeight: ButtonHeight.l,
                           enabled: true,
-                          label: "Keep restoring",
+                          label: l10n.restoreKeepRestoring,
                           onPressed: () {
                             Navigator.of(context).pop(false);
                           },
@@ -113,7 +113,7 @@ class CancelStackRestoreDialog extends StatelessWidget {
                           width: 248,
                           buttonHeight: ButtonHeight.l,
                           enabled: true,
-                          label: "Cancel anyway",
+                          label: l10n.restoreCancelAnyway,
                           onPressed: () {
                             Navigator.of(context).pop(true);
                           },

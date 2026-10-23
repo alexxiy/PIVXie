@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../l10n/l10n.dart';
 import '../../../providers/providers.dart';
 import '../../../providers/ui/address_book_providers/address_entry_data_provider.dart';
 import '../../../themes/stack_colors.dart';
@@ -141,7 +142,7 @@ class _NewContactAddressEntryFormState
             style: STextStyles.field(context),
             decoration:
                 standardInputDecoration(
-                  "Paste address",
+                  l10n.contactPasteAddress,
                   addressFocusNode,
                   context,
                 ).copyWith(
@@ -235,7 +236,7 @@ class _NewContactAddressEntryFormState
                 children: [
                   const SizedBox(height: 4),
                   Text(
-                    "Invalid address",
+                    l10n.sendInvalidAddress,
                     textAlign: TextAlign.left,
                     style: STextStyles.label(context).copyWith(
                       color: Theme.of(context)

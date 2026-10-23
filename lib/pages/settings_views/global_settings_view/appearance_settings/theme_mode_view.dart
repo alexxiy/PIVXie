@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../l10n/l10n.dart';
 import '../../../../providers/global/prefs_provider.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../themes/theme_providers.dart';
@@ -54,13 +55,10 @@ void applyThemePrefs(BuildContext context, WidgetRef ref) {
 }
 
 /// Title and subtitle of each [AppThemeMode].
-const kThemeModeTexts = {
-  AppThemeMode.system: (
-    "System default",
-    "Follow the device's light or dark mode",
-  ),
-  AppThemeMode.light: ("Light", "Always light"),
-  AppThemeMode.dark: ("Dark", "Always dark"),
+Map<AppThemeMode, (String, String)> get kThemeModeTexts => {
+  AppThemeMode.system: (l10n.themeSystem, l10n.themeSystemText),
+  AppThemeMode.light: (l10n.themeLight, l10n.themeLightText),
+  AppThemeMode.dark: (l10n.themeDark, l10n.themeDarkText),
 };
 
 /// Light / Dark / follow the system, for apps that ship both default
@@ -118,7 +116,10 @@ class ThemeModeView extends ConsumerWidget {
           leading: AppBarBackButton(
             onPressed: () => Navigator.of(context).pop(),
           ),
-          title: Text("Theme", style: STextStyles.navBarTitle(context)),
+          title: Text(
+            l10n.settingsTheme,
+            style: STextStyles.navBarTitle(context),
+          ),
         ),
         body: SafeArea(
           child: Padding(

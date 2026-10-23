@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../../l10n/l10n.dart';
 import '../../../notifications/show_flush_bar.dart';
 import '../../../pages/address_book_views/subviews/add_address_book_entry_view.dart';
 import '../../../providers/global/address_book_service_provider.dart';
@@ -79,7 +80,7 @@ class _DesktopContactOptionsMenuPopupState
                 Padding(
                   padding: const EdgeInsets.only(left: 32),
                   child: Text(
-                    "Delete ${contact.name}?",
+                    l10n.contactDeleteTitle(contact.name),
                     style: STextStyles.desktopH3(context),
                   ),
                 ),
@@ -94,7 +95,7 @@ class _DesktopContactOptionsMenuPopupState
                   children: [
                     const Spacer(flex: 1),
                     Text(
-                      "Contact will be deleted permanently!",
+                      l10n.contactDeleteText,
                       style: STextStyles.desktopTextSmall(context),
                     ),
                     const Spacer(flex: 2),
@@ -102,7 +103,7 @@ class _DesktopContactOptionsMenuPopupState
                       children: [
                         Expanded(
                           child: SecondaryButton(
-                            label: "Cancel",
+                            label: l10n.commonCancel,
                             onPressed: Navigator.of(context).pop,
                             buttonHeight: ButtonHeight.l,
                           ),
@@ -111,7 +112,7 @@ class _DesktopContactOptionsMenuPopupState
                         Expanded(
                           child: Consumer(
                             builder: (context, ref, __) => PrimaryButton(
-                              label: "Delete",
+                              label: l10n.commonDelete,
                               buttonHeight: ButtonHeight.l,
                               onPressed: () {
                                 ref
@@ -120,7 +121,7 @@ class _DesktopContactOptionsMenuPopupState
                                 Navigator.of(context).pop();
                                 showFloatingFlushBar(
                                   type: FlushBarType.success,
-                                  message: "${contact.name} deleted",
+                                  message: l10n.contactDeleted(contact.name),
                                   context: context,
                                 );
                               },
@@ -215,8 +216,8 @@ class _DesktopContactOptionsMenuPopupState
                                           .isFavorite,
                                     ),
                                   )
-                                  ? "Remove from favorites"
-                                  : "Add to favorites",
+                                  ? l10n.favoritesRemove
+                                  : l10n.favoritesAdd,
                               style:
                                   STextStyles.desktopTextExtraExtraSmall(
                                     context,
@@ -272,7 +273,7 @@ class _DesktopContactOptionsMenuPopupState
                             ),
                             const SizedBox(width: 12),
                             Text(
-                              "Edit contact",
+                              l10n.contactEdit,
                               style:
                                   STextStyles.desktopTextExtraExtraSmall(
                                     context,
@@ -328,7 +329,7 @@ class _DesktopContactOptionsMenuPopupState
                             ),
                             const SizedBox(width: 12),
                             Text(
-                              "Delete contact",
+                              l10n.contactDelete,
                               style:
                                   STextStyles.desktopTextExtraExtraSmall(
                                     context,

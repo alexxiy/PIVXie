@@ -17,6 +17,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:isar_community/isar.dart';
 
 import '../../db/isar/main_db.dart';
+import '../../l10n/l10n.dart';
 import '../../models/input.dart';
 import '../../models/isar/models/blockchain_data/utxo.dart';
 import '../../themes/coin_icon_provider.dart';
@@ -152,7 +153,10 @@ class _DesktopCoinControlUseDialogState
           Row(
             children: [
               const AppBarBackButton(size: 40, iconSize: 24),
-              Text("Coin control", style: STextStyles.desktopH3(context)),
+              Text(
+                l10n.coinControlTitle,
+                style: STextStyles.desktopH3(context),
+              ),
             ],
           ),
           Expanded(
@@ -169,7 +173,7 @@ class _DesktopCoinControlUseDialogState
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          "Choose which outputs this send uses.",
+                          l10n.coinControlChooseForSend,
                           style: STextStyles.desktopTextExtraExtraSmall(
                             context,
                           ),
@@ -204,7 +208,7 @@ class _DesktopCoinControlUseDialogState
                                 ),
                             decoration:
                                 standardInputDecoration(
-                                  "Search...",
+                                  l10n.commonSearchEllipsis,
                                   searchFieldFocusNode,
                                   context,
                                   desktopMed: true,
@@ -260,9 +264,9 @@ class _DesktopCoinControlUseDialogState
                               .extension<StackColors>()!
                               .rateTypeToggleDesktopColorOff,
                           onIcon: Assets.svg.coinControl.unBlocked,
-                          onText: "Available",
+                          onText: l10n.coinControlAvailable,
                           offIcon: Assets.svg.coinControl.blocked,
-                          offText: "Frozen",
+                          offText: l10n.coinControlFrozen,
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(
                               Constants.size.circularBorderRadius,
@@ -291,7 +295,7 @@ class _DesktopCoinControlUseDialogState
                             });
                           }
                         },
-                        displayPrefix: "Sort by",
+                        itemLabel: (s) => s.sortByLabel,
                       ),
                     ],
                   ),
@@ -377,8 +381,9 @@ class _DesktopCoinControlUseDialogState
                                       ),
                                       Expanded(
                                         child: Text(
-                                          "${entry.value.length} "
-                                          "output${entry.value.length > 1 ? "s" : ""}",
+                                          l10n.coinControlOutputs(
+                                            entry.value.length,
+                                          ),
                                           style:
                                               STextStyles.desktopTextExtraExtraSmall(
                                                 context,
@@ -463,7 +468,7 @@ class _DesktopCoinControlUseDialogState
                                     MainAxisAlignment.spaceBetween,
                                 children: [
                                   Text(
-                                    "Amount to send",
+                                    l10n.coinControlAmountToSend,
                                     style:
                                         STextStyles.desktopTextExtraExtraSmall(
                                           context,
@@ -497,7 +502,7 @@ class _DesktopCoinControlUseDialogState
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              "Selected amount",
+                              l10n.coinControlSelectedAmount,
                               style:
                                   STextStyles.desktopTextExtraExtraSmall(
                                     context,
@@ -539,8 +544,10 @@ class _DesktopCoinControlUseDialogState
                           enabled: _selectedUTXOsData.isNotEmpty,
                           buttonHeight: ButtonHeight.l,
                           label: _selectedUTXOsData.isEmpty
-                              ? "Clear selection"
-                              : "Clear selection (${_selectedUTXOsData.length})",
+                              ? l10n.coinControlClearSelection
+                              : l10n.coinControlClearSelectionCount(
+                                  _selectedUTXOsData.length,
+                                ),
                           onPressed: () {
                             setState(() {
                               _selectedUTXOsData.clear();
@@ -554,7 +561,7 @@ class _DesktopCoinControlUseDialogState
                         child: PrimaryButton(
                           enabled: enableApply,
                           buttonHeight: ButtonHeight.l,
-                          label: "Apply",
+                          label: l10n.commonApply,
                           onPressed: () {
                             ref.read(desktopUseUTXOs.notifier).state =
                                 _selectedUTXOs;

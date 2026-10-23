@@ -18,6 +18,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../app_config.dart';
+import '../../l10n/l10n.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../providers/global/active_wallet_provider.dart';
 import '../../providers/global/auto_swb_service_provider.dart';
@@ -242,8 +243,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
       showDialog(
         context: context,
         builder: (context) => WillPopScope(
-          child: const CustomLoadingOverlay(
-            message: "Anonymizing balance",
+          child: CustomLoadingOverlay(
+            message: l10n.walletAnonymizing,
             eventBus: null,
           ),
           onWillPop: () async => shouldPop,
@@ -261,7 +262,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.info,
-            message: "No funds available to privatize!",
+            message: l10n.walletNoFundsToPrivatize,
             context: context,
           ),
         );
@@ -278,7 +279,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
         unawaited(
           showFloatingFlushBar(
             type: FlushBarType.success,
-            message: "Privatize transaction submitted",
+            message: l10n.walletPrivatizeSubmitted,
             context: context,
           ),
         );
@@ -291,8 +292,8 @@ class _WalletViewState extends ConsumerState<WalletView> {
         await showDialog<dynamic>(
           context: context,
           builder: (_) => StackOkDialog(
-            title: "Privatize all failed",
-            message: "Reason: $e",
+            title: l10n.walletPrivatizeFailed,
+            message: l10n.walletReason(e.toString()),
           ),
         );
       }
@@ -358,8 +359,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                     child: AspectRatio(
                       aspectRatio: 1,
                       child: AppBarIconButton(
-                        semanticsLabel:
-                            "Network Button. Takes To Network Status Page.",
+                        semanticsLabel: l10n.walletNetworkSemantics,
                         key: const Key("walletViewRadioButton"),
                         size: 36,
                         shadows: const [],
@@ -389,8 +389,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                     child: AspectRatio(
                       aspectRatio: 1,
                       child: AppBarIconButton(
-                        semanticsLabel:
-                            "Address Book Button. Takes To Address Book.",
+                        semanticsLabel: l10n.walletAddressBookSemantics,
                         key: const Key("walletViewAddressBookButton"),
                         size: 36,
                         shadows: const [],
@@ -420,8 +419,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                     child: AspectRatio(
                       aspectRatio: 1,
                       child: AppBarIconButton(
-                        semanticsLabel:
-                            "Settings Button. Takes To Wallet Settings Page.",
+                        semanticsLabel: l10n.walletSettingsSemantics,
                         key: const Key("walletViewSettingsButton"),
                         size: 36,
                         shadows: const [],
@@ -490,14 +488,14 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                     await showDialog<void>(
                                       context: context,
                                       builder: (context) => StackDialog(
-                                        title: "Attention!",
-                                        message: "You're about to privatize all of your public funds.",
+                                        title: l10n.walletAttention,
+                                        message: l10n.walletPrivatizeConfirm,
                                         leftButton: TextButton(
                                           onPressed: () {
                                             Navigator.of(context).pop();
                                           },
                                           child: Text(
-                                            "Cancel",
+                                            l10n.commonCancel,
                                             style: STextStyles.button(context)
                                                 .copyWith(
                                                   color: Theme.of(context)
@@ -518,7 +516,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                                 context,
                                               ),
                                           child: Text(
-                                            "Continue",
+                                            l10n.commonContinue,
                                             style: STextStyles.button(context),
                                           ),
                                         ),
@@ -526,7 +524,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                                     );
                                   },
                                   child: Text(
-                                    "Privatize funds",
+                                    l10n.walletPrivatizeFunds,
                                     style: STextStyles.button(context).copyWith(
                                       color: Theme.of(context)
                                           .extension<StackColors>()!
@@ -545,7 +543,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              "Transactions",
+                              l10n.receiveTransactions,
                               style: STextStyles.itemSubtitle(context).copyWith(
                                 color: Theme.of(context)
                                     .extension<StackColors>()!
@@ -553,7 +551,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                               ),
                             ),
                             CustomTextButton(
-                              text: "See all",
+                              text: l10n.walletSeeAll,
                               onTap: () {
                                 Navigator.of(context).pushNamed(
                                   AllTransactionsV2View.routeName,
@@ -625,7 +623,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                 items: [
                   if (!viewOnly)
                     WalletNavigationBarItemData(
-                      label: "Send",
+                      label: l10n.commonSend,
                       icon: const SendNavIcon(),
                       onTap: () {
                         Navigator.of(context).pushNamed(
@@ -635,7 +633,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                       },
                     ),
                   WalletNavigationBarItemData(
-                    label: "Receive",
+                    label: l10n.commonReceive,
                     icon: const ReceiveNavIcon(),
                     onTap: () {
                       if (mounted) {
@@ -656,7 +654,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                     ),
                   ))
                     WalletNavigationBarItemData(
-                      label: "Coin control",
+                      label: l10n.coinControlTitle,
                       icon: const CoinControlNavIcon(),
                       onTap: () {
                         Navigator.of(context).pushNamed(
@@ -670,7 +668,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                     ),
                   if (!viewOnly && wallet is PivxWallet)
                     WalletNavigationBarItemData(
-                      label: "Masternodes",
+                      label: l10n.mnTitle,
                       icon: Icon(
                         Icons.dns_rounded,
                         size: 20,
@@ -687,7 +685,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                     ),
                   if (wallet is PivxWallet)
                     WalletNavigationBarItemData(
-                      label: "Cold staking",
+                      label: l10n.csTitle,
                       icon: Icon(
                         Icons.ac_unit_rounded,
                         size: 20,
@@ -704,7 +702,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                     ),
                   if (wallet is PivxWallet)
                     WalletNavigationBarItemData(
-                      label: "Governance",
+                      label: l10n.govTitle,
                       icon: Icon(
                         Icons.how_to_vote_rounded,
                         size: 20,
@@ -723,7 +721,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                       wallet is PivxWallet &&
                       PivxNamesService.forCoin(coin) != null)
                     WalletNavigationBarItemData(
-                      label: "Names",
+                      label: l10n.pivxNamesTitle,
                       icon: const PivxNamesLogo(size: 20, small: true),
                       onTap: () {
                         Navigator.of(context).pushNamed(

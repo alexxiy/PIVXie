@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../l10n/l10n.dart';
 import '../../providers/global/prefs_provider.dart';
 import '../../providers/global/wallets_provider.dart';
 import '../../themes/stack_colors.dart';
@@ -23,24 +24,37 @@ import 'pivx_governance_widgets.dart';
 import 'pivx_proposal_view.dart';
 
 enum _Tab {
-  past("Past"),
-  current("Current"),
-  future("Future");
+  past,
+  current,
+  future;
 
-  const _Tab(this.label);
-
-  final String label;
+  String get label => switch (this) {
+    past => l10n.govTabPast,
+    current => l10n.govTabCurrent,
+    future => l10n.govTabFuture,
+  };
 }
 
 enum _Filter {
-  all("All"),
-  passing("Passing"),
-  notPassing("Not passing"),
-  waiting("Waiting");
+  all,
+  passing,
+  notPassing,
+  waiting;
 
-  const _Filter(this.label);
+  String get label => switch (this) {
+    all => l10n.govFilterAll,
+    passing => l10n.govFilterPassing,
+    notPassing => l10n.govFilterNotPassing,
+    waiting => l10n.govFilterWaiting,
+  };
 
-  final String label;
+  /// "No … proposals." for this filter.
+  String get empty => switch (this) {
+    all => l10n.govNoneNext,
+    passing => l10n.govNonePassing,
+    notPassing => l10n.govNoneNotPassing,
+    waiting => l10n.govNoneWaiting,
+  };
 
   bool shows(PivxProposalStatus s) => switch (this) {
     _Filter.all => true,
@@ -216,7 +230,7 @@ class _PivxGovernanceViewState extends ConsumerState<PivxGovernanceView> {
       child: Scaffold(
         backgroundColor: colors.background,
         appBar: PageAppBar(
-          title: Text("Governance", style: STextStyles.navBarTitle(context)),
+          title: Text(l10n.govTitle, style: STextStyles.navBarTitle(context)),
         ),
         body: SafeArea(
           child: Column(
@@ -241,7 +255,7 @@ class _PivxGovernanceViewState extends ConsumerState<PivxGovernanceView> {
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
                   child: PrimaryButton(
-                    label: "Create proposal",
+                    label: l10n.govCreateProposal,
                     onPressed: _create,
                   ),
                 ),
@@ -294,10 +308,10 @@ class _PivxGovernanceViewState extends ConsumerState<PivxGovernanceView> {
               padding: const EdgeInsets.symmetric(vertical: 40),
               child: Text(
                 future
-                    ? "No proposals for later payouts yet."
+                    ? l10n.govNoneLater
                     : all.isEmpty
-                    ? "No proposals for the next payout."
-                    : "No ${_filter.label.toLowerCase()} proposals.",
+                    ? l10n.govNoneNext
+                    : _filter.empty,
                 textAlign: TextAlign.center,
                 style: STextStyles.itemSubtitle(context),
               ),
@@ -371,12 +385,10 @@ class _PivxGovernanceViewState extends ConsumerState<PivxGovernanceView> {
       final mainnet =
           wallet.cryptoCurrency.network == CryptoCurrencyNetwork.main;
       final note = !mainnet
-          ? "Finished proposals the network still knows."
+          ? l10n.govPastNetwork
           : _archiveAllowed
-          ? "Finished proposals, from pivx.org and the network."
-          : "Only the finished proposals the network still knows: the full "
-                "history comes from pivx.org, which Incognito mode doesn't "
-                "contact.";
+          ? l10n.govPastArchive
+          : l10n.govPastIncognito;
       return ListView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
@@ -386,7 +398,7 @@ class _PivxGovernanceViewState extends ConsumerState<PivxGovernanceView> {
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 40),
               child: Text(
-                "No finished proposals.",
+                l10n.govNoneFinished,
                 textAlign: TextAlign.center,
                 style: STextStyles.itemSubtitle(context),
               ),
@@ -505,8 +517,8 @@ class _BudgetCard extends ConsumerWidget {
                       future ||
                               wallet.cryptoCurrency.network !=
                                   CryptoCurrencyNetwork.main
-                          ? "Budget per payout"
-                          : "Monthly budget",
+                          ? l10n.govBudgetPerPayout
+                          : l10n.govMonthlyBudget,
                       style: secondary,
                     ),
                     const SizedBox(height: 2),
@@ -522,7 +534,7 @@ class _BudgetCard extends ConsumerWidget {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      future ? "Allocated if votes hold" : "Allocated",
+                      future ? l10n.govAllocatedIfHold : l10n.govAllocated,
                       style: secondary,
                     ),
                     const SizedBox(height: 2),
@@ -548,20 +560,17 @@ class _BudgetCard extends ConsumerWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            "${fmt.format(g.totalBudget - allocated)} available",
+            l10n.govAvailable(fmt.format(g.totalBudget - allocated)),
             style: secondary,
           ),
           const SizedBox(height: 6),
           line(
             Icons.schedule_rounded,
-            "Next payout in ~${pivxDuration(seconds)} "
-            "(block ${g.nextSuperblock})",
+            l10n.govNextPayoutIn(pivxDuration(seconds), g.nextSuperblock),
           ),
           line(
             Icons.how_to_vote_rounded,
-            "To pass: ${g.requiredNetYes} net Yes "
-            "${g.requiredNetYes == 1 ? "vote" : "votes"} (more than 10% of "
-            "${g.enabledMasternodes} masternodes online)",
+            l10n.govToPass(g.requiredNetYes, g.enabledMasternodes),
           ),
         ],
       ),
@@ -636,11 +645,10 @@ class _ProposalCard extends ConsumerWidget {
                 ),
                 TextSpan(
                   text: startsLater
-                      ? " × ${p.totalPayments} · from block ${p.blockStart}"
+                      ? " × ${p.totalPayments} · ${l10n.govFromBlock(p.blockStart)}"
                       : payouts != null
-                      ? " · ${paid(payouts!)} of ${p.totalPayments} paid"
-                      : " · ${p.remainingPayments} of ${p.totalPayments} "
-                            "payment${p.totalPayments == 1 ? "" : "s"} left",
+                      ? " · ${l10n.govPaidOf(paid(payouts!), p.totalPayments)}"
+                      : " · ${l10n.govPaymentsLeft(p.remainingPayments, p.totalPayments)}",
                   style: STextStyles.w500_12(context)
                       .copyWith(color: colors.textSubtitle1),
                 ),
@@ -725,15 +733,15 @@ class _PendingCard extends ConsumerWidget {
                 child: Text(p.name, style: STextStyles.w600_14(context)),
               ),
               PivxPill(
-                text: failed ? "Failed" : "Your proposal",
+                text: failed ? l10n.govFailed : l10n.govYourProposal,
                 color: failed ? colors.textError : colors.accentColorBlue,
               ),
             ],
           ),
           const SizedBox(height: 6),
           Text(
-            "${fmt.format(amount)} × ${p.payments} · from block "
-            "${p.blockStart}",
+            "${fmt.format(amount)} × ${p.payments} · "
+            "${l10n.govFromBlock(p.blockStart)}",
             style: secondary,
           ),
           const SizedBox(height: 8),
@@ -741,7 +749,7 @@ class _PendingCard extends ConsumerWidget {
             Text(p.error!, style: secondary.copyWith(color: colors.textError)),
             Align(
               alignment: Alignment.centerRight,
-              child: CustomTextButton(text: "Remove", onTap: onRemove),
+              child: CustomTextButton(text: l10n.commonRemove, onTap: onRemove),
             ),
           ] else
             FutureBuilder<int?>(
@@ -750,11 +758,10 @@ class _PendingCard extends ConsumerWidget {
                 final confs = snapshot.data;
                 final need = wallet.proposalFeeConfirmations;
                 final text = confs == null
-                    ? "Fee sent; waiting for it to be mined"
+                    ? l10n.govFeeSent
                     : confs < need
-                    ? "Fee confirming: $confs of $need. Then PIVXie submits "
-                          "it (keep the wallet syncing)."
-                    : "Submitting to the network…";
+                    ? l10n.govFeeConfirming(confs, need)
+                    : l10n.govSubmitting;
                 return Row(
                   children: [
                     SizedBox(
@@ -818,7 +825,7 @@ class _PastCard extends ConsumerWidget {
               ],
               const SizedBox(width: 8),
               PivxPill(
-                text: p.passed ? "Passed" : "Failed",
+                text: p.passed ? l10n.govPassed : l10n.govFailed,
                 color: pivxProposalStatusColor(
                   p.passed
                       ? PivxProposalStatus.passing
@@ -830,8 +837,10 @@ class _PastCard extends ConsumerWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            "${fmt.format(p.totalPayment)} in total · "
-            "${pivxPercent(p.yesPercent)} Yes",
+            l10n.govTotalYes(
+              fmt.format(p.totalPayment),
+              pivxPercent(p.yesPercent),
+            ),
             style: STextStyles.w500_12(context)
                 .copyWith(color: colors.textSubtitle1),
           ),
@@ -863,21 +872,18 @@ class _LoadError extends StatelessWidget {
         Icon(Icons.cloud_off_rounded, size: 48, color: colors.textSubtitle2),
         const SizedBox(height: 16),
         Text(
-          "Couldn't load the proposals",
+          l10n.govLoadFailed,
           textAlign: TextAlign.center,
           style: STextStyles.pageTitleH2(context),
         ),
         const SizedBox(height: 8),
         Text(
-          forbidden
-              ? "The node you are connected to doesn't offer governance "
-                    "data. Try another PIVX node in the network settings."
-              : text,
+          forbidden ? l10n.govNodeNoData : text,
           textAlign: TextAlign.center,
           style: STextStyles.itemSubtitle(context),
         ),
         const SizedBox(height: 24),
-        SecondaryButton(label: "Try again", onPressed: onRetry),
+        SecondaryButton(label: l10n.commonTryAgain, onPressed: onRetry),
       ],
     );
   }

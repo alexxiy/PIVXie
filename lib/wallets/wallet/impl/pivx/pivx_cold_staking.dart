@@ -188,22 +188,21 @@ extension PivxColdStakingWallet on PivxWallet {
 
   /// Why [address] can't be delegated to, or null when it can.
   String? stakerAddressError(String address) {
-    if (address.isEmpty) return "Enter the staker address";
+    if (address.isEmpty) return l10n.csEnterStaker;
     if (isStakingAddress(address)) return null;
     if (cryptoCurrency.validateAddress(address)) {
-      return "This is a regular address. Staker addresses start with "
-          "\"$stakingAddressLetter\".";
+      return l10n.csRegularAddress(stakingAddressLetter);
     }
-    return "Not a valid staker address";
+    return l10n.csInvalidStaker;
   }
 
   /// Why [amount] can't be delegated, or null when it can.
   String? delegationAmountError(Amount? amount, {required Amount available}) {
-    if (amount == null) return "Enter an amount";
+    if (amount == null) return l10n.commonEnterAmount;
     if (amount.raw < BigInt.from(kPivxMinDelegationSats)) {
-      return "The minimum is 1 ${cryptoCurrency.ticker}";
+      return l10n.csMinimum(cryptoCurrency.ticker);
     }
-    if (amount > available) return "More than your available balance";
+    if (amount > available) return l10n.csMoreThanAvailable;
     return null;
   }
 
@@ -309,7 +308,7 @@ extension PivxColdStakingWallet on PivxWallet {
   }) async {
     final txData = await prepareSend(
       txData: TxData(
-        note: "Cold staking delegation",
+        note: l10n.csDelegationNote,
         noteOnChain: "",
         recipients: [
           TxRecipient(
@@ -363,7 +362,7 @@ extension PivxColdStakingWallet on PivxWallet {
   /// Spend [delegations] back to this wallet's receiving address, which
   /// ends them. The fee comes out of the amount.
   Future<TxData> prepareWithdrawal(List<PivxDelegation> delegations) async {
-    if (delegations.isEmpty) throw Exception("Nothing to withdraw");
+    if (delegations.isEmpty) throw Exception(l10n.csNothingToWithdraw);
     final to =
         (await getCurrentReceivingAddress())?.value ??
         (await _deriveAddress(chain: 0, index: 0)).value;
@@ -385,7 +384,7 @@ extension PivxColdStakingWallet on PivxWallet {
           ),
         ],
         utxos: {for (final d in delegations) StandardInput(d.utxo)},
-        note: "Withdrawn from cold staking",
+        note: l10n.csWithdrawNote,
         noteOnChain: "",
         otherData: jsonEncode({kPivxSubtractFee: true}),
       ),

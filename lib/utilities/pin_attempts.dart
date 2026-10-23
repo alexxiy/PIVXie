@@ -1,3 +1,4 @@
+import '../l10n/l10n.dart';
 import 'flutter_secure_storage_interface.dart';
 
 /// Wrong PIN entries, shared by every PIN screen and kept across
@@ -53,13 +54,8 @@ class PinAttempts {
   static String lockedMessage(Duration left) {
     final seconds = (left.inMilliseconds / 1000).ceil();
     final minutes = (seconds / 60).ceil();
-    final wait = seconds == 1
-        ? "1 second"
-        : seconds < 60
-        ? "$seconds seconds"
-        : minutes == 1
-        ? "1 minute"
-        : "$minutes minutes";
-    return "Too many wrong PINs. Try again in $wait.";
+    return seconds < 60
+        ? l10n.pinLockedSeconds(seconds)
+        : l10n.pinLockedMinutes(minutes);
   }
 }

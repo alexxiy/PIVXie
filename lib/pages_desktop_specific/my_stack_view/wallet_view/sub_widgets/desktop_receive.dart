@@ -18,6 +18,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'package:isar_community/isar.dart';
 import 'package:tuple/tuple.dart';
 
+import '../../../../l10n/l10n.dart';
 import '../../../../models/isar/models/isar_models.dart';
 import '../../../../models/keys/view_only_wallet_data.dart';
 import '../../../../notifications/show_flush_bar.dart';
@@ -81,7 +82,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
     final address = await showLoading<String?>(
       whileFuture: wallet.generateNewTransparentAddress(),
       context: context,
-      message: "Generating address",
+      message: l10n.receiveGeneratingAddress,
     );
     if (!mounted) return;
     if (address == null) {
@@ -102,7 +103,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
     final address = await showLoading<String>(
       whileFuture: wallet.generateNewShieldAddress(),
       context: context,
-      message: "Generating address",
+      message: l10n.receiveGeneratingAddress,
     );
     if (mounted && address != null) {
       setState(() => _addressMap[AddressType.pivxShield] = address);
@@ -111,8 +112,8 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
 
   String _addressTypeLabel(AddressType type) =>
       _supportsPivxShield && type == AddressType.p2pkh
-      ? "Transparent address"
-      : "${type.readableName} address";
+      ? l10n.receiveTransparentAddress
+      : l10n.receiveTypeAddress(type.readableName);
 
   StreamSubscription<Address?> _sub(AddressType type) {
     return ref
@@ -133,7 +134,9 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
             if (mounted) {
               setState(() {
                 _addressMap[type] =
-                    event?.value ?? _addressMap[type] ?? "[No address yet]";
+                    event?.value ??
+                    _addressMap[type] ??
+                    l10n.receiveNoAddressYet;
               });
             }
           });
@@ -173,7 +176,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
       _addressMap[wallet.info.mainAddressType] = ref.read(
         pWalletReceivingAddress(walletId),
       );
-      _addressMap[AddressType.pivxShield] = "[Loading shield address]";
+      _addressMap[AddressType.pivxShield] = l10n.receiveLoadingShield;
       (wallet as PivxWallet).getCurrentShieldAddress().then((a) {
         if (mounted && a != null) {
           setState(() => _addressMap[AddressType.pivxShield] = a);
@@ -308,7 +311,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                 clipboard.setData(ClipboardData(text: address));
                 showFloatingFlushBar(
                   type: FlushBarType.info,
-                  message: "Copied to clipboard",
+                  message: l10n.commonCopiedToClipboard,
                   iconAsset: Assets.svg.copy,
                   context: context,
                 );
@@ -334,8 +337,8 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                             _supportsPivxShield &&
                                     _walletAddressTypes[_currentIndex] ==
                                         AddressType.pivxShield
-                                ? "Your ${coin.ticker} shield address"
-                                : "Your ${coin.ticker} address",
+                                ? l10n.receiveYourShieldAddress(coin.ticker)
+                                : l10n.receiveYourAddress(coin.ticker),
                             style: STextStyles.itemSubtitle(context),
                           ),
                           const Spacer(),
@@ -350,7 +353,10 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                                     .infoItemIcons,
                               ),
                               const SizedBox(width: 4),
-                              Text("Copy", style: STextStyles.link2(context)),
+                              Text(
+                                l10n.commonCopy,
+                                style: STextStyles.link2(context),
+                              ),
                             ],
                           ),
                         ],
@@ -391,7 +397,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                     _walletAddressTypes[_currentIndex] == AddressType.pivxShield
                 ? generateNewPivxShieldAddress
                 : generateNewAddress,
-            label: "Generate new address",
+            label: l10n.receiveGenerateNew,
           ),
         const SizedBox(height: 20),
         Center(
@@ -418,7 +424,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                         children: [
                           const AppBarBackButton(size: 40, iconSize: 24),
                           Text(
-                            "Generate QR code",
+                            l10n.receiveGenerateQr,
                             style: STextStyles.desktopH3(context),
                           ),
                         ],
@@ -473,7 +479,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  "Create new QR code",
+                  l10n.receiveCreateNewQr,
                   style: STextStyles.desktopTextExtraSmall(context).copyWith(
                     color: Theme.of(context)
                         .extension<StackColors>()!

@@ -13,6 +13,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../l10n/l10n.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/text_styles.dart';
@@ -58,13 +59,13 @@ class _BuildingTransactionDialogState
         children: [
           const TxSendAnimation(width: 420),
           const SizedBox(height: 24),
-          Text("Generating transaction", style: STextStyles.desktopH3(context)),
+          Text(l10n.sendGeneratingTransaction, style: STextStyles.desktopH3(context)),
           const SizedBox(height: 24),
           const RotatingArrows(width: 40, height: 40),
           const SizedBox(height: 32),
           SecondaryButton(
             buttonHeight: ButtonHeight.l,
-            label: "Cancel",
+            label: l10n.commonCancel,
             onPressed: () {
               onCancel.call();
             },
@@ -78,13 +79,13 @@ class _BuildingTransactionDialogState
         },
         child: StackDialog(
           header: const TxSendAnimation(),
-          title: "Generating transaction",
+          title: l10n.sendGeneratingTransaction,
           icon: const RotatingArrows(width: 24, height: 24),
           rightButton: TextButton(
             style: Theme.of(context)
                 .extension<StackColors>()!
                 .getSecondaryEnabledButtonStyle(context),
-            child: Text("Cancel", style: STextStyles.itemSubtitle12(context)),
+            child: Text(l10n.commonCancel, style: STextStyles.itemSubtitle12(context)),
             onPressed: () {
               Navigator.of(context).pop();
               onCancel.call();
@@ -155,14 +156,14 @@ Future<T?> showBuildingTransaction<T>({
         context: context,
         useSafeArea: false,
         builder: (context) => StackDialog(
-          title: "Transaction failed",
+          title: l10n.sendTransactionFailed,
           message: e.toString().replaceFirst("Exception: ", ""),
           rightButton: TextButton(
             style: Theme.of(
               context,
             ).extension<StackColors>()!.getSecondaryEnabledButtonStyle(context),
             child: Text(
-              "Ok",
+              l10n.commonOk,
               style: STextStyles.button(context).copyWith(
                 color: Theme.of(context).extension<StackColors>()!.accentColorDark,
               ),

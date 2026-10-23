@@ -13,6 +13,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import '../../l10n/l10n.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/text_styles.dart';
@@ -153,7 +154,7 @@ class _BackspaceKeyState extends State<BackspaceKey> {
           });
         },
         child: Semantics(
-          label: "Backspace Button. Deletes The Last Digit.",
+          label: l10n.pinBackspaceSemantics,
           excludeSemantics: true,
           child: Center(
             child: SvgPicture.asset(
@@ -214,12 +215,12 @@ class CustomKey extends StatelessWidget {
     super.key,
     required this.onPressed,
     this.iconAssetName,
-    this.semanticsLabel = "Button",
+    this.semanticsLabel,
   });
 
   final VoidCallback onPressed;
   final String? iconAssetName;
-  final String semanticsLabel;
+  final String? semanticsLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -232,7 +233,7 @@ class CustomKey extends StatelessWidget {
         shadows: const [],
       ),
       child: Semantics(
-        label: semanticsLabel,
+        label: semanticsLabel ?? l10n.commonButton,
         excludeSemantics: true,
         child: MaterialButton(
           // splashColor: Theme.of(context).extension<StackColors>()!.highlight,

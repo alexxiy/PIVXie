@@ -13,6 +13,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../db/isar/main_db.dart';
+import '../../l10n/l10n.dart';
 import '../../models/isar/models/isar_models.dart';
 import '../../providers/global/wallets_provider.dart';
 import '../../themes/stack_colors.dart';
@@ -185,8 +186,7 @@ class _UtxoCardState extends ConsumerState<UtxoCard> {
                             currentHeight,
                           );
                           return Text(
-                            "$confirmations confirmation"
-                            "${confirmations == 1 ? "" : "s"}",
+                            l10n.commonConfirmationsCount(confirmations),
                             style: STextStyles.w500_12(context).copyWith(
                               color: Theme.of(context)
                                   .extension<StackColors>()!

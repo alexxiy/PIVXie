@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../../../../l10n/l10n.dart';
 import 'choose_unit_sheet.dart';
 import '../../../../../providers/global/prefs_provider.dart';
 import '../../../../../themes/stack_colors.dart';
@@ -109,7 +110,7 @@ class _EditCoinUnitsViewState extends ConsumerState<EditCoinUnitsView> {
                 Padding(
                   padding: const EdgeInsets.only(left: 32),
                   child: Text(
-                    "Edit ${widget.coin.prettyName} units",
+                    l10n.unitsEdit(widget.coin.prettyName),
                     style: STextStyles.desktopH3(context),
                   ),
                 ),
@@ -139,7 +140,7 @@ class _EditCoinUnitsViewState extends ConsumerState<EditCoinUnitsView> {
                 },
               ),
               title: Text(
-                "Edit ${widget.coin.prettyName} units",
+                l10n.unitsEdit(widget.coin.prettyName),
                 style: STextStyles.navBarTitle(context),
               ),
             ),
@@ -261,7 +262,7 @@ class _EditCoinUnitsViewState extends ConsumerState<EditCoinUnitsView> {
                 style: STextStyles.field(context),
                 decoration:
                     standardInputDecoration(
-                      "Maximum precision",
+                      l10n.unitsMaxPrecision,
                       _decimalsFocusNode,
                       context,
                     ).copyWith(
@@ -297,7 +298,7 @@ class _EditCoinUnitsViewState extends ConsumerState<EditCoinUnitsView> {
                 children: [
                   Expanded(
                     child: SecondaryButton(
-                      label: "Cancel",
+                      label: l10n.commonCancel,
                       buttonHeight: ButtonHeight.l,
                       onPressed: Navigator.of(context).pop,
                     ),
@@ -307,7 +308,7 @@ class _EditCoinUnitsViewState extends ConsumerState<EditCoinUnitsView> {
                 ],
               ),
               child: PrimaryButton(
-                label: "Save",
+                label: l10n.commonSave,
                 buttonHeight: Util.isDesktop ? ButtonHeight.l : ButtonHeight.xl,
                 onPressed: onSave,
               ),

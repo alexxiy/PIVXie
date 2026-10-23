@@ -13,8 +13,8 @@ import 'package:flutter/material.dart';
 import 'package:isar_community/isar.dart';
 
 import '../../db/isar/main_db.dart';
+import '../../l10n/l10n.dart';
 import '../../models/isar/models/blockchain_data/utxo.dart';
-import '../../utilities/logger.dart';
 import '../../widgets/desktop/primary_button.dart';
 import 'utxo_row.dart';
 
@@ -28,10 +28,11 @@ class FreezeButton extends StatefulWidget {
 }
 
 class _FreezeButtonState extends State<FreezeButton> {
-  String _freezeLabelCache = "Freeze";
+  bool _freezeCache = true;
 
-  String _freezeLabel(Set<UtxoRowData> dataSet) {
-    if (dataSet.isEmpty) return _freezeLabelCache;
+  /// Whether the button freezes the selection, or else unfreezes it.
+  bool _freeze(Set<UtxoRowData> dataSet) {
+    if (dataSet.isEmpty) return _freezeCache;
 
     bool hasUnblocked = false;
     for (final data in dataSet) {
@@ -44,14 +45,14 @@ class _FreezeButtonState extends State<FreezeButton> {
         break;
       }
     }
-    _freezeLabelCache = hasUnblocked ? "Freeze" : "Unfreeze";
-    return _freezeLabelCache;
+    _freezeCache = hasUnblocked;
+    return _freezeCache;
   }
 
   Future<void> _onFreezeStateButtonPressed() async {
     final List<UTXO> utxosToUpdate = [];
-    switch (_freezeLabelCache) {
-      case "Freeze":
+    switch (_freezeCache) {
+      case true:
         for (final e in widget.selectedUTXOs) {
           final utxo =
               MainDB.instance.isar.utxos
@@ -64,7 +65,7 @@ class _FreezeButtonState extends State<FreezeButton> {
         }
         break;
 
-      case "Unfreeze":
+      case false:
         for (final e in widget.selectedUTXOs) {
           final utxo =
               MainDB.instance.isar.utxos
@@ -76,11 +77,7 @@ class _FreezeButtonState extends State<FreezeButton> {
           }
         }
         break;
-
-      default:
-        Logging.instance.f("Unknown utxo method name found in $runtimeType");
-        return;
-    }
+        }
 
     // final update utxo set in db
     if (utxosToUpdate.isNotEmpty) {
@@ -117,7 +114,9 @@ class _FreezeButtonState extends State<FreezeButton> {
     return PrimaryButton(
       buttonHeight: ButtonHeight.l,
       width: 200,
-      label: _freezeLabel(widget.selectedUTXOs),
+      label: _freeze(widget.selectedUTXOs)
+          ? l10n.coinControlFreeze
+          : l10n.coinControlUnfreeze,
       onPressed: _onFreezeStateButtonPressed,
     );
   }

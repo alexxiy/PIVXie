@@ -13,6 +13,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../../../l10n/l10n.dart';
 import '../../../../../notifications/show_flush_bar.dart';
 import '../../../../../providers/global/secure_store_provider.dart';
 import '../../../../../providers/providers.dart';
@@ -111,7 +112,7 @@ class _ChangePinViewState extends ConsumerState<ChangePinView> {
                   children: [
                     Center(
                       child: Text(
-                        "Create new PIN",
+                        l10n.pinCreateNew,
                         style: STextStyles.pageTitleH1(context),
                       ),
                     ),
@@ -158,8 +159,8 @@ class _ChangePinViewState extends ConsumerState<ChangePinView> {
                             showFloatingFlushBar(
                               type: FlushBarType.warning,
                               message: takenByDuress
-                                  ? "That's your duress PIN. Pick a different one."
-                                  : "PIN not long enough!",
+                                  ? l10n.pinIsDuress
+                                  : l10n.pinTooShort,
                               iconAsset: Assets.svg.alertCircle,
                               context: context,
                             ),
@@ -183,7 +184,7 @@ class _ChangePinViewState extends ConsumerState<ChangePinView> {
                   children: [
                     Center(
                       child: Text(
-                        "Confirm new PIN",
+                        l10n.pinConfirmNew,
                         style: STextStyles.pageTitleH1(context),
                       ),
                     ),
@@ -244,7 +245,7 @@ class _ChangePinViewState extends ConsumerState<ChangePinView> {
                                 type: FlushBarType.success,
                                 // The same in duress mode, which this must
                                 // not give away.
-                                message: "New PIN is set up",
+                                message: l10n.pinNewSet,
                                 context: context,
                                 iconAsset: Assets.svg.check,
                               ),
@@ -272,7 +273,7 @@ class _ChangePinViewState extends ConsumerState<ChangePinView> {
                           unawaited(
                             showFloatingFlushBar(
                               type: FlushBarType.warning,
-                              message: "PIN codes do not match. Try again.",
+                              message: l10n.pinMismatch,
                               context: context,
                               iconAsset: Assets.svg.alertCircle,
                             ),

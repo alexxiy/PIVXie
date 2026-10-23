@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import '../../l10n/l10n.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 import 'pivx_name.dart';
 import 'pivx_name_resolver.dart';
@@ -115,16 +116,16 @@ enum PivxNamesTxStatus {
   bool get failed => this == orphaned || this == refunded || this == rejected;
 
   String get label => switch (this) {
-    confirmingPayment => "Confirming payment",
-    pendingProof => "Waiting for the proof",
-    queuedProof => "Proof queued",
-    processingProof => "Creating the proof",
-    submittingProof => "Submitting the proof",
-    done => "Done",
-    orphaned => "Orphaned",
-    pendingRefund => "Refund pending",
-    refunded => "Refunded",
-    rejected => "Rejected",
+    confirmingPayment => l10n.pivxNamesTxConfirmingPayment,
+    pendingProof => l10n.pivxNamesTxPendingProof,
+    queuedProof => l10n.pivxNamesTxQueuedProof,
+    processingProof => l10n.pivxNamesTxProcessingProof,
+    submittingProof => l10n.pivxNamesTxSubmittingProof,
+    done => l10n.commonDone,
+    orphaned => l10n.pivxNamesTxOrphaned,
+    pendingRefund => l10n.pivxNamesTxPendingRefund,
+    refunded => l10n.pivxNamesTxRefunded,
+    rejected => l10n.pivxNamesTxRejectedLabel,
   };
 }
 
@@ -169,24 +170,30 @@ typedef PivxNamesIncoming = ({
 
 /// Where a withdrawal is (TX_REFUND_* of the registrar).
 enum PivxNamesRefundStatus {
-  waiting(0, "Waiting"),
-  queued(1, "Queued"),
+  waiting(0),
+  queued(1),
 
   /// Being sent: still on its way, so it reads as queued, as on the web.
-  sending(2, "Queued"),
-  paid(3, "Paid"),
+  sending(2),
+  paid(3),
 
   /// The amount went back to the balance.
-  error(4, "Error"),
+  error(4),
 
   /// Retried on its own after a payout batch the node refused: still on
   /// its way.
-  solo(5, "Queued");
+  solo(5);
 
-  const PivxNamesRefundStatus(this.code, this.label);
+  const PivxNamesRefundStatus(this.code);
 
   final int code;
-  final String label;
+
+  String get label => switch (this) {
+    waiting => l10n.pivxNamesRefundWaiting,
+    queued || sending || solo => l10n.pivxNamesRefundQueued,
+    paid => l10n.pivxNamesRefundPaid,
+    error => l10n.pivxNamesRefundError,
+  };
 
   static PivxNamesRefundStatus? fromCode(Object? code) {
     for (final s in values) {
@@ -264,7 +271,7 @@ class PivxNamesRegistrar {
         body: body == null ? null : jsonEncode(body),
       );
     } catch (e) {
-      throw PivxNamesException("Couldn't reach PIVX.name ($e)");
+      throw PivxNamesException(l10n.pivxNamesUnreachableError(e.toString()));
     }
     Object? json;
     try {
@@ -279,21 +286,17 @@ class PivxNamesRegistrar {
           error is Map ? error["error_message"] : error,
         );
         throw PivxNamesException(
-          text ?? "PIVX.name refused the request",
+          text ?? l10n.pivxNamesRefused,
           fromServer: true,
         );
       }
       if (json.containsKey("response")) return json["response"];
     }
-    throw PivxNamesException(
-      "PIVX.name sent an answer the app doesn't understand "
-      "(HTTP ${response.status})",
-    );
+    throw PivxNamesException(l10n.pivxNamesBadAnswerHttp(response.status));
   }
 
-  static Never _malformed() => throw const PivxNamesException(
-    "PIVX.name sent an answer the app doesn't understand",
-  );
+  static Never _malformed() =>
+      throw PivxNamesException(l10n.pivxNamesBadAnswer);
 
   /// [_call] for the signed requests the registrar takes within a minute
   /// of their nonce: its "Request timeout" means this device's clock is
@@ -303,11 +306,7 @@ class PivxNamesRegistrar {
       return await _call(path, body);
     } on PivxNamesException catch (e) {
       if (e.fromServer && e.message == "Request timeout") {
-        throw const PivxNamesException(
-          "PIVX.name turned the request down because this device's clock "
-          "is off. Set the right time and try again.",
-          fromServer: true,
-        );
+        throw PivxNamesException(l10n.pivxNamesClockOff, fromServer: true);
       }
       rethrow;
     }
@@ -331,7 +330,7 @@ class PivxNamesRegistrar {
     final address = r["address"];
     if (r["network"] != null && r["network"] != service.network) {
       throw PivxNamesException(
-        "PIVX.name answered for ${r["network"]}, not ${service.network}",
+        l10n.pivxNamesWrongNetwork("${r["network"]}", service.network),
       );
     }
     if (address is! String || !isValidPivxNamesTarget(address)) _malformed();
@@ -354,7 +353,7 @@ class PivxNamesRegistrar {
   /// there too, so one that isn't a name never reaches a URL.
   static String _checkPath(String name) {
     if (!isValidPivxName(name)) {
-      throw PivxNamesException("$name isn't a valid PIVX name");
+      throw PivxNamesException(l10n.pivxNamesNotValidName(name));
     }
     return "check/$name";
   }
@@ -542,9 +541,7 @@ class PivxNamesRegistrar {
       "signature": signature,
     });
     if (r != 1) {
-      throw const PivxNamesException(
-        "The withdrawal failed: PIVX.name sent an unexpected answer",
-      );
+      throw PivxNamesException(l10n.pivxNamesWithdrawUnexpected);
     }
   }
 

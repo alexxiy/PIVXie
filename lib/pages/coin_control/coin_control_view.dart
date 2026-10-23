@@ -17,6 +17,7 @@ import 'package:isar_community/isar.dart';
 import 'package:tuple/tuple.dart';
 
 import '../../db/isar/main_db.dart';
+import '../../l10n/l10n.dart';
 import '../../models/isar/models/isar_models.dart';
 import '../../providers/global/wallets_provider.dart';
 import '../../themes/stack_colors.dart';
@@ -150,7 +151,7 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
         CustomTextButton(
-          text: allSelected ? "Unselect all" : "Select all",
+          text: allSelected ? l10n.commonUnselectAll : l10n.commonSelectAll,
           enabled: shown.isNotEmpty,
           onTap: () {
             setState(() {
@@ -214,14 +215,14 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
         children: [
           Row(
             children: [
-              Expanded(child: cell("Quantity", "${s.quantity}")),
+              Expanded(child: cell(l10n.coinControlQuantity, "${s.quantity}")),
               const SizedBox(width: 16),
-              Expanded(child: cell("Bytes", "~${s.bytes}")),
+              Expanded(child: cell(l10n.coinControlBytes, "~${s.bytes}")),
             ],
           ),
-          cell("Fee", "~${fmt.format(s.fee)}"),
+          cell(l10n.coinControlFee, "~${fmt.format(s.fee)}"),
           cell(
-            "After fee",
+            l10n.coinControlAfterFee,
             fmt.format(s.afterFee),
             copy: s.afterFee.raw.isNegative
                 ? null
@@ -233,8 +234,10 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
           ),
           if (change != null)
             cell(
-              "Change",
-              change.raw.isNegative ? "Insufficient" : fmt.format(change),
+              l10n.txChange,
+              change.raw.isNegative
+                  ? l10n.coinControlInsufficient
+                  : fmt.format(change),
             ),
         ],
       ),
@@ -366,7 +369,10 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                     controller: searchController,
                     focusNode: searchFocus,
                   )
-                : Text("Coin control", style: STextStyles.navBarTitle(context)),
+                : Text(
+                    l10n.coinControlTitle,
+                    style: STextStyles.navBarTitle(context),
+                  ),
             titleSpacing: 0,
             actions: _isSearching
                 ? [
@@ -426,7 +432,7 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                             });
                           }
                         },
-                        displayPrefix: "Sort by",
+                        itemLabel: (s) => s.sortByLabel,
                       ),
                     ),
                     AspectRatio(
@@ -434,8 +440,8 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                       child: AppBarIconButton(
                         size: 36,
                         semanticsLabel: _ascending
-                            ? "Sorted ascending. Tap for descending."
-                            : "Sorted descending. Tap for ascending.",
+                            ? l10n.coinControlSortedAscending
+                            : l10n.coinControlSortedDescending,
                         icon: Icon(
                           _ascending
                               ? Icons.arrow_upward
@@ -469,11 +475,11 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                               onColor: Theme.of(context)
                                   .extension<StackColors>()!
                                   .popupBG,
-                              onText: "Transparent",
+                              onText: l10n.coinControlTransparent,
                               offColor: Theme.of(context)
                                   .extension<StackColors>()!
                                   .textFieldDefaultBG,
-                              offText: "Shield",
+                              offText: l10n.coinControlShield,
                               isOn: _shieldNotes == true,
                               onValueChanged: (value) {
                                 setState(() {
@@ -496,12 +502,8 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                           RoundedWhiteContainer(
                             child: Text(
                               _shieldNotes == true
-                                  ? "Choose which shield notes a send uses, and "
-                                        "freeze the ones you want to keep. Tap a "
-                                        "note's circle to select it."
-                                  : "Choose which outputs a send uses, and freeze "
-                                        "the ones you want to keep. Tap an output's "
-                                        "circle to select it.",
+                                  ? l10n.coinControlExplainNotes
+                                  : l10n.coinControlExplainOutputs,
                               style: STextStyles.w500_14(context).copyWith(
                                 color: Theme.of(context)
                                     .extension<StackColors>()!
@@ -518,11 +520,11 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                               onColor: Theme.of(context)
                                   .extension<StackColors>()!
                                   .popupBG,
-                              onText: "Available outputs",
+                              onText: l10n.coinControlAvailableOutputs,
                               offColor: Theme.of(context)
                                   .extension<StackColors>()!
                                   .textFieldDefaultBG,
-                              offText: "Frozen outputs",
+                              offText: l10n.coinControlFrozenOutputs,
                               isOn: _showBlocked,
                               onValueChanged: (value) {
                                 setState(() {
@@ -729,8 +731,9 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                                     ),
                                                     const SizedBox(height: 2),
                                                     Text(
-                                                      "${entry.value.length} "
-                                                      "output${entry.value.length > 1 ? "s" : ""}",
+                                                      l10n.coinControlOutputs(
+                                                        entry.value.length,
+                                                      ),
                                                       style:
                                                           STextStyles.w500_12(
                                                             context,
@@ -874,7 +877,7 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                     fractionDigits: coin.fractionDigits,
                                   );
                               return Text(
-                                "${sel.length} selected · "
+                                "${l10n.coinControlSelected(sel.length)} · "
                                 "${ref.watch(pAmountFormatter(coin)).format(sum)}",
                                 style: STextStyles.w600_14(context),
                               );
@@ -882,7 +885,9 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                           ),
                           const SizedBox(height: 12),
                           SecondaryButton(
-                            label: _showBlocked ? "Unfreeze" : "Freeze",
+                            label: _showBlocked
+                                ? l10n.coinControlUnfreeze
+                                : l10n.coinControlFreeze,
                             onPressed: () async {
                               if (_showBlocked) {
                                 await MainDB.instance.putUTXOs(
@@ -933,7 +938,7 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                         MainAxisAlignment.spaceBetween,
                                     children: [
                                       Text(
-                                        "Selected amount",
+                                        l10n.coinControlSelectedAmount,
                                         style: STextStyles.w600_14(context),
                                       ),
                                       Builder(
@@ -1022,7 +1027,7 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                           MainAxisAlignment.spaceBetween,
                                       children: [
                                         Text(
-                                          "Amount to send",
+                                          l10n.coinControlAmountToSend,
                                           style: STextStyles.w600_14(context),
                                         ),
                                         SelectableText(
@@ -1059,7 +1064,7 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                           ),
                           const SizedBox(height: 12),
                           PrimaryButton(
-                            label: "Use coins",
+                            label: l10n.coinControlUseCoins,
                             enabled: _selectedAvailable.isNotEmpty,
                             onPressed: () async {
                               if (searchFocus.hasFocus) {

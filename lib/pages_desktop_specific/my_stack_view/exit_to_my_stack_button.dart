@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 
+import '../../l10n/l10n.dart';
 import '../desktop_home_view.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/text_styles.dart';
@@ -38,7 +39,7 @@ class ExitToMyStackButton extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 30),
             child: Text(
-              "Exit to My Wallets",
+              l10n.desktopExitToMyWallets,
               style: STextStyles.desktopButtonSmallSecondaryEnabled(context),
             ),
           ),

@@ -13,6 +13,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
 import 'package:flutter_svg/svg.dart';
 
+import '../../l10n/l10n.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import 'settings_menu_item.dart';
@@ -20,18 +21,27 @@ import 'settings_menu_item.dart';
 /// The desktop settings pages, in menu order. The selected one is
 /// [selectedSettingsMenuItemStateProvider] (its index).
 enum DesktopSettingsPage {
-  backupRestore("Backup and restore"),
-  security("Security"),
-  currency("Currency"),
-  tor("Tor settings"),
-  nodes("Manage nodes"),
-  startup("Startup"),
-  appearance("Appearance"),
-  syncing("Syncing preferences"),
-  advanced("Advanced");
+  backupRestore,
+  security,
+  currency,
+  tor,
+  nodes,
+  startup,
+  appearance,
+  syncing,
+  advanced;
 
-  const DesktopSettingsPage(this.label);
-  final String label;
+  String get label => switch (this) {
+    backupRestore => l10n.settingsBackupAndRestore,
+    security => l10n.settingsSecurity,
+    currency => l10n.settingsCurrency,
+    tor => l10n.settingsTor,
+    nodes => l10n.settingsManageNodes,
+    startup => l10n.settingsStartup,
+    appearance => l10n.settingsAppearance,
+    syncing => l10n.settingsSyncing,
+    advanced => l10n.commonAdvanced,
+  };
 }
 
 final selectedSettingsMenuItemStateProvider = StateProvider<int>((_) => 0);

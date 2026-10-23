@@ -7,6 +7,7 @@ import 'dart:typed_data';
 import 'package:socks5_proxy/socks_client.dart';
 
 import '../../../app_config.dart';
+import '../../../l10n/l10n.dart';
 import '../../../models/node_model.dart';
 import '../../../services/tor_service.dart';
 import '../../../utilities/local_network_access.dart';
@@ -89,25 +90,24 @@ class PivxBridgeClient {
     } on PivxBridgeException catch (e) {
       // Without the index, `/status` falls through to the RPC proxy.
       if (e.statusCode == 403 || e.statusCode == 404) {
-        return "This bridge has no address index: it's older than "
-            "pivx-bridge 0.5, or runs without ADDR_INDEX";
+        return l10n.bridgeNoAddressIndex;
       }
       rethrow;
     }
     final chain = (status["backend"] as Map?)?["chain"] as String?;
     final expectMain = coin.network == CryptoCurrencyNetwork.main;
-    if (chain == null) return "This bridge has no address index (ADDR_INDEX)";
+    if (chain == null) return l10n.bridgeNoAddressIndexShort;
     try {
       await getBlockCount();
     } catch (e) {
-      return "The bridge's PIVX node is not reachable ($e)";
+      return l10n.bridgeNodeUnreachable("$e");
     }
     if (expectMain != (chain == "main")) {
-      return "Bridge serves \"$chain\", wallet expects ${coin.network.name}";
+      return l10n.bridgeWrongChain(chain, coin.network.name);
     }
     final genesis = await blockHash(0);
     if (!coin.acceptedGenesisHashes.contains(genesis)) {
-      return "Unexpected genesis block $genesis";
+      return l10n.bridgeUnexpectedGenesis(genesis);
     }
     return null;
   }
@@ -129,7 +129,7 @@ class PivxBridgeClient {
   /// must not go on without it.
   static void _refuseDirectUnderTor() {
     if (AppConfig.hasFeature(AppFeature.tor) && Prefs.instance.useTor) {
-      throw PivxBridgeException("Tor was turned on");
+      throw PivxBridgeException(l10n.bridgeTorTurnedOn);
     }
   }
 
@@ -267,11 +267,7 @@ class PivxBridgeClient {
       // No such route: a bridge older than 0.5 (index under /api/v2), or
       // one without the address index.
       final route = path.split("/").firstWhere((e) => e.isNotEmpty);
-      throw PivxBridgeException(
-        "This bridge has no /$route: it's older than pivx-bridge 0.5, or "
-        "runs without the address index (ADDR_INDEX)",
-        statusCode: 404,
-      );
+      throw PivxBridgeException(l10n.bridgeNoRoute(route), statusCode: 404);
     }
     if (response.code != 200) {
       throw PivxBridgeException(

@@ -7,6 +7,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../db/hive/db.dart';
+import '../../l10n/l10n.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../services/pivx_name/pivx_names_protocol.dart';
 import '../../services/pivx_name/pivx_names_registrar.dart';
@@ -201,22 +202,19 @@ const kPivxNamesMarketplaceRoute = "/pivxNamesMarketplace";
 
 /// The sections of the hamburger menu, in the web app's order.
 enum PivxNamesSection {
-  myNames("My Names", PivxNamesIcons.myNames, kPivxNamesMyNamesRoute),
-  balance("My Balance", PivxNamesIcons.balance, kPivxNamesBalanceRoute),
-  transactions(
-    "My Transactions",
-    PivxNamesIcons.transactions,
-    kPivxNamesTransactionsRoute,
-  ),
-  marketplace(
-    "Marketplace",
-    PivxNamesIcons.marketplace,
-    kPivxNamesMarketplaceRoute,
-  );
+  myNames(PivxNamesIcons.myNames, kPivxNamesMyNamesRoute),
+  balance(PivxNamesIcons.balance, kPivxNamesBalanceRoute),
+  transactions(PivxNamesIcons.transactions, kPivxNamesTransactionsRoute),
+  marketplace(PivxNamesIcons.marketplace, kPivxNamesMarketplaceRoute);
 
-  const PivxNamesSection(this.label, this.icon, this.routeName);
+  const PivxNamesSection(this.icon, this.routeName);
 
-  final String label;
+  String get label => switch (this) {
+    myNames => l10n.pivxNamesMyNames,
+    balance => l10n.pivxNamesMyBalance,
+    transactions => l10n.pivxNamesMyTransactions,
+    marketplace => l10n.pivxNamesMarketplace,
+  };
   final String icon;
   final String routeName;
 }
@@ -229,12 +227,12 @@ class PivxNamesAppBar extends StatelessWidget implements PreferredSizeWidget {
   const PivxNamesAppBar({
     super.key,
     required this.walletId,
-    this.title = "Names",
+    this.title,
     this.section,
   });
 
   final String walletId;
-  final String title;
+  final String? title;
   final PivxNamesSection? section;
 
   @override
@@ -318,7 +316,7 @@ class PivxNamesAppBar extends StatelessWidget implements PreferredSizeWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              title,
+              title ?? l10n.pivxNamesTitle,
               style: STextStyles.navBarTitle(context),
               overflow: TextOverflow.ellipsis,
             ),
@@ -328,7 +326,7 @@ class PivxNamesAppBar extends StatelessWidget implements PreferredSizeWidget {
       actions: [
         action(
           AppBarIconButton(
-            semanticsLabel: "About PIVX Name",
+            semanticsLabel: l10n.pivxNamesAbout,
             size: 36,
             shadows: const [],
             color: colors.background,
@@ -347,7 +345,7 @@ class PivxNamesAppBar extends StatelessWidget implements PreferredSizeWidget {
         action(
           Builder(
             builder: (button) => AppBarIconButton(
-              semanticsLabel: "Names menu",
+              semanticsLabel: l10n.pivxNamesMenu,
               size: 36,
               shadows: const [],
               color: colors.background,
@@ -418,60 +416,55 @@ typedef _Point = (IconData, String);
 class _InfoDialogState extends State<_InfoDialog> {
   int _slide = 0;
 
-  static const _slides = <(String, List<_Point>)>[
+  static List<(String, List<_Point>)> get _slides => [
     (
-      "How it works",
+      l10n.pivxNamesInfoHowTitle,
       [
         (
           Icons.person_outline_rounded,
-          "Get your own name, like john.pivx, and share it to get paid "
-              "instead of a long address.",
+          l10n.pivxNamesInfoHow1,
         ),
         (
           Icons.key_rounded,
-          "Your names are yours: keep them, sell them on the marketplace or "
-              "give them to someone else. Only you can change them.",
+          l10n.pivxNamesInfoHow2,
         ),
       ],
     ),
     (
-      "Benefits",
+      l10n.pivxNamesInfoBenefitsTitle,
       [
         (
           Icons.sell_outlined,
-          "No renewal fees. Once registered, a name is yours for good.",
+          l10n.pivxNamesInfoBenefits1,
         ),
         (
           Icons.link_rounded,
-          "Names are stored on-chain, where nobody can alter or remove "
-              "them.",
+          l10n.pivxNamesInfoBenefits2,
         ),
         (
           Icons.visibility_off_outlined,
-          "Private by design: a name says nothing about your finances.",
+          l10n.pivxNamesInfoBenefits3,
         ),
       ],
     ),
     (
-      "Control",
+      l10n.pivxNamesInfoControlTitle,
       [
         (
           Icons.swap_horiz_rounded,
-          "Point your name to a new address at any time. People keep "
-              "paying john.pivx and never need to know.",
+          l10n.pivxNamesInfoControl1,
         ),
         (
           Icons.edit_outlined,
-          "Hand a name to a new owner. That takes a signature with your "
-              "key, so only you can do it.",
+          l10n.pivxNamesInfoControl2,
         ),
         (
           Icons.shopping_bag_outlined,
-          "List names on the marketplace and earn from popular ones.",
+          l10n.pivxNamesInfoControl3,
         ),
       ],
     ),
-    ("Have a question?", []),
+    (l10n.pivxNamesInfoQuestionTitle, []),
   ];
 
   Widget _point(_Point p) {
@@ -541,17 +534,17 @@ class _InfoDialogState extends State<_InfoDialog> {
         else ...[
           _link(
             Icons.send_rounded,
-            "Join us on Telegram",
+            l10n.pivxNamesInfoTelegram,
             kPivxNamesTelegramUrl,
           ),
           _link(
             Icons.menu_book_rounded,
-            "Read the docs",
+            l10n.pivxNamesInfoDocs,
             kPivxNamesDocsUrl,
           ),
           const SizedBox(height: 6),
           Text(
-            "Let's support privacy and make it simpler.",
+            l10n.pivxNamesInfoSlogan,
             textAlign: TextAlign.center,
             style: STextStyles.itemSubtitle(context)
                 .copyWith(fontStyle: FontStyle.italic),
@@ -585,7 +578,7 @@ class _InfoDialogState extends State<_InfoDialog> {
                   Text("PIVX Name", style: STextStyles.w600_16(context)),
                   const Spacer(),
                   Text(
-                    "${_slide + 1} / ${_slides.length}",
+                    l10n.commonPageOf(_slide + 1, _slides.length),
                     style: STextStyles.w500_12(context)
                         .copyWith(color: colors.textSubtitle1),
                   ),
@@ -628,7 +621,7 @@ class _InfoDialogState extends State<_InfoDialog> {
               const SizedBox(height: 16),
               if (last)
                 PrimaryButton(
-                  label: "Finish",
+                  label: l10n.commonFinish,
                   buttonHeight: Util.isDesktop ? ButtonHeight.m : null,
                   onPressed: () => Navigator.of(context).pop(),
                 )
@@ -637,7 +630,7 @@ class _InfoDialogState extends State<_InfoDialog> {
                   children: [
                     Expanded(
                       child: SecondaryButton(
-                        label: "Skip",
+                        label: l10n.commonSkip,
                         buttonHeight: Util.isDesktop ? ButtonHeight.m : null,
                         onPressed: () => Navigator.of(context).pop(),
                       ),
@@ -645,7 +638,7 @@ class _InfoDialogState extends State<_InfoDialog> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: PrimaryButton(
-                        label: "Next",
+                        label: l10n.commonNext,
                         buttonHeight: Util.isDesktop ? ButtonHeight.m : null,
                         onPressed: () => setState(() => _slide++),
                       ),
@@ -699,9 +692,9 @@ class PivxNamesSteps extends StatelessWidget {
 
     return Row(
       children: [
-        item(PivxNamesStep.check, PivxNamesIcons.search, "Check"),
-        item(PivxNamesStep.pay, PivxNamesIcons.balance, "Pay"),
-        item(PivxNamesStep.done, PivxNamesIcons.done, "Done!"),
+        item(PivxNamesStep.check, PivxNamesIcons.search, l10n.pivxNamesStepCheck),
+        item(PivxNamesStep.pay, PivxNamesIcons.balance, l10n.pivxNamesStepPay),
+        item(PivxNamesStep.done, PivxNamesIcons.done, l10n.pivxNamesStepDone),
       ],
     );
   }
@@ -824,7 +817,7 @@ class PivxNamesStatusPill extends StatelessWidget {
     final colors = Theme.of(context).extension<StackColors>()!;
     final s = status;
     return PivxNamesPill(
-      text: s?.label ?? (raw == null ? "Sent" : "Status $raw"),
+      text: s?.label ?? (raw == null ? l10n.pivxNamesStatusSent : l10n.pivxNamesStatusCode("$raw")),
       color: pivxNamesStatusColor(s, colors),
       icon: switch (s) {
         PivxNamesTxStatus.done => PivxNamesIcons.check,
@@ -1048,7 +1041,7 @@ class PivxNamesListState extends StatelessWidget {
             if (onRetry != null) ...[
               const SizedBox(height: 12),
               SecondaryButton(
-                label: "Try again",
+                label: l10n.commonTryAgain,
                 width: 160,
                 buttonHeight: Util.isDesktop ? ButtonHeight.m : null,
                 onPressed: onRetry,
@@ -1103,7 +1096,7 @@ String pivxNamesShortId(String id) => id.length > 12
 /// What went wrong, for the user: the registrar's own words when it
 /// refused, else the error.
 String pivxNamesError(Object e) =>
-    e is PivxNamesException ? e.message : "Something went wrong: $e";
+    e is PivxNamesException ? e.message : l10n.commonSomethingWentWrongError(e.toString());
 
 Future<void> pivxNamesCopy(
   BuildContext context,
@@ -1114,7 +1107,7 @@ Future<void> pivxNamesCopy(
   if (context.mounted) {
     await showFloatingFlushBar(
       type: FlushBarType.info,
-      message: "$what copied",
+      message: l10n.commonCopiedWhat(what),
       iconAsset: Assets.svg.copy,
       context: context,
     );
@@ -1124,10 +1117,13 @@ Future<void> pivxNamesCopy(
 Future<void> showPivxNamesError(
   BuildContext context,
   Object error, {
-  String title = "Something went wrong",
-}) => showDialog<void>(
-  context: context,
-  builder: (_) => StackOkDialog(title: title, message: pivxNamesError(error)),
+  String? title,
+  }) => showDialog<void>(
+    context: context,
+    builder: (_) => StackOkDialog(
+      title: title ?? l10n.commonSomethingWentWrong,
+      message: pivxNamesError(error),
+    ),
 );
 
 /// Asks before [action]; true when the user goes ahead.
@@ -1147,7 +1143,7 @@ Future<bool> pivxNamesConfirm(
         style: colors.getSecondaryEnabledButtonStyle(context),
         onPressed: () => Navigator.of(context).pop(false),
         child: Text(
-          "Cancel",
+          l10n.commonCancel,
           style: STextStyles.button(context)
               .copyWith(color: colors.accentColorDark),
         ),

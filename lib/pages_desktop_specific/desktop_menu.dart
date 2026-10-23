@@ -15,6 +15,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../app_config.dart';
+import '../l10n/l10n.dart';
 import '../providers/desktop/current_desktop_menu_item.dart';
 import '../themes/stack_colors.dart';
 import '../utilities/assets.dart';
@@ -170,7 +171,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                               key: const ValueKey('myStack'),
                               duration: duration,
                               icon: const DesktopMyStackIcon(),
-                              label: "My Wallets",
+                              label: l10n.desktopMyWallets,
                               value: DesktopMenuItemId.myStack,
                               onChanged: updateSelectedMenuItem,
                               controller: controllers[0],
@@ -181,7 +182,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                               key: const ValueKey('addressBook'),
                               duration: duration,
                               icon: const DesktopAddressBookIcon(),
-                              label: "Address Book",
+                              label: l10n.desktopAddressBook,
                               value: DesktopMenuItemId.addressBook,
                               onChanged: updateSelectedMenuItem,
                               controller: controllers[1],
@@ -192,7 +193,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                               key: const ValueKey('settings'),
                               duration: duration,
                               icon: const DesktopSettingsIcon(),
-                              label: "Settings",
+                              label: l10n.settingsTitle,
                               value: DesktopMenuItemId.settings,
                               onChanged: updateSelectedMenuItem,
                               controller: controllers[2],
@@ -203,7 +204,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                               key: const ValueKey('support'),
                               duration: duration,
                               icon: const DesktopSupportIcon(),
-                              label: "Support",
+                              label: l10n.settingsSupport,
                               value: DesktopMenuItemId.support,
                               onChanged: updateSelectedMenuItem,
                               controller: controllers[3],
@@ -214,7 +215,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                               key: const ValueKey('about'),
                               duration: duration,
                               icon: const DesktopAboutIcon(),
-                              label: "About",
+                              label: l10n.settingsAbout,
                               value: DesktopMenuItemId.about,
                               onChanged: updateSelectedMenuItem,
                               controller: controllers[4],
@@ -231,7 +232,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                         duration: duration,
                         labelLength: 123,
                         icon: const DesktopExitIcon(),
-                        label: "Exit",
+                        label: l10n.desktopExit,
                         value: 7,
                         onChanged: (_) {
                           exit(0);
