@@ -214,7 +214,9 @@ class PivxMasternodesSummary extends ConsumerWidget {
                 (p, e) => p + e,
               );
 
-        // The amount gets twice the room and stays on one line.
+        // The amount gets twice the room and stays on one line; a label
+        // too long for its share (some translations) shrinks instead of
+        // breaking mid-word.
         Widget stat(String label, String value, {int flex = 1}) => Expanded(
           flex: flex,
           child: Column(
@@ -228,11 +230,14 @@ class PivxMasternodesSummary extends ConsumerWidget {
                 ),
               ),
               const SizedBox(height: 4),
-              Text(
-                label,
-                style: STextStyles.w500_12(
-                  context,
-                ).copyWith(color: colors.textSubtitle1),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  label,
+                  style: STextStyles.w500_12(
+                    context,
+                  ).copyWith(color: colors.textSubtitle1),
+                ),
               ),
             ],
           ),
@@ -288,6 +293,7 @@ class PivxMasternodeCard extends ConsumerWidget {
         Widget row(String label, String value) => Padding(
           padding: const EdgeInsets.only(top: 8),
           child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 label,
@@ -296,10 +302,12 @@ class PivxMasternodeCard extends ConsumerWidget {
                 ).copyWith(color: colors.textSubtitle1),
               ),
               const SizedBox(width: 12),
+              // A long value (some translations) takes a second line.
               Expanded(
                 child: Text(
                   value,
                   textAlign: TextAlign.right,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: STextStyles.w500_12(
                     context,
