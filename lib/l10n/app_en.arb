@@ -2639,6 +2639,10 @@
   "addWalletClearNameSemantics": "Clear Wallet Name Field Button. Clears the wallet name field.",
   "addWalletRollDice": "Roll the dice to pick a random name.",
   "addWalletOptions": "Wallet options",
+  "addWalletDefault": "Default",
+  "@addWalletDefault": {
+    "description": "A choice under Wallet options: the usual settings. The other choice is Advanced (a recovery phrase length, a passphrase)."
+  },
   "addWalletWordSeed": "{count} word seed",
   "@addWalletWordSeed": {
     "description": "A recovery phrase length to choose: 12, 18 or 24 words.",

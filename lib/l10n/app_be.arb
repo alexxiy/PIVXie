@@ -905,6 +905,7 @@
   "addWalletClearNameSemantics": "Кнопка «Ачысціць назву». Ачышчае поле назвы кашалька.",
   "addWalletRollDice": "Кіньце кубік, каб выбраць выпадковую назву.",
   "addWalletOptions": "Параметры кашалька",
+  "addWalletDefault": "Па змаўчанні",
   "addWalletWordSeed": "Фраза з {count} слоў",
   "addWalletPassphraseText": "Можна дадаць парольную фразу BIP39. Гэта неабавязкова. Каб аднавіць кашалёк, спатрэбяцца І фраза аднаўлення, І парольная фраза.",
   "addWalletPassphrase": "Парольная фраза BIP39",

@@ -905,6 +905,7 @@
   "addWalletClearNameSemantics": "이름 지우기 버튼. 지갑 이름 입력란을 비웁니다.",
   "addWalletRollDice": "주사위를 굴려 무작위 이름을 고르세요.",
   "addWalletOptions": "지갑 옵션",
+  "addWalletDefault": "기본값",
   "addWalletWordSeed": "{count}단어 복구 문구",
   "addWalletPassphraseText": "BIP39 패스프레이즈를 추가할 수 있습니다(선택 사항). 지갑을 복원하려면 복구 문구와 패스프레이즈가 모두 필요합니다.",
   "addWalletPassphrase": "BIP39 패스프레이즈",

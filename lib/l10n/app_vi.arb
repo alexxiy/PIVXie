@@ -905,6 +905,7 @@
   "addWalletClearNameSemantics": "Nút Xóa tên. Xóa trường tên ví.",
   "addWalletRollDice": "Gieo xúc xắc để chọn một tên ngẫu nhiên.",
   "addWalletOptions": "Tùy chọn ví",
+  "addWalletDefault": "Mặc định",
   "addWalletWordSeed": "Cụm từ {count} từ",
   "addWalletPassphraseText": "Bạn có thể thêm passphrase BIP39 (không bắt buộc). Để khôi phục ví, bạn sẽ cần CẢ cụm từ khôi phục LẪN passphrase.",
   "addWalletPassphrase": "Passphrase BIP39",

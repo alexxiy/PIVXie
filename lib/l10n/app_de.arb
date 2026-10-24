@@ -905,6 +905,7 @@
   "addWalletClearNameSemantics": "Schaltfläche „Name löschen“. Leert das Feld für den Wallet-Namen.",
   "addWalletRollDice": "Würfeln Sie, um einen zufälligen Namen zu wählen.",
   "addWalletOptions": "Wallet-Optionen",
+  "addWalletDefault": "Standard",
   "addWalletWordSeed": "{count} Wörter",
   "addWalletPassphraseText": "Sie können eine BIP39-Passphrase hinzufügen. Das ist optional. Zur Wiederherstellung der Wallet brauchen Sie dann SOWOHL die Wiederherstellungsphrase ALS AUCH die Passphrase.",
   "addWalletPassphrase": "BIP39-Passphrase",

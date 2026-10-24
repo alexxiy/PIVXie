@@ -905,6 +905,7 @@
   "addWalletClearNameSemantics": "名前のクリアボタン。ウォレット名の入力欄を空にします。",
   "addWalletRollDice": "サイコロを振ってランダムな名前を選びましょう。",
   "addWalletOptions": "ウォレットのオプション",
+  "addWalletDefault": "デフォルト",
   "addWalletWordSeed": "{count} 単語のフレーズ",
   "addWalletPassphraseText": "BIP39 パスフレーズを追加できます（任意）。ウォレットを復元するには、リカバリーフレーズとパスフレーズの両方が必要になります。",
   "addWalletPassphrase": "BIP39 パスフレーズ",

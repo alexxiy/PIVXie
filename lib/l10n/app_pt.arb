@@ -905,6 +905,7 @@
   "addWalletClearNameSemantics": "Botão Limpar nome. Limpa o campo do nome da carteira.",
   "addWalletRollDice": "Jogue o dado para escolher um nome aleatório.",
   "addWalletOptions": "Opções da carteira",
+  "addWalletDefault": "Padrão",
   "addWalletWordSeed": "{count} palavras",
   "addWalletPassphraseText": "Você pode adicionar uma frase secreta BIP39. Isso é opcional. Para recuperar a carteira, você vai precisar TANTO da frase de recuperação QUANTO da frase secreta.",
   "addWalletPassphrase": "Frase secreta BIP39",

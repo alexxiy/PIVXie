@@ -905,6 +905,7 @@
   "addWalletClearNameSemantics": "Adı təmizlə düyməsi. Pulqabı adı sahəsini təmizləyir.",
   "addWalletRollDice": "Təsadüfi ad seçmək üçün zər atın.",
   "addWalletOptions": "Pulqabı seçimləri",
+  "addWalletDefault": "Standart",
   "addWalletWordSeed": "{count} söz",
   "addWalletPassphraseText": "İstəsəniz, BIP39 parol ifadəsi əlavə edə bilərsiniz. Bu, məcburi deyil. Pulqabını bərpa etmək üçün HƏM bərpa ifadəsi, HƏM DƏ parol ifadəsi lazım olacaq.",
   "addWalletPassphrase": "BIP39 parol ifadəsi",

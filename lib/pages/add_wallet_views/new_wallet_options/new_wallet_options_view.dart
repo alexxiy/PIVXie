@@ -145,7 +145,10 @@ class _NewWalletOptionsViewState extends ConsumerState<NewWalletOptionsView> {
                     (e) => DropdownItem(
                       value: e,
                       child: Text(
-                        e.name,
+                        switch (e) {
+                          NewWalletOptions.Default => l10n.addWalletDefault,
+                          NewWalletOptions.Advanced => l10n.commonAdvanced,
+                        },
                         style: Util.isDesktop
                             ? STextStyles.desktopTextMedium(context)
                             : STextStyles.w500_14(context),

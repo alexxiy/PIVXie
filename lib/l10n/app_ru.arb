@@ -905,6 +905,7 @@
   "addWalletClearNameSemantics": "Кнопка «Очистить название». Очищает поле названия кошелька.",
   "addWalletRollDice": "Бросьте кубик, чтобы выбрать случайное название.",
   "addWalletOptions": "Параметры кошелька",
+  "addWalletDefault": "По умолчанию",
   "addWalletWordSeed": "Фраза из {count} слов",
   "addWalletPassphraseText": "Можно добавить парольную фразу BIP39. Это необязательно. Для восстановления кошелька понадобятся И фраза восстановления, И парольная фраза.",
   "addWalletPassphrase": "Парольная фраза BIP39",

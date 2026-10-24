@@ -905,6 +905,7 @@
   "addWalletClearNameSemantics": "Кнопка «Очистити назву». Очищає поле назви гаманця.",
   "addWalletRollDice": "Киньте кубик, щоб вибрати випадкову назву.",
   "addWalletOptions": "Параметри гаманця",
+  "addWalletDefault": "За замовчуванням",
   "addWalletWordSeed": "Фраза з {count} слів",
   "addWalletPassphraseText": "Можна додати парольну фразу BIP39. Це необов'язково. Щоб відновити гаманець, знадобляться І фраза відновлення, І парольна фраза.",
   "addWalletPassphrase": "Парольна фраза BIP39",

@@ -905,6 +905,7 @@
   "addWalletClearNameSemantics": "清除名称按钮。清空钱包名称输入框。",
   "addWalletRollDice": "掷骰子随机挑选一个名称。",
   "addWalletOptions": "钱包选项",
+  "addWalletDefault": "默认",
   "addWalletWordSeed": "{count} 个单词的助记词",
   "addWalletPassphraseText": "您可以添加 BIP39 扩展密码（可选）。恢复钱包时，需要同时提供助记词和扩展密码。",
   "addWalletPassphrase": "BIP39 扩展密码",

@@ -905,6 +905,7 @@
   "addWalletClearNameSemantics": "Adı temizle düğmesi. Cüzdan adı alanını temizler.",
   "addWalletRollDice": "Rastgele bir ad seçmek için zar atın.",
   "addWalletOptions": "Cüzdan seçenekleri",
+  "addWalletDefault": "Varsayılan",
   "addWalletWordSeed": "{count} kelime",
   "addWalletPassphraseText": "İsterseniz bir BIP39 parola ifadesi ekleyebilirsiniz. Bu isteğe bağlıdır. Cüzdanı geri yüklemek için HEM kurtarma ifadenize HEM DE parola ifadenize ihtiyacınız olur.",
   "addWalletPassphrase": "BIP39 parola ifadesi",

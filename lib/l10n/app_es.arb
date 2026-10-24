@@ -905,6 +905,7 @@
   "addWalletClearNameSemantics": "Botón Borrar nombre. Borra el campo del nombre de la billetera.",
   "addWalletRollDice": "Tira el dado para elegir un nombre al azar.",
   "addWalletOptions": "Opciones de la billetera",
+  "addWalletDefault": "Predeterminado",
   "addWalletWordSeed": "{count} palabras",
   "addWalletPassphraseText": "Puedes agregar una frase de contraseña BIP39. Es opcional. Para recuperar la billetera necesitarás TANTO la frase de recuperación COMO la frase de contraseña.",
   "addWalletPassphrase": "Frase de contraseña BIP39",
