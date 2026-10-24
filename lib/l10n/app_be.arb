@@ -907,7 +907,7 @@
   "addWalletOptions": "Параметры кашалька",
   "addWalletDefault": "Па змаўчанні",
   "addWalletWordSeed": "Фраза з {count} слоў",
-  "addWalletPassphraseText": "Можна дадаць парольную фразу BIP39. Гэта неабавязкова. Каб аднавіць кашалёк, спатрэбяцца І фраза аднаўлення, І парольная фраза.",
+  "addWalletPassphraseText": "Можна дадаць парольную фразу BIP39. Гэта неабавязкова. Каб аднавіць кашалёк, спатрэбяцца абедзве: і фраза аднаўлення, і парольная фраза.",
   "addWalletPassphrase": "Парольная фраза BIP39",
   "addWalletCopySemantics": "Кнопка «Скапіяваць». Капіюе фразу аднаўлення ў буфер абмену.",
   "addWalletRecoveryPhraseTitle": "Фраза аднаўлення",
