@@ -142,9 +142,13 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
                           style: STextStyles.pageTitleH1(context),
                         ),
                         const SizedBox(height: 8),
-                        Text(
-                          l10n.pinProtects,
-                          style: STextStyles.subtitle(context),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Text(
+                            l10n.pinProtects,
+                            textAlign: TextAlign.center,
+                            style: STextStyles.subtitle(context),
+                          ),
                         ),
                         const SizedBox(height: 36),
                         CustomPinPut(
@@ -210,9 +214,13 @@ class _CreatePinViewState extends ConsumerState<CreatePinView> {
                           style: STextStyles.pageTitleH1(context),
                         ),
                         const SizedBox(height: 8),
-                        Text(
-                          l10n.pinProtects,
-                          style: STextStyles.subtitle(context),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 16),
+                          child: Text(
+                            l10n.pinProtects,
+                            textAlign: TextAlign.center,
+                            style: STextStyles.subtitle(context),
+                          ),
                         ),
                         const SizedBox(height: 36),
                         CustomPinPut(

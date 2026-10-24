@@ -100,19 +100,29 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Text(
-                      l10n.privacyChooseExperience(AppConfig.prefix),
-                      textAlign: TextAlign.center,
-                      style: isDesktop
-                          ? STextStyles.desktopH2(context)
-                          : STextStyles.pageTitleH1(context),
-                    ),
-                    SizedBox(height: isDesktop ? 16 : 8),
-                    Text(
-                      !widget.isSettings ? l10n.privacyChangeLater : "",
-                      style: isDesktop
-                          ? STextStyles.desktopSubtitleH2(context)
-                          : STextStyles.subtitle(context),
+                    Padding(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isDesktop ? 0 : 16,
+                      ),
+                      child: Column(
+                        children: [
+                          Text(
+                            l10n.privacyChooseExperience(AppConfig.prefix),
+                            textAlign: TextAlign.center,
+                            style: isDesktop
+                                ? STextStyles.desktopH2(context)
+                                : STextStyles.pageTitleH1(context),
+                          ),
+                          SizedBox(height: isDesktop ? 16 : 8),
+                          Text(
+                            !widget.isSettings ? l10n.privacyChangeLater : "",
+                            textAlign: TextAlign.center,
+                            style: isDesktop
+                                ? STextStyles.desktopSubtitleH2(context)
+                                : STextStyles.subtitle(context),
+                          ),
+                        ],
+                      ),
                     ),
                     SizedBox(height: isDesktop ? 32 : 36),
                     Padding(

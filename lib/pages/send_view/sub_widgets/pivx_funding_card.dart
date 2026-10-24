@@ -159,7 +159,13 @@ class PivxFundingCard extends ConsumerWidget {
       );
     }
 
-    Widget row(String title, String value, List<Widget> actions) => Padding(
+    // Only an address is shortened in the middle; a sentence wraps.
+    Widget row(
+      String title,
+      String value,
+      List<Widget> actions, {
+      bool isAddress = false,
+    }) => Padding(
       padding: const EdgeInsets.only(top: 12),
       child: Row(
         children: [
@@ -169,7 +175,9 @@ class PivxFundingCard extends ConsumerWidget {
               children: [
                 Text(title, style: STextStyles.w600_14(context)),
                 const SizedBox(height: 2),
-                MiddleEllipsisText(value, style: secondary),
+                isAddress
+                    ? MiddleEllipsisText(value, style: secondary)
+                    : Text(value, style: secondary),
               ],
             ),
           ),
@@ -236,6 +244,7 @@ class PivxFundingCard extends ConsumerWidget {
                 onTap: () => _chooseChange(context, coin),
               ),
             ],
+            isAddress: change != null,
           ),
         ],
       ),

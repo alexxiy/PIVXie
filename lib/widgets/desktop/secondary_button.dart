@@ -170,7 +170,10 @@ class SecondaryButton extends StatelessWidget {
                 .getSecondaryDisabledButtonStyle(context),
         child: Padding(
           padding: padding,
+          // min, so the label can shrink to fit even where the button's
+          // width is unbounded.
           child: Row(
+            mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -180,20 +183,23 @@ class SecondaryButton extends StatelessWidget {
                   width: iconSpacing,
                 ),
               if (label != null)
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text(
-                      label!,
-                      style: getStyle(isDesktop, context),
+                // A label too long for the button (some translations)
+                // shrinks instead of being cut off.
+                Flexible(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(label!, style: getStyle(isDesktop, context)),
+                        if (buttonHeight != null &&
+                            buttonHeight == ButtonHeight.s)
+                          const SizedBox(height: 2),
+                      ],
                     ),
-                    if (buttonHeight != null && buttonHeight == ButtonHeight.s)
-                      const SizedBox(
-                        height: 2,
-                      ),
-                  ],
+                  ),
                 ),
               if (trailingIcon != null)
                 SizedBox(

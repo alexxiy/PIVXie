@@ -214,13 +214,18 @@ class PivxMasternodesSummary extends ConsumerWidget {
                 (p, e) => p + e,
               );
 
-        Widget stat(String label, String value) => Expanded(
+        // The amount gets twice the room and stays on one line.
+        Widget stat(String label, String value, {int flex = 1}) => Expanded(
+          flex: flex,
           child: Column(
             children: [
-              Text(
-                value,
-                textAlign: TextAlign.center,
-                style: STextStyles.w600_16(context),
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                child: Text(
+                  value,
+                  textAlign: TextAlign.center,
+                  style: STextStyles.w600_16(context),
+                ),
               ),
               const SizedBox(height: 4),
               Text(
@@ -239,7 +244,11 @@ class PivxMasternodesSummary extends ConsumerWidget {
             children: [
               stat(l10n.mnTitle, "${masternodes.length}"),
               stat(l10n.mnEnabled, enabled == null ? "…" : "$enabled"),
-              stat(l10n.mnEarned, earned == null ? "…" : fmt.format(earned)),
+              stat(
+                l10n.mnEarned,
+                earned == null ? "…" : fmt.format(earned),
+                flex: 2,
+              ),
             ],
           ),
         );

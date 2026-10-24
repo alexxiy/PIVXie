@@ -157,21 +157,32 @@ class PrimaryButton extends StatelessWidget {
           padding: horizontalContentPadding == null
               ? .zero
               : .symmetric(horizontal: horizontalContentPadding!),
+          // min, so the label can shrink to fit even where the button's
+          // width is unbounded.
           child: Row(
+            mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               if (icon != null) icon!,
               if (icon != null && label != null) SizedBox(width: iconSpacing),
               if (label != null)
-                Column(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Text(label!, style: getStyle(isDesktop, context)),
-                    if (buttonHeight != null && buttonHeight == ButtonHeight.s)
-                      const SizedBox(height: 2),
-                  ],
+                // A label too long for the button (some translations)
+                // shrinks instead of being cut off.
+                Flexible(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text(label!, style: getStyle(isDesktop, context)),
+                        if (buttonHeight != null &&
+                            buttonHeight == ButtonHeight.s)
+                          const SizedBox(height: 2),
+                      ],
+                    ),
+                  ),
                 ),
             ],
           ),
