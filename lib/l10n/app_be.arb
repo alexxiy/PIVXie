@@ -380,7 +380,7 @@
   "sendSelectCoins": "Выбраць манеты",
   "sendSelectedCoins": "Выбраныя манеты ({count})",
   "sendShieldedMemoOptional": "Shield-мема (неабавязкова)",
-  "sendNoteHint": "Толькі ў вашай гісторыі, нікуды не адпраўляецца",
+  "sendNoteHint": "Толькі ў гісторыі, не адпраўляецца",
   "sendNetworkFeeEstimated": "Камісія сеткі (ацэнка)",
   "sendPreview": "Папярэдні прагляд",
   "sendGeneratingTransaction": "Стварэнне транзакцыі",

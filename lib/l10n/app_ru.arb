@@ -380,7 +380,7 @@
   "sendSelectCoins": "Выбрать монеты",
   "sendSelectedCoins": "Выбранные монеты ({count})",
   "sendShieldedMemoOptional": "Shield-мемо (необязательно)",
-  "sendNoteHint": "Только в вашей истории, никуда не отправляется",
+  "sendNoteHint": "Только в истории, не отправляется",
   "sendNetworkFeeEstimated": "Комиссия сети (оценка)",
   "sendPreview": "Предпросмотр",
   "sendGeneratingTransaction": "Создание транзакции",

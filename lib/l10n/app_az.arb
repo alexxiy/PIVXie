@@ -380,7 +380,7 @@
   "sendSelectCoins": "Coinləri seç",
   "sendSelectedCoins": "Seçilmiş coinlər ({count})",
   "sendShieldedMemoOptional": "Shield memo (istəyə görə)",
-  "sendNoteHint": "Yalnız tarixçənizdə qalır, heç vaxt göndərilmir",
+  "sendNoteHint": "Yalnız tarixçədə qalır, göndərilmir",
   "sendNetworkFeeEstimated": "Şəbəkə komissiyası (təxmini)",
   "sendPreview": "Önizləmə",
   "sendGeneratingTransaction": "Əməliyyat yaradılır",

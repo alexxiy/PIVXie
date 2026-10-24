@@ -380,7 +380,7 @@
   "sendSelectCoins": "Chọn coin",
   "sendSelectedCoins": "Coin đã chọn ({count})",
   "sendShieldedMemoOptional": "Memo Shield (không bắt buộc)",
-  "sendNoteHint": "Chỉ lưu trong lịch sử của bạn, không bao giờ được gửi đi",
+  "sendNoteHint": "Chỉ lưu trong lịch sử, không gửi đi",
   "sendNetworkFeeEstimated": "Phí mạng (ước tính)",
   "sendPreview": "Xem trước",
   "sendGeneratingTransaction": "Đang tạo giao dịch",
