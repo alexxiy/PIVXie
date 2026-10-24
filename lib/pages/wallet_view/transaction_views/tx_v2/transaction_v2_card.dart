@@ -164,19 +164,19 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
                     children: [
                       // The amount takes what it needs (up to a cap) and
                       // the title the rest: two equal halves shrank long
-                      // titles like "Cold staking reward (59/101)".
+                      // titles like "Cold staking reward (59/101)". A title
+                      // still too long (some translations) wraps rather
+                      // than shrinking out of reading size; three lines
+                      // keep the counter of "Masternode-Belohnung (12/101)".
                       Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Expanded(
-                            child: Align(
-                              alignment: Alignment.centerLeft,
-                              child: FittedBox(
-                                fit: BoxFit.scaleDown,
-                                child: Text(
-                                  whatIsIt(coin, currentHeight),
-                                  style: STextStyles.itemSubtitle12(context),
-                                ),
-                              ),
+                            child: Text(
+                              whatIsIt(coin, currentHeight),
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                              style: STextStyles.itemSubtitle12(context),
                             ),
                           ),
                           const SizedBox(width: 10),
