@@ -1131,7 +1131,6 @@
   "commonDisable": "Kapat",
   "backupAuto": "Otomatik yedekleme",
   "backupAutoText": "Otomatik yedekleme, verilerinizi zahmetsizce yedekleyen bir {app} özelliğidir.\n\nEn yüksek güvenlik için internette daha önce hiçbir yerde kullanmadığınız benzersiz bir parola öneririz. Parolanız saklanmaz.",
-  "backupMoreInfo": "Daha fazla bilgi için web sitemize bakın:",
   "backupNow": "Şimdi yedekle",
   "backupBackedUp": "Son yedekleme: {when}",
   "backupAutoFile": "Otomatik yedek dosyası",

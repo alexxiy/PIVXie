@@ -1131,7 +1131,6 @@
   "commonDisable": "Desativar",
   "backupAuto": "Backup automático",
   "backupAutoText": "O backup automático é um recurso do {app} que faz um backup prático dos seus dados.\n\nPara máxima segurança, recomendamos uma senha exclusiva, que você nunca tenha usado em nenhum outro lugar da internet. Sua senha não é armazenada.",
-  "backupMoreInfo": "Para mais informações, visite nosso site:",
   "backupNow": "Fazer backup agora",
   "backupBackedUp": "Último backup: {when}",
   "backupAutoFile": "Arquivo de backup automático",

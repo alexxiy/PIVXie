@@ -46,6 +46,7 @@ import 'providers/global/auto_swb_service_provider.dart';
 import 'providers/global/base_currencies_provider.dart';
 import 'providers/providers.dart';
 import 'route_generator.dart';
+import 'services/fastest_node.dart';
 import 'services/locale_service.dart';
 import 'services/node_service.dart';
 import 'services/tor_service.dart';
@@ -311,6 +312,13 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       unawaited(ref.read(baseCurrenciesProvider).update());
 
       await _nodeService.updateDefaults();
+      unawaited(
+        pickFastestDefaultNodes(
+          nodeService: _nodeService,
+          prefs: ref.read(prefsChangeNotifierProvider),
+          wallets: () => ref.read(pWallets).wallets,
+        ),
+      );
       ref.read(priceAnd24hChangeNotifierProvider).start(true);
       if (loadWallets) {
         await UiStallWatch.run(

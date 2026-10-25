@@ -1131,7 +1131,6 @@
   "commonDisable": "Deaktivieren",
   "backupAuto": "Auto-Backup",
   "backupAutoText": "Auto-Backup ist eine Funktion von {app}, die Ihre Daten bequem sichert.\n\nFür maximale Sicherheit empfehlen wir ein eigenes Passwort, das Sie noch nirgendwo im Internet verwendet haben. Ihr Passwort wird nicht gespeichert.",
-  "backupMoreInfo": "Weitere Informationen finden Sie auf unserer Website:",
   "backupNow": "Jetzt sichern",
   "backupBackedUp": "Letzte Sicherung: {when}",
   "backupAutoFile": "Auto-Backup-Datei",

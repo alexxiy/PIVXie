@@ -1131,7 +1131,6 @@
   "commonDisable": "Desactivar",
   "backupAuto": "Copia automática",
   "backupAutoText": "La copia automática es una función propia de {app} que guarda una copia de seguridad de tus datos de forma cómoda.\n\nPara la máxima seguridad, te recomendamos una contraseña única que no hayas usado antes en ningún otro sitio de internet. Tu contraseña no se guarda.",
-  "backupMoreInfo": "Para más información, visita nuestro sitio web:",
   "backupNow": "Hacer copia ahora",
   "backupBackedUp": "Última copia: {when}",
   "backupAutoFile": "Archivo de copia automática",

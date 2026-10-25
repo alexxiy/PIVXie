@@ -1131,7 +1131,6 @@
   "commonDisable": "Söndür",
   "backupAuto": "Avtomatik ehtiyat nüsxə",
   "backupAutoText": "Avtomatik ehtiyat nüsxə məlumatlarınızın rahat ehtiyat nüsxəsini çıxaran {app} funksiyasıdır.\n\nMaksimum təhlükəsizlik üçün internetdə əvvəllər heç yerdə istifadə etmədiyiniz unikal parol tövsiyə edirik. Parolunuz saxlanılmır.",
-  "backupMoreInfo": "Ətraflı məlumat üçün saytımıza baxın:",
   "backupNow": "İndi ehtiyat nüsxə çıxar",
   "backupBackedUp": "Son ehtiyat nüsxə: {when}",
   "backupAutoFile": "Avtomatik ehtiyat nüsxə faylı",

@@ -1131,7 +1131,6 @@
   "commonDisable": "Tắt",
   "backupAuto": "Sao lưu tự động",
   "backupAutoText": "Sao lưu tự động là tính năng riêng của {app}, giúp sao lưu dữ liệu của bạn một cách tiện lợi.\n\nĐể an toàn tối đa, chúng tôi khuyên bạn dùng một mật khẩu riêng chưa từng dùng ở bất kỳ đâu trên internet. Mật khẩu của bạn không được lưu lại.",
-  "backupMoreInfo": "Để biết thêm thông tin, hãy xem trang web của chúng tôi:",
   "backupNow": "Sao lưu ngay",
   "backupBackedUp": "Sao lưu lần cuối: {when}",
   "backupAutoFile": "Tệp sao lưu tự động",

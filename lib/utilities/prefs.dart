@@ -1048,8 +1048,8 @@ class Prefs extends ChangeNotifier {
         false;
   }
 
-  // android screen shot protection
-  bool _disableScreenShots = false;
+  // android screen shot protection, on until the user turns it off
+  bool _disableScreenShots = true;
   bool get disableScreenShots => _disableScreenShots;
   set disableScreenShots(bool disableScreenShots) {
     if (_disableScreenShots != disableScreenShots) {
@@ -1068,7 +1068,7 @@ class Prefs extends ChangeNotifier {
           boxName: DB.boxNamePrefs,
           key: "disableScreenShots",
         ) as bool? ??
-        false;
+        true;
   }
 
   // "Fuel PIVXie" opened once: the wallet's More menu stops marking it

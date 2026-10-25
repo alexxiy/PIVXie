@@ -2764,7 +2764,7 @@
   "restoreFailed": "Restore failed",
   "restoreNodeUnreachable": "Couldn't reach {node}. Check your internet connection, or choose another node in Settings → Manage nodes.",
   "@restoreNodeUnreachable": {
-    "description": "Restoring a wallet failed because the node didn't answer. {node}: the node's address, e.g. bridge.pivxie.me. \"Settings → Manage nodes\" names the app's menu items.",
+    "description": "Restoring a wallet failed because the node didn't answer. {node}: the node's address, e.g. eu-bridge.pivxie.me. \"Settings → Manage nodes\" names the app's menu items.",
     "placeholders": {
       "node": {
         "type": "String"
@@ -3148,10 +3148,6 @@
         "type": "String"
       }
     }
-  },
-  "backupMoreInfo": "For more information, please see our website",
-  "@backupMoreInfo": {
-    "description": "Followed by the website's address."
   },
   "backupNow": "Back up now",
   "backupBackedUp": "Backed up {when}",

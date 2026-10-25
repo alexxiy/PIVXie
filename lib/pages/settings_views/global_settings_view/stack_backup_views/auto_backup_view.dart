@@ -8,11 +8,9 @@
  *
  */
 
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../app_config.dart';
 import '../../../../l10n/l10n.dart';
@@ -302,20 +300,6 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
                           TextSpan(
                             text: l10n.backupAutoText(AppConfig.appName),
                           ),
-                          if (AppConfig.websiteUrl.isNotEmpty) ...[
-                            TextSpan(text: "\n\n${l10n.backupMoreInfo} "),
-                            TextSpan(
-                              text: AppConfig.websiteUrl,
-                              style: STextStyles.richLink(context),
-                              recognizer: TapGestureRecognizer()
-                                ..onTap = () {
-                                  launchUrl(
-                                    Uri.parse(AppConfig.websiteUrl),
-                                    mode: LaunchMode.externalApplication,
-                                  );
-                                },
-                            ),
-                          ],
                         ],
                       ),
                     ),

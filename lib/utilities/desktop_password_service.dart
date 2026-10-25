@@ -103,21 +103,6 @@ class DPS {
         keyBlob,
         blobVersion,
       );
-      if (blobVersion < kLatestBlobVersion) {
-        // update blob
-        await _handler!.resetPassphrase(passphrase, kLatestBlobVersion);
-        try {
-          await _put(key: _kKeyBlobKey, value: await _handler!.getKeyBlob());
-          await _updateStoredKeyBlobVersion(kLatestBlobVersion);
-        } catch (e, s) {
-          // The password is right: log in all the same.
-          Logging.instance.w(
-            "DPS: key blob upgrade not saved",
-            error: e,
-            stackTrace: s,
-          );
-        }
-      }
     } catch (e, s) {
       Logging.instance.e(
         "${_getMessageFromException(e)}\n$s",

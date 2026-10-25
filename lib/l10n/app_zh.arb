@@ -1131,7 +1131,6 @@
   "commonDisable": "停用",
   "backupAuto": "自动备份",
   "backupAutoText": "自动备份是 {app} 的一项功能，可以方便地备份您的数据。\n\n为确保最高安全性，建议使用一个从未在网上其他地方用过的独特密码。您的密码不会被保存。",
-  "backupMoreInfo": "了解更多信息，请访问我们的网站：",
   "backupNow": "立即备份",
   "backupBackedUp": "上次备份：{when}",
   "backupAutoFile": "自动备份文件",

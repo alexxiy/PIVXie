@@ -8,7 +8,6 @@
  *
  */
 
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -39,7 +38,6 @@ import '../../../../widgets/rounded_container.dart';
 import '../../../../widgets/rounded_white_container.dart';
 import '../../../../widgets/stack_dialog.dart';
 
-import 'package:url_launcher/url_launcher.dart';
 
 class BackupRestoreSettings extends ConsumerStatefulWidget {
   const BackupRestoreSettings({super.key});
@@ -374,34 +372,6 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                                                   context,
                                                 ),
                                           ),
-                                          if (AppConfig
-                                              .websiteUrl
-                                              .isNotEmpty) ...[
-                                            TextSpan(
-                                              text:
-                                                  "\n\n${l10n.backupMoreInfo} ",
-                                              style:
-                                                  STextStyles.desktopTextExtraExtraSmall(
-                                                    context,
-                                                  ),
-                                            ),
-                                            TextSpan(
-                                              text: AppConfig.websiteUrl,
-                                              style: STextStyles.richLink(
-                                                context,
-                                              ).copyWith(fontSize: 14),
-                                              recognizer: TapGestureRecognizer()
-                                                ..onTap = () {
-                                                  launchUrl(
-                                                    Uri.parse(
-                                                      AppConfig.websiteUrl,
-                                                    ),
-                                                    mode: LaunchMode
-                                                        .externalApplication,
-                                                  );
-                                                },
-                                            ),
-                                          ],
                                         ],
                                       ),
                                     ),
