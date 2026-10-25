@@ -39,6 +39,10 @@ abstract class CryptoCurrency {
 
   NodeModel defaultNode({required bool isPrimary});
 
+  /// The app's own nodes, [defaultNode] first. While one of them is the
+  /// node, the fastest becomes it at start (see pickFastestDefaultNodes).
+  List<NodeModel> get defaultNodes => [defaultNode(isPrimary: false)];
+
   int get defaultSeedPhraseLength;
   int get fractionDigits;
   bool get hasBuySupport;

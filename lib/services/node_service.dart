@@ -25,34 +25,25 @@ class NodeService extends ChangeNotifier {
   NodeService({required this.secureStorageInterface});
 
   Future<void> updateDefaults() async {
-    for (final defaultNode in AppConfig.coins.map(
-      (e) => e.defaultNode(isPrimary: true),
-    )) {
-      final savedNode = DB.instance.get<NodeModel>(
-        boxName: DB.boxNameNodeModels,
-        key: defaultNode.id,
-      );
-      if (savedNode == null) {
-        // save the default node to hive only if no other nodes for the specific coin exist
-        if (getNodesFor(
-          AppConfig.getCryptoCurrencyByPrettyName(defaultNode.coinName),
-        ).isEmpty) {
-          await DB.instance.put<NodeModel>(
-            boxName: DB.boxNameNodeModels,
-            key: defaultNode.id,
-            value: defaultNode,
-          );
-        }
-      } else {
-        // Update the default, keeping the user's choices for it.
+    for (final coin in AppConfig.coins) {
+      // Without any node yet, the first of the app's own becomes the node.
+      final noNodes = getNodesFor(coin).isEmpty;
+      for (final (i, defaultNode) in coin.defaultNodes.indexed) {
+        final savedNode = DB.instance.get<NodeModel>(
+          boxName: DB.boxNameNodeModels,
+          key: defaultNode.id,
+        );
         await DB.instance.put<NodeModel>(
           boxName: DB.boxNameNodeModels,
-          key: savedNode.id,
-          value: defaultNode.copyWith(
-            torEnabled: savedNode.torEnabled,
-            clearnetEnabled: savedNode.clearnetEnabled,
-            isPrimary: savedNode.isPrimary,
-          ),
+          key: defaultNode.id,
+          value: savedNode == null
+              ? defaultNode.copyWith(isPrimary: noNodes && i == 0)
+              // Update the default, keeping the user's choices for it.
+              : defaultNode.copyWith(
+                  torEnabled: savedNode.torEnabled,
+                  clearnetEnabled: savedNode.clearnetEnabled,
+                  isPrimary: savedNode.isPrimary,
+                ),
         );
       }
     }

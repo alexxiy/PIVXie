@@ -13,7 +13,10 @@ void main() {
   final expectedPrimaryDefaults = AppConfig.coins
       .map((e) => e.defaultNode(isPrimary: true))
       .toList(growable: false);
-  final expectedDefaultNodeCount = expectedPrimaryDefaults.length;
+  final expectedDefaultNodeCount = AppConfig.coins.fold(
+    0,
+    (n, e) => n + e.defaultNodes.length,
+  );
 
   setUp(() async {
     await setUpHiveCeTest();

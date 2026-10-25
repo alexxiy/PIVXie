@@ -8,12 +8,14 @@
  *
  */
 
-import '../app_config.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 
 abstract class DefaultNodes {
   static const String defaultNodeIdPrefix = "default_";
-  static String buildId(CryptoCurrency cryptoCurrency) =>
-      "$defaultNodeIdPrefix${cryptoCurrency.identifier}";
-  static const String defaultName = "${AppConfig.prefix} Default";
+
+  /// The app's first node of [cryptoCurrency] keeps the plain id; the
+  /// others add their [region].
+  static String buildId(CryptoCurrency cryptoCurrency, {String? region}) =>
+      "$defaultNodeIdPrefix${cryptoCurrency.identifier}"
+      "${region == null ? "" : "_$region"}";
 }

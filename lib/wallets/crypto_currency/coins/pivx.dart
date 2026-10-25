@@ -2,6 +2,7 @@ import 'dart:typed_data';
 
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 
+import '../../../app_config.dart';
 import '../../../models/coinlib/exp2pkh_address.dart';
 import '../../../models/isar/models/blockchain_data/address.dart';
 import '../../../models/node_model.dart';
@@ -269,35 +270,35 @@ class Pivx extends Bip39HDCurrency {
   }
 
   @override
-  NodeModel defaultNode({required bool isPrimary}) {
+  NodeModel defaultNode({required bool isPrimary}) =>
+      defaultNodes.first.copyWith(isPrimary: isPrimary);
+
+  @override
+  List<NodeModel> get defaultNodes {
     switch (network) {
       case CryptoCurrencyNetwork.main:
-        // PIVXie's own bridge (pivx-bridge with the address index).
-        return NodeModel(
-          host: "https://bridge.pivxie.me",
-          port: 443,
-          name: DefaultNodes.defaultName,
-          id: DefaultNodes.buildId(this),
-          useSSL: true,
-          coinName: identifier,
-          torEnabled: true,
-          clearnetEnabled: true,
-          isPrimary: isPrimary,
-        );
+        // PIVXie's own bridges (pivx-bridge with the address index).
+        return [
+          _bridge("https://eu-bridge.pivxie.me", 443, "EU"),
+          _bridge("https://us-bridge.pivxie.me", 443, "US", region: "us"),
+        ];
       case CryptoCurrencyNetwork.test:
-        return NodeModel(
-          host: "http://192.168.1.101:3000",
-          port: 3000,
-          name: DefaultNodes.defaultName,
-          id: DefaultNodes.buildId(this),
-          useSSL: false,
-          coinName: identifier,
-          torEnabled: true,
-          clearnetEnabled: true,
-          isPrimary: isPrimary,
-        );
+        return [_bridge("http://192.168.1.101:3000", 3000, "Default")];
     }
   }
+
+  NodeModel _bridge(String host, int port, String name, {String? region}) =>
+      NodeModel(
+        host: host,
+        port: port,
+        name: "${AppConfig.prefix} $name",
+        id: DefaultNodes.buildId(this, region: region),
+        useSSL: host.startsWith("https:"),
+        coinName: identifier,
+        torEnabled: true,
+        clearnetEnabled: true,
+        isPrimary: false,
+      );
 
   @override
   int get defaultSeedPhraseLength => 12;
