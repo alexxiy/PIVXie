@@ -239,8 +239,10 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
               ActionChip(
                 label: Text(
                   word,
+                  // Not textRestore: it's meant for the light green of a
+                  // valid word and is nearly black in the dark theme.
                   style: STextStyles.field(context).copyWith(
-                    color: colors.textRestore,
+                    color: colors.textFieldActiveText,
                     fontSize: 14,
                     fontWeight: n == 0 ? FontWeight.w600 : null,
                   ),
