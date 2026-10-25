@@ -2,18 +2,23 @@ import 'dart:io';
 import 'dart:math';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:paymint/models/node_model.dart';
 import 'package:paymint/wallets/api/pivx/pivx_bridge_client.dart';
 
-/// A local server answering `/getblockcount` with [codes] in turn (the
-/// last one from then on). Returns the server and how many requests came.
-Future<(HttpServer, List<int>)> _serve(List<int> codes) async {
+/// A local server answering every request with [codes] in turn (the last
+/// one from then on), and [body] if given. Returns the server and how many
+/// requests came.
+Future<(HttpServer, List<int>)> _serve(List<int> codes, {String? body}) async {
   final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
   final requests = [0];
   server.listen((request) async {
     final code = codes[min(requests[0]++, codes.length - 1)];
     request.response
       ..statusCode = code
-      ..write(code == 200 ? "123" : '{"error":"the node is busy, try again"}');
+      ..write(
+        body ??
+            (code == 200 ? "123" : '{"error":"the node is busy, try again"}'),
+      );
     await request.response.close();
   });
   return (server, requests);
@@ -21,6 +26,32 @@ Future<(HttpServer, List<int>)> _serve(List<int> codes) async {
 
 PivxBridgeClient _client(HttpServer server) =>
     PivxBridgeClient(baseUri: Uri.parse("http://127.0.0.1:${server.port}"));
+
+NodeModel _node(int port) => NodeModel(
+  host: "127.0.0.1",
+  port: port,
+  name: "local",
+  id: "local",
+  useSSL: false,
+  coinName: "pivx",
+  torEnabled: false,
+  clearnetEnabled: true,
+  isPrimary: true,
+);
+
+/// What restoring through the bridge on [port] would tell the user after
+/// [call] fails.
+Future<String> _restoreText(
+  int port,
+  Future<Object?> Function(PivxBridgeClient) call,
+) async {
+  try {
+    await call(PivxBridgeClient(baseUri: Uri.parse("http://127.0.0.1:$port")));
+  } catch (e) {
+    return restoreFailureText(e, _node(port));
+  }
+  fail("the call didn't fail");
+}
 
 void main() {
   group("a busy bridge (503)", () {
@@ -54,5 +85,38 @@ void main() {
       throwsA(isA<PivxBridgeException>()),
     );
     expect(requests[0], 1);
+  });
+
+  group("a failed restore says", () {
+    test("the node has no address index", () async {
+      final (server, _) = await _serve([404], body: "");
+      addTearDown(() => server.close(force: true));
+      final text = await _restoreText(server.port, (c) => c.status());
+      expect(text, contains("127.0.0.1:${server.port}"));
+      expect(text, contains("no address index"));
+    });
+
+    test("the node's own error", () async {
+      final (server, _) = await _serve([500], body: '{"error":"bad xpub"}');
+      addTearDown(() => server.close(force: true));
+      final text = await _restoreText(server.port, (c) => c.getBlockCount());
+      expect(text, contains("127.0.0.1:${server.port}"));
+      expect(text, contains("bad xpub"));
+    });
+
+    test("the node didn't answer", () async {
+      final (server, _) = await _serve([200]);
+      final port = server.port;
+      await server.close(force: true);
+      final text = await _restoreText(port, (c) => c.getBlockCount());
+      expect(text, startsWith("Couldn't reach 127.0.0.1:$port."));
+    });
+
+    test("anything else as it is", () {
+      expect(
+        restoreFailureText(StateError("odd"), _node(80)),
+        "Bad state: odd",
+      );
+    });
   });
 }

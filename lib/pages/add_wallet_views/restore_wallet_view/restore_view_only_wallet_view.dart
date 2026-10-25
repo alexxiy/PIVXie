@@ -18,6 +18,7 @@ import '../../../themes/stack_colors.dart';
 import '../../../utilities/clipboard_interface.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
+import '../../../wallets/api/pivx/pivx_bridge_client.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../wallets/crypto_currency/intermediate/bip39_hd_currency.dart';
 import '../../../wallets/isar/models/wallet_info.dart';
@@ -178,12 +179,11 @@ class _RestoreViewOnlyWalletViewState
         ],
       );
 
-      var node = ref
+      final saved = ref
           .read(nodeServiceChangeNotifierProvider)
           .getPrimaryNodeFor(currency: widget.coin);
-
-      if (node == null) {
-        node = widget.coin.defaultNode(isPrimary: true);
+      final node = saved ?? widget.coin.defaultNode(isPrimary: true);
+      if (saved == null) {
         await ref.read(nodeServiceChangeNotifierProvider).save(node, false);
       }
 
@@ -253,7 +253,7 @@ class _RestoreViewOnlyWalletViewState
             barrierDismissible: true,
             builder: (context) {
               return RestoreFailedDialog(
-                errorMessage: e.toString(),
+                errorMessage: restoreFailureText(e, node),
                 walletId: info.walletId,
                 walletName: info.name,
               );

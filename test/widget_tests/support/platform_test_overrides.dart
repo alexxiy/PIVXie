@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:paymint/l10n/l10n.dart';
 import 'package:paymint/pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import 'package:paymint/providers/global/secure_store_provider.dart';
 import 'package:paymint/utilities/flutter_secure_storage_interface.dart';
@@ -171,7 +172,7 @@ Future<PlatformTestOverrides> createPlatformTestOverrides({
                 onSuccess?.call(nodeFormData);
               }
 
-              return result;
+              return result ? null : l10n.nodeUnreachable;
             },
       ),
     ],

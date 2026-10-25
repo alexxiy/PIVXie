@@ -31,13 +31,37 @@ Future<dynamic> _decodeApart(String text) =>
     Isolate.run(() => jsonDecode(text));
 
 class PivxBridgeException implements Exception {
-  PivxBridgeException(this.message, {this.statusCode});
+  PivxBridgeException(this.message, {this.statusCode, this.noIndex = false});
 
   final String message;
   final int? statusCode;
 
+  /// The bridge lacks the route asked for: it's older than 0.5, runs
+  /// without the address index, or isn't a bridge at all.
+  final bool noIndex;
+
   @override
   String toString() => "PivxBridgeException($statusCode): $message";
+}
+
+/// Why restoring a wallet through [node] failed, for the user: bridge and
+/// connection problems name the node and say what to do about it.
+String restoreFailureText(Object error, NodeModel node) {
+  final name = PivxBridgeClient.fromParts(
+    host: node.host,
+    port: node.port,
+    useSSL: node.useSSL,
+    useTor: false,
+  ).baseUri.authority;
+  return switch (error) {
+    PivxBridgeException(noIndex: true) => l10n.restoreNodeNoIndex(name),
+    PivxBridgeException(:final message) => l10n.restoreNodeError(name, message),
+    SocketException() ||
+    TimeoutException() ||
+    HttpException() ||
+    TlsException() => l10n.restoreNodeUnreachable(name),
+    _ => "$error",
+  };
 }
 
 /// HTTP client for a pivx-bridge instance.
@@ -267,7 +291,11 @@ class PivxBridgeClient {
       // No such route: a bridge older than 0.5 (index under /api/v2), or
       // one without the address index.
       final route = path.split("/").firstWhere((e) => e.isNotEmpty);
-      throw PivxBridgeException(l10n.bridgeNoRoute(route), statusCode: 404);
+      throw PivxBridgeException(
+        l10n.bridgeNoRoute(route),
+        statusCode: 404,
+        noIndex: true,
+      );
     }
     if (response.code != 200) {
       throw PivxBridgeException(

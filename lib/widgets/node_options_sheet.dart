@@ -16,6 +16,7 @@ import 'package:flutter_svg/svg.dart';
 import 'package:tuple/tuple.dart';
 
 import '../l10n/l10n.dart';
+import '../notifications/show_flush_bar.dart';
 import '../pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import '../pages/settings_views/global_settings_view/manage_nodes_views/node_details_view.dart';
 import '../providers/global/active_wallet_provider.dart';
@@ -250,7 +251,7 @@ class NodeOptionsSheet extends ConsumerWidget {
                               ? null
                               : () async {
                                   if (context.mounted) {
-                                    final canConnect =
+                                    final problem =
                                         await ref.read(
                                           testNodeConnectionProvider,
                                         )(
@@ -267,7 +268,16 @@ class NodeOptionsSheet extends ConsumerWidget {
                                                 ),
                                           cryptoCurrency: coin,
                                         );
-                                    if (!canConnect) {
+                                    if (problem != null) {
+                                      if (context.mounted) {
+                                        unawaited(
+                                          showFloatingFlushBar(
+                                            type: FlushBarType.warning,
+                                            message: problem,
+                                            context: context,
+                                          ),
+                                        );
+                                      }
                                       return;
                                     }
 

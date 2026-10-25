@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show ProviderListenable;
 
+import '../l10n/l10n.dart';
 import '../pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import '../providers/global/prefs_provider.dart';
 import '../wallets/api/pivx/pivx_bridge_client.dart';
@@ -11,7 +12,8 @@ import '../wallets/crypto_currency/crypto_currency.dart';
 import 'logger.dart';
 import 'tor_plain_net_option_enum.dart';
 
-typedef TestNodeConnectionCallback = Future<bool> Function({
+/// Null when the node passed, else why it didn't, for the user.
+typedef TestNodeConnectionCallback = Future<String?> Function({
   required BuildContext context,
   required NodeFormData nodeFormData,
   required CryptoCurrency cryptoCurrency,
@@ -32,8 +34,9 @@ final testNodeConnectionProvider = Provider<TestNodeConnectionCallback>((ref) {
   };
 });
 
-/// Test a PIVX bridge with the node form's settings.
-Future<bool> testNodeConnection({
+/// Test a PIVX bridge with the node form's settings: null when it passed,
+/// else why it didn't, for the user.
+Future<String?> testNodeConnection({
   required BuildContext context,
   required NodeFormData nodeFormData,
   required CryptoCurrency cryptoCurrency,
@@ -46,18 +49,17 @@ Future<bool> testNodeConnection({
       Logging.instance.w(
         "This node is set to be used without Tor, and Tor is on",
       );
-      return false;
+      return l10n.nodeUseWithoutTor;
     }
   } else {
     if (formData.netOption! == TorPlainNetworkOption.tor) {
       Logging.instance.w(
         "This node is set to be used only over Tor, and Tor is off",
       );
-      return false;
+      return l10n.nodeUseOnlyOverTor;
     }
   }
 
-  bool testPassed = false;
   try {
     final client = PivxBridgeClient.fromParts(
       host: formData.host!,
@@ -69,15 +71,13 @@ Future<bool> testNodeConnection({
     if (problem != null) {
       Logging.instance.w("PIVX testNodeConnection: $problem");
     }
-    testPassed = problem == null;
+    return problem;
   } catch (e, s) {
     Logging.instance.w(
       "PIVX testNodeConnection failed",
       error: e,
       stackTrace: s,
     );
-    testPassed = false;
+    return l10n.nodeUnreachable;
   }
-
-  return testPassed;
 }

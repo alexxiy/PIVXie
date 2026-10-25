@@ -73,11 +73,20 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
   late bool testConnectionEnabled;
 
   Future<void> attemptSave() async {
-    final canConnect = await ref.read(testNodeConnectionProvider)(
+    final problem = await ref.read(testNodeConnectionProvider)(
       context: context,
       cryptoCurrency: coin,
       nodeFormData: ref.read(nodeFormDataProvider),
     );
+    final canConnect = problem == null;
+    // "Unreachable" is the title; any other reason goes above the question.
+    final unreachable = problem == l10n.nodeUnreachable;
+    final title = unreachable
+        ? l10n.nodeUnreachableTitle
+        : l10n.nodeCheckFailedTitle;
+    final question = unreachable
+        ? l10n.nodeSaveAnyway
+        : "$problem\n\n${l10n.nodeSaveAnyway}";
 
     bool? shouldSave;
 
@@ -89,7 +98,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
         builder: (_) => isDesktop
             ? DesktopDialog(
                 maxWidth: 440,
-                maxHeight: 300,
+                maxHeight: unreachable ? 300 : 380,
                 child: Column(
                   children: [
                     Padding(
@@ -97,10 +106,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                       child: Row(
                         children: [
                           const SizedBox(width: 32),
-                          Text(
-                            l10n.nodeUnreachableTitle,
-                            style: STextStyles.desktopH3(context),
-                          ),
+                          Text(title, style: STextStyles.desktopH3(context)),
                         ],
                       ),
                     ),
@@ -116,7 +122,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                           children: [
                             const Spacer(),
                             Text(
-                              l10n.nodeSaveAnyway,
+                              question,
                               style: STextStyles.desktopTextMedium(context),
                             ),
                             const Spacer(flex: 2),
@@ -157,8 +163,8 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                 ),
               )
             : StackDialog(
-                title: l10n.nodeUnreachableTitle,
-                message: l10n.nodeSaveAnyway,
+                title: title,
+                message: question,
                 leftButton: TextButton(
                   onPressed: () async {
                     Navigator.of(context).pop(false);
@@ -493,30 +499,22 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                     buttonHeight: isDesktop ? ButtonHeight.l : null,
                     onPressed: testConnectionEnabled
                         ? () async {
-                            final testPassed =
+                            final problem =
                                 await ref.read(testNodeConnectionProvider)(
                                   context: context,
                                   cryptoCurrency: coin,
                                   nodeFormData: ref.read(nodeFormDataProvider),
                                 );
                             if (context.mounted) {
-                              if (testPassed) {
-                                unawaited(
-                                  showFloatingFlushBar(
-                                    type: FlushBarType.success,
-                                    message: l10n.nodePingSuccess,
-                                    context: context,
-                                  ),
-                                );
-                              } else {
-                                unawaited(
-                                  showFloatingFlushBar(
-                                    type: FlushBarType.warning,
-                                    message: l10n.nodeUnreachable,
-                                    context: context,
-                                  ),
-                                );
-                              }
+                              unawaited(
+                                showFloatingFlushBar(
+                                  type: problem == null
+                                      ? FlushBarType.success
+                                      : FlushBarType.warning,
+                                  message: problem ?? l10n.nodePingSuccess,
+                                  context: context,
+                                ),
+                              );
                             }
                           }
                         : null,

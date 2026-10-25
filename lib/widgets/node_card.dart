@@ -178,20 +178,20 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                           );
 
                         if (context.mounted) {
-                          final canConnect =
+                          final problem =
                               await ref.read(testNodeConnectionProvider)(
                                 context: context,
                                 nodeFormData: nodeFormData,
                                 cryptoCurrency: widget.coin,
                               );
 
-                          if (!canConnect) {
+                          if (problem != null) {
                             if (context.mounted) {
                               unawaited(
                                 showFloatingFlushBar(
                                   type: FlushBarType.warning,
                                   iconAsset: Assets.svg.circleAlert,
-                                  message: l10n.nodeConnectFailed,
+                                  message: problem,
                                   context: context,
                                 ),
                               );

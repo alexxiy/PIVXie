@@ -297,33 +297,23 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                         ..netOption = netOption;
 
                       if (context.mounted) {
-                        final testPassed =
+                        final problem =
                             await ref.read(testNodeConnectionProvider)(
                               context: context,
                               nodeFormData: nodeFormData,
                               cryptoCurrency: coin,
                             );
 
-                        if (testPassed) {
-                          if (context.mounted) {
-                            unawaited(
-                              showFloatingFlushBar(
-                                type: FlushBarType.success,
-                                message: l10n.nodePingSuccess,
-                                context: context,
-                              ),
-                            );
-                          }
-                        } else {
-                          if (context.mounted) {
-                            unawaited(
-                              showFloatingFlushBar(
-                                type: FlushBarType.warning,
-                                message: l10n.nodeUnreachable,
-                                context: context,
-                              ),
-                            );
-                          }
+                        if (context.mounted) {
+                          unawaited(
+                            showFloatingFlushBar(
+                              type: problem == null
+                                  ? FlushBarType.success
+                                  : FlushBarType.warning,
+                              message: problem ?? l10n.nodePingSuccess,
+                              context: context,
+                            ),
+                          );
                         }
                       }
                     },
