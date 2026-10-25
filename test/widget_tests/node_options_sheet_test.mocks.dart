@@ -636,6 +636,30 @@ class MockPrefs extends _i1.Mock implements _i11.Prefs {
     Invocation.method(#notifyListeners, []),
     returnValueForMissingStub: null,
   );
+
+  @override
+  List<String> get nodesChosenByUser => (super.noSuchMethod(
+    Invocation.getter(#nodesChosenByUser),
+    returnValue: <String>[],
+  ) as List<String>);
+
+  @override
+  set nodesChosenByUser(List<String>? nodesChosenByUser) => super.noSuchMethod(
+    Invocation.setter(#nodesChosenByUser, nodesChosenByUser),
+    returnValueForMissingStub: null,
+  );
+
+  @override
+  bool nodeChosenByUser(String? coinId) => (super.noSuchMethod(
+    Invocation.method(#nodeChosenByUser, [coinId]),
+    returnValue: false,
+  ) as bool);
+
+  @override
+  void setNodeChosenByUser(String? coinId, bool? chosen) => super.noSuchMethod(
+    Invocation.method(#setNodeChosenByUser, [coinId, chosen]),
+    returnValueForMissingStub: null,
+  );
 }
 
 /// A class which mocks [NodeService].

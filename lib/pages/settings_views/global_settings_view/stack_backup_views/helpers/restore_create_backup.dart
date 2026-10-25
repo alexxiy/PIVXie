@@ -278,6 +278,7 @@ abstract class SWB {
           _prefs.systemBrightnessLightThemeId;
       prefs['systemBrightnessDarkThemeId'] = _prefs.systemBrightnessDarkThemeId;
       prefs['hideBlockExplorerWarning'] = _prefs.hideBlockExplorerWarning;
+      prefs['nodesChosenByUser'] = _prefs.nodesChosenByUser;
 
       backupJson['prefs'] = prefs;
 
@@ -956,6 +957,13 @@ abstract class SWB {
       _prefs.systemBrightnessDarkThemeId = id;
     }
     _prefs.enableSystemBrightness = prefs['enableSystemBrightness'] as bool;
+    // Newer than the baseline: older backups don't have it.
+    if (prefs['nodesChosenByUser'] case final List<dynamic> coins) {
+      _prefs.nodesChosenByUser = [
+        for (final coin in AppConfig.coins)
+          if (coins.contains(coin.identifier)) coin.identifier,
+      ];
+    }
   }
 
   static Future<void> _restoreAddressBook(

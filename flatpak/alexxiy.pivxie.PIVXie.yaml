@@ -22,6 +22,8 @@ finish-args:
   - --filesystem=~/.pivxie:create
   # Secure storage (libsecret).
   - --talk-name=org.freedesktop.secrets
+  # Whether the computer is on a network (NetworkManager).
+  - --system-talk-name=org.freedesktop.NetworkManager
 
 modules:
   - name: pivxie

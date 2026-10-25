@@ -41,10 +41,14 @@ const _probeTimeout = Duration(seconds: 15);
 /// is up to date.
 const _othersTimeout = Duration(seconds: 3);
 
-/// The app runs several bridges of its own (one per region): while one of
-/// them is a coin's node, the fastest one that is up to date becomes it.
-/// A node the user added and chose stays. Loaded wallets move to the new
-/// node.
+/// Whether the user chose [node], [coin]'s node, in the settings (the app
+/// never picks a node the user added).
+bool nodeChosenByUser(CryptoCurrency coin, NodeModel node, Prefs prefs) =>
+    !node.isDefault || prefs.nodeChosenByUser(coin.identifier);
+
+/// The app runs several bridges of its own (one per region): unless the
+/// user chose a coin's node in the settings, the fastest one that is up to
+/// date becomes it. Loaded wallets move to the new node.
 Future<void> pickFastestDefaultNodes({
   required NodeService nodeService,
   required Prefs prefs,
@@ -57,7 +61,7 @@ Future<void> pickFastestDefaultNodes({
     for (final coin in AppConfig.coins)
       () async {
         final current = nodeService.getPrimaryNodeFor(currency: coin);
-        if (current != null && !current.isDefault) return;
+        if (current != null && nodeChosenByUser(coin, current, prefs)) return;
         final candidates = _defaultNodes(coin, nodeService, prefs);
         if (candidates.length < 2) return;
         final fastest = pickBridge(
@@ -68,10 +72,16 @@ Future<void> pickFastestDefaultNodes({
           ),
         );
         if (fastest == null || fastest.id == current?.id) return;
+        // The user chose a node meanwhile.
+        final now = nodeService.getPrimaryNodeFor(currency: coin);
+        if (now?.id != current?.id ||
+            (now != null && nodeChosenByUser(coin, now, prefs))) {
+          return;
+        }
         Logging.instance.i(
           "${coin.identifier}: the fastest node is ${fastest.name}",
         );
-        await useNode(coin, fastest, nodeService, wallets);
+        await useNode(coin, fastest, nodeService, prefs, wallets);
       }().catchError(
         (Object e, StackTrace s) => Logging.instance.w(
           "Fastest node for ${coin.identifier}",
@@ -94,13 +104,54 @@ List<NodeModel> _defaultNodes(
     )
     .toList();
 
-/// [node] becomes [coin]'s node, and the coin's loaded wallets move to it.
+/// The user turned "Choose automatically" on: the fastest of the app's own
+/// bridges that is up to date becomes [coin]'s node. When none answers, one
+/// of them does anyway if the node was one the user added.
+Future<void> useAppNodes({
+  required CryptoCurrency coin,
+  required NodeService nodeService,
+  required Prefs prefs,
+  required List<Wallet> Function() wallets,
+  NodeProbe? probe,
+  Duration othersTimeout = _othersTimeout,
+}) async {
+  prefs.setNodeChosenByUser(coin.identifier, false);
+  final ask = probe ?? (node, coin) => _probeBridge(node, coin, prefs);
+  final current = nodeService.getPrimaryNodeFor(currency: coin);
+  final candidates = _defaultNodes(coin, nodeService, prefs);
+  if (candidates.isEmpty) return;
+  var best = candidates.length == 1
+      ? candidates.single
+      : pickBridge(
+          await askBridges(
+            candidates,
+            (e) => ask(e, coin),
+            othersTimeout: othersTimeout,
+          ),
+        );
+  if (best == null && current?.isDefault != true) best = candidates.first;
+  if (best == null || best.id == current?.id) return;
+  // The user chose a node meanwhile.
+  if (prefs.nodeChosenByUser(coin.identifier) ||
+      nodeService.getPrimaryNodeFor(currency: coin)?.id != current?.id) {
+    return;
+  }
+  Logging.instance.i(
+    "${coin.identifier}: choosing automatically, ${best.name}",
+  );
+  await useNode(coin, best, nodeService, prefs, wallets);
+}
+
+/// The app chose [node] as [coin]'s node: the coin's loaded wallets move to
+/// it, and the app may change it again.
 Future<void> useNode(
   CryptoCurrency coin,
   NodeModel node,
   NodeService nodeService,
+  Prefs prefs,
   List<Wallet> Function() wallets,
 ) async {
+  prefs.setNodeChosenByUser(coin.identifier, false);
   await nodeService.setPrimaryNodeFor(
     coin: coin,
     node: node,
@@ -199,7 +250,7 @@ Future<BridgeHeights?> _probeBridge(
   }
 }
 
-/// A node the user chose stopped answering while one of the app's own
+/// The node the user chose stopped answering while one of the app's own
 /// bridges answers.
 class NodeTrouble {
   const NodeTrouble({
@@ -217,12 +268,12 @@ class NodeTrouble {
   final NodeModel switchTo;
 }
 
-/// Watches the wallets' nodes. When a coin's node stops answering and one
-/// of the app's own bridges answers (so the internet works), one of the
-/// app's bridges is swapped for the fastest that works, and for a node the
-/// user chose, [onTrouble] asks them (once, until it works again). With no
-/// internet nothing answers: that isn't the node's fault, and nothing
-/// happens.
+/// Watches the wallets' nodes. When a coin's node stops answering while
+/// the device is [online] and one of the app's own bridges answers, a node
+/// the app chose is swapped for the fastest bridge that works, and for a
+/// node the user chose, [onTrouble] asks them (once, until it works again).
+/// Without a network, or when none of the bridges answers either (no
+/// internet through it), that isn't the node's fault: nothing happens.
 class NodeWatch {
   NodeWatch({
     required this.nodeService,
@@ -230,6 +281,7 @@ class NodeWatch {
     required this.wallets,
     required this.onTrouble,
     required this.onNodeWorks,
+    required this.online,
     NodeProbe? probe,
     this.othersTimeout = _othersTimeout,
   }) : _probe = probe ?? ((node, coin) => _probeBridge(node, coin, prefs));
@@ -241,6 +293,9 @@ class NodeWatch {
 
   /// [coin]'s node synced a wallet: a question about it is moot.
   final void Function(CryptoCurrency coin) onNodeWorks;
+
+  /// Whether the device is on a network (DeviceNetwork).
+  final bool Function() online;
   final NodeProbe _probe;
   final Duration othersTimeout;
 
@@ -277,11 +332,11 @@ class NodeWatch {
   /// A wallet of [coin] couldn't reach its node.
   @visibleForTesting
   Future<void> check(CryptoCurrency coin) async {
-    if (!_checking.add(coin.identifier)) return;
+    if (!online() || !_checking.add(coin.identifier)) return;
     try {
       final current = nodeService.getPrimaryNodeFor(currency: coin);
       if (current == null) return;
-      final mine = !current.isDefault;
+      final mine = nodeChosenByUser(coin, current, prefs);
       if (mine && _asked[coin.identifier] == current.id) return;
 
       // A request can fail now and then: the node answers again.
@@ -300,10 +355,12 @@ class NodeWatch {
           othersTimeout: othersTimeout,
         ),
       );
-      // None answers either: no internet (or none of them works).
+      // None answers either: no internet through the network (or none of
+      // them works).
       if (best == null) return;
-      // The user chose another node meanwhile.
-      if (nodeService.getPrimaryNodeFor(currency: coin)?.id != current.id) {
+      // The user chose a node meanwhile.
+      if (nodeService.getPrimaryNodeFor(currency: coin)?.id != current.id ||
+          mine != nodeChosenByUser(coin, current, prefs)) {
         return;
       }
 
@@ -319,7 +376,7 @@ class NodeWatch {
           "${coin.identifier}: ${current.name} isn't answering, "
           "switching to ${best.name}",
         );
-        await useNode(coin, best, nodeService, wallets);
+        await useNode(coin, best, nodeService, prefs, wallets);
       }
     } catch (e, s) {
       Logging.instance.w(

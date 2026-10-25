@@ -22,6 +22,7 @@ import '../../../../app_config.dart';
 import '../../../../l10n/l10n.dart';
 import '../../../../providers/providers.dart';
 import '../../../../route_generator.dart';
+import '../../../../services/device_network.dart';
 import '../../../../services/event_bus/events/global/node_connection_status_changed_event.dart';
 import '../../../../services/event_bus/events/global/refresh_percent_changed_event.dart';
 import '../../../../services/event_bus/events/global/tor_connection_status_changed_event.dart';
@@ -42,6 +43,7 @@ import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/custom_buttons/blue_text_button.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/expandable.dart';
+import '../../../../widgets/no_internet_notice.dart';
 import '../../../../widgets/progress_bar.dart';
 import '../../../../widgets/rounded_container.dart';
 import '../../../../widgets/rounded_white_container.dart';
@@ -285,6 +287,11 @@ class _WalletNetworkSettingsViewState
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
+    final online = ref.watch(pDeviceNetwork.select((e) => e.online));
+    // Without a network it can't sync, whatever it did last.
+    final syncStatus = online
+        ? _currentSyncStatus
+        : WalletSyncStatus.unableToSync;
 
     final progressLength = isDesktop
         ? 430.0
@@ -440,7 +447,7 @@ class _WalletNetworkSettingsViewState
             ],
           ),
           SizedBox(height: isDesktop ? 12 : 9),
-          if (_currentSyncStatus == WalletSyncStatus.synced)
+          if (syncStatus == WalletSyncStatus.synced)
             RoundedWhiteContainer(
               borderColor: isDesktop
                   ? Theme.of(context).extension<StackColors>()!.background
@@ -503,7 +510,7 @@ class _WalletNetworkSettingsViewState
                 ],
               ),
             ),
-          if (_currentSyncStatus == WalletSyncStatus.syncing)
+          if (syncStatus == WalletSyncStatus.syncing)
             RoundedWhiteContainer(
               borderColor: isDesktop
                   ? Theme.of(context).extension<StackColors>()!.background
@@ -584,7 +591,7 @@ class _WalletNetworkSettingsViewState
                 ],
               ),
             ),
-          if (_currentSyncStatus == WalletSyncStatus.unableToSync)
+          if (syncStatus == WalletSyncStatus.unableToSync)
             RoundedWhiteContainer(
               borderColor: isDesktop
                   ? Theme.of(context).extension<StackColors>()!.background
@@ -624,7 +631,9 @@ class _WalletNetworkSettingsViewState
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              l10n.netUnableToSync,
+                              online
+                                  ? l10n.netUnableToSync
+                                  : l10n.netNoInternet,
                               style: STextStyles.w600_12(context).copyWith(
                                 color: Theme.of(context)
                                     .extension<StackColors>()!
@@ -659,7 +668,7 @@ class _WalletNetworkSettingsViewState
                 ],
               ),
             ),
-          if (_currentSyncStatus == WalletSyncStatus.unableToSync)
+          if (syncStatus == WalletSyncStatus.unableToSync)
             Padding(
               padding: const EdgeInsets.only(top: 12),
               child: RoundedContainer(
@@ -667,7 +676,7 @@ class _WalletNetworkSettingsViewState
                     .extension<StackColors>()!
                     .warningBackground,
                 child: Text(
-                  l10n.netCheckConnection,
+                  online ? l10n.netCheckConnection : noInternetText(),
                   style: STextStyles.baseXS(context).copyWith(
                     color: Theme.of(context)
                         .extension<StackColors>()!

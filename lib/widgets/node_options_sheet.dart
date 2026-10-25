@@ -281,6 +281,13 @@ class NodeOptionsSheet extends ConsumerWidget {
                                       return;
                                     }
 
+                                    // The user chose it: the app leaves it.
+                                    ref
+                                        .read(prefsChangeNotifierProvider)
+                                        .setNodeChosenByUser(
+                                          coin.identifier,
+                                          true,
+                                        );
                                     await ref
                                         .read(nodeServiceChangeNotifierProvider)
                                         .setPrimaryNodeFor(

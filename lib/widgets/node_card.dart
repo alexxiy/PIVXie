@@ -199,6 +199,13 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                             return;
                           }
 
+                          // The user chose it: the app leaves it.
+                          ref
+                              .read(prefsChangeNotifierProvider)
+                              .setNodeChosenByUser(
+                                widget.coin.identifier,
+                                true,
+                              );
                           await ref
                               .read(nodeServiceChangeNotifierProvider)
                               .setPrimaryNodeFor(
@@ -239,9 +246,9 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                   height: isDesktop ? 40 : 24,
                   decoration: BoxDecoration(
                     color: _node.id.startsWith(DefaultNodes.defaultNodeIdPrefix)
-                        ? Theme.of(
-                            context,
-                          ).extension<StackColors>()!.buttonBackSecondary
+                        ? Theme.of(context)
+                              .extension<StackColors>()!
+                              .buttonBackSecondary
                         : Theme.of(context)
                               .extension<StackColors>()!
                               .infoItemIcons
@@ -255,12 +262,12 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                       width: isDesktop ? 20 : 14,
                       color:
                           _node.id.startsWith(DefaultNodes.defaultNodeIdPrefix)
-                          ? Theme.of(
-                              context,
-                            ).extension<StackColors>()!.accentColorDark
-                          : Theme.of(
-                              context,
-                            ).extension<StackColors>()!.infoItemIcons,
+                          ? Theme.of(context)
+                                .extension<StackColors>()!
+                                .accentColorDark
+                          : Theme.of(context)
+                                .extension<StackColors>()!
+                                .infoItemIcons,
                     ),
                   ),
                 ),
@@ -270,7 +277,12 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                   children: [
                     Text(_node.name, style: STextStyles.titleBold12(context)),
                     const SizedBox(height: 2),
-                    Text(_status == "Connected" ? l10n.commonConnected : l10n.commonDisconnected, style: STextStyles.label(context)),
+                    Text(
+                      _status == "Connected"
+                          ? l10n.commonConnected
+                          : l10n.commonDisconnected,
+                      style: STextStyles.label(context),
+                    ),
                   ],
                 ),
                 const Spacer(),
@@ -278,12 +290,12 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                   SvgPicture.asset(
                     Assets.svg.network,
                     color: _status == "Connected"
-                        ? Theme.of(
-                            context,
-                          ).extension<StackColors>()!.accentColorGreen
-                        : Theme.of(
-                            context,
-                          ).extension<StackColors>()!.buttonBackSecondary,
+                        ? Theme.of(context)
+                              .extension<StackColors>()!
+                              .accentColorGreen
+                        : Theme.of(context)
+                              .extension<StackColors>()!
+                              .buttonBackSecondary,
                     width: 20,
                     height: 20,
                   ),
@@ -294,9 +306,9 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                         : Assets.svg.chevronDown,
                     width: 12,
                     height: 6,
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textSubtitle1,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textSubtitle1,
                   ),
               ],
             ),

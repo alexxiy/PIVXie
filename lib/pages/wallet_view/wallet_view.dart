@@ -25,6 +25,7 @@ import '../../providers/global/auto_swb_service_provider.dart';
 import '../../providers/providers.dart';
 import '../../providers/ui/transaction_filter_provider.dart';
 import '../../providers/wallet/public_private_balance_state_provider.dart';
+import '../../services/device_network.dart';
 import '../../services/event_bus/events/global/node_connection_status_changed_event.dart';
 import '../../services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import '../../services/event_bus/global_event_bus.dart';
@@ -368,7 +369,13 @@ class _WalletViewState extends ConsumerState<WalletView> {
                         color: Theme.of(context)
                             .extension<StackColors>()!
                             .background,
-                        icon: _buildNetworkIcon(_currentSyncStatus),
+                        // Without a network it can't sync, whatever it did
+                        // last.
+                        icon: _buildNetworkIcon(
+                          ref.watch(pDeviceNetwork.select((e) => e.online))
+                              ? _currentSyncStatus
+                              : WalletSyncStatus.unableToSync,
+                        ),
                         onPressed: () {
                           Navigator.of(context).pushNamed(
                             WalletNetworkSettingsView.routeName,

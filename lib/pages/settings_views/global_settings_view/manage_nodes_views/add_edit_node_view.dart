@@ -185,7 +185,10 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                   style: Theme.of(context)
                       .extension<StackColors>()!
                       .getPrimaryEnabledButtonStyle(context),
-                  child: Text(l10n.commonSave, style: STextStyles.button(context)),
+                  child: Text(
+                    l10n.commonSave,
+                    style: STextStyles.button(context),
+                  ),
                 ),
               ),
       ).then((value) {
@@ -348,7 +351,9 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
               },
             ),
             title: Text(
-              viewType == AddEditNodeViewType.edit ? l10n.nodeEdit : l10n.nodeAdd,
+              viewType == AddEditNodeViewType.edit
+                  ? l10n.nodeEdit
+                  : l10n.nodeAdd,
               style: STextStyles.navBarTitle(context),
             ),
             actions: [
@@ -390,9 +395,17 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                           ModalRoute.withName(widget.routeOnSuccessOrDelete),
                         );
 
-                        await ref
-                            .read(nodeServiceChangeNotifierProvider)
-                            .delete(nodeId!, true);
+                        final nodeService = ref.read(
+                          nodeServiceChangeNotifierProvider,
+                        );
+                        // Without the user's node, the app picks.
+                        if (nodeService.getNodeById(id: nodeId!)?.isPrimary ==
+                            true) {
+                          ref
+                              .read(prefsChangeNotifierProvider)
+                              .setNodeChosenByUser(coin.identifier, false);
+                        }
+                        await nodeService.delete(nodeId!, true);
                       },
                     ),
                   ),
@@ -543,7 +556,10 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                           .extension<StackColors>()!
                           .getPrimaryDisabledButtonStyle(context),
                 onPressed: saveEnabled ? attemptSave : null,
-                child: Text(l10n.commonSave, style: STextStyles.button(context)),
+                child: Text(
+                  l10n.commonSave,
+                  style: STextStyles.button(context),
+                ),
               ),
           ],
         ),
@@ -654,7 +670,8 @@ class _NodeFormState extends ConsumerState<NodeForm> {
     } else if (text.contains(":")) {
       final i = text.lastIndexOf(":");
       // Not a bare IPv6 address ("fe80::1"); "[::1]:3000" is fine.
-      if (i > 0 && (!text.substring(0, i).contains(":") || text[i - 1] == "]")) {
+      if (i > 0 &&
+          (!text.substring(0, i).contains(":") || text[i - 1] == "]")) {
         port = int.tryParse(text.substring(i + 1));
         host = text.substring(0, i);
       }
@@ -822,8 +839,12 @@ class _NodeFormState extends ConsumerState<NodeForm> {
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             keyboardType: TextInputType.number,
             style: STextStyles.field(context),
-            decoration: standardInputDecoration(l10n.nodePort, _portFocusNode, context)
-                .copyWith(
+            decoration:
+                standardInputDecoration(
+                  l10n.nodePort,
+                  _portFocusNode,
+                  context,
+                ).copyWith(
                   suffixIcon:
                       !shouldBeReadOnly && _portController.text.isNotEmpty
                       ? Padding(
@@ -890,7 +911,10 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    Text(l10n.nodeUseSsl, style: STextStyles.itemSubtitle12(context)),
+                    Text(
+                      l10n.nodeUseSsl,
+                      style: STextStyles.itemSubtitle12(context),
+                    ),
                   ],
                 ),
               ),

@@ -126,9 +126,9 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
       condition: !isDesktop,
       builder: (child) => Background(
         child: Scaffold(
-          backgroundColor: Theme.of(
-            context,
-          ).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(context)
+              .extension<StackColors>()!
+              .background,
           appBar: AppBar(
             leading: AppBarBackButton(
               onPressed: () async {
@@ -155,14 +155,14 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                     key: const Key("nodeDetailsEditNodeAppBarButtonKey"),
                     size: 36,
                     shadows: const [],
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.background,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .background,
                     icon: SvgPicture.asset(
                       Assets.svg.pencil,
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.accentColorDark,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .accentColorDark,
                       width: 20,
                       height: 20,
                     ),
@@ -255,9 +255,18 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                               onPressed: () async {
                                 Navigator.of(context).pop();
 
+                                // Without the user's node, the app picks.
+                                if (node!.isPrimary) {
+                                  ref
+                                      .read(prefsChangeNotifierProvider)
+                                      .setNodeChosenByUser(
+                                        coin.identifier,
+                                        false,
+                                      );
+                                }
                                 await ref
                                     .read(nodeServiceChangeNotifierProvider)
-                                    .delete(node!.id, true);
+                                    .delete(node.id, true);
                               },
                             ),
                           ),
@@ -326,7 +335,9 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                         // !nodeId.startsWith(DefaultNodes.defaultNodeIdPrefix)
                         //     ?
                         PrimaryButton(
-                          label: _desktopReadOnly ? l10n.commonEdit : l10n.commonSave,
+                          label: _desktopReadOnly
+                              ? l10n.commonEdit
+                              : l10n.commonSave,
                           buttonHeight: ButtonHeight.l,
                           onPressed: () async {
                             final shouldSave = _desktopReadOnly == false;

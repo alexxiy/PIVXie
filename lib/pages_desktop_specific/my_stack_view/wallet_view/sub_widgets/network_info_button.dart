@@ -20,6 +20,7 @@ import '../../../../l10n/l10n.dart';
 import '../../../../pages/settings_views/wallet_settings_view/wallet_network_settings_view/wallet_network_settings_view.dart';
 import '../../../../providers/providers.dart';
 import '../../../../route_generator.dart';
+import '../../../../services/device_network.dart';
 import '../../../../services/event_bus/events/global/node_connection_status_changed_event.dart';
 import '../../../../services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import '../../../../services/event_bus/global_event_bus.dart';
@@ -55,8 +56,9 @@ class _NetworkInfoButtonState extends ConsumerState<NetworkInfoButton> {
     walletId = widget.walletId;
     final wallet = ref.read(pWallets).getWallet(walletId);
 
-    eventBus =
-        widget.eventBus != null ? widget.eventBus! : GlobalEventBus.instance;
+    eventBus = widget.eventBus != null
+        ? widget.eventBus!
+        : GlobalEventBus.instance;
 
     if (wallet.refreshMutex.isLocked) {
       _currentSyncStatus = WalletSyncStatus.syncing;
@@ -129,12 +131,16 @@ class _NetworkInfoButtonState extends ConsumerState<NetworkInfoButton> {
     }
   }
 
-  Widget _buildText(WalletSyncStatus status, BuildContext context) {
+  Widget _buildText(
+    WalletSyncStatus status,
+    bool online,
+    BuildContext context,
+  ) {
     String label;
 
     switch (status) {
       case WalletSyncStatus.unableToSync:
-        label = l10n.netUnableToSyncShort;
+        label = online ? l10n.netUnableToSyncShort : l10n.netNoInternetShort;
         break;
       case WalletSyncStatus.synced:
         label = l10n.netSynchronized;
@@ -146,9 +152,8 @@ class _NetworkInfoButtonState extends ConsumerState<NetworkInfoButton> {
 
     return Text(
       label,
-      style: STextStyles.desktopMenuItemSelected(
-        context,
-      ).copyWith(color: _getColor(status, context)),
+      style: STextStyles.desktopMenuItemSelected(context)
+          .copyWith(color: _getColor(status, context)),
     );
   }
 
@@ -165,73 +170,73 @@ class _NetworkInfoButtonState extends ConsumerState<NetworkInfoButton> {
 
   @override
   Widget build(BuildContext context) {
+    final online = ref.watch(pDeviceNetwork.select((e) => e.online));
+    // Without a network it can't sync, whatever it did last.
+    final status = online ? _currentSyncStatus : WalletSyncStatus.unableToSync;
     return RawMaterialButton(
-      hoverColor: _getColor(_currentSyncStatus, context).withOpacity(0.1),
+      hoverColor: _getColor(status, context).withOpacity(0.1),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(1000)),
       onPressed: () {
         if (Util.isDesktop) {
           showDialog<void>(
             context: context,
-            builder:
-                (context) => Navigator(
-                  initialRoute: WalletNetworkSettingsView.routeName,
-                  onGenerateRoute: RouteGenerator.generateRoute,
-                  onGenerateInitialRoutes: (_, __) {
-                    return [
-                      FadePageRoute(
-                        DesktopDialog(
-                          maxHeight: null,
-                          maxWidth: 580,
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.only(left: 32),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      l10n.netTitle,
-                                      style: STextStyles.desktopH3(context),
-                                    ),
-                                    DesktopDialogCloseButton(
-                                      onPressedOverride:
-                                          Navigator.of(
-                                            context,
-                                            rootNavigator: true,
-                                          ).pop,
-                                    ),
-                                  ],
+            builder: (context) => Navigator(
+              initialRoute: WalletNetworkSettingsView.routeName,
+              onGenerateRoute: RouteGenerator.generateRoute,
+              onGenerateInitialRoutes: (_, __) {
+                return [
+                  FadePageRoute(
+                    DesktopDialog(
+                      maxHeight: null,
+                      maxWidth: 580,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(left: 32),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  l10n.netTitle,
+                                  style: STextStyles.desktopH3(context),
                                 ),
-                              ),
-                              Flexible(
-                                child: Padding(
-                                  padding: const EdgeInsets.only(
-                                    top: 16,
-                                    left: 32,
-                                    right: 32,
-                                    bottom: 32,
-                                  ),
-                                  child: SingleChildScrollView(
-                                    child: WalletNetworkSettingsView(
-                                      walletId: walletId,
-                                      initialSyncStatus: _currentSyncStatus,
-                                      initialNodeStatus: _currentNodeStatus,
-                                    ),
-                                  ),
+                                DesktopDialogCloseButton(
+                                  onPressedOverride: Navigator.of(
+                                    context,
+                                    rootNavigator: true,
+                                  ).pop,
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                        const RouteSettings(
-                          name: WalletNetworkSettingsView.routeName,
-                        ),
+                          Flexible(
+                            child: Padding(
+                              padding: const EdgeInsets.only(
+                                top: 16,
+                                left: 32,
+                                right: 32,
+                                bottom: 32,
+                              ),
+                              child: SingleChildScrollView(
+                                child: WalletNetworkSettingsView(
+                                  walletId: walletId,
+                                  initialSyncStatus: _currentSyncStatus,
+                                  initialNodeStatus: _currentNodeStatus,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ];
-                  },
-                ),
+                    ),
+                    const RouteSettings(
+                      name: WalletNetworkSettingsView.routeName,
+                    ),
+                  ),
+                ];
+              },
+            ),
           );
         } else {
           Navigator.of(context).pushNamed(
@@ -244,9 +249,9 @@ class _NetworkInfoButtonState extends ConsumerState<NetworkInfoButton> {
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 32),
         child: Row(
           children: [
-            _buildNetworkIcon(_currentSyncStatus, context),
+            _buildNetworkIcon(status, context),
             const SizedBox(width: 6),
-            _buildText(_currentSyncStatus, context),
+            _buildText(status, online, context),
           ],
         ),
       ),

@@ -8,9 +8,11 @@ import '../themes/stack_colors.dart';
 import '../utilities/format.dart';
 import '../utilities/text_styles.dart';
 import '../utilities/util.dart';
+import 'no_internet_notice.dart';
 
 /// How far a wallet's sync, rescan or restore is: a bar and "42 %",
-/// shown once the wallet reports progress.
+/// shown once the wallet reports progress. Without a network, what to turn
+/// on.
 class WalletSyncProgress extends StatefulWidget {
   const WalletSyncProgress({super.key, required this.walletId});
 
@@ -45,7 +47,7 @@ class _WalletSyncProgressState extends State<WalletSyncProgress> {
   @override
   Widget build(BuildContext context) {
     final percent = _percent;
-    if (percent == null) return const SizedBox.shrink();
+    if (percent == null) return const NoInternetNotice();
     final colors = Theme.of(context).extension<StackColors>()!;
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -68,6 +70,7 @@ class _WalletSyncProgressState extends State<WalletSyncProgress> {
               ? STextStyles.desktopTextExtraExtraSmall(context)
               : STextStyles.label(context),
         ),
+        const NoInternetNotice(padding: EdgeInsets.only(top: 8)),
       ],
     );
   }

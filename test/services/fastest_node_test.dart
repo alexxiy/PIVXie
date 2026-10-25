@@ -29,7 +29,8 @@ void main() {
   // Hive keeps adapters between tests.
   var registered = false;
 
-  /// The node box with the default nodes in it.
+  /// The node box with the default nodes in it, and no node the user
+  /// chose.
   Future<NodeService> openNodes() async {
     await setUpHiveCeTest();
     if (!registered) {
@@ -37,9 +38,17 @@ void main() {
       DB.instance.hive.registerAdapter(NodeModelAdapter());
     }
     await DB.instance.hive.openBox<NodeModel>(DB.boxNameNodeModels);
+    await DB.instance.hive.openBox<dynamic>(DB.boxNamePrefs);
+    Prefs.instance.nodesChosenByUser = [];
     final service = NodeService(secureStorageInterface: FakeSecureStorage());
     await service.updateDefaults();
     return service;
+  }
+
+  /// After the writes still queued (Prefs doesn't wait for its own).
+  Future<void> closeNodes() async {
+    await DB.instance.mutex.protect(() async {});
+    await tearDownHiveCeTest();
   }
 
   BridgeHeights at(int height, [int? nodeHeight]) =>
@@ -120,9 +129,7 @@ void main() {
 
     setUp(() async => service = await openNodes());
 
-    tearDown(() async {
-      await tearDownHiveCeTest();
-    });
+    tearDown(closeNodes);
 
     Future<void> pick(Set<String> answering) => pickFastestDefaultNodes(
       nodeService: service,
@@ -168,12 +175,18 @@ void main() {
       expect(service.getPrimaryNodeFor(currency: pivx)?.id, eu.id);
     });
 
-    test("a node the user chose stays", () async {
+    test("a node the user added stays", () async {
       final own = node("own");
       await service.save(own, false);
       await service.setPrimaryNodeFor(coin: pivx, node: own);
       await pick({eu.id, us.id});
       expect(service.getPrimaryNodeFor(currency: pivx)?.id, own.id);
+    });
+
+    test("a bridge the user chose stays", () async {
+      Prefs.instance.setNodeChosenByUser(pivx.identifier, true);
+      await pick({us.id});
+      expect(service.getPrimaryNodeFor(currency: pivx)?.id, eu.id);
     });
 
     test("updating the defaults keeps the chosen bridge", () async {
@@ -186,17 +199,80 @@ void main() {
       );
     });
   });
+
+  group("useNode", () {
+    late NodeService service;
+
+    setUp(() async => service = await openNodes());
+
+    tearDown(closeNodes);
+
+    test("the app's choice: it may change it again", () async {
+      Prefs.instance.setNodeChosenByUser(pivx.identifier, true);
+      await useNode(pivx, us, service, Prefs.instance, () => []);
+      expect(service.getPrimaryNodeFor(currency: pivx)?.id, us.id);
+      expect(Prefs.instance.nodeChosenByUser(pivx.identifier), false);
+    });
+  });
+
+  group("useAppNodes", () {
+    late NodeService service;
+
+    setUp(() async => service = await openNodes());
+
+    tearDown(closeNodes);
+
+    Future<void> automatic(Set<String> answering) => useAppNodes(
+      coin: pivx,
+      nodeService: service,
+      prefs: Prefs.instance,
+      wallets: () => [],
+      probe: (n, coin) async => answering.contains(n.id) ? at(100) : null,
+      othersTimeout: Duration.zero,
+    );
+
+    Future<void> useOwn() async {
+      final own = node("own");
+      await service.save(own, false);
+      Prefs.instance.setNodeChosenByUser(pivx.identifier, true);
+      await service.setPrimaryNodeFor(coin: pivx, node: own);
+    }
+
+    test("from the user's node to the bridge that answers", () async {
+      await useOwn();
+      await automatic({us.id});
+      expect(service.getPrimaryNodeFor(currency: pivx)?.id, us.id);
+      expect(Prefs.instance.nodeChosenByUser(pivx.identifier), false);
+    });
+
+    test("to one of the bridges even when none answers", () async {
+      await useOwn();
+      await automatic({});
+      expect(service.getPrimaryNodeFor(currency: pivx)?.isDefault, true);
+    });
+
+    test("a bridge in use stays when none answers", () async {
+      Prefs.instance.setNodeChosenByUser(pivx.identifier, true);
+      await automatic({});
+      expect(service.getPrimaryNodeFor(currency: pivx)?.id, eu.id);
+      expect(Prefs.instance.nodeChosenByUser(pivx.identifier), false);
+    });
+  });
+
   group("NodeWatch", () {
     late NodeService service;
 
     setUp(() async => service = await openNodes());
 
-    tearDown(() async {
-      await tearDownHiveCeTest();
-    });
+    tearDown(closeNodes);
 
-    /// A watch where the nodes in [answering] answer.
-    (NodeWatch, List<NodeTrouble>) watch(Set<String> answering) {
+    /// A watch where the nodes in [answering] answer, with the device on a
+    /// network or not ([online]), counting the nodes it asks ([asked]).
+    (NodeWatch, List<NodeTrouble>) watch(
+      Set<String> answering, {
+      bool online = true,
+      List<String>? asked,
+    }) {
       final troubles = <NodeTrouble>[];
       return (
         NodeWatch(
@@ -205,7 +281,11 @@ void main() {
           wallets: () => [],
           onTrouble: troubles.add,
           onNodeWorks: (_) {},
-          probe: (n, coin) async => answering.contains(n.id) ? at(100) : null,
+          online: () => online,
+          probe: (n, coin) async {
+            asked?.add(n.id);
+            return answering.contains(n.id) ? at(100) : null;
+          },
           othersTimeout: Duration.zero,
         ),
         troubles,
@@ -230,12 +310,30 @@ void main() {
       expect(service.getPrimaryNodeFor(currency: pivx)?.id, own.id);
     });
 
+    test("also when it's one of the app's bridges they chose", () async {
+      Prefs.instance.setNodeChosenByUser(pivx.identifier, true);
+      final (w, troubles) = watch({us.id});
+      await w.check(pivx);
+      expect(troubles.single.node.id, eu.id);
+      expect(troubles.single.switchTo.id, us.id);
+      expect(service.getPrimaryNodeFor(currency: pivx)?.id, eu.id);
+    });
+
     test("and only once while it's down", () async {
       await useOwn();
       final (w, troubles) = watch({eu.id, us.id});
       await w.check(pivx);
       await w.check(pivx);
       expect(troubles, hasLength(1));
+    });
+
+    test("without a network nothing is checked", () async {
+      await useOwn();
+      final asked = <String>[];
+      final (w, troubles) = watch({us.id}, online: false, asked: asked);
+      await w.check(pivx);
+      expect(asked, isEmpty);
+      expect(troubles, isEmpty);
     });
 
     test("no internet: nothing answers, nobody is asked", () async {

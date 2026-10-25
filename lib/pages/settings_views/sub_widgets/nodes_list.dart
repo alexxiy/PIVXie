@@ -8,11 +8,22 @@
  *
  */
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../providers/global/node_service_provider.dart';
+
+import '../../../app_config.dart';
+import '../../../l10n/l10n.dart';
+import '../../../providers/providers.dart';
+import '../../../services/fastest_node.dart';
+import '../../../themes/stack_colors.dart';
+import '../../../utilities/text_styles.dart';
+import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../widgets/custom_buttons/draggable_switch_button.dart';
 import '../../../widgets/node_card.dart';
+import '../../../widgets/rounded_white_container.dart';
 
 class NodesList extends ConsumerWidget {
   const NodesList({
@@ -27,12 +38,18 @@ class NodesList extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final nodes = ref.watch(
-      nodeServiceChangeNotifierProvider
-          .select((value) => value.getNodesFor(coin)),
+      nodeServiceChangeNotifierProvider.select(
+        (value) => value.getNodesFor(coin),
+      ),
     );
 
     return Column(
       children: [
+        if (nodes.any((e) => e.isDefault))
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4),
+            child: _ChooseAutomatically(coin: coin),
+          ),
         ...nodes.map(
           (node) => Padding(
             padding: const EdgeInsets.symmetric(vertical: 4),
@@ -45,6 +62,83 @@ class NodesList extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// On: the app picks [coin]'s node from its own bridges, the fastest, and
+/// switches when one stops answering. Choosing a node turns it off.
+class _ChooseAutomatically extends ConsumerWidget {
+  const _ChooseAutomatically({required this.coin});
+
+  final CryptoCurrency coin;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isDesktop = Util.isDesktop;
+    final appNode = ref.watch(
+      nodeServiceChangeNotifierProvider.select(
+        (value) => value.getPrimaryNodeFor(currency: coin)?.isDefault ?? false,
+      ),
+    );
+    final chosen = ref.watch(
+      prefsChangeNotifierProvider.select(
+        (value) => value.nodeChosenByUser(coin.identifier),
+      ),
+    );
+    final automatic = appNode && !chosen;
+
+    return RoundedWhiteContainer(
+      padding: EdgeInsets.all(isDesktop ? 16 : 12),
+      borderColor: isDesktop
+          ? Theme.of(context).extension<StackColors>()!.background
+          : null,
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.nodesAutomatic,
+                  style: STextStyles.titleBold12(context),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  l10n.nodesAutomaticText(AppConfig.appName),
+                  style: STextStyles.label(context),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          SizedBox(
+            height: 20,
+            width: 40,
+            child: DraggableSwitchButton(
+              // It doesn't follow a new isOn by itself.
+              key: ValueKey(automatic),
+              isOn: automatic,
+              onValueChanged: (on) {
+                final prefs = ref.read(prefsChangeNotifierProvider);
+                if (!on) {
+                  // The node in use stays, as the user's choice.
+                  prefs.setNodeChosenByUser(coin.identifier, true);
+                  return;
+                }
+                unawaited(
+                  useAppNodes(
+                    coin: coin,
+                    nodeService: ref.read(nodeServiceChangeNotifierProvider),
+                    prefs: prefs,
+                    wallets: () => ref.read(pWallets).wallets,
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

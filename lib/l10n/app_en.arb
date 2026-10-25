@@ -3026,6 +3026,19 @@
   "@nodesDefault": {
     "description": "The node list holds only the default node."
   },
+  "nodesAutomatic": "Choose automatically",
+  "@nodesAutomatic": {
+    "description": "Switch at the top of a coin's list of nodes. On: the app picks the node itself."
+  },
+  "nodesAutomaticText": "{app} uses the fastest of its own nodes and switches to another one if it stops answering.",
+  "@nodesAutomaticText": {
+    "description": "Explains \"Choose automatically\". {app}: the app's name. Its own nodes: the ones it comes with.",
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
   "nodeDetails": "Node details",
   "nodeDelete": "Delete node",
   "autoLockTitle": "Auto lock settings",
@@ -3420,6 +3433,22 @@
   },
   "netUnableToSync": "Unable to synchronize",
   "netCheckConnection": "Please check your internet connection and make sure your current node is not having issues.",
+  "netNoInternet": "No internet connection",
+  "@netNoInternet": {
+    "description": "The device has no network (Wi-Fi and mobile data are off), so the wallet can't sync. Shown instead of \"Unable to synchronize\"."
+  },
+  "netNoInternetShort": "No internet",
+  "@netNoInternetShort": {
+    "description": "Short form of \"No internet connection\", next to the sync status icon on a computer."
+  },
+  "netNoInternetPhone": "Turn on Wi-Fi or mobile data. Syncing starts again as soon as you're connected.",
+  "@netNoInternetPhone": {
+    "description": "On the wallet's Network screen and while restoring, when the phone has no network."
+  },
+  "netNoInternetDesktop": "Connect this computer to the internet. Syncing starts again as soon as it's connected.",
+  "@netNoInternetDesktop": {
+    "description": "On the wallet's Network screen and while restoring, when the computer has no network."
+  },
   "netCurrentHeight": "Current height",
   "commonDisconnect": "Disconnect",
   "commonConnecting": "Connecting...",

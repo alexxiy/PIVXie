@@ -14,13 +14,13 @@ import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
 import '../../widgets/stack_dialog.dart';
 
-/// A node the user chose stopped answering ([NodeWatch]), waiting for the
+/// The node the user chose stopped answering ([NodeWatch]), waiting for the
 /// unlocked wallet list ([HomeView], or DesktopHomeView) to ask them about
 /// it.
 final pNodeTrouble = StateProvider<NodeTrouble?>((_) => null);
 
-/// Asks whether to switch from the user's node that stopped answering to
-/// the app's bridge that answers.
+/// Asks whether to switch from the node the user chose, which stopped
+/// answering, to the app's bridge that answers.
 Future<void> askAboutNodeTrouble(BuildContext context, WidgetRef ref) async {
   final trouble = ref.read(pNodeTrouble);
   if (trouble == null) return;
@@ -105,10 +105,12 @@ Future<void> askAboutNodeTrouble(BuildContext context, WidgetRef ref) async {
     },
   );
   if (switchTo != true) return;
+  // The app's bridge: the app may change it again.
   await useNode(
     trouble.coin,
     trouble.switchTo,
     nodeService,
+    ref.read(prefsChangeNotifierProvider),
     () => ref.read(pWallets).wallets,
   );
 }

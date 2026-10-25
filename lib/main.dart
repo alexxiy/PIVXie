@@ -47,6 +47,7 @@ import 'providers/global/auto_swb_service_provider.dart';
 import 'providers/global/base_currencies_provider.dart';
 import 'providers/providers.dart';
 import 'route_generator.dart';
+import 'services/device_network.dart';
 import 'services/fastest_node.dart';
 import 'services/locale_service.dart';
 import 'services/node_service.dart';
@@ -313,17 +314,31 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       unawaited(ref.read(baseCurrenciesProvider).update());
 
       await _nodeService.updateDefaults();
-      unawaited(
+      void pickNodes() => unawaited(
         pickFastestDefaultNodes(
           nodeService: _nodeService,
           prefs: ref.read(prefsChangeNotifierProvider),
           wallets: () => ref.read(pWallets).wallets,
         ),
       );
+      final network = ref.read(pDeviceNetwork);
+      await network.start(
+        // Back on a network: the wallets sync now, not at their next
+        // refresh, and the fastest bridge from here becomes the node.
+        onBack: () {
+          pickNodes();
+          for (final wallet in ref.read(pWallets).wallets) {
+            if (wallet.shouldAutoSync) unawaited(wallet.refresh());
+          }
+        },
+      );
+      // Without a network none of the bridges answers: then once back on one.
+      if (network.online) pickNodes();
       NodeWatch(
         nodeService: _nodeService,
         prefs: ref.read(prefsChangeNotifierProvider),
         wallets: () => ref.read(pWallets).wallets,
+        online: () => network.online,
         onTrouble: (trouble) => ref.read(pNodeTrouble.notifier).state = trouble,
         onNodeWorks: (coin) {
           final waiting = ref.read(pNodeTrouble.notifier);

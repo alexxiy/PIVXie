@@ -159,6 +159,7 @@ void main() {
       (keys["wallets"] as List).first
         ..["pivxMasternodeKeys"] = {"mn": "key"}
         ..["coinFlags"] = <Object>[];
+      (keys["prefs"] as Map)["nodesChosenByUser"] = ["pivx"];
       expect(isSwbBackup(jsonEncode(keys)), isTrue);
     });
 

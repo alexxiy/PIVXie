@@ -11,6 +11,7 @@
 import 'dart:async';
 
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:logger/logger.dart';
 
 import '../app_config.dart';
@@ -71,6 +72,7 @@ class Prefs extends ChangeNotifier {
       _soundEffects = await _getSoundEffects();
       _disableScreenShots = await _getDisableScreenShots();
       _donationSeen = await _getDonationSeen();
+      _nodesChosenByUser = await _getNodesChosenByUser();
 
       _initialized = true;
     }
@@ -1092,5 +1094,43 @@ class Prefs extends ChangeNotifier {
           key: "donationSeen",
         ) as bool? ??
         false;
+  }
+
+  // the coins whose node the user chose in the settings: the app doesn't
+  // change it by itself
+
+  List<String> _nodesChosenByUser = [];
+  List<String> get nodesChosenByUser => _nodesChosenByUser;
+  set nodesChosenByUser(List<String> nodesChosenByUser) {
+    if (!listEquals(_nodesChosenByUser, nodesChosenByUser)) {
+      DB.instance.put<dynamic>(
+        boxName: DB.boxNamePrefs,
+        key: "nodesChosenByUser",
+        value: nodesChosenByUser,
+      );
+      _nodesChosenByUser = nodesChosenByUser;
+      notifyListeners();
+    }
+  }
+
+  bool nodeChosenByUser(String coinId) => _nodesChosenByUser.contains(coinId);
+
+  void setNodeChosenByUser(String coinId, bool chosen) {
+    if (nodeChosenByUser(coinId) == chosen) return;
+    nodesChosenByUser = [
+      for (final e in _nodesChosenByUser)
+        if (e != coinId) e,
+      if (chosen) coinId,
+    ];
+  }
+
+  Future<List<String>> _getNodesChosenByUser() async {
+    final list =
+        await DB.instance.get<dynamic>(
+          boxName: DB.boxNamePrefs,
+          key: "nodesChosenByUser",
+        ) as List? ??
+        [];
+    return List<String>.from(list);
   }
 }
