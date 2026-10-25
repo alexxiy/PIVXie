@@ -26,57 +26,99 @@ void main() {
     isPrimary: false,
   );
 
-  group("firstToAnswer", () {
-    test("the first node to say yes wins", () async {
+  // Hive keeps adapters between tests.
+  var registered = false;
+
+  /// The node box with the default nodes in it.
+  Future<NodeService> openNodes() async {
+    await setUpHiveCeTest();
+    if (!registered) {
+      registered = true;
+      DB.instance.hive.registerAdapter(NodeModelAdapter());
+    }
+    await DB.instance.hive.openBox<NodeModel>(DB.boxNameNodeModels);
+    final service = NodeService(secureStorageInterface: FakeSecureStorage());
+    await service.updateDefaults();
+    return service;
+  }
+
+  BridgeHeights at(int height, [int? nodeHeight]) =>
+      (height: height, nodeHeight: nodeHeight ?? height);
+
+  group("askBridges", () {
+    test("all answers, with how long each took", () async {
       final nodes = [node("slow"), node("fast"), node("broken")];
-      final winner = await firstToAnswer(nodes, (n) async {
+      final answers = await askBridges(nodes, (n) async {
         switch (n.id) {
           case "slow":
             await Future<void>.delayed(const Duration(milliseconds: 60));
-            return true;
+            return at(100);
           case "fast":
             await Future<void>.delayed(const Duration(milliseconds: 20));
-            return true;
+            return at(99);
           default:
-            return false;
+            throw Exception("refused");
         }
       });
-      expect(winner?.id, "fast");
+      expect(answers.map((e) => e.node.id), ["fast", "slow"]);
+      expect(answers.first.time, lessThan(answers.last.time));
     });
 
-    test("a node that fails fast doesn't win", () async {
-      final nodes = [node("failing"), node("working")];
-      final winner = await firstToAnswer(nodes, (n) async {
-        if (n.id == "failing") throw Exception("refused");
-        await Future<void>.delayed(const Duration(milliseconds: 20));
-        return true;
-      });
-      expect(winner?.id, "working");
+    test("the slower ones have a while after the first answer", () async {
+      final answers = await askBridges([node("fast"), node("stuck")], (
+        n,
+      ) async {
+        if (n.id == "stuck") {
+          await Future<void>.delayed(const Duration(seconds: 5));
+        }
+        return at(100);
+      }, othersTimeout: const Duration(milliseconds: 50));
+      expect(answers.map((e) => e.node.id), ["fast"]);
     });
 
-    test("no node when none answers", () async {
-      final winner = await firstToAnswer([
+    test("none when none answers", () async {
+      final answers = await askBridges([
         node("a"),
         node("b"),
-      ], (n) async => false);
-      expect(winner, null);
+      ], (n) async => null);
+      expect(answers, isEmpty);
+    });
+  });
+
+  group("pickBridge", () {
+    BridgeAnswer answer(String id, int ms, BridgeHeights heights) =>
+        (node: node(id), heights: heights, time: Duration(milliseconds: ms));
+
+    test("the fastest one, even a few blocks behind", () {
+      final picked = pickBridge([
+        answer("up to date", 300, at(1000)),
+        answer("fast", 40, at(1000 - maxBlocksBehind)),
+      ]);
+      expect(picked?.id, "fast");
+    });
+
+    test("not one further behind", () {
+      final picked = pickBridge([
+        answer("up to date", 300, at(1000)),
+        answer("fast", 40, at(1000 - maxBlocksBehind - 1)),
+      ]);
+      expect(picked?.id, "up to date");
+    });
+
+    test("not one whose index lags its own node", () {
+      expect(pickBridge([answer("catching up", 40, at(500, 1000))]), null);
+      expect(pickBridge([answer("almost", 40, at(998, 1000))])?.id, "almost");
+    });
+
+    test("none without answers", () {
+      expect(pickBridge([]), null);
     });
   });
 
   group("pickFastestDefaultNodes", () {
-    bool registered = false;
     late NodeService service;
 
-    setUp(() async {
-      await setUpHiveCeTest();
-      if (!registered) {
-        registered = true;
-        DB.instance.hive.registerAdapter(NodeModelAdapter());
-      }
-      await DB.instance.hive.openBox<NodeModel>(DB.boxNameNodeModels);
-      service = NodeService(secureStorageInterface: FakeSecureStorage());
-      await service.updateDefaults();
-    });
+    setUp(() async => service = await openNodes());
 
     tearDown(() async {
       await tearDownHiveCeTest();
@@ -86,12 +128,31 @@ void main() {
       nodeService: service,
       prefs: Prefs.instance,
       wallets: () => [],
-      probe: (n, coin) async => answering.contains(n.id),
+      probe: (n, coin) async => answering.contains(n.id) ? at(100) : null,
+      othersTimeout: Duration.zero,
     );
 
     test("both bridges are there, the first one is the node", () {
       final ids = service.getNodesFor(pivx).map((e) => e.id);
       expect(ids, containsAll([eu.id, us.id]));
+      expect(service.getPrimaryNodeFor(currency: pivx)?.id, eu.id);
+    });
+
+    test("the faster bridge becomes the node", () async {
+      Future<void> faster(String id) => pickFastestDefaultNodes(
+        nodeService: service,
+        prefs: Prefs.instance,
+        wallets: () => [],
+        probe: (n, coin) async {
+          if (n.id != id) {
+            await Future<void>.delayed(const Duration(milliseconds: 50));
+          }
+          return at(100);
+        },
+      );
+      await faster(us.id);
+      expect(service.getPrimaryNodeFor(currency: pivx)?.id, us.id);
+      await faster(eu.id);
       expect(service.getPrimaryNodeFor(currency: pivx)?.id, eu.id);
     });
 
@@ -123,6 +184,86 @@ void main() {
         service.primaryNodes.where((e) => e.coinName == pivx.identifier),
         hasLength(1),
       );
+    });
+  });
+  group("NodeWatch", () {
+    late NodeService service;
+
+    setUp(() async => service = await openNodes());
+
+    tearDown(() async {
+      await tearDownHiveCeTest();
+    });
+
+    /// A watch where the nodes in [answering] answer.
+    (NodeWatch, List<NodeTrouble>) watch(Set<String> answering) {
+      final troubles = <NodeTrouble>[];
+      return (
+        NodeWatch(
+          nodeService: service,
+          prefs: Prefs.instance,
+          wallets: () => [],
+          onTrouble: troubles.add,
+          onNodeWorks: (_) {},
+          probe: (n, coin) async => answering.contains(n.id) ? at(100) : null,
+          othersTimeout: Duration.zero,
+        ),
+        troubles,
+      );
+    }
+
+    Future<NodeModel> useOwn() async {
+      final own = node("own");
+      await service.save(own, false);
+      await service.setPrimaryNodeFor(coin: pivx, node: own);
+      return own;
+    }
+
+    test("the user is asked when their node is down", () async {
+      final own = await useOwn();
+      final (w, troubles) = watch({us.id});
+      await w.check(pivx);
+      expect(troubles, hasLength(1));
+      expect(troubles.single.node.id, own.id);
+      expect(troubles.single.switchTo.id, us.id);
+      // Still their node until they say so.
+      expect(service.getPrimaryNodeFor(currency: pivx)?.id, own.id);
+    });
+
+    test("and only once while it's down", () async {
+      await useOwn();
+      final (w, troubles) = watch({eu.id, us.id});
+      await w.check(pivx);
+      await w.check(pivx);
+      expect(troubles, hasLength(1));
+    });
+
+    test("no internet: nothing answers, nobody is asked", () async {
+      await useOwn();
+      final (w, troubles) = watch({});
+      await w.check(pivx);
+      expect(troubles, isEmpty);
+    });
+
+    test("a node that answers again isn't down", () async {
+      final own = await useOwn();
+      final (w, troubles) = watch({own.id, us.id});
+      await w.check(pivx);
+      expect(troubles, isEmpty);
+    });
+
+    test("the app's bridge down: the other one takes over", () async {
+      expect(service.getPrimaryNodeFor(currency: pivx)?.id, eu.id);
+      final (w, troubles) = watch({us.id});
+      await w.check(pivx);
+      expect(service.getPrimaryNodeFor(currency: pivx)?.id, us.id);
+      expect(troubles, isEmpty);
+    });
+
+    test("the app's bridge stays when there's no internet", () async {
+      final (w, _) = watch({});
+      await w.check(pivx);
+      expect(service.getPrimaryNodeFor(currency: pivx)?.id, eu.id);
     });
   });
 }

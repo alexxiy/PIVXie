@@ -13,6 +13,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../pages/home_view/node_trouble.dart';
 import '../pages/home_view/payment_links.dart';
 import '../providers/desktop/current_desktop_menu_item.dart';
 import '../providers/global/active_wallet_provider.dart';
@@ -53,6 +54,18 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
   bool _locked = false;
   bool _openingLink = false;
 
+  bool _askingAboutNode = false;
+
+  Future<void> _askAboutNode() async {
+    if (_locked || _askingAboutNode || !mounted) return;
+    _askingAboutNode = true;
+    try {
+      await askAboutNodeTrouble(context, ref);
+    } finally {
+      _askingAboutNode = false;
+    }
+  }
+
   Future<void> _openPendingLink() async {
     final nav = myStackViewNavKey.currentState as NavigatorState?;
     if (_locked || _openingLink || !mounted || nav == null) return;
@@ -92,6 +105,7 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
         _locked = false;
       }
       unawaited(_openPendingLink());
+      unawaited(_askAboutNode());
     }
   }
 
@@ -145,6 +159,8 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
       } else {
         unawaited(_openStartupWallet());
       }
+      // A node that stopped answering before the wallet list was up.
+      unawaited(_askAboutNode());
     });
 
     super.initState();
@@ -214,6 +230,9 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
   Widget build(BuildContext context) {
     ref.listen(pPendingPaymentLink, (_, next) {
       if (next != null) unawaited(_openPendingLink());
+    });
+    ref.listen(pNodeTrouble, (_, next) {
+      if (next != null) unawaited(_askAboutNode());
     });
 
     return Material(

@@ -2780,6 +2780,35 @@
       }
     }
   },
+  "nodeDownTitle": "Can't connect to {node}",
+  "@nodeDownTitle": {
+    "description": "The node the user chose stopped answering. {node}: the node's name.",
+    "placeholders": {
+      "node": {
+        "type": "String"
+      }
+    }
+  },
+  "nodeDownText": "Your internet connection works, but {node} isn't answering. Switch to {other}?\n\nYou can choose a node again at any time in Settings → Manage nodes.",
+  "@nodeDownText": {
+    "description": "The user's node stopped answering while one of the app's own nodes answers. {node}: the user's node's name; {other}: the app's node's name, e.g. \"PIVXie EU\". \"Settings → Manage nodes\" names the app's menu items.",
+    "placeholders": {
+      "node": {
+        "type": "String"
+      },
+      "other": {
+        "type": "String"
+      }
+    }
+  },
+  "nodeDownKeep": "Keep",
+  "@nodeDownKeep": {
+    "description": "Button: keep using the node that isn't answering."
+  },
+  "nodeDownSwitch": "Switch",
+  "@nodeDownSwitch": {
+    "description": "Button: switch to the app's node."
+  },
   "restoreNodeError": "{node} answered with an error: {error}\n\nTry again, or choose another node in Settings → Manage nodes.",
   "@restoreNodeError": {
     "description": "Restoring a wallet failed with an error from the node. {node}: the node's address; {error}: the node's error text (often English). \"Settings → Manage nodes\" names the app's menu items.",
@@ -3023,9 +3052,21 @@
   "securityBiometrics": "Enable biometric authentication",
   "securityRandomizePad": "Randomize PIN pad",
   "securityAutoAcceptPin": "Auto-accept correct PIN",
+  "securityAutoAcceptPinInfo": "Your PIN is accepted as soon as you type its last digit, so you don't need to tap the arrow.\n\nThe catch: someone watching can tell how long your PIN is.",
+  "@securityAutoAcceptPinInfo": {
+    "description": "Explains the \"Auto-accept correct PIN\" setting. The arrow: the PIN pad's key that submits the PIN."
+  },
   "securityCover": "Cover in background",
   "@securityCover": {
     "description": "Hide the app's content in the app switcher."
+  },
+  "securityCoverInfo": "When you switch to another app, this app's screen is covered, so its preview in your recent apps doesn't show your balances or transactions.",
+  "@securityCoverInfo": {
+    "description": "Explains the \"Cover in background\" setting. Recent apps: the system's app switcher."
+  },
+  "securityWhatThisDoes": "What this does",
+  "@securityWhatThisDoes": {
+    "description": "Tooltip of the (i) button next to a security setting."
   },
   "securityNoScreenshots": "Disable screenshots",
   "securityDuressPin": "Duress PIN",
@@ -3244,6 +3285,15 @@
     }
   },
   "restoreDecryptFailed": "Failed to decrypt backup file",
+  "restoreNotOurBackup": "This file isn't a {appName} backup, so it can't be restored.",
+  "@restoreNotOurBackup": {
+    "description": "The backup file decrypted, but it isn't one this app made (e.g. a Stack Wallet backup).",
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
   "restoreChooseFile": "Choose file...",
   "restoreEnterPassphrase": "Enter passphrase",
   "restoreFileMissing": "Backup file does not exist",

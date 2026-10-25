@@ -36,6 +36,7 @@ import '../pinpad_views/lock_screen_view.dart';
 import '../settings_views/global_settings_view/global_settings_view.dart';
 import '../settings_views/global_settings_view/hidden_settings.dart';
 import '../wallets_view/wallets_view.dart';
+import 'node_trouble.dart';
 import 'payment_links.dart';
 
 class HomeView extends ConsumerStatefulWidget {
@@ -67,6 +68,18 @@ class _HomeViewState extends ConsumerState<HomeView> {
   /// The idle lock screen is up: payment links wait for the unlock.
   bool _locked = false;
   bool _openingLink = false;
+
+  bool _askingAboutNode = false;
+
+  Future<void> _askAboutNode() async {
+    if (_locked || _askingAboutNode || !mounted) return;
+    _askingAboutNode = true;
+    try {
+      await askAboutNodeTrouble(context, ref);
+    } finally {
+      _askingAboutNode = false;
+    }
+  }
 
   Future<void> _openPendingLink() async {
     if (_locked || _openingLink || !mounted) return;
@@ -106,6 +119,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
       );
       _locked = false;
       unawaited(_openPendingLink());
+      unawaited(_askAboutNode());
     }
   }
 
@@ -240,6 +254,8 @@ class _HomeViewState extends ConsumerState<HomeView> {
         _openPendingLink,
       ),
     );
+    // A node that stopped answering before the wallet list was up.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _askAboutNode());
 
     super.initState();
   }
@@ -279,6 +295,9 @@ class _HomeViewState extends ConsumerState<HomeView> {
     debugPrint("BUILD: $runtimeType");
     ref.listen(pPendingPaymentLink, (_, next) {
       if (next != null) unawaited(_openPendingLink());
+    });
+    ref.listen(pNodeTrouble, (_, next) {
+      if (next != null) unawaited(_askAboutNode());
     });
 
     // PopScope, not WillPopScope: Android 16+ (predictive back) only

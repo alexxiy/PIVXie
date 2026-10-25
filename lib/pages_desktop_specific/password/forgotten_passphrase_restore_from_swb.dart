@@ -96,9 +96,9 @@ class _ForgottenPassphraseRestoreFromSWBState
                   child: Text(
                     l10n.restoreDecrypting(AppConfig.prefix),
                     style: STextStyles.pageTitleH2(context).copyWith(
-                      color: Theme.of(
-                        context,
-                      ).extension<StackColors>()!.textWhite,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textWhite,
                     ),
                   ),
                 ),
@@ -130,6 +130,15 @@ class _ForgottenPassphraseRestoreFromSWBState
         await showFloatingFlushBar(
           type: FlushBarType.warning,
           message: l10n.restoreDecryptFailed,
+          context: context,
+        );
+        return;
+      }
+
+      if (!isSwbBackup(jsonString)) {
+        await showFloatingFlushBar(
+          type: FlushBarType.warning,
+          message: l10n.restoreNotOurBackup(AppConfig.appName),
           context: context,
         );
         return;
@@ -212,9 +221,8 @@ class _ForgottenPassphraseRestoreFromSWBState
             ref.invalidate(secureStoreProvider);
             await DB.instance.init();
             if (mounted) {
-              Navigator.of(
-                context,
-              ).popUntil(ModalRoute.withName(CreatePasswordView.routeName));
+              Navigator.of(context)
+                  .popUntil(ModalRoute.withName(CreatePasswordView.routeName));
               Navigator.of(context).pop();
             }
           },
@@ -239,9 +247,9 @@ class _ForgottenPassphraseRestoreFromSWBState
                   l10n.restoreUseBackupFile(AppConfig.prefix),
                   textAlign: TextAlign.center,
                   style: STextStyles.desktopTextSmall(context).copyWith(
-                    color: Theme.of(
-                      context,
-                    ).extension<StackColors>()!.textSubtitle1,
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .textSubtitle1,
                   ),
                 ),
                 const SizedBox(height: 40),
@@ -281,9 +289,9 @@ class _ForgottenPassphraseRestoreFromSWBState
                                   const SizedBox(width: 24),
                                   SvgPicture.asset(
                                     Assets.svg.folder,
-                                    color: Theme.of(
-                                      context,
-                                    ).extension<StackColors>()!.textDark3,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textDark3,
                                     width: 24,
                                     height: 24,
                                   ),
@@ -321,9 +329,8 @@ class _ForgottenPassphraseRestoreFromSWBState
                     key: const Key("restoreFromFilePasswordFieldKey"),
                     focusNode: passwordFocusNode,
                     controller: passwordController,
-                    style: STextStyles.desktopTextMedium(
-                      context,
-                    ).copyWith(height: 2),
+                    style: STextStyles.desktopTextMedium(context)
+                        .copyWith(height: 2),
                     obscureText: hidePassword,
                     enableSuggestions: false,
                     autocorrect: false,
@@ -354,9 +361,9 @@ class _ForgottenPassphraseRestoreFromSWBState
                                         hidePassword
                                             ? Assets.svg.eye
                                             : Assets.svg.eyeSlash,
-                                        color: Theme.of(
-                                          context,
-                                        ).extension<StackColors>()!.textDark3,
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .textDark3,
                                         width: 24,
                                         height: 24,
                                       ),

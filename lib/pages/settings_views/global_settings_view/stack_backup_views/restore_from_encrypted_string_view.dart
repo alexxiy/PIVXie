@@ -73,9 +73,9 @@ class _RestoreFromEncryptedStringViewState
       onWillPop: _onWillPop,
       child: Background(
         child: Scaffold(
-          backgroundColor: Theme.of(
-            context,
-          ).extension<StackColors>()!.background,
+          backgroundColor: Theme.of(context)
+              .extension<StackColors>()!
+              .background,
           appBar: AppBar(
             leading: AppBarBackButton(
               onPressed: () async {
@@ -202,7 +202,9 @@ class _RestoreFromEncryptedStringViewState
                                                 color: Colors.transparent,
                                                 child: Center(
                                                   child: Text(
-                                                    l10n.restoreDecrypting(AppConfig.prefix),
+                                                    l10n.restoreDecrypting(
+                                                      AppConfig.prefix,
+                                                    ),
                                                     style:
                                                         STextStyles.pageTitleH2(
                                                           context,
@@ -248,8 +250,18 @@ class _RestoreFromEncryptedStringViewState
                                         if (jsonString == null) {
                                           showFloatingFlushBar(
                                             type: FlushBarType.warning,
-                                            message:
-                                                l10n.restoreDecryptFailed,
+                                            message: l10n.restoreDecryptFailed,
+                                            context: context,
+                                          );
+                                          return;
+                                        }
+
+                                        if (!isSwbBackup(jsonString)) {
+                                          showFloatingFlushBar(
+                                            type: FlushBarType.warning,
+                                            message: l10n.restoreNotOurBackup(
+                                              AppConfig.appName,
+                                            ),
                                             context: context,
                                           );
                                           return;

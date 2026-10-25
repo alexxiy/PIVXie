@@ -221,6 +221,12 @@ abstract class SWB {
     }
   }
 
+  /// The backup. Every release so far writes all of this, and restoring
+  /// needs all of it ([isSwbBackup]). A field added from now on is
+  /// optional when restoring, since backups from before it don't have it:
+  /// read it only when it's there (`if (prefs['newField'] is bool)`), and
+  /// leave it out of [isSwbBackup].
+  ///
   /// [secureStorage] parameter exposed for testing purposes
   static Future<Map<String, dynamic>> createStackWalletJSON({
     required SecureStorageInterface secureStorage,
@@ -237,11 +243,7 @@ abstract class SWB {
     await DB.instance.mutex.protect(() async {
       Logging.instance.i("...createStackWalletJSON DB.instance.mutex acquired");
       Logging.instance.i("SWB backing up nodes");
-      try {
-        backupJson['nodes'] = nodeService.nodes.map((e) => e.toMap()).toList();
-      } catch (e, s) {
-        Logging.instance.e("", error: e, stackTrace: s);
-      }
+      backupJson['nodes'] = nodeService.nodes.map((e) => e.toMap()).toList();
 
       Logging.instance.d("SWB backing up prefs");
 
@@ -384,7 +386,7 @@ abstract class SWB {
       );
     } else if (walletbackup['mnemonic'] != null) {
       mnemonic = walletbackup['mnemonic'] as String;
-      mnemonicPassphrase = walletbackup['mnemonicPassphrase'] as String? ?? "";
+      mnemonicPassphrase = walletbackup['mnemonicPassphrase'] as String;
     }
 
     uiState?.update(
@@ -409,6 +411,7 @@ abstract class SWB {
 
       await wallet.init();
 
+      // Only in backups of wallets that have any.
       final masternodeKeys = Map<String, String>.from(
         walletbackup['pivxMasternodeKeys'] as Map? ?? {},
       );
@@ -419,9 +422,9 @@ abstract class SWB {
         );
       }
 
-      int restoreHeight = walletbackup['restoreHeight'] as int? ?? 0;
+      int restoreHeight = walletbackup['restoreHeight'] as int;
       if (restoreHeight <= 0) {
-        restoreHeight = walletbackup['storedChainHeight'] as int? ?? 0;
+        restoreHeight = walletbackup['storedChainHeight'] as int;
       }
 
       final Future<void> restoringFuture = wallet.recover(isRescan: false);
@@ -437,9 +440,7 @@ abstract class SWB {
       }
 
       // restore notes
-      final notesMap = Map<String, String>.from(
-        walletbackup["notes"] as Map? ?? {},
-      );
+      final notesMap = Map<String, String>.from(walletbackup["notes"] as Map);
       final List<TransactionNote> notes = [];
 
       for (final key in notesMap.keys) {
@@ -461,7 +462,7 @@ abstract class SWB {
       }
 
       for (final e in Map<String, dynamic>.from(
-        walletbackup["addressLabels"] as Map? ?? const {},
+        walletbackup["addressLabels"] as Map,
       ).entries) {
         final value = e.value;
         if (value is! String || value.isEmpty) continue;
@@ -497,7 +498,8 @@ abstract class SWB {
 
       await restoringFuture;
 
-      // On the coins found by the restore (older backups have none).
+      // On the coins found by the restore. Only in backups of wallets that
+      // have any.
       if (wallet is PivxWallet && walletbackup['coinFlags'] is List) {
         await wallet.restoreUserCoinFlags(walletbackup['coinFlags'] as List);
       }
@@ -548,9 +550,9 @@ abstract class SWB {
   ) async {
     final Map<String, dynamic> prefs =
         validJSON["prefs"] as Map<String, dynamic>;
-    final List<dynamic>? addressBookEntries =
-        validJSON["addressBookEntries"] as List?;
-    final List<dynamic>? nodes = validJSON["nodes"] as List?;
+    final List<dynamic> addressBookEntries =
+        validJSON["addressBookEntries"] as List;
+    final List<dynamic> nodes = validJSON["nodes"] as List;
 
     uiState?.preferences = StackRestoringStatus.restoring;
 
@@ -561,9 +563,7 @@ abstract class SWB {
     uiState?.addressBook = StackRestoringStatus.restoring;
 
     Logging.instance.d("SWB restoring addressbook");
-    if (addressBookEntries != null) {
-      await _restoreAddressBook(addressBookEntries);
-    }
+    await _restoreAddressBook(addressBookEntries);
 
     uiState?.addressBook = StackRestoringStatus.success;
     uiState?.nodes = StackRestoringStatus.restoring;
@@ -717,9 +717,9 @@ abstract class SWB {
         walletId: walletId,
         name: walletName,
         mainAddressType: coin.defaultAddressType,
-        restoreHeight: walletbackup['restoreHeight'] as int? ?? 0,
+        restoreHeight: walletbackup['restoreHeight'] as int,
         otherDataJsonString: otherData == null ? null : jsonEncode(otherData),
-        cachedChainHeight: walletbackup['storedChainHeight'] as int? ?? 0,
+        cachedChainHeight: walletbackup['storedChainHeight'] as int,
         favouriteOrderIndex: favouriteOrder[walletbackup] ?? -1,
       );
 
@@ -809,9 +809,9 @@ abstract class SWB {
   ) async {
     final Map<String, dynamic> prefs =
         revertToState.validJSON["prefs"] as Map<String, dynamic>;
-    final List<dynamic>? addressBookEntries =
-        revertToState.validJSON["addressBookEntries"] as List?;
-    final List<dynamic>? nodes = revertToState.validJSON["nodes"] as List?;
+    final List<dynamic> addressBookEntries =
+        revertToState.validJSON["addressBookEntries"] as List;
+    final List<dynamic> nodes = revertToState.validJSON["nodes"] as List;
 
     // prefs
     await _restorePrefs(prefs);
@@ -820,53 +820,44 @@ abstract class SWB {
     final addressBookService = AddressBookService();
     final allContactIds = addressBookService.contacts.map((e) => e.customId);
 
-    if (addressBookEntries == null) {
-      // if no contacts were present before attempted restore then delete any that
-      // could have been added before the restore was cancelled
-      for (final String idToDelete in allContactIds) {
-        await addressBookService.removeContact(idToDelete);
-      }
-    } else {
-      final Map<String, dynamic> preContactMap = {};
-      for (final contact in addressBookEntries) {
-        preContactMap[contact['id'] as String] =
-            contact as Map<String, dynamic>;
-      }
-      // otherwise we go through and delete any newly added contacts while
-      // reverting previous contact data on contacts that may have been modified
-      for (final String id in allContactIds) {
-        final contact = preContactMap[id];
-        // pre restore state has contact
-        if (contact != null) {
-          // ensure this contact's data matches the pre restore state
-          final List<ContactAddressEntry> addresses = [];
-          for (final address in (contact['addresses'] as List<dynamic>)) {
-            final entry = ContactAddressEntry()
-              ..coinName = address['coin'] as String
-              ..address = address['address'] as String;
+    final Map<String, dynamic> preContactMap = {};
+    for (final contact in addressBookEntries) {
+      preContactMap[contact['id'] as String] = contact as Map<String, dynamic>;
+    }
+    // delete any newly added contacts while reverting previous contact data
+    // on contacts that may have been modified
+    for (final String id in allContactIds) {
+      final contact = preContactMap[id];
+      // pre restore state has contact
+      if (contact != null) {
+        // ensure this contact's data matches the pre restore state
+        final List<ContactAddressEntry> addresses = [];
+        for (final address in (contact['addresses'] as List<dynamic>)) {
+          final entry = ContactAddressEntry()
+            ..coinName = address['coin'] as String
+            ..address = address['address'] as String;
 
-            try {
-              entry.coin;
-            } catch (_) {
-              // coin not supported so ignore this entry
-              continue;
-            }
-
-            addresses.add(entry);
+          try {
+            entry.coin;
+          } catch (_) {
+            // coin not supported so ignore this entry
+            continue;
           }
-          await addressBookService.editContact(
-            ContactEntry(
-              emojiChar: contact['emoji'] as String?,
-              name: contact['name'] as String,
-              addresses: addresses,
-              isFavorite: contact['isFavorite'] as bool,
-              customId: contact['id'] as String,
-            ),
-          );
-        } else {
-          // otherwise remove it as it was not there before attempting SWB restore
-          await addressBookService.removeContact(id);
+
+          addresses.add(entry);
         }
+        await addressBookService.editContact(
+          ContactEntry(
+            emojiChar: contact['emoji'] as String?,
+            name: contact['name'] as String,
+            addresses: addresses,
+            isFavorite: contact['isFavorite'] as bool,
+            customId: contact['id'] as String,
+          ),
+        );
+      } else {
+        // otherwise remove it as it was not there before attempting SWB restore
+        await addressBookService.removeContact(id);
       }
     }
 
@@ -875,28 +866,19 @@ abstract class SWB {
       secureStorageInterface: secureStorageInterface,
     );
     final currentNodes = nodeService.nodes;
-    if (nodes == null) {
-      // no pre nodes found so we delete all but defaults
-      for (final node in currentNodes) {
-        if (!node.isDefault) {
-          await nodeService.delete(node.id, true);
-        }
-      }
-    } else {
-      final Map<String, Map<String, dynamic>> preNodeMap = {};
-      for (final nodeData in nodes) {
-        preNodeMap[nodeData['id'] as String] = nodeData as Map<String, dynamic>;
-      }
-      // delete only newly added during attempted restore
-      for (final node in currentNodes) {
-        final nodeData = preNodeMap[node.id];
-        if (nodeData != null) {
-          // node existed before restore attempt
-          // revert to pre restore node
-          await nodeService.save(_nodeFromBackup(nodeData), true);
-        } else {
-          await nodeService.delete(node.id, true);
-        }
+    final Map<String, Map<String, dynamic>> preNodeMap = {};
+    for (final nodeData in nodes) {
+      preNodeMap[nodeData['id'] as String] = nodeData as Map<String, dynamic>;
+    }
+    // delete only newly added during attempted restore
+    for (final node in currentNodes) {
+      final nodeData = preNodeMap[node.id];
+      if (nodeData != null) {
+        // node existed before restore attempt
+        // revert to pre restore node
+        await nodeService.save(_nodeFromBackup(nodeData), true);
+      } else {
+        await nodeService.delete(node.id, true);
       }
     }
 
@@ -919,9 +901,9 @@ abstract class SWB {
     final _prefs = Prefs.instance;
     await _prefs.init();
     _prefs.currency = prefs['currency'] as String;
-    // Older backups hold "English (US)": the system language.
+    // A language this version doesn't have, or "": the system's.
     _prefs.language =
-        Language.fromCode(prefs['language'] as String?)?.code ?? "";
+        Language.fromCode(prefs['language'] as String)?.code ?? "";
     _prefs.showFavoriteWallets = prefs['showFavoriteWallets'] as bool;
     _prefs.syncType = prefs['syncType'] == "currentWalletOnly"
         ? SyncingType.currentWalletOnly
@@ -933,39 +915,28 @@ abstract class SWB {
             .map<String>((e) => e as String)
             .toList();
     _prefs.showTestNetCoins = prefs['showTestNetCoins'] as bool;
-    // The PIVXie experience (older backups do not have it).
-    if (prefs['externalCalls'] is bool) {
-      _prefs.externalCalls = prefs['externalCalls'] as bool;
-    }
+    // The PIVXie experience.
+    _prefs.externalCalls = prefs['externalCalls'] as bool;
     // Auto backup stays as set up on this device: its folder and key are
     // local (the key isn't in the file), so turning it on from a backup
     // left it without a key.
 
-    // Older backups have none of these: this device's settings stay.
-    if (prefs['enableCoinControl'] is bool) {
-      _prefs.enableCoinControl = prefs['enableCoinControl'] as bool;
-    }
-    if (prefs['hideBlockExplorerWarning'] is bool) {
-      _prefs.hideBlockExplorerWarning =
-          prefs['hideBlockExplorerWarning'] as bool;
-    }
-    if (prefs['amountUnits'] is Map) {
-      final units = prefs['amountUnits'] as Map;
-      for (final coin in AppConfig.coins) {
-        final unit = AmountUnit.values.asNameMap()[units[coin.identifier]];
-        if (unit != null && AmountUnit.valuesForCoin(coin).contains(unit)) {
-          _prefs.updateAmountUnit(coin: coin, amountUnit: unit);
-        }
+    _prefs.enableCoinControl = prefs['enableCoinControl'] as bool;
+    _prefs.hideBlockExplorerWarning = prefs['hideBlockExplorerWarning'] as bool;
+    // For the coins this app has (the backup's may be another app's).
+    final units = prefs['amountUnits'] as Map;
+    for (final coin in AppConfig.coins) {
+      final unit = AmountUnit.values.asNameMap()[units[coin.identifier]];
+      if (unit != null && AmountUnit.valuesForCoin(coin).contains(unit)) {
+        _prefs.updateAmountUnit(coin: coin, amountUnit: unit);
       }
     }
-    if (prefs['maxDecimals'] is Map) {
-      final decimals = prefs['maxDecimals'] as Map;
-      for (final coin in AppConfig.coins) {
-        final n = decimals[coin.identifier];
-        // Prefs' own upper bound.
-        if (n is int && n >= 0 && n <= 18) {
-          _prefs.updateMaxDecimals(coin: coin, maxDecimals: n);
-        }
+    final decimals = prefs['maxDecimals'] as Map;
+    for (final coin in AppConfig.coins) {
+      final n = decimals[coin.identifier];
+      // Prefs' own upper bound.
+      if (n is int && n >= 0 && n <= 18) {
+        _prefs.updateMaxDecimals(coin: coin, maxDecimals: n);
       }
     }
     // Only themes installed here (the app's own light and dark ones).
@@ -984,9 +955,7 @@ abstract class SWB {
     if (await theme('systemBrightnessDarkThemeId') case final id?) {
       _prefs.systemBrightnessDarkThemeId = id;
     }
-    if (prefs['enableSystemBrightness'] is bool) {
-      _prefs.enableSystemBrightness = prefs['enableSystemBrightness'] as bool;
-    }
+    _prefs.enableSystemBrightness = prefs['enableSystemBrightness'] as bool;
   }
 
   static Future<void> _restoreAddressBook(
@@ -1024,13 +993,13 @@ abstract class SWB {
   }
 
   static Future<void> _restoreNodes(
-    List<dynamic>? nodes,
+    List<dynamic> nodes,
     SecureStorageInterface secureStorageInterface,
   ) async {
     final NodeService nodeService = NodeService(
       secureStorageInterface: secureStorageInterface,
     );
-    for (final node in nodes ?? const []) {
+    for (final node in nodes) {
       await nodeService.save(
         _nodeFromBackup(Map<String, dynamic>.from(node as Map)),
         true,
@@ -1047,27 +1016,25 @@ NodeModel _nodeFromBackup(Map<String, dynamic> node) => NodeModel(
   port: node['port'] as int,
   name: node['name'] as String,
   id: node['id'] as String,
-  useSSL: node['useSSL'] as bool? ?? true,
+  useSSL: node['useSSL'] as bool,
   coinName: node['coinName'] as String,
-  torEnabled: node['torEnabled'] as bool? ?? true,
-  clearnetEnabled: node['clearEnabled'] as bool? ?? true,
-  isPrimary: node['isPrimary'] as bool? ?? false,
+  torEnabled: node['torEnabled'] as bool,
+  clearnetEnabled: node['clearEnabled'] as bool,
+  isPrimary: node['isPrimary'] as bool,
 );
 
 /// Favourite order for the backed up [wallets] (their JSON maps) that are
-/// favourites: numbered from [after] + 1, in their order in the backup
-/// (older backups only say which are favourites: their order in the
-/// file). Wallets that aren't favourites aren't in the result.
+/// favourites: numbered from [after] + 1, in their order in the backup.
+/// Wallets that aren't favourites aren't in the result.
 Map<Object, int> swbFavouriteOrder(
   List<dynamic> wallets, {
   required int after,
 }) {
   final favourites = <({int position, int order, Object wallet})>[];
   for (final (i, w) in wallets.indexed) {
-    if (w is! Map) continue;
-    final index = w['favouriteOrderIndex'];
-    if (index is int ? index < 0 : w['isFavorite'] != true) continue;
-    favourites.add((position: i, order: index is int ? index : i, wallet: w));
+    final index = (w as Map)['favouriteOrderIndex'] as int;
+    if (index < 0) continue;
+    favourites.add((position: i, order: index, wallet: w));
   }
   favourites.sort(
     (a, b) => a.order != b.order
@@ -1077,4 +1044,83 @@ Map<Object, int> swbFavouriteOrder(
   return Map.identity()..addAll({
     for (final (k, f) in favourites.indexed) f.wallet: after + 1 + k,
   });
+}
+
+/// Whether [json] (a decrypted backup) has everything restoring reads from
+/// what [SWB.createStackWalletJSON] writes. Not, for example, a Stack Wallet
+/// backup: the same file format, but without some of it.
+bool isSwbBackup(String json) {
+  final Object? backup;
+  try {
+    backup = jsonDecode(json);
+  } on FormatException {
+    return false;
+  }
+  bool str(Object? v) => v is String;
+  bool flag(Object? v) => v is bool;
+  bool number(Object? v) => v is int;
+  bool map(Object? v) => v is Map;
+  bool strings(Object? v) => v is List && v.every(str);
+  bool has(Object? m, Map<String, bool Function(Object?)> fields) =>
+      m is Map && fields.entries.every((f) => f.value(m[f.key]));
+  bool all(Object? list, Map<String, bool Function(Object?)> fields) =>
+      list is List && list.every((e) => has(e, fields));
+
+  if (backup is! Map) return false;
+  final wallets = backup['wallets'];
+  return has(backup['prefs'], {
+        'currency': str,
+        'language': str,
+        'showFavoriteWallets': flag,
+        'syncType': str,
+        'walletIdsSyncOnStartup': strings,
+        'showTestNetCoins': flag,
+        'externalCalls': flag,
+        'enableCoinControl': flag,
+        'hideBlockExplorerWarning': flag,
+        'amountUnits': map,
+        'maxDecimals': map,
+        'themeId': str,
+        'enableSystemBrightness': flag,
+        'systemBrightnessLightThemeId': str,
+        'systemBrightnessDarkThemeId': str,
+      }) &&
+      all(backup['nodes'], {
+        'host': str,
+        'port': number,
+        'name': str,
+        'id': str,
+        'useSSL': flag,
+        'coinName': str,
+        'torEnabled': flag,
+        'clearEnabled': flag,
+        'isPrimary': flag,
+      }) &&
+      all(backup['addressBookEntries'], {
+        'emoji': (v) => v == null || v is String,
+        'name': str,
+        'addresses': (v) => all(v, {'address': str, 'coin': str}),
+        'id': str,
+        'isFavorite': flag,
+      }) &&
+      all(wallets, {
+        'name': str,
+        'id': str,
+        'favouriteOrderIndex': number,
+        'otherDataJsonString': (v) => v == null || v is String,
+        'coinName': str,
+        'storedChainHeight': number,
+        'restoreHeight': number,
+        'notes': map,
+        'addressLabels': map,
+        // Only when the wallet has any.
+        'pivxMasternodeKeys': (v) => v == null || v is Map,
+        'coinFlags': (v) => v == null || v is List,
+      }) &&
+      // A view only wallet's data, or the recovery phrase.
+      (wallets as List).every(
+        (w) =>
+            (w as Map)['viewOnlyWalletDataKey'] is String ||
+            (w['mnemonic'] is String && w['mnemonicPassphrase'] is String),
+      );
 }

@@ -89,9 +89,9 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
       builder: (child) {
         return Background(
           child: Scaffold(
-            backgroundColor: Theme.of(
-              context,
-            ).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(context)
+                .extension<StackColors>()!
+                .background,
             appBar: AppBar(
               leading: AppBarBackButton(
                 onPressed: () async {
@@ -143,9 +143,9 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                   l10n.backupChooseLocation,
                   style: STextStyles.desktopTextExtraExtraSmall(context)
                       .copyWith(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textDark3,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark3,
                       ),
                   textAlign: TextAlign.left,
                 ),
@@ -187,9 +187,9 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                       const SizedBox(width: 16),
                       SvgPicture.asset(
                         Assets.svg.folder,
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textDark3,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark3,
                         width: 16,
                         height: 16,
                       ),
@@ -216,9 +216,9 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                   l10n.restoreEnterPassphrase,
                   style: STextStyles.desktopTextExtraExtraSmall(context)
                       .copyWith(
-                        color: Theme.of(
-                          context,
-                        ).extension<StackColors>()!.textDark3,
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textDark3,
                       ),
                   textAlign: TextAlign.left,
                 ),
@@ -261,9 +261,9 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                                 hidePassword
                                     ? Assets.svg.eye
                                     : Assets.svg.eyeSlash,
-                                color: Theme.of(
-                                  context,
-                                ).extension<StackColors>()!.textDark3,
+                                color: Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .textDark3,
                                 width: 16,
                                 height: 16,
                               ),
@@ -334,7 +334,9 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                                         color: Colors.transparent,
                                         child: Center(
                                           child: Text(
-                                            l10n.restoreDecrypting(AppConfig.prefix),
+                                            l10n.restoreDecrypting(
+                                              AppConfig.prefix,
+                                            ),
                                             style:
                                                 STextStyles.pageTitleH2(
                                                   context,
@@ -356,9 +358,8 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                               ),
                             );
 
-                            final encryptedText = await File(
-                              fileToRestore,
-                            ).readAsString();
+                            final encryptedText = await File(fileToRestore)
+                                .readAsString();
 
                             final String? jsonString = await compute(
                               SWB.decryptStackWalletStringWithPassphrase,
@@ -385,6 +386,17 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                                 return;
                               }
 
+                              if (!isSwbBackup(jsonString)) {
+                                await showFloatingFlushBar(
+                                  type: FlushBarType.warning,
+                                  message: l10n.restoreNotOurBackup(
+                                    AppConfig.appName,
+                                  ),
+                                  context: context,
+                                );
+                                return;
+                              }
+
                               await Navigator.of(context).push(
                                 RouteGenerator.getRoute(
                                   builder: (_) => StackRestoreProgressView(
@@ -395,7 +407,10 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                               );
                             }
                           },
-                    child: Text(l10n.restoreAction, style: STextStyles.button(context)),
+                    child: Text(
+                      l10n.restoreAction,
+                      style: STextStyles.button(context),
+                    ),
                   )
                 : Row(
                     children: [
@@ -451,7 +466,9 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                                             color: Colors.transparent,
                                             child: Center(
                                               child: Text(
-                                                l10n.restoreDecrypting(AppConfig.prefix),
+                                                l10n.restoreDecrypting(
+                                                  AppConfig.prefix,
+                                                ),
                                                 style:
                                                     STextStyles.pageTitleH2(
                                                       context,
@@ -475,9 +492,8 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                                   ),
                                 );
 
-                                final encryptedText = await File(
-                                  fileToRestore,
-                                ).readAsString();
+                                final encryptedText = await File(fileToRestore)
+                                    .readAsString();
 
                                 final String? jsonString = await compute(
                                   SWB.decryptStackWalletStringWithPassphrase,
@@ -502,6 +518,17 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                                     await showFloatingFlushBar(
                                       type: FlushBarType.warning,
                                       message: l10n.restoreDecryptFailed,
+                                      context: context,
+                                    );
+                                    return;
+                                  }
+
+                                  if (!isSwbBackup(jsonString)) {
+                                    await showFloatingFlushBar(
+                                      type: FlushBarType.warning,
+                                      message: l10n.restoreNotOurBackup(
+                                        AppConfig.appName,
+                                      ),
                                       context: context,
                                     );
                                     return;
@@ -539,7 +566,10 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                                                                   32,
                                                                 ),
                                                             child: Text(
-                                                              l10n.restoreApp(AppConfig.appName),
+                                                              l10n.restoreApp(
+                                                                AppConfig
+                                                                    .appName,
+                                                              ),
                                                               style:
                                                                   STextStyles.desktopH3(
                                                                     context,

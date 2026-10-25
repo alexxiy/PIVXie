@@ -34,6 +34,7 @@ import 'models/node_model.dart';
 import 'networking/trusted_roots.dart';
 import 'pages/already_running_view.dart';
 import 'pages/home_view/home_view.dart';
+import 'pages/home_view/node_trouble.dart';
 import 'pages/home_view/payment_links.dart';
 import 'pages/intro_view.dart';
 import 'pages/loading_view.dart';
@@ -319,6 +320,18 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
           wallets: () => ref.read(pWallets).wallets,
         ),
       );
+      NodeWatch(
+        nodeService: _nodeService,
+        prefs: ref.read(prefsChangeNotifierProvider),
+        wallets: () => ref.read(pWallets).wallets,
+        onTrouble: (trouble) => ref.read(pNodeTrouble.notifier).state = trouble,
+        onNodeWorks: (coin) {
+          final waiting = ref.read(pNodeTrouble.notifier);
+          if (waiting.state?.coin.identifier == coin.identifier) {
+            waiting.state = null;
+          }
+        },
+      ).start();
       ref.read(priceAnd24hChangeNotifierProvider).start(true);
       if (loadWallets) {
         await UiStallWatch.run(

@@ -364,15 +364,15 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                         ),
                         onPressed: null,
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          // The (i) is taller than the text.
+                          padding: const EdgeInsets.symmetric(vertical: 4),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Expanded(
-                                child: Text(
-                                  l10n.securityAutoAcceptPin,
-                                  style: STextStyles.titleBold12(context),
-                                  textAlign: TextAlign.left,
+                                child: _InfoLabel(
+                                  label: l10n.securityAutoAcceptPin,
+                                  info: l10n.securityAutoAcceptPinInfo,
                                 ),
                               ),
                               const SizedBox(width: 12),
@@ -413,15 +413,15 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                         ),
                         onPressed: null,
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          // The (i) is taller than the text.
+                          padding: const EdgeInsets.symmetric(vertical: 4),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Expanded(
-                                child: Text(
-                                  l10n.securityCover,
-                                  style: STextStyles.titleBold12(context),
-                                  textAlign: TextAlign.left,
+                                child: _InfoLabel(
+                                  label: l10n.securityCover,
+                                  info: l10n.securityCoverInfo,
                                 ),
                               ),
                               const SizedBox(width: 12),
@@ -662,6 +662,43 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// A setting's name with an (i) after it that says what the setting does.
+class _InfoLabel extends StatelessWidget {
+  const _InfoLabel({required this.label, required this.info});
+
+  final String label;
+  final String info;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Flexible(
+          child: Text(
+            label,
+            style: STextStyles.titleBold12(context),
+            textAlign: TextAlign.left,
+          ),
+        ),
+        IconButton(
+          tooltip: l10n.securityWhatThisDoes,
+          padding: EdgeInsets.zero,
+          constraints: const BoxConstraints.tightFor(width: 28, height: 28),
+          iconSize: 18,
+          onPressed: () => showDialog<void>(
+            context: context,
+            builder: (_) => StackOkDialog(title: label, message: info),
+          ),
+          icon: Icon(
+            Icons.info_outline_rounded,
+            color: Theme.of(context).extension<StackColors>()!.textSubtitle1,
+          ),
+        ),
+      ],
     );
   }
 }
