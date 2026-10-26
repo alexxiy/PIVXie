@@ -52,7 +52,9 @@ class PivxNameService {
       Uri.parse("https://bsc-rpc.publicnode.com"),
       Uri.parse("https://bsc-mainnet.public.blastapi.io"),
     ],
-    epochs: const {1},
+    // 2: the rules change for prover v0.2.1's program key, which can be
+    // activated from 2026-10-29 15:13 UTC. Drop 1 once 2 is live.
+    epochs: const {1, 2},
   );
 
   /// The name service for [coin], or null where there is none: names exist
@@ -347,7 +349,8 @@ class PivxNameResolver {
       throw PivxNameException(
         PivxNameError.unreviewedEpoch,
         "The PIVX.name registry has changed its rules or rolled back (epoch "
-        "$epoch). This version of PIVXie only trusts epoch "
+        "$epoch). This version of PIVXie only trusts "
+        "${service.epochs.length == 1 ? "epoch" : "epochs"} "
         "${service.epochs.join(", ")}, so it won't send to names until it's "
         "updated.",
       );
