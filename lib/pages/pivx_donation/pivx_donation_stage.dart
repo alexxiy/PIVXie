@@ -277,7 +277,7 @@ class _Scene {
   final ValueNotifier<double> time;
   final PivxDonationPalette palette;
 
-  /// 0 (Tiny Drop) to 5 (Moon Boost).
+  /// 0 (Tiny Drop) to 5 (Rocket Boost).
   final int energy;
   final PivxDonationTier mood;
   final PivxDonationEgg? egg;
@@ -289,7 +289,7 @@ class _Scene {
   double get t => time.value;
 
   /// The floating offset: a sleepy sway for the tiny drop, a buzz for the
-  /// direct IV, a slow climb for the moon boost. The thank-you art just
+  /// direct IV, a slow climb for the rocket boost. The thank-you art just
   /// floats.
   Offset get bob {
     final t = this.t;
@@ -301,7 +301,7 @@ class _Scene {
           1.2 * math.sin(t * 47),
           -5 + 5 * math.sin(t * 3) + math.cos(t * 39),
         );
-      case PivxDonationTier.moonBoost:
+      case PivxDonationTier.rocketBoost:
         return Offset(2 * math.sin(t * 1.3), -8 + 7 * math.sin(t * 2.2));
       default:
         final amp = 3.0 + energy;
@@ -387,7 +387,7 @@ class _BackPainter extends CustomPainter {
       );
     }
 
-    if (s.mood == PivxDonationTier.moonBoost && !s.celebrating) {
+    if (s.mood == PivxDonationTier.rocketBoost && !s.celebrating) {
       // Stars streaking down: PIVXie is going up.
       for (var i = 0; i < 16; i++) {
         final x = _rnd(i, 5) * size.width;
@@ -427,7 +427,7 @@ class _BackPainter extends CustomPainter {
         ).createShader(Rect.fromCircle(center: c, radius: r)),
     );
 
-    if (s.mood != PivxDonationTier.moonBoost || s.celebrating) {
+    if (s.mood != PivxDonationTier.rocketBoost || s.celebrating) {
       // The floor shadow shrinks as PIVXie rises.
       final lift = (-bob.dy).clamp(0, 12) / 12;
       final floor = Offset(s.center.dx, s.center.dy + s.size * 0.47);
@@ -613,7 +613,7 @@ class _FrontPainter extends CustomPainter {
                 ..style = PaintingStyle.stroke,
             );
           }
-        case PivxDonationTier.moonBoost:
+        case PivxDonationTier.rocketBoost:
           // PIV coins in orbit; the far half of the orbit is dimmer.
           for (var i = 0; i < 2; i++) {
             final a = t * 1.4 + i * math.pi;

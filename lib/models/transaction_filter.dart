@@ -88,7 +88,6 @@ enum PivxTxCategory {
 class TransactionFilter {
   final bool sent;
   final bool received;
-  final bool trade;
   final DateTime? from;
   final DateTime? to;
   final Amount? amount;
@@ -101,7 +100,6 @@ class TransactionFilter {
   TransactionFilter({
     required this.sent,
     required this.received,
-    required this.trade,
     required this.from,
     required this.to,
     required this.amount,
@@ -112,7 +110,6 @@ class TransactionFilter {
   TransactionFilter copyWith({
     bool? sent,
     bool? received,
-    bool? trade,
     DateTime? from,
     DateTime? to,
     Amount? amount,
@@ -122,7 +119,6 @@ class TransactionFilter {
     return TransactionFilter(
       sent: sent ?? this.sent,
       received: received ?? this.received,
-      trade: trade ?? this.trade,
       from: from ?? this.from,
       to: to ?? this.to,
       amount: amount ?? this.amount,
@@ -133,6 +129,6 @@ class TransactionFilter {
 
   @override
   String toString() {
-    return "TxFilter { sent: $sent, received: $received, trade: $trade, from: $from, to: $to, amount: $amount, keyword: $keyword, pivxCategories: $pivxCategories }";
+    return "TxFilter { sent: $sent, received: $received, from: $from, to: $to, amount: $amount, keyword: $keyword, pivxCategories: $pivxCategories }";
   }
 }

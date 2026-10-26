@@ -169,13 +169,13 @@
     "description": "The PIVX Name screens' title: PIVX names (domain-like names such as john.pivx)."
   },
   "pivxNamesMyNames": "My Names",
-  "pivxNamesMyBalance": "My Balance",
+  "pivxNamesMyBalance": "PIVX.name balance",
   "pivxNamesMyTransactions": "My Transactions",
   "pivxNamesMarketplace": "Marketplace",
   "pivxNamesAbout": "About PIVX Name",
   "pivxNamesMenu": "Names menu",
   "pivxNamesInfoHowTitle": "How it works",
-  "pivxNamesInfoHow1": "Get your own name, like john.pivx, and share it to get paid instead of a long address.",
+  "pivxNamesInfoHow1": "Get your own name, like john.pivx, and share it instead of a long address.",
   "pivxNamesInfoHow2": "Your names are yours: keep them, sell them on the marketplace or give them to someone else. Only you can change them.",
   "pivxNamesInfoBenefitsTitle": "Benefits",
   "pivxNamesInfoBenefits1": "No renewal fees. Once registered, a name is yours for good.",
@@ -184,7 +184,8 @@
   "pivxNamesInfoControlTitle": "Control",
   "pivxNamesInfoControl1": "Point your name to a new address at any time. People keep paying john.pivx and never need to know.",
   "pivxNamesInfoControl2": "Hand a name to a new owner. That takes a signature with your key, so only you can do it.",
-  "pivxNamesInfoControl3": "List names on the marketplace and earn from popular ones.",
+  "pivxNamesInfoControl3": "List your names on the PIVX.name marketplace.",
+  "pivxNamesInfoService": "PIVX names come from PIVX.name, a service separate from this wallet. PIVXie only sends your requests to it and never holds your coins.",
   "pivxNamesInfoQuestionTitle": "Have a question?",
   "pivxNamesInfoTelegram": "Join us on Telegram",
   "pivxNamesInfoDocs": "Read the docs",
@@ -429,7 +430,7 @@
       }
     }
   },
-  "pivxNamesSetPriceText": "Anyone can buy the name for this price on the marketplace. The price then goes to your PIVX.name balance (My Balance), to withdraw to your wallet.",
+  "pivxNamesSetPriceText": "Anyone can buy the name for this price on the marketplace. The price then goes to your PIVX.name balance, to withdraw to your wallet.",
   "pivxNamesCostRegistration": "Registration: {amount}, plus the network fee.",
   "@pivxNamesCostRegistration": {
     "placeholders": {
@@ -595,7 +596,7 @@
   "pivxNamesYourBalance": "Your balance",
   "commonUnavailable": "Unavailable",
   "commonRefresh": "Refresh",
-  "pivxNamesBalanceExplained": "Payments PIVX.name couldn't use come back here, and so does the price of a name you sell. Withdraw them to your wallet whenever you like.",
+  "pivxNamesBalanceExplained": "PIVX.name holds this balance for you: payments it couldn't use and the price of names you sold. Withdraw it to your wallet whenever you like.",
   "pivxNamesWithdrawTo": "Withdraw to",
   "pivxNamesYouGetAbout": "You'll get about {amount} after the service fee ({fee}%).",
   "@pivxNamesYouGetAbout": {
@@ -626,7 +627,7 @@
   },
   "pivxNamesYours": "Yours",
   "pivxNamesChangePrice": "Change price",
-  "pivxNamesMarketplaceIntro": "Find and buy PIVX names from other users.",
+  "pivxNamesMarketplaceIntro": "Find and buy PIVX names from other users. The marketplace is run by PIVX.name, not by PIVXie.",
   "pivxNamesSearchOnSale": "Search names on sale",
   "pivxNamesNoMatch": "No names match your search.",
   "pivxNamesNoneOnSale": "There are no names for sale right now.",
@@ -778,7 +779,7 @@
   "pivxNamesAlmostDone": "Almost done.",
   "pivxNamesCongrats": "Congrats!",
   "pivxNamesPaymentRefunded": "Payment refunded",
-  "pivxNamesPaymentRefundedText": "Something in the payment was wrong, or someone else got the name first. The amount is back in your PIVX.name balance (My Balance).",
+  "pivxNamesPaymentRefundedText": "Something in the payment was wrong, or someone else got the name first. The amount is back in your PIVX.name balance.",
   "pivxNamesPaymentUnsuccessful": "Payment unsuccessful",
   "pivxNamesPaymentUnsuccessfulText": "The transaction seems to be orphaned because of PIVX network issues.",
   "pivxNamesTxRejected": "Transaction not accepted",
@@ -839,7 +840,7 @@
       }
     }
   },
-  "pivxNamesRefundsIntro": "Your withdrawals from My Balance.",
+  "pivxNamesRefundsIntro": "Your withdrawals from your PIVX.name balance.",
   "pivxNamesIncomingIntro": "Your payments to PIVX.name. Tap one in progress to follow it.",
   "pivxNamesNoWithdrawals": "No withdrawals yet.",
   "pivxNamesNoPayments": "No payments to PIVX.name yet.",
@@ -1817,7 +1818,7 @@
   "mnRemove": "Remove masternode",
   "mnTitle": "Masternodes",
   "mnNoneYet": "No masternodes yet",
-  "mnNoneYetText": "A masternode locks a collateral of {amount} in this wallet and earns rewards while a server runs it. The collateral stays yours and is frozen so it can't be spent by accident.",
+  "mnNoneYetText": "A masternode locks a collateral of {amount} in this wallet and gets rewards from the network while a server runs it. The collateral stays yours and is frozen so it can't be spent by accident.",
   "@mnNoneYetText": {
     "placeholders": {
       "amount": {
@@ -1826,7 +1827,7 @@
     }
   },
   "mnEnabled": "Enabled",
-  "mnEarned": "Earned",
+  "mnEarned": "Rewards",
   "mnServer": "Server",
   "mnNotSet": "Not set",
   "mnActiveFor": "Active for",
@@ -1971,7 +1972,7 @@
   },
   "csStaking": "Staking",
   "csHowItWorks": "How cold staking works",
-  "csInfo1": "Your coins earn staking rewards while they stay in this wallet. A staker, a PIVX node that is always online, stakes them for you, but it can never spend or move them. Rewards are added to your delegated coins.",
+  "csInfo1": "Your coins take part in staking while they stay in this wallet. A staker, a PIVX node that is always online, stakes them for you, but it can never spend or move them. Rewards come from the PIVX network and are added to your delegated coins. How much you get depends on the network and isn't guaranteed.",
   "csInfo2": "To take coins out of cold staking, just spend them. Tap an output and choose Withdraw, and the coins return to your regular balance.",
   "@csInfo2": {
     "description": "\"Withdraw\" is the name of a button."
@@ -2006,8 +2007,8 @@
   "csDelegatedOutputs": "Delegated outputs",
   "csWithdrawAll": "Withdraw all",
   "csDelegateMore": "Delegate more",
-  "csEarnTitle": "Earn rewards with your PIV",
-  "csEarnText": "Delegate coins to a staker and earn staking rewards without keeping a PIVX Core wallet online on your PC or server. Your coins never leave your wallet, and you can take them back at any time.",
+  "csEarnTitle": "Stake your PIV",
+  "csEarnText": "Delegate coins to a staker and get staking rewards without keeping a PIVX Core wallet online on your PC or server. Your coins never leave your wallet, and you can take them back at any time.",
   "csStart": "Start cold staking",
   "csReward": "Reward",
   "csLatestStake": "+{amount} latest stake",
@@ -2215,7 +2216,6 @@
   "txFilterTitleDesktop": "Transaction filter",
   "txSent": "Sent",
   "txReceived": "Received",
-  "txTrades": "Trades",
   "txDate": "Date",
   "txEnterAmount": "Enter {ticker} amount...",
   "@txEnterAmount": {
@@ -2267,10 +2267,10 @@
   "txInputs": "Inputs",
   "txOutputs": "Outputs",
   "txOpenInExplorer": "Open in block explorer",
-  "walletAnonymizing": "Anonymizing balance",
-  "walletNoFundsToPrivatize": "No funds available to privatize!",
-  "walletPrivatizeSubmitted": "Privatize transaction submitted",
-  "walletPrivatizeFailed": "Privatize all failed",
+  "walletAnonymizing": "Shielding your balance…",
+  "walletNoFundsToPrivatize": "No transparent balance to shield.",
+  "walletPrivatizeSubmitted": "Shield transaction sent",
+  "walletPrivatizeFailed": "Couldn't shield your balance",
   "walletReason": "Reason: {reason}",
   "@walletReason": {
     "placeholders": {
@@ -2283,8 +2283,8 @@
   "walletAddressBookSemantics": "Address Book Button. Takes To Address Book.",
   "walletSettingsSemantics": "Settings Button. Takes To Wallet Settings Page.",
   "walletAttention": "Attention!",
-  "walletPrivatizeConfirm": "You're about to privatize all of your public funds.",
-  "walletPrivatizeFunds": "Privatize funds",
+  "walletPrivatizeConfirm": "This moves your whole transparent balance to your shield balance.",
+  "walletPrivatizeFunds": "Shield all",
   "walletSeeAll": "See all",
   "commonReceive": "Receive",
   "addressBookTitle": "Address book",
@@ -2662,7 +2662,7 @@
   "addWalletCreateError": "Create Wallet Error",
   "commonUnknownError": "Unknown error",
   "addWalletExplainSemantics": "Question Button. Opens A Dialog For Recovery Phrase Explanation.",
-  "addWalletWarningDesktop": "On the next screen you will see {count} words that make up your recovery phrase.\n\nPlease write it down. Keep it safe and never share it with anyone. Your recovery phrase is the only way you can access your funds if you forget your PIN, lose your phone, etc.\n\n{app} does not keep nor is able to restore your recover phrase. Only you have access to your wallet.",
+  "addWalletWarningDesktop": "On the next screen you will see {count} words that make up your recovery phrase.\n\nPlease write it down. Keep it safe and never share it with anyone. Your recovery phrase is the only way you can access your funds if you forget your PIN, lose your phone, etc.\n\n{app} doesn't keep your recovery phrase and can't restore it. Only you have access to your wallet.",
   "@addWalletWarningDesktop": {
     "placeholders": {
       "count": {
@@ -2699,8 +2699,8 @@
   "explainCarAnalogy": "The car analogy.",
   "explainCar": "You can drive your car when your have your car keys. If you lose your car keys, you can’t drive you car. If someone steals your car keys, they can steal your car. If someone copies your car keys, they can also steal your car.",
   "explainCrypto": "Cryptocurrency works the same way. These recovery phrase words we’re about to show you are like the car keys in the metaphor above.",
-  "explainLose": "If you lose these words, you can’t access your money. If someone steals these words, they can access and steal your money. If someone copies these words, they can access and steal your money.",
-  "explainNobody": "If your funds are lost or stolen because of you don’t write down your recovery phrase or keep it safe, then NOBODY, NOT EVEN US, can help you recover your money.",
+  "explainLose": "If you lose these words, you lose access to your coins. Anyone who steals or copies them can take your coins.",
+  "explainNobody": "If your coins are lost or stolen because the recovery phrase wasn't written down or kept safe, nobody, not even us, can get them back.",
   "restoreMayTakeWhileLines": "Restoring your wallet may take a while.\nPlease do not exit this screen once the process is started.",
   "restoreAction": "Restore",
   "@restoreAction": {
@@ -3114,7 +3114,7 @@
   "syncingSelectWalletsEllipsis": "Select wallets...",
   "syncingChooseWallets": "Choose the wallets to sync automatically at startup",
   "torWhatIs": "What is Tor?",
-  "torWhatIsText": "Short for \"The Onion Router\", is an open-source software that enables internet communication to remain anonymous by routing internet traffic through a series of layered nodes, to obscure the origin and destination of data.",
+  "torWhatIsText": "Tor, short for \"The Onion Router\", is open-source software that keeps your internet traffic private. It routes the traffic through a chain of nodes with layered encryption, so it's hard to tell where data comes from and where it goes.",
   "torOnlyText": "With Tor on, the app connects only through Tor. If Tor stops working, the app stops connecting until it's back.",
   "torConnectingTapToCancel": "Connecting (tap to cancel)",
   "torStatus": "Tor status",
@@ -3547,7 +3547,7 @@
   "sendPreviewSend": "Preview send",
   "featureCoinControlText": "Choose which outputs to spend and freeze the ones to keep",
   "featureMasternodesText": "Create, start and follow your masternodes",
-  "featureColdStakingText": "Delegate coins to a staker and earn rewards while they stay yours",
+  "featureColdStakingText": "Delegate coins to a staker and get staking rewards while they stay yours",
   "featureGovernanceText": "Budget proposals: follow them and vote with your masternodes",
   "featureNamesText": "Register a PIVX name, and manage or sell your names",
   "featurePrivatizeText": "Move your whole transparent balance to your shield balance",
@@ -3648,7 +3648,7 @@
     }
   },
   "currencySelect": "Select currency",
-  "currencyText": "Select a fiat currency to evaluate your crypto assets. We use CoinGecko conversion rates when displaying your balance and transaction amounts.",
+  "currencyText": "Choose the currency for approximate values of your balance and transactions. The rates come from CoinGecko and are only shown for reference.",
   "currencyChange": "Change currency",
   "nodesSelectCoin": "Select a coin to see nodes",
   "passwordNewMismatch": "The new passwords don't match",
@@ -4263,9 +4263,9 @@
   "donateDirectIv": "Direct IV",
   "donateDirectIvMascot": "Direct Mempool Injection",
   "donateDirectIvText": "Who needs cups? An unfiltered, pressurized cyber-caffeine feed. Digital lightning is sparking, wings are buzzing at 10,000 RPM, and PIVXie is pulsing with pure network power. Absolutely electric!",
-  "donateMoonBoost": "Moon Boost",
-  "donateMoonBoostMascot": "Hyper-Space Ascension",
-  "donateMoonBoostText": "100% block-fuel, no limits! Full-throttle orbital rocket boost has launched PIVXie into zero-gravity. Levitating, surrounded by orbiting PIV coins, and breaking the atmosphere. To the Moon! 🚀",
+  "donateRocketBoost": "Rocket Boost",
+  "donateRocketBoostMascot": "Hyper-Space Ascension",
+  "donateRocketBoostText": "100% block-fuel, no limits! Full-throttle orbital rocket boost has launched PIVXie into zero-gravity. Levitating, surrounded by orbiting PIV coins, and breaking the atmosphere. Orbit reached! 🚀",
   "donateCustomBrew": "The Custom Brew",
   "donateCustomBrewMascot": "Manual Calibration",
   "donateCustomBrewText": "You set the dosage, alchemist! Type in any amount and watch PIVXie try to survive the recipe. Big or small, your custom dose keeps the non-custodial wizardry running.",
@@ -4305,7 +4305,7 @@
   "@donateSlide": {
     "description": "A slide-to-confirm button: dragging it to the end sends the donation."
   },
-  "donateTo": "Goes to {name}, PIVXie's developer. The network fee comes on top.",
+  "donateTo": "A voluntary gift to {name}, PIVXie's developer. It doesn't unlock anything in the app. The network fee comes on top.",
   "@donateTo": {
     "description": "name is a PIVX name, e.g. alexxiy.pivx",
     "placeholders": {

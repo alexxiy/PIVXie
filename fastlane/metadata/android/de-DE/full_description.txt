@@ -1,4 +1,4 @@
-PIVXie ist eine PIVX-Wallet, bei der Sie die Kontrolle behalten. Ihre Wiederherstellungsphrase und Ihre Schlüssel bleiben auf Ihrem Gerät. Sie brauchen kein Konto, und niemand außer Ihnen kann Ihre Coins bewegen.
+PIVXie ist eine Non-Custodial PIVX-Wallet, bei der Sie die Kontrolle behalten. Ihre Wiederherstellungsphrase und Ihre Schlüssel bleiben auf Ihrem Gerät. Sie brauchen kein Konto, und niemand außer Ihnen kann Ihre Coins bewegen. PIVXie verwahrt nie Ihre Coins, tauscht keine Kryptowährungen und wickelt weder Bargeld noch Bankzahlungen ab.
 
 Privatsphäre
 • SHIELD-Transaktionen: PIV ins Shield und aus dem Shield verschieben und privat senden, auf Wunsch mit verschlüsseltem Memo.
@@ -13,9 +13,10 @@ Staking, Masternodes und Governance
 PIVX Name
 • Registrieren Sie einen einfachen Namen wie john.pivx (oder .private, .secure, .safe) und teilen Sie ihn statt einer langen Adresse.
 • Lassen Sie Ihren Namen auf eine beliebige SHIELD-Adresse zeigen, Ihre eigene oder die einer anderen Person, und ändern Sie das jederzeit. Andere zahlen einfach weiter an denselben Namen.
-• Übergeben Sie einen Namen an jemand anderen, verkaufen Sie Ihre Namen auf dem Marktplatz und kaufen Sie die, die Ihnen gefallen.
+• Übergeben Sie einen Namen an jemand anderen oder bieten Sie ihn auf dem Marktplatz von PIVX.name an, wo Sie auch Namen anderer finden.
 • Ihre Namen gehören zu Ihrer Wiederherstellungsphrase, deshalb öffnet dieselbe Phrase sie auch auf pivx.name.
 • Zahlen Sie an einen PIVX-Namen statt an eine Adresse. PIVXie prüft vor dem Senden, wohin der Name zeigt.
+• PIVX-Namen betreibt PIVX.name, ein von dieser Wallet getrennter Dienst.
 
 Im Alltag
 • QR-Codes scannen und pivx:-Zahlungslinks öffnen.

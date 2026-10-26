@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:decimal/decimal.dart';
 import 'package:intl/intl.dart';
@@ -26,8 +27,10 @@ import '../../widgets/pivx_memo_field.dart';
 const kPivxDonationName = "alexxiy.pivx";
 
 /// Whether [coin]'s wallets can donate: where PIVX names resolve (mainnet).
+/// Not on iOS: the App Store wants tips to the developer to go through
+/// in-app purchase.
 bool pivxDonationAvailable(CryptoCurrency coin) =>
-    PivxNameService.forCoin(coin) != null;
+    !Platform.isIOS && PivxNameService.forCoin(coin) != null;
 
 /// The cheers message: what the 512-byte memo has room for after the
 /// tag line (at most 63 bytes, see [pivxDonationMemo]).
@@ -39,7 +42,7 @@ enum PivxDonationTier {
   doubleShot(10, "⚡️", "Double-Shot"),
   zeroKnowledgeNitro(20, "🕶️", "Zero-Knowledge Nitro"),
   directIv(50, "🔋", "Direct IV"),
-  moonBoost(100, "🚀", "Moon Boost"),
+  rocketBoost(100, "🚀", "Rocket Boost"),
   customBrew(null, "🧪", "The Custom Brew");
 
   const PivxDonationTier(this.usd, this.emoji, this.memoName);
@@ -57,7 +60,7 @@ enum PivxDonationTier {
     doubleShot,
     zeroKnowledgeNitro,
     directIv,
-    moonBoost,
+    rocketBoost,
   ];
 
   bool get isCustom => usd == null;
@@ -68,7 +71,7 @@ enum PivxDonationTier {
     doubleShot => l10n.donateDoubleShot,
     zeroKnowledgeNitro => l10n.donateZeroKnowledgeNitro,
     directIv => l10n.donateDirectIv,
-    moonBoost => l10n.donateMoonBoost,
+    rocketBoost => l10n.donateRocketBoost,
     customBrew => l10n.donateCustomBrew,
   };
 
@@ -79,7 +82,7 @@ enum PivxDonationTier {
     doubleShot => l10n.donateDoubleShotMascot,
     zeroKnowledgeNitro => l10n.donateZeroKnowledgeNitroMascot,
     directIv => l10n.donateDirectIvMascot,
-    moonBoost => l10n.donateMoonBoostMascot,
+    rocketBoost => l10n.donateRocketBoostMascot,
     customBrew => l10n.donateCustomBrewMascot,
   };
 
@@ -89,7 +92,7 @@ enum PivxDonationTier {
     doubleShot => l10n.donateDoubleShotText,
     zeroKnowledgeNitro => l10n.donateZeroKnowledgeNitroText,
     directIv => l10n.donateDirectIvText,
-    moonBoost => l10n.donateMoonBoostText,
+    rocketBoost => l10n.donateRocketBoostText,
     customBrew => l10n.donateCustomBrewText,
   };
 

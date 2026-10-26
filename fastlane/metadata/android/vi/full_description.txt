@@ -1,4 +1,4 @@
-PIVXie là ví PIVX giúp bạn luôn nắm quyền kiểm soát. Cụm từ khôi phục và khóa của bạn luôn nằm trên thiết bị của bạn. Không cần tạo tài khoản, và không ai khác có thể di chuyển coin của bạn.
+PIVXie là ví PIVX tự lưu ký giúp bạn luôn nắm quyền kiểm soát. Cụm từ khôi phục và khóa của bạn luôn nằm trên thiết bị của bạn. Không cần tạo tài khoản, và không ai khác có thể di chuyển coin của bạn. PIVXie không bao giờ giữ coin của bạn, không trao đổi tiền mã hóa và không xử lý tiền mặt hay thanh toán ngân hàng.
 
 Quyền riêng tư
 • Giao dịch SHIELD: chuyển PIV vào Shield, rút khỏi Shield và gửi riêng tư, kèm memo mã hóa nếu muốn.
@@ -13,9 +13,10 @@ Staking, masternode và quản trị
 PIVX Name
 • Đăng ký một tên dễ nhớ như john.pivx (hoặc .private, .secure, .safe) và chia sẻ nó thay cho địa chỉ dài.
 • Trỏ tên đến bất kỳ địa chỉ SHIELD nào, của bạn hay của người khác, và đổi bất cứ lúc nào. Mọi người vẫn trả tiền cho cùng một tên.
-• Chuyển tên cho người khác, bán tên của bạn trên chợ tên và mua những tên bạn thích.
+• Chuyển tên cho người khác hoặc đăng bán trên chợ tên của PIVX.name, nơi bạn cũng tìm được tên của người khác.
 • Tên của bạn gắn với cụm từ khôi phục, nên cùng cụm từ đó cũng mở được chúng trên pivx.name.
 • Trả tiền cho tên PIVX thay vì địa chỉ. PIVXie kiểm tra tên đang trỏ đến đâu trước khi gửi.
+• Tên PIVX do PIVX.name vận hành, một dịch vụ tách biệt với ví này.
 
 Dùng hằng ngày
 • Quét mã QR và mở liên kết thanh toán pivx:.

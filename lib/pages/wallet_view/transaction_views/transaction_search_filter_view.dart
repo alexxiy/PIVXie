@@ -56,7 +56,6 @@ class _TransactionSearchViewState
 
   bool _isActiveReceivedCheckbox = false;
   bool _isActiveSentCheckbox = false;
-  bool _isActiveTradeCheckbox = false;
 
   /// PIVX: categories to show; all by default.
   final Set<PivxTxCategory> _categories = {...PivxTxCategory.values};
@@ -425,61 +424,6 @@ class _TransactionSearchViewState
                     ),
                   ],
                 ),
-                SizedBox(height: isDesktop ? 4 : 10),
-                Row(
-                  children: [
-                    GestureDetector(
-                      onTap: () {
-                        setState(() {
-                          _isActiveTradeCheckbox = !_isActiveTradeCheckbox;
-                        });
-                      },
-                      child: Container(
-                        color: Colors.transparent,
-                        child: Row(
-                          children: [
-                            SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: Checkbox(
-                                key: const Key(
-                                  "transactionSearchViewSentCheckboxKey",
-                                ),
-                                materialTapTargetSize:
-                                    MaterialTapTargetSize.shrinkWrap,
-                                value: _isActiveTradeCheckbox,
-                                onChanged: (newValue) {
-                                  setState(() {
-                                    _isActiveTradeCheckbox = newValue!;
-                                  });
-                                },
-                              ),
-                            ),
-                            const SizedBox(width: 14),
-                            Align(
-                              alignment: Alignment.centerLeft,
-                              child: FittedBox(
-                                child: Column(
-                                  children: [
-                                    Text(
-                                      l10n.txTrades,
-                                      style: isDesktop
-                                          ? STextStyles.desktopTextSmall(
-                                              context,
-                                            )
-                                          : STextStyles.itemSubtitle12(context),
-                                    ),
-                                    if (isDesktop) const SizedBox(height: 4),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
               ],
             ),
           ),
@@ -722,7 +666,6 @@ class _TransactionSearchViewState
     final TransactionFilter filter = TransactionFilter(
       sent: isPivx || _isActiveSentCheckbox,
       received: isPivx || _isActiveReceivedCheckbox,
-      trade: _isActiveTradeCheckbox,
       from: _selectedFromDate,
       to: _selectedToDate,
       amount: amount,

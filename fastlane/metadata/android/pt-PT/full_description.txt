@@ -1,4 +1,4 @@
-O PIVXie é uma carteira PIVX que deixa você no controle. Sua frase de recuperação e suas chaves ficam no seu dispositivo. Não é preciso criar conta, e ninguém além de você pode movimentar suas moedas.
+O PIVXie é uma carteira PIVX de autocustódia que deixa você no controle. Sua frase de recuperação e suas chaves ficam no seu dispositivo. Não é preciso criar conta, e ninguém além de você pode movimentar suas moedas. O PIVXie nunca guarda suas moedas, não faz troca de criptomoedas e não lida com dinheiro nem pagamentos bancários.
 
 Privacidade
 • Transações SHIELD: mova PIV para o Shield, retire do Shield e envie com privacidade, com um memo criptografado opcional.
@@ -13,9 +13,10 @@ Staking, masternodes e governança
 PIVX Name
 • Registre um nome fácil como john.pivx (ou .private, .secure, .safe) e compartilhe-o em vez de um endereço longo.
 • Aponte seu nome para qualquer endereço SHIELD, seu ou de outra pessoa, e mude quando quiser. As pessoas continuam pagando o mesmo nome.
-• Passe um nome para outra pessoa, venda seus nomes no mercado e compre os que você gostar.
+• Passe um nome para outra pessoa ou anuncie-o no mercado do PIVX.name, onde você também encontra nomes de outras pessoas.
 • Seus nomes pertencem à sua frase de recuperação, então a mesma frase também os abre no pivx.name.
 • Pague para um nome PIVX em vez de um endereço. O PIVXie confere para onde o nome aponta antes do envio.
+• Os nomes PIVX são operados pelo PIVX.name, um serviço separado desta carteira.
 
 Uso diário
 • Escaneie códigos QR e abra links de pagamento pivx:.

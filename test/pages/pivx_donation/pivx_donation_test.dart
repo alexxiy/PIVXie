@@ -49,7 +49,7 @@ void main() {
       PivxDonationTier.zeroKnowledgeNitro,
     );
     expect(PivxDonationTier.artFor(_d("99.99")), PivxDonationTier.directIv);
-    expect(PivxDonationTier.artFor(_d("1000")), PivxDonationTier.moonBoost);
+    expect(PivxDonationTier.artFor(_d("1000")), PivxDonationTier.rocketBoost);
   });
 
   test("dollars", () {

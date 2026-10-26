@@ -1,4 +1,4 @@
-PIVXie, kontrolü sizde tutan bir PIVX cüzdanıdır. Kurtarma ifadeniz ve anahtarlarınız cihazınızda kalır. Hesap oluşturmanız gerekmez ve coin'lerinizi sizden başka kimse hareket ettiremez.
+PIVXie, kontrolü sizde tutan bir PIVX cüzdanıdır. Kurtarma ifadeniz ve anahtarlarınız cihazınızda kalır. Hesap oluşturmanız gerekmez ve coin'lerinizi sizden başka kimse hareket ettiremez. PIVXie coin'lerinizi asla tutmaz, kripto para takası yapmaz, nakit veya banka ödemeleriyle uğraşmaz.
 
 Gizlilik
 • SHIELD işlemleri: PIV'leri Shield'e taşıyın, Shield'den çıkarın ve gizlice gönderin; isterseniz şifreli bir memo ekleyin.
@@ -13,9 +13,10 @@ Staking, masternode'lar ve yönetişim
 PIVX Name
 • john.pivx gibi kolay bir ad (veya .private, .secure, .safe) kaydedin ve uzun bir adres yerine onu paylaşın.
 • Adınızı size ya da başkasına ait herhangi bir SHIELD adresine yönlendirin ve bunu istediğiniz zaman değiştirin. İnsanlar aynı ada ödemeye devam eder.
-• Bir adı başka birine devredin, adlarınızı pazar yerinde satışa çıkarın ve beğendiğiniz adları satın alın.
+• Bir adı başka birine devredin ya da PIVX.name pazar yerinde satışa çıkarın; orada başkalarının adlarını da bulabilirsiniz.
 • Adlarınız kurtarma ifadenize bağlıdır; aynı ifade onları pivx.name'de de açar.
 • Adres yerine bir PIVX adına ödeme yapın. PIVXie, göndermeden önce adın nereyi gösterdiğini kontrol eder.
+• PIVX adlarını bu cüzdandan ayrı bir hizmet olan PIVX.name işletir.
 
 Günlük kullanım
 • QR kodlarını tarayın ve pivx: ödeme bağlantılarını açın.

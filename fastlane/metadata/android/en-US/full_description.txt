@@ -1,4 +1,4 @@
-PIVXie is a PIVX wallet that keeps you in control. Your recovery phrase and keys stay on your device. There's no account to create, and nobody else can move your coins.
+PIVXie is a self-custodial PIVX wallet that keeps you in control. Your recovery phrase and keys stay on your device. There's no account to create, and nobody else can move your coins. PIVXie never holds your coins, and it doesn't exchange crypto or handle cash or bank payments.
 
 Privacy
 • SHIELD transactions: shield, unshield and send PIV privately, with an optional encrypted memo.
@@ -13,9 +13,10 @@ Staking, masternodes and governance
 PIVX Name
 • Register an easy name like yourname.pivx (or .private, .secure, .safe) and share it instead of a long address.
 • Point your name to any SHIELD address, yours or someone else's, and change it whenever you like. People keep paying the same name.
-• Give a name to someone else, or sell your names on the marketplace and buy the ones you like.
+• Give a name to someone else, or list it on the PIVX.name marketplace, where you can also find names from others.
 • Your names belong to your recovery phrase, so the same phrase opens them on pivx.name too.
 • Pay to a PIVX name instead of an address. PIVXie checks where the name points before you send.
+• PIVX names are run by PIVX.name, a service separate from this wallet.
 
 Everyday use
 • Scan QR codes and open pivx: payment links.

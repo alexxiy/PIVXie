@@ -1,1 +1,1 @@
-Carteira PIVX privada: SHIELD, cold staking, masternodes e nomes PIVX.
+Carteira PIVX de autocustódia: SHIELD, cold staking, masternodes e nomes PIVX.

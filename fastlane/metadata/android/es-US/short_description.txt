@@ -1,1 +1,1 @@
-Billetera PIVX privada: SHIELD, cold staking, masternodes y nombres PIVX.
+Billetera PIVX de autocustodia: SHIELD, cold staking, masternodes, nombres PIVX.

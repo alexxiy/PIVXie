@@ -7,7 +7,7 @@ Website: [pivxie.me](https://pivxie.me)
 ## Features
 
 - **SHIELD**: private Sapling transactions. Shield, unshield and send privately, with an optional encrypted memo.
-- **Cold staking**: delegate PIV to a staker and earn staking rewards while the coins stay in your wallet. Pick a staker from [masternode.space](https://masternode.space) or use your own node. Undelegate at any time.
+- **Cold staking**: delegate PIV to a staker and get staking rewards while the coins stay in your wallet. Pick a staker from [masternode.space](https://masternode.space) or use your own node. Undelegate at any time.
 - **Masternodes**: set up a masternode from the wallet (send the collateral, generate or paste the masternode key), start it, and follow its status and rewards.
 - **Governance**: browse budget proposals, vote with your masternodes, submit your own proposal, and track budget payments.
 - **History**: staking rewards, masternode rewards, proposal payments, delegations and shield transactions are labelled, and you can filter by each type. Rewards show how many confirmations are left until they mature.

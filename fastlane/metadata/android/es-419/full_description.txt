@@ -1,4 +1,4 @@
-PIVXie es una billetera PIVX que te deja el control. Tu frase de recuperación y tus claves se quedan en tu dispositivo. No tienes que crear ninguna cuenta y nadie más puede mover tus monedas.
+PIVXie es una billetera PIVX de autocustodia que te deja el control. Tu frase de recuperación y tus claves se quedan en tu dispositivo. No tienes que crear ninguna cuenta y nadie más puede mover tus monedas. PIVXie nunca guarda tus monedas, no intercambia criptomonedas y no maneja efectivo ni pagos bancarios.
 
 Privacidad
 • Transacciones SHIELD: mueve PIV a Shield, sácalos de Shield y envíalos de forma privada, con un memo cifrado opcional.
@@ -13,9 +13,10 @@ Staking, masternodes y gobernanza
 PIVX Name
 • Registra un nombre fácil como john.pivx (o .private, .secure, .safe) y compártelo en lugar de una dirección larga.
 • Haz que tu nombre apunte a cualquier dirección SHIELD, tuya o de otra persona, y cámbiala cuando quieras. La gente sigue pagando al mismo nombre.
-• Pasa un nombre a otra persona, vende tus nombres en el mercado y compra los que te gusten.
+• Pasa un nombre a otra persona o ponlo a la venta en el mercado de PIVX.name, donde también encontrarás nombres de otros.
 • Tus nombres pertenecen a tu frase de recuperación, así que la misma frase también los abre en pivx.name.
 • Paga a un nombre PIVX en lugar de a una dirección. PIVXie comprueba a dónde apunta el nombre antes de enviar.
+• Los nombres PIVX los gestiona PIVX.name, un servicio aparte de esta billetera.
 
 Uso diario
 • Escanea códigos QR y abre enlaces de pago pivx:.

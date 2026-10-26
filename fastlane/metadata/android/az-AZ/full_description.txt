@@ -1,4 +1,4 @@
-PIVXie nəzarəti sizdə saxlayan PIVX pulqabısıdır. Bərpa ifadəniz və açarlarınız cihazınızda qalır. Hesab yaratmağa ehtiyac yoxdur və sizdən başqa heç kim coinlərinizi köçürə bilməz.
+PIVXie nəzarəti sizdə saxlayan PIVX pulqabısıdır. Bərpa ifadəniz və açarlarınız cihazınızda qalır. Hesab yaratmağa ehtiyac yoxdur və sizdən başqa heç kim coinlərinizi köçürə bilməz. PIVXie heç vaxt coinlərinizi saxlamır, kriptovalyuta mübadiləsi aparmır, nağd pul və ya bank ödənişləri ilə işləmir.
 
 Məxfilik
 • SHIELD əməliyyatları: PIV-ləri Shield-ə köçürün, Shield-dən çıxarın və məxfi göndərin, istəsəniz şifrələnmiş memo ilə.
@@ -13,9 +13,10 @@ Staking, masternodlar və idarəetmə
 PIVX Name
 • john.pivx kimi asan ad (və ya .private, .secure, .safe) qeydiyyatdan keçirin və uzun ünvan əvəzinə onu paylaşın.
 • Adınızı istənilən SHIELD ünvanına (özünüzün və ya başqasının) yönləndirin və bunu istədiyiniz vaxt dəyişin. İnsanlar eyni ada ödəməyə davam edir.
-• Adı başqasına ötürün, adlarınızı bazarda satın və bəyəndiyiniz adları alın.
+• Adı başqasına ötürün və ya onu PIVX.name bazarında satışa çıxarın; orada başqalarının adlarını da tapa bilərsiniz.
 • Adlarınız bərpa ifadənizə bağlıdır, ona görə də eyni ifadə onları pivx.name saytında da açır.
 • Ünvan əvəzinə PIVX adına ödəniş edin. PIVXie göndərməzdən əvvəl adın hara yönəldiyini yoxlayır.
+• PIVX adlarını bu pulqabından ayrı xidmət olan PIVX.name idarə edir.
 
 Gündəlik istifadə
 • QR kodları skan edin və pivx: ödəniş linklərini açın.

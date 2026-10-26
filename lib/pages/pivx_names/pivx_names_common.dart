@@ -428,6 +428,10 @@ class _InfoDialogState extends State<_InfoDialog> {
           Icons.key_rounded,
           l10n.pivxNamesInfoHow2,
         ),
+        (
+          Icons.info_outline_rounded,
+          l10n.pivxNamesInfoService,
+        ),
       ],
     ),
     (
