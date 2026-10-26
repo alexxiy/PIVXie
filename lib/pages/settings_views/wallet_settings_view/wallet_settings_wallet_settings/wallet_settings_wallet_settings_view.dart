@@ -161,7 +161,8 @@ class _WalletSettingsWalletSettingsViewState
     final isViewOnlyNoAddressGen =
         wallet is ViewOnlyOptionInterface &&
         wallet.isViewOnly &&
-        wallet.viewOnlyType == ViewOnlyWalletType.addressOnly;
+        (wallet.viewOnlyType == ViewOnlyWalletType.addressOnly ||
+            wallet.viewOnlyType == ViewOnlyWalletType.saplingViewingKey);
 
     return Background(
       child: Scaffold(

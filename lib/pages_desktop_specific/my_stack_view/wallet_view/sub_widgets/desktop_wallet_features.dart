@@ -251,7 +251,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
     ];
 
     final moreOptions = <(WalletFeature, Object, FutureOr<void> Function())>[
-      if (wallet is PivxWallet)
+      if (wallet is PivxWallet && !wallet.isShieldViewOnly)
         (
           WalletFeature.coldStaking,
           Icons.ac_unit_rounded,
@@ -287,7 +287,8 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
 
     final canGen =
         !(isViewOnly &&
-            wallet.viewOnlyType == ViewOnlyWalletType.addressOnly) &&
+            (wallet.viewOnlyType == ViewOnlyWalletType.addressOnly ||
+                wallet.viewOnlyType == ViewOnlyWalletType.saplingViewingKey)) &&
         wallet is MultiAddressInterface;
 
     final extraOptions = <(WalletFeature, Object, FutureOr<void> Function())>[

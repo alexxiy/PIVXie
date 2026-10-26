@@ -235,7 +235,8 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
     final bool canGen;
     if (wallet is ViewOnlyOptionInterface &&
         wallet.isViewOnly &&
-        wallet.viewOnlyType == ViewOnlyWalletType.addressOnly) {
+        (wallet.viewOnlyType == ViewOnlyWalletType.addressOnly ||
+            wallet.viewOnlyType == ViewOnlyWalletType.saplingViewingKey)) {
       canGen = false;
     } else {
       canGen = wallet is MultiAddressInterface || _supportsPivxShield;

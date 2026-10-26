@@ -692,7 +692,9 @@ class _WalletViewState extends ConsumerState<WalletView> {
                         );
                       },
                     ),
-                  if (wallet is PivxWallet)
+                  // Delegations are transparent: nothing to show for a
+                  // shield viewing key.
+                  if (wallet is PivxWallet && !wallet.isShieldViewOnly)
                     WalletNavigationBarItemData(
                       label: l10n.csTitle,
                       icon: Icon(

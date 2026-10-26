@@ -2728,8 +2728,16 @@
   },
   "commonAdvanced": "Advanced",
   "restorePassphraseText": "If the recovery phrase you are about to restore was created with an optional BIP39 passphrase you can enter it here.",
-  "restoreNotXpub": "That isn't a {coin} extended public key.",
-  "@restoreNotXpub": {
+  "restoreNotWatchKey": "That isn't a {coin} extended public key or shield viewing key.",
+  "@restoreNotWatchKey": {
+    "placeholders": {
+      "coin": {
+        "type": "String"
+      }
+    }
+  },
+  "restoreNotShieldKey": "That isn't a {coin} shield viewing key.",
+  "@restoreNotShieldKey": {
     "placeholders": {
       "coin": {
         "type": "String"
@@ -2744,9 +2752,9 @@
       }
     }
   },
-  "restoreXpubEmpty": "Extended public key is empty",
   "restoreEnterViewOnly": "Enter view only details",
-  "restoreXpub": "Extended public key",
+  "restoreWatchKey": "Extended public key or viewing key",
+  "restoreWatchKeyInfo": "Use an extended public key to watch a wallet's transparent addresses, or a shield viewing key to watch shield addresses, such as the key PIVX.name publishes.",
   "restoreInvalidSeed": "Invalid seed phrase!",
   "restoreScanSemantics": "View QR Code Button. Opens Camera To Scan QR Code For Restoring Wallet.",
   "restorePasteSemantics": "Paste Button. Pastes From Clipboard For Restoring Wallet.",
@@ -3395,6 +3403,7 @@
   "@walletKeys": {
     "description": "What a view-only wallet holds instead of a seed: its public keys."
   },
+  "walletShieldViewingKey": "Shield viewing key",
   "walletSeed": "Wallet seed",
   "walletViewKeys": "View wallet keys",
   "walletViewSeed": "View wallet seed",

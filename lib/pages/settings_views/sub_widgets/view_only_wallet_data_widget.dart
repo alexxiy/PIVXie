@@ -41,6 +41,18 @@ class ViewOnlyWalletDataWidget extends StatelessWidget {
           ),
         ],
       ),
+      final SaplingViewingKeyViewOnlyWalletData e => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          DetailItem(
+            title: l10n.walletShieldViewingKey,
+            detail: e.viewingKey,
+            button: Util.isDesktop
+                ? IconCopyButton(data: e.viewingKey)
+                : SimpleCopyButton(data: e.viewingKey),
+          ),
+        ],
+      ),
     };
   }
 }

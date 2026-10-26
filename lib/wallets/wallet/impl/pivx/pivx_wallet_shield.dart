@@ -112,7 +112,10 @@ String? _noteNullifier(UTXO utxo) {
 }
 
 extension _PivxShield on PivxWallet {
-  bool get _shieldSupported => libPivxShield.isAvailable && !isViewOnly;
+  /// Spending needs the recovery phrase; a shield view only wallet
+  /// watches with its viewing key.
+  bool get _shieldSupported =>
+      libPivxShield.isAvailable && (!isViewOnly || isShieldViewOnly);
 
   bool get _isTestnet => cryptoCurrency.network != CryptoCurrencyNetwork.main;
 
@@ -130,10 +133,25 @@ extension _PivxShield on PivxWallet {
 
   /// Full viewing key: derived when the wallet's shield state loads and
   /// kept in memory only (it reveals every shield transaction, past and
-  /// future, so it isn't written to the state file).
-  Future<String> _extfvk() async => libPivxShield.extendedFullViewingKey(
-    extsk: await _extsk(),
-    isTestnet: _isTestnet,
+  /// future, so it isn't written to the state file). A shield view only
+  /// wallet keeps its key in secure storage, like an xpub.
+  Future<String> _extfvk() async {
+    if (isShieldViewOnly) {
+      final data = await getViewOnlyWalletData();
+      return (data as SaplingViewingKeyViewOnlyWalletData).viewingKey;
+    }
+    return libPivxShield.extendedFullViewingKey(
+      extsk: await _extsk(),
+      isTestnet: _isTestnet,
+    );
+  }
+
+  /// Row of the first address of the wallet's viewing key.
+  Future<Address> _defaultShieldAddressRow() async => _shieldAddressRow(
+    libPivxShield.defaultAddress(
+      extfvk: await _extfvk(),
+      isTestnet: _isTestnet,
+    ),
   );
 
   Future<PivxShieldState> _createShieldState(
@@ -341,8 +359,11 @@ extension _PivxShield on PivxWallet {
     await _writeShieldNoteRows(state);
 
     // With shield funds, fetch the proving parameters ahead of the first
-    // spend so sending doesn't wait on a ~50 MB download.
-    if (state.unspentNotes.isNotEmpty && !libPivxShield.proverIsLoaded()) {
+    // spend so sending doesn't wait on a ~50 MB download. A view only
+    // wallet never spends.
+    if (!isViewOnly &&
+        state.unspentNotes.isNotEmpty &&
+        !libPivxShield.proverIsLoaded()) {
       unawaited(
         _ensureProver().catchError(
           (Object e) => Logging.instance.w("PIVX: prover preload failed: $e"),

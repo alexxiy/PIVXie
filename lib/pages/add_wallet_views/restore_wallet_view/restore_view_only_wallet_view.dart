@@ -27,7 +27,9 @@ import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/desktop/desktop_app_bar.dart';
 import '../../../widgets/desktop/desktop_scaffold.dart';
 import '../../../widgets/desktop/primary_button.dart';
+import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/stack_text_field.dart';
+import '../../../wl_gen/interfaces/lib_pivx_shield_interface.dart';
 import '../../home_view/home_view.dart';
 import 'confirm_recovery_dialog.dart';
 import 'sub_widgets/restore_failed_dialog.dart';
@@ -62,19 +64,41 @@ class _RestoreViewOnlyWalletViewState
   bool _enableRestoreButton = false;
   bool _buttonLock = false;
 
-  /// Why [xpub] can't be watched, or null. Checked before anything is
+  /// Whether [key] is a shield viewing key of the wallet's network, as
+  /// PIVX Core's `exportsaplingviewingkey` gives it (e.g. the key
+  /// PIVX.name publishes). Otherwise the key must be an account xpub.
+  bool _isShieldViewingKey(String key) {
+    if (!libPivxShield.isAvailable) return false;
+    try {
+      libPivxShield.defaultAddress(
+        extfvk: key,
+        isTestnet: widget.coin.network != CryptoCurrencyNetwork.main,
+      );
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /// Why [key] can't be watched, or null. Checked before anything is
   /// made: a bad key only failed deep in the restore, with the library's
   /// error ("Instance of 'InvalidBase58Checksum'").
-  String? _xpubProblem(String xpub) {
+  String? _keyProblem(String key) {
     final coin = widget.coin as Bip39HDCurrency;
-    final coinlib.HDPublicKey key;
+    if (_isShieldViewingKey(key)) return null;
+    // Viewing keys start with their network's prefix: mainnet pxviews,
+    // testnet pxviewtestsapling.
+    if (key.startsWith("pxviews") || key.startsWith("pxviewtestsapling")) {
+      return l10n.restoreNotShieldKey(coin.prettyName);
+    }
+    final coinlib.HDPublicKey xpub;
     try {
-      key = coinlib.HDPublicKey.decode(xpub, coin.networkParams.pubHDPrefix);
+      xpub = coinlib.HDPublicKey.decode(key, coin.networkParams.pubHDPrefix);
     } catch (_) {
-      return l10n.restoreNotXpub(coin.prettyName);
+      return l10n.restoreNotWatchKey(coin.prettyName);
     }
     // Addresses are derived below the account key (chain/index).
-    if (key.depth != 3) {
+    if (xpub.depth != 3) {
       return l10n.restoreUseAccountXpub(
         coin.supportedHardenedDerivationPaths.last,
       );
@@ -87,7 +111,7 @@ class _RestoreViewOnlyWalletViewState
     _buttonLock = true;
 
     try {
-      final problem = _xpubProblem(viewKeyController.text.trim());
+      final problem = _keyProblem(viewKeyController.text.trim());
       if (problem != null) {
         await showFloatingFlushBar(
           type: FlushBarType.warning,
@@ -118,13 +142,19 @@ class _RestoreViewOnlyWalletViewState
   }
 
   Future<void> _attemptRestore() async {
+    final key = viewKeyController.text.trim();
+    final isShieldKey = _isShieldViewingKey(key);
     final Map<String, dynamic> otherDataJson = {
       WalletInfoKeys.isViewOnlyKey: true,
     };
 
-    // PIVX view only wallets watch one BIP44 account xpub.
+    // PIVX view only wallets watch one BIP44 account xpub, or a shield
+    // viewing key.
     otherDataJson[WalletInfoKeys.viewOnlyTypeIndexKey] =
-        ViewOnlyWalletType.xPub.index;
+        (isShieldKey
+                ? ViewOnlyWalletType.saplingViewingKey
+                : ViewOnlyWalletType.xPub)
+            .index;
     if (ref.read(pDuress)) {
       otherDataJson[WalletInfoKeys.duressMarkedVisibleWalletKey] = true;
     }
@@ -163,21 +193,22 @@ class _RestoreViewOnlyWalletViewState
         );
       }
 
-      final xpub = viewKeyController.text.trim();
-      if (xpub.isEmpty) {
-        throw Exception(l10n.restoreXpubEmpty);
-      }
-      final viewOnlyData = ExtendedKeysViewOnlyWalletData(
-        walletId: info.walletId,
-        xPubs: [
-          XPub(
-            path: (widget.coin as Bip39HDCurrency)
-                .supportedHardenedDerivationPaths
-                .last,
-            encoded: xpub,
-          ),
-        ],
-      );
+      final ViewOnlyWalletData viewOnlyData = isShieldKey
+          ? SaplingViewingKeyViewOnlyWalletData(
+              walletId: info.walletId,
+              viewingKey: key,
+            )
+          : ExtendedKeysViewOnlyWalletData(
+              walletId: info.walletId,
+              xPubs: [
+                XPub(
+                  path: (widget.coin as Bip39HDCurrency)
+                      .supportedHardenedDerivationPaths
+                      .last,
+                  encoded: key,
+                ),
+              ],
+            );
 
       final saved = ref
           .read(nodeServiceChangeNotifierProvider)
@@ -336,13 +367,27 @@ class _RestoreViewOnlyWalletViewState
                         SizedBox(height: isDesktop ? 24 : 16),
                         FullTextField(
                           key: const Key("viewOnlyKeyRestoreFieldKey"),
-                          label: l10n.restoreXpub,
+                          label: l10n.restoreWatchKey,
                           controller: viewKeyController,
                           onChanged: (value) {
                             setState(() {
                               _enableRestoreButton = value.trim().isNotEmpty;
                             });
                           },
+                        ),
+                        SizedBox(height: isDesktop ? 16 : 12),
+                        RoundedWhiteContainer(
+                          child: Text(
+                            l10n.restoreWatchKeyInfo,
+                            style: isDesktop
+                                ? STextStyles.desktopTextExtraSmall(context)
+                                      .copyWith(
+                                        color: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .textSubtitle1,
+                                      )
+                                : STextStyles.itemSubtitle(context),
+                          ),
                         ),
                         if (!isDesktop) const Spacer(),
                         SizedBox(height: isDesktop ? 24 : 16),

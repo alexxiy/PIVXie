@@ -220,6 +220,11 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
   /// This wallet's account of its recovery phrase ([kPivxAccountKey]).
   late final int account = info.otherData[kPivxAccountKey] as int? ?? 0;
 
+  /// A view only wallet of a shield viewing key: it watches the key's
+  /// shield addresses and has no transparent side.
+  bool get isShieldViewOnly =>
+      isViewOnly && viewOnlyType == ViewOnlyWalletType.saplingViewingKey;
+
   String? _accountXpub;
   coinlib.HDPublicKey? _accountKey;
 
@@ -319,13 +324,18 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     if (isViewOnly && viewOnlyType == ViewOnlyWalletType.addressOnly) return;
     if (await getCurrentReceivingAddress() != null) return;
     await mainDB.updateOrPutAddresses([
-      await _deriveAddress(chain: 0, index: 0),
+      // A shield view only wallet shows the key's first shield address.
+      if (isShieldViewOnly)
+        await _defaultShieldAddressRow()
+      else
+        await _deriveAddress(chain: 0, index: 0),
     ]);
   }
 
   @override
   Future<void> generateNewReceivingAddress() async {
     if (isViewOnly && viewOnlyType == ViewOnlyWalletType.addressOnly) return;
+    if (isShieldViewOnly) return;
     final current = await getCurrentReceivingAddress();
     final address = await _deriveAddress(
       chain: 0,
@@ -341,6 +351,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
   @override
   Future<void> generateNewChangeAddress() async {
     if (isViewOnly && viewOnlyType == ViewOnlyWalletType.addressOnly) return;
+    if (isShieldViewOnly) return;
     final current = await getCurrentChangeAddress();
     await mainDB.updateOrPutAddresses([
       await _deriveAddress(
@@ -656,17 +667,20 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
   Future<void> _updateTransactions(Completer<void> fetched) async {
     _lastProgress = -1;
     _syncProgress(0);
-    final xpub = await accountXpub;
-    final result = await UiStallWatch.run(
-      "PIVX ${info.name}: history",
-      () async => bridge.xpubHistory(
-        xpub,
-        from: await _historyFromHeight(),
-        gap: await _bridgeGap(),
-      ),
-    );
+    // A shield view only wallet has no transparent history.
+    final result = isShieldViewOnly
+        ? null
+        : await UiStallWatch.run(
+            "PIVX ${info.name}: history",
+            () async => bridge.xpubHistory(
+              await accountXpub,
+              from: await _historyFromHeight(),
+              gap: await _bridgeGap(),
+            ),
+          );
+    final historyTxs = result?.txs ?? const <Map<String, dynamic>>[];
     _historyTxs = {
-      for (final json in result.txs)
+      for (final json in historyTxs)
         json["txid"] as String: (
           scripts: pivxOutputScripts(json),
           blockHash: json["blockHash"] as String?,
@@ -675,12 +689,14 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     };
     fetched.complete();
 
-    await UiStallWatch.run(
-      "PIVX ${info.name}: addresses",
-      () => _syncAddresses(result.info["tokens"] as List?),
-    );
-    // The transparent history is one request: its share of the bar.
-    _syncProgress(_shieldSupported ? 0.1 : 0.9);
+    if (result != null) {
+      await UiStallWatch.run(
+        "PIVX ${info.name}: addresses",
+        () => _syncAddresses(result.info["tokens"] as List?),
+      );
+      // The transparent history is one request: its share of the bar.
+      _syncProgress(_shieldSupported ? 0.1 : 0.9);
+    }
 
     // Shield first: transparent txs with a shield side (shielding,
     // unshielding) are only classified right with the scan's data.
@@ -692,9 +708,9 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     }
 
     final sets = await _addressSets();
-    final coldStake = await _coldStakeOutpoints(result.txs);
+    final coldStake = await _coldStakeOutpoints(historyTxs);
     final txns = <TransactionV2>[
-      for (final json in result.txs)
+      for (final json in historyTxs)
         ?_parseTx(json, sets: sets, isColdStakeOutpoint: coldStake),
     ];
     await UiStallWatch.run(
@@ -984,6 +1000,8 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
 
   @override
   Future<bool> updateUTXOs() async {
+    // A shield view only wallet's coins are its notes (see _syncShield).
+    if (isShieldViewOnly) return await _putUtxoRows(transparent: const []);
     final xpub = await accountXpub;
     final list = await bridge.utxo(xpub, gap: await _bridgeGap());
     // Let the history arrive first: it has the scripts of new outputs.
@@ -1131,7 +1149,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     }
     await checkSaveInitialReceivingAddress();
     final (_, change) = await _highestStoredIndices();
-    if (change < 0) {
+    if (change < 0 && !isShieldViewOnly) {
       await mainDB.updateOrPutAddresses([
         await _deriveAddress(chain: 1, index: 0),
       ]);

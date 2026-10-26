@@ -3,7 +3,13 @@ import 'dart:convert';
 import 'key_data_interface.dart';
 
 // do not remove or change the order of these enum values
-enum ViewOnlyWalletType { cryptonote, addressOnly, xPub, spark }
+enum ViewOnlyWalletType {
+  cryptonote,
+  addressOnly,
+  xPub,
+  spark,
+  saplingViewingKey,
+}
 
 class XPub {
   XPub({required this.path, required this.encoded});
@@ -40,6 +46,12 @@ sealed class ViewOnlyWalletData with KeyDataInterface {
 
       case ViewOnlyWalletType.xPub:
         return ExtendedKeysViewOnlyWalletData.fromJsonEncodedString(
+          jsonEncodedString,
+          walletId: walletId,
+        );
+
+      case ViewOnlyWalletType.saplingViewingKey:
+        return SaplingViewingKeyViewOnlyWalletData.fromJsonEncodedString(
           jsonEncodedString,
           walletId: walletId,
         );
@@ -117,4 +129,36 @@ class ExtendedKeysViewOnlyWalletData extends ViewOnlyWalletData {
       ...xPubs.map((e) => {"path": e.path, "encoded": e.encoded}),
     ],
   });
+}
+
+/// Watches the shield (Sapling) addresses of an extended full viewing key,
+/// as PIVX Core's `exportsaplingviewingkey` gives it: e.g. a service that
+/// publishes its key so anyone can check its shield transactions.
+class SaplingViewingKeyViewOnlyWalletData extends ViewOnlyWalletData {
+  @override
+  final type = ViewOnlyWalletType.saplingViewingKey;
+
+  final String viewingKey;
+
+  SaplingViewingKeyViewOnlyWalletData({
+    required super.walletId,
+    required this.viewingKey,
+  });
+
+  static SaplingViewingKeyViewOnlyWalletData fromJsonEncodedString(
+    String jsonEncodedString, {
+    required String walletId,
+  }) {
+    final map = jsonDecode(jsonEncodedString) as Map;
+    final json = Map<String, dynamic>.from(map);
+
+    return SaplingViewingKeyViewOnlyWalletData(
+      walletId: walletId,
+      viewingKey: json["viewingKey"] as String,
+    );
+  }
+
+  @override
+  String toJsonEncodedString() =>
+      jsonEncode({"type": type.index, "viewingKey": viewingKey});
 }
