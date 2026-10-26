@@ -382,7 +382,7 @@ PreferredSizeWidget pivxNamesFlowAppBar(BuildContext context, String title) =>
 // How it works
 
 const _kInfoSeenKey = "pivxNamesInfoSeen";
-const kPivxNamesTelegramUrl = "https://t.me/pivx_names";
+const kPivxNamesTelegramUrl = "https://t.me/pivx_name";
 const kPivxNamesDocsUrl = "https://docs.pivx.name/";
 
 /// Shows [showPivxNamesInfo] the first time Names opens.

@@ -333,7 +333,8 @@ class Pivx extends Bip39HDCurrency {
       case CryptoCurrencyNetwork.main:
         return Uri.parse("https://explorer.pivx.org/#/tx/$txid");
       case CryptoCurrencyNetwork.test:
-        return Uri.parse("https://testnet.rockdev.org/tx/$txid");
+        // Where the testnet explorer is to go (not online yet).
+        return Uri.parse("https://testnet.explorer.pivx.org/#/tx/$txid");
     }
   }
 }

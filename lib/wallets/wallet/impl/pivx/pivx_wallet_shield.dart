@@ -610,7 +610,18 @@ extension _PivxShield on PivxWallet {
     final output = File("${dir.path}/sapling-output.params");
     final spend = File("${dir.path}/sapling-spend.params");
 
-    final sources = [bridge.baseUri.toString(), "https://pivxla.bz"];
+    // From the wallet's node (the fastest bridge, unless the user chose a
+    // node); a file it can't give comes from the app's other bridges.
+    final sources = {
+      bridge.baseUri.toString(),
+      for (final node in cryptoCurrency.defaultNodes)
+        PivxBridgeClient.fromParts(
+          host: node.host,
+          port: node.port,
+          useSSL: node.useSSL,
+          useTor: false,
+        ).baseUri.toString(),
+    };
     // Sizes of the files whose hashes the prover checks.
     for (final (file, name, size, weight, base) in [
       (output, "sapling-output.params", 3592860, 0.07, 0.0),
