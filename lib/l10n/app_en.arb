@@ -306,10 +306,10 @@
   "@pivxNamesGetYourName": {
     "description": "The words between <b> and </b> show in color."
   },
-  "pivxNamesIntro": "Register an easy name for your PIVX address, and getting paid is as simple as sharing it.",
+  "pivxNamesIntro": "Register an easy name for your PIVX address, so others can send to the name instead of a long address.",
   "pivxNamesHowDoesItWork": "How does it work?",
   "pivxNamesRegisterYourName": "Register your name",
-  "pivxNamesEnterName": "Enter the name you want",
+  "pivxNamesEnterName": "Enter a name",
   "pivxNamesChecking": "Checking…",
   "pivxNamesCheck": "Check",
   "pivxNamesInFlight": "Your payment for this name is being processed.",
