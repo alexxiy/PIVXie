@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/misc.dart' show Override;
@@ -5,11 +7,13 @@ import 'package:flutter_svg/svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
+import 'package:paymint/l10n/l10n.dart';
 import 'package:paymint/models/isar/stack_theme.dart';
 import 'package:paymint/models/node_model.dart';
 import 'package:paymint/providers/providers.dart';
 import 'package:paymint/services/node_service.dart';
 import 'package:paymint/themes/stack_colors.dart';
+import 'package:paymint/utilities/test_node_connection.dart';
 import 'package:paymint/utilities/util.dart';
 import 'package:paymint/wallets/crypto_currency/crypto_currency.dart';
 import 'package:paymint/widgets/custom_buttons/blue_text_button.dart';
@@ -117,6 +121,52 @@ void main() {
     verify(nodeService.getNodeById(id: 'node id')).called(1);
     verify(nodeService.addListener(any)).called(1);
     verifyNoMoreInteractions(nodeService);
+  });
+
+  testWidgets('NodeCard shows its last test after its state', (tester) async {
+    final nodeService = MockNodeService();
+    final node = buildNode(id: 'node id', name: 'PIVXie US');
+    when(nodeService.getPrimaryNodeFor(currency: pivx))
+        .thenAnswer((_) => buildNode(id: 'other node id', name: 'PIVXie EU'));
+    when(nodeService.getNodeById(id: 'node id')).thenAnswer((_) => node);
+    final tests = NodeTests();
+
+    await pumpSubject(
+      tester,
+      nodeService: nodeService,
+      extraOverrides: [pNodeTests.overrideWith((_) => tests)],
+    );
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+
+    final answer = Completer<String?>();
+    final run = tests.run(node, () => answer.future);
+    await tester.pump();
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+    answer.complete(null);
+    final result = await run;
+    await tester.pump();
+    final colors = Theme.of(tester.element(find.byType(NodeCard)))
+        .extension<StackColors>()!;
+    // The connection level's bars that are green.
+    int greenBars() => tester
+        .widgetList<Container>(find.byType(Container))
+        .where(
+          (e) =>
+              e.decoration is BoxDecoration &&
+              (e.decoration! as BoxDecoration).color == colors.accentColorGreen,
+        )
+        .length;
+
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+    expect(find.text(answerTime(result.time)), findsOneWidget);
+    expect(greenBars(), result.level);
+
+    await tests.run(node, () async => l10n.nodeUnreachable);
+    await tester.pump();
+    final noAnswer = tester.widget<Text>(find.text('No answer'));
+    expect(noAnswer.style?.color, colors.accentColorRed);
+    expect(greenBars(), 0);
   });
 
   testWidgets('tap to open context menu on default node', (tester) async {

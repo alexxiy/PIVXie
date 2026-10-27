@@ -199,9 +199,10 @@ class PivxBridgeClient {
     return client;
   }
 
-  /// Close the connections; pending requests still finish.
-  void close() {
-    _httpClient?.close();
+  /// Close the connections; pending requests still finish, unless
+  /// [force].
+  void close({bool force = false}) {
+    _httpClient?.close(force: force);
     _httpClient = null;
   }
 

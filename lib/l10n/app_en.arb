@@ -3015,8 +3015,63 @@
   "nodeAdd": "Add node",
   "nodeAddNew": "Add new node",
   "nodeTestConnection": "Test connection",
-  "nodePingSuccess": "Server ping success",
   "nodeUnreachable": "Server unreachable",
+  "nodeTestAll": "Test all",
+  "@nodeTestAll": {
+    "description": "Button under a coin's list of nodes: tests every node and shows each one's answer time in its row."
+  },
+  "nodeTesting": "Testing…",
+  "@nodeTesting": {
+    "description": "On a button while a node test runs."
+  },
+  "nodeConnecting": "Connecting…",
+  "@nodeConnecting": {
+    "description": "On the Connect button while the node is checked before the app switches to it."
+  },
+  "nodeConnectedTo": "Connected to {node}",
+  "@nodeConnectedTo": {
+    "description": "Shown after the user switched to a node. {node}: the node's name, like \"PIVXie EU\".",
+    "placeholders": {
+      "node": {
+        "type": "String"
+      }
+    }
+  },
+  "nodeAnsweredIn": "The node works. It answered in {time}.",
+  "@nodeAnsweredIn": {
+    "description": "A node passed the connection test. {time}: how long the test took, like \"142 ms\" or \"1.4 s\".",
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "nodeNoAnswer": "No answer",
+  "@nodeNoAnswer": {
+    "description": "In a node's row after a test: the node didn't answer (unreachable, or no answer within 20 seconds)."
+  },
+  "nodeCheckFailed": "Check failed",
+  "@nodeCheckFailed": {
+    "description": "In a node's row after a test: the node answered but isn't usable (wrong network, no address index...)."
+  },
+  "nodeAnswerMs": "{ms} ms",
+  "@nodeAnswerMs": {
+    "description": "A node's answer time in milliseconds, in its row.",
+    "placeholders": {
+      "ms": {
+        "type": "int"
+      }
+    }
+  },
+  "nodeAnswerSeconds": "{seconds} s",
+  "@nodeAnswerSeconds": {
+    "description": "A node's answer time in seconds (\"1.4\", \"12\", with the language's decimal separator), in its row.",
+    "placeholders": {
+      "seconds": {
+        "type": "String"
+      }
+    }
+  },
   "nodeName": "Node name",
   "nodeIpAddress": "IP address",
   "nodePort": "Port",

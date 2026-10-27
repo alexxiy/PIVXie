@@ -15,13 +15,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../app_config.dart';
 import '../../../l10n/l10n.dart';
+import '../../../models/node_model.dart';
 import '../../../providers/providers.dart';
 import '../../../services/fastest_node.dart';
 import '../../../themes/stack_colors.dart';
+import '../../../utilities/test_node_connection.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../widgets/custom_buttons/draggable_switch_button.dart';
+import '../../../widgets/desktop/secondary_button.dart';
 import '../../../widgets/node_card.dart';
 import '../../../widgets/rounded_white_container.dart';
 
@@ -59,6 +62,56 @@ class NodesList extends ConsumerWidget {
               coin: coin,
               popBackToRoute: popBackToRoute,
             ),
+          ),
+        ),
+        if (nodes.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(top: 8, bottom: 4),
+            child: _TestAll(coin: coin, nodes: nodes),
+          ),
+      ],
+    );
+  }
+}
+
+/// Tests all of [coin]'s nodes at once; each one's row shows how fast it
+/// answered, or what kept it from passing.
+class _TestAll extends ConsumerWidget {
+  const _TestAll({required this.coin, required this.nodes});
+
+  final CryptoCurrency coin;
+  final List<NodeModel> nodes;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final testing = ref.watch(
+      pNodeTests.select((value) => nodes.any((e) => value.isTesting(e.id))),
+    );
+
+    return Row(
+      children: [
+        Expanded(
+          child: SecondaryButton(
+            label: testing ? l10n.nodeTesting : l10n.nodeTestAll,
+            enabled: !testing,
+            icon: testing
+                ? SizedBox(
+                    width: 16,
+                    height: 16,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .buttonTextSecondaryDisabled,
+                    ),
+                  )
+                : null,
+            buttonHeight: Util.isDesktop ? ButtonHeight.m : null,
+            onPressed: () {
+              for (final node in nodes) {
+                unawaited(testNodeOf(ref, context, node, coin));
+              }
+            },
           ),
         ),
       ],

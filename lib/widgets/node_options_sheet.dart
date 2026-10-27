@@ -16,8 +16,8 @@ import 'package:flutter_svg/svg.dart';
 import 'package:tuple/tuple.dart';
 
 import '../l10n/l10n.dart';
+import '../models/node_model.dart';
 import '../notifications/show_flush_bar.dart';
-import '../pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import '../pages/settings_views/global_settings_view/manage_nodes_views/node_details_view.dart';
 import '../providers/global/active_wallet_provider.dart';
 import '../providers/providers.dart';
@@ -28,11 +28,12 @@ import '../utilities/default_nodes.dart';
 import '../utilities/enums/sync_type_enum.dart';
 import '../utilities/test_node_connection.dart';
 import '../utilities/text_styles.dart';
-import '../utilities/tor_plain_net_option_enum.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
+import 'node_signal_icon.dart';
 import 'rounded_white_container.dart';
 
-class NodeOptionsSheet extends ConsumerWidget {
+/// Closes with true when the user switched to the node.
+class NodeOptionsSheet extends ConsumerStatefulWidget {
   const NodeOptionsSheet({
     super.key,
     required this.nodeId,
@@ -43,6 +44,17 @@ class NodeOptionsSheet extends ConsumerWidget {
   final String nodeId;
   final CryptoCurrency coin;
   final String popBackToRoute;
+
+  @override
+  ConsumerState<NodeOptionsSheet> createState() => _NodeOptionsSheetState();
+}
+
+class _NodeOptionsSheetState extends ConsumerState<NodeOptionsSheet> {
+  String get nodeId => widget.nodeId;
+  CryptoCurrency get coin => widget.coin;
+  String get popBackToRoute => widget.popBackToRoute;
+
+  bool _connecting = false;
 
   Future<void> _notifyWalletsOfUpdatedNode(WidgetRef ref) async {
     final wallets = ref
@@ -79,8 +91,44 @@ class NodeOptionsSheet extends ConsumerWidget {
     }
   }
 
+  Future<void> _connect(NodeModel node) async {
+    setState(() => _connecting = true);
+    try {
+      final result = await testNodeOf(ref, context, node, coin);
+      if (!result.passed) {
+        if (mounted) {
+          unawaited(
+            showFloatingFlushBar(
+              type: FlushBarType.warning,
+              message: result.problem!,
+              context: context,
+            ),
+          );
+        }
+        return;
+      }
+
+      // The user chose it: the app leaves it.
+      ref
+          .read(prefsChangeNotifierProvider)
+          .setNodeChosenByUser(coin.identifier, true);
+      await ref
+          .read(nodeServiceChangeNotifierProvider)
+          .setPrimaryNodeFor(
+            coin: coin,
+            node: node,
+            shouldNotifyListeners: true,
+          );
+
+      await _notifyWalletsOfUpdatedNode(ref);
+      if (mounted) unawaited(Navigator.of(context).maybePop(true));
+    } finally {
+      if (mounted) setState(() => _connecting = false);
+    }
+  }
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final maxHeight = MediaQuery.of(context).size.height * 0.60;
     final node = ref.watch(
       nodeServiceChangeNotifierProvider.select(
@@ -197,16 +245,10 @@ class NodeOptionsSheet extends ConsumerWidget {
                           ],
                         ),
                         const Spacer(),
-                        SvgPicture.asset(
-                          Assets.svg.network,
-                          color: status == "Connected"
-                              ? Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .accentColorGreen
-                              : Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .buttonBackSecondary,
-                          width: 18,
+                        NodeSignalIcon(
+                          nodeId: nodeId,
+                          connected: status == "Connected",
+                          size: 18,
                         ),
                       ],
                     ),
@@ -240,69 +282,40 @@ class NodeOptionsSheet extends ConsumerWidget {
                       const SizedBox(width: 12),
                       Expanded(
                         child: TextButton(
-                          style: status == "Connected"
+                          style: status == "Connected" || _connecting
                               ? Theme.of(context)
                                     .extension<StackColors>()!
                                     .getPrimaryDisabledButtonStyle(context)
                               : Theme.of(context)
                                     .extension<StackColors>()!
                                     .getPrimaryEnabledButtonStyle(context),
-                          onPressed: status == "Connected"
+                          onPressed: status == "Connected" || _connecting
                               ? null
-                              : () async {
-                                  if (context.mounted) {
-                                    final problem =
-                                        await ref.read(
-                                          testNodeConnectionProvider,
-                                        )(
-                                          context: context,
-                                          nodeFormData: NodeFormData()
-                                            ..name = node.name
-                                            ..host = node.host
-                                            ..port = node.port
-                                            ..useSSL = node.useSSL
-                                            ..netOption =
-                                                TorPlainNetworkOption.fromNodeData(
-                                                  node.torEnabled,
-                                                  node.clearnetEnabled,
-                                                ),
-                                          cryptoCurrency: coin,
-                                        );
-                                    if (problem != null) {
-                                      if (context.mounted) {
-                                        unawaited(
-                                          showFloatingFlushBar(
-                                            type: FlushBarType.warning,
-                                            message: problem,
-                                            context: context,
-                                          ),
-                                        );
-                                      }
-                                      return;
-                                    }
-
-                                    // The user chose it: the app leaves it.
-                                    ref
-                                        .read(prefsChangeNotifierProvider)
-                                        .setNodeChosenByUser(
-                                          coin.identifier,
-                                          true,
-                                        );
-                                    await ref
-                                        .read(nodeServiceChangeNotifierProvider)
-                                        .setPrimaryNodeFor(
-                                          coin: coin,
-                                          node: node,
-                                          shouldNotifyListeners: true,
-                                        );
-
-                                    await _notifyWalletsOfUpdatedNode(ref);
-                                  }
-                                },
-                          child: Text(
-                            // status == "Connected" ? "Disconnect" : "Connect",
-                            l10n.commonConnect,
-                            style: STextStyles.button(context),
+                              : () => _connect(node),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (_connecting) ...[
+                                SizedBox(
+                                  width: 14,
+                                  height: 14,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: STextStyles.button(context).color,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                              ],
+                              Flexible(
+                                child: Text(
+                                  _connecting
+                                      ? l10n.nodeConnecting
+                                      : l10n.commonConnect,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: STextStyles.button(context),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),

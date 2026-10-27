@@ -72,12 +72,22 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
   late bool saveEnabled;
   late bool testConnectionEnabled;
 
+  /// The node is being tested, for Test connection or before saving.
+  bool _testing = false, _saving = false;
+  bool get _busy => _testing || _saving;
+
   Future<void> attemptSave() async {
-    final problem = await ref.read(testNodeConnectionProvider)(
-      context: context,
-      cryptoCurrency: coin,
-      nodeFormData: ref.read(nodeFormDataProvider),
-    );
+    setState(() => _saving = true);
+    final String? problem;
+    try {
+      problem = await ref.read(testNodeConnectionProvider)(
+        context: context,
+        cryptoCurrency: coin,
+        nodeFormData: ref.read(nodeFormDataProvider),
+      );
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
     final canConnect = problem == null;
     // "Unreachable" is the title; any other reason goes above the question.
     final unreachable = problem == l10n.nodeUnreachable;
@@ -507,24 +517,46 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
               children: [
                 Expanded(
                   child: SecondaryButton(
-                    label: l10n.nodeTestConnection,
-                    enabled: testConnectionEnabled,
+                    label: _testing
+                        ? l10n.nodeTesting
+                        : l10n.nodeTestConnection,
+                    enabled: testConnectionEnabled && !_busy,
+                    icon: _testing
+                        ? _Spinner(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .buttonTextSecondaryDisabled,
+                          )
+                        : null,
                     buttonHeight: isDesktop ? ButtonHeight.l : null,
-                    onPressed: testConnectionEnabled
+                    onPressed: testConnectionEnabled && !_busy
                         ? () async {
-                            final problem =
-                                await ref.read(testNodeConnectionProvider)(
-                                  context: context,
-                                  cryptoCurrency: coin,
-                                  nodeFormData: ref.read(nodeFormDataProvider),
-                                );
+                            setState(() => _testing = true);
+                            final time = Stopwatch()..start();
+                            final String? problem;
+                            try {
+                              problem =
+                                  await ref.read(testNodeConnectionProvider)(
+                                    context: context,
+                                    cryptoCurrency: coin,
+                                    nodeFormData: ref.read(
+                                      nodeFormDataProvider,
+                                    ),
+                                  );
+                            } finally {
+                              if (mounted) setState(() => _testing = false);
+                            }
                             if (context.mounted) {
                               unawaited(
                                 showFloatingFlushBar(
                                   type: problem == null
                                       ? FlushBarType.success
                                       : FlushBarType.warning,
-                                  message: problem ?? l10n.nodePingSuccess,
+                                  message:
+                                      problem ??
+                                      l10n.nodeAnsweredIn(
+                                        answerTime(time.elapsed),
+                                      ),
                                   context: context,
                                 ),
                               );
@@ -537,10 +569,17 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                 if (isDesktop)
                   Expanded(
                     child: PrimaryButton(
-                      label: l10n.commonSave,
-                      enabled: saveEnabled,
+                      label: _saving ? l10n.nodeTesting : l10n.commonSave,
+                      enabled: saveEnabled && !_busy,
+                      icon: _saving
+                          ? _Spinner(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .buttonTextPrimaryDisabled,
+                            )
+                          : null,
                       buttonHeight: ButtonHeight.l,
-                      onPressed: saveEnabled ? attemptSave : null,
+                      onPressed: saveEnabled && !_busy ? attemptSave : null,
                     ),
                   ),
               ],
@@ -548,17 +587,26 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
             if (!isDesktop) const SizedBox(height: 16),
             if (!isDesktop)
               TextButton(
-                style: saveEnabled
+                style: saveEnabled && !_busy
                     ? Theme.of(context)
                           .extension<StackColors>()!
                           .getPrimaryEnabledButtonStyle(context)
                     : Theme.of(context)
                           .extension<StackColors>()!
                           .getPrimaryDisabledButtonStyle(context),
-                onPressed: saveEnabled ? attemptSave : null,
-                child: Text(
-                  l10n.commonSave,
-                  style: STextStyles.button(context),
+                onPressed: saveEnabled && !_busy ? attemptSave : null,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (_saving) ...[
+                      _Spinner(color: STextStyles.button(context).color),
+                      const SizedBox(width: 8),
+                    ],
+                    Text(
+                      _saving ? l10n.nodeTesting : l10n.commonSave,
+                      style: STextStyles.button(context),
+                    ),
+                  ],
                 ),
               ),
           ],
@@ -1037,4 +1085,18 @@ class RadioTextButton<T> extends StatelessWidget {
       ),
     );
   }
+}
+
+/// On a button while the node is tested, in its label's [color].
+class _Spinner extends StatelessWidget {
+  const _Spinner({required this.color});
+
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) => SizedBox(
+    width: 16,
+    height: 16,
+    child: CircularProgressIndicator(strokeWidth: 2, color: color),
+  );
 }

@@ -122,6 +122,10 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
 
     final canDelete = nodesForCoin.length > 1;
 
+    final testing = ref.watch(
+      pNodeTests.select((value) => value.isTesting(nodeId)),
+    );
+
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) => Background(
@@ -281,7 +285,20 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
               children: [
                 Expanded(
                   child: SecondaryButton(
-                    label: l10n.nodeTestConnection,
+                    label: testing ? l10n.nodeTesting : l10n.nodeTestConnection,
+                    enabled: !testing,
+                    icon: testing
+                        ? SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .buttonTextSecondaryDisabled,
+                            ),
+                          )
+                        : null,
                     buttonHeight: isDesktop ? ButtonHeight.l : null,
                     onPressed: () async {
                       final node = ref
@@ -298,32 +315,26 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
                         );
                       }
 
-                      final nodeFormData = NodeFormData()
-                        ..useSSL = node.useSSL
-                        ..name = node.name
-                        ..host = node.host
-                        ..port = node.port
-                        ..netOption = netOption;
+                      final result = await testNodeOf(
+                        ref,
+                        context,
+                        node,
+                        coin,
+                        formData: nodeFormDataOf(node)..netOption = netOption,
+                      );
 
                       if (context.mounted) {
-                        final problem =
-                            await ref.read(testNodeConnectionProvider)(
-                              context: context,
-                              nodeFormData: nodeFormData,
-                              cryptoCurrency: coin,
-                            );
-
-                        if (context.mounted) {
-                          unawaited(
-                            showFloatingFlushBar(
-                              type: problem == null
-                                  ? FlushBarType.success
-                                  : FlushBarType.warning,
-                              message: problem ?? l10n.nodePingSuccess,
-                              context: context,
-                            ),
-                          );
-                        }
+                        unawaited(
+                          showFloatingFlushBar(
+                            type: result.passed
+                                ? FlushBarType.success
+                                : FlushBarType.warning,
+                            message:
+                                result.problem ??
+                                l10n.nodeAnsweredIn(answerTime(result.time)),
+                            context: context,
+                          ),
+                        );
                       }
                     },
                   ),

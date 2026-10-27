@@ -17,7 +17,6 @@ import 'package:tuple/tuple.dart';
 
 import '../l10n/l10n.dart';
 import '../notifications/show_flush_bar.dart';
-import '../pages/settings_views/global_settings_view/manage_nodes_views/add_edit_node_view.dart';
 import '../pages/settings_views/global_settings_view/manage_nodes_views/node_details_view.dart';
 import '../providers/global/active_wallet_provider.dart';
 import '../providers/providers.dart';
@@ -28,13 +27,13 @@ import '../utilities/default_nodes.dart';
 import '../utilities/enums/sync_type_enum.dart';
 import '../utilities/test_node_connection.dart';
 import '../utilities/text_styles.dart';
-import '../utilities/tor_plain_net_option_enum.dart';
 import '../utilities/util.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
 import 'conditional_parent.dart';
 import 'custom_buttons/blue_text_button.dart';
 import 'expandable.dart';
 import 'node_options_sheet.dart';
+import 'node_signal_icon.dart';
 import 'rounded_white_container.dart';
 
 class NodeCard extends ConsumerStatefulWidget {
@@ -57,6 +56,7 @@ class _NodeCardState extends ConsumerState<NodeCard> {
   String _status = "Disconnected";
   late final String nodeId;
   bool _advancedIsExpanded = false;
+  bool _connecting = false;
 
   Future<void> _notifyWalletsOfUpdatedNode(WidgetRef ref) async {
     final wallets = ref
@@ -112,6 +112,10 @@ class _NodeCardState extends ConsumerState<NodeCard> {
       ),
     )!;
 
+    final testResult = ref.watch(
+      pNodeTests.select((value) => value.resultFor(nodeId)),
+    );
+
     if (node?.name == _node.name) {
       _status = "Connected";
     } else {
@@ -134,8 +138,9 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                 Constants.size.circularBorderRadius,
               ),
             ),
-            onPressed: () {
-              showModalBottomSheet<void>(
+            onPressed: () async {
+              // True: the user switched to this node.
+              final connected = await showModalBottomSheet<bool>(
                 backgroundColor: Colors.transparent,
                 context: context,
                 builder: (_) => NodeOptionsSheet(
@@ -144,6 +149,15 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                   popBackToRoute: widget.popBackToRoute,
                 ),
               );
+              if (connected == true && context.mounted) {
+                unawaited(
+                  showFloatingFlushBar(
+                    type: FlushBarType.success,
+                    message: l10n.nodeConnectedTo(_node.name),
+                    context: context,
+                  ),
+                );
+              }
             },
             child: child,
           );
@@ -164,34 +178,26 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                   children: [
                     const SizedBox(width: 66),
                     CustomTextButton(
-                      text: l10n.commonConnect,
-                      enabled: _status == "Disconnected",
+                      text: _connecting
+                          ? l10n.nodeConnecting
+                          : l10n.commonConnect,
+                      enabled: _status == "Disconnected" && !_connecting,
                       onTap: () async {
-                        final nodeFormData = NodeFormData()
-                          ..useSSL = _node.useSSL
-                          ..name = _node.name
-                          ..host = _node.host
-                          ..port = _node.port
-                          ..netOption = TorPlainNetworkOption.fromNodeData(
-                            _node.torEnabled,
-                            _node.clearnetEnabled,
+                        setState(() => _connecting = true);
+                        try {
+                          final result = await testNodeOf(
+                            ref,
+                            context,
+                            _node,
+                            widget.coin,
                           );
-
-                        if (context.mounted) {
-                          final problem =
-                              await ref.read(testNodeConnectionProvider)(
-                                context: context,
-                                nodeFormData: nodeFormData,
-                                cryptoCurrency: widget.coin,
-                              );
-
-                          if (problem != null) {
+                          if (!result.passed) {
                             if (context.mounted) {
                               unawaited(
                                 showFloatingFlushBar(
                                   type: FlushBarType.warning,
                                   iconAsset: Assets.svg.circleAlert,
-                                  message: problem,
+                                  message: result.problem!,
                                   context: context,
                                 ),
                               );
@@ -215,6 +221,17 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                               );
 
                           await _notifyWalletsOfUpdatedNode(ref);
+                          if (context.mounted) {
+                            unawaited(
+                              showFloatingFlushBar(
+                                type: FlushBarType.success,
+                                message: l10n.nodeConnectedTo(_node.name),
+                                context: context,
+                              ),
+                            );
+                          }
+                        } finally {
+                          if (mounted) setState(() => _connecting = false);
                         }
                       },
                     ),
@@ -272,33 +289,40 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                   ),
                 ),
                 const SizedBox(width: 12),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(_node.name, style: STextStyles.titleBold12(context)),
-                    const SizedBox(height: 2),
-                    Text(
-                      _status == "Connected"
-                          ? l10n.commonConnected
-                          : l10n.commonDisconnected,
-                      style: STextStyles.label(context),
-                    ),
-                  ],
-                ),
-                const Spacer(),
-                if (!isDesktop)
-                  SvgPicture.asset(
-                    Assets.svg.network,
-                    color: _status == "Connected"
-                        ? Theme.of(context)
-                              .extension<StackColors>()!
-                              .accentColorGreen
-                        : Theme.of(context)
-                              .extension<StackColors>()!
-                              .buttonBackSecondary,
-                    width: 20,
-                    height: 20,
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(_node.name, style: STextStyles.titleBold12(context)),
+                      const SizedBox(height: 2),
+                      Row(
+                        children: [
+                          Text(
+                            _status == "Connected"
+                                ? l10n.commonConnected
+                                : l10n.commonDisconnected,
+                            style: STextStyles.label(context),
+                          ),
+                          _NodeTestStatus(nodeId: nodeId),
+                        ],
+                      ),
+                    ],
                   ),
+                ),
+                const SizedBox(width: 12),
+                if (!isDesktop)
+                  NodeSignalIcon(
+                    nodeId: nodeId,
+                    connected: _status == "Connected",
+                  ),
+                // On desktop only after a test, for how good it was.
+                if (isDesktop && testResult != null) ...[
+                  NodeSignalIcon(
+                    nodeId: nodeId,
+                    connected: _status == "Connected",
+                  ),
+                  const SizedBox(width: 16),
+                ],
                 if (isDesktop)
                   SvgPicture.asset(
                     _advancedIsExpanded
@@ -314,6 +338,58 @@ class _NodeCardState extends ConsumerState<NodeCard> {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// The node's test, after its connection state: a spinner while one runs,
+/// then how fast it answered or what kept it from passing.
+class _NodeTestStatus extends ConsumerWidget {
+  const _NodeTestStatus({required this.nodeId});
+
+  final String nodeId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final testing = ref.watch(
+      pNodeTests.select((value) => value.isTesting(nodeId)),
+    );
+    final result = ref.watch(
+      pNodeTests.select((value) => value.resultFor(nodeId)),
+    );
+    if (!testing && result == null) return const SizedBox.shrink();
+
+    final style = STextStyles.label(context);
+    return Flexible(
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(" · ", style: style),
+          if (testing)
+            SizedBox(
+              width: 10,
+              height: 10,
+              child: CircularProgressIndicator(
+                strokeWidth: 1.5,
+                color: style.color,
+              ),
+            )
+          else
+            Flexible(
+              child: Text(
+                result!.short,
+                overflow: TextOverflow.ellipsis,
+                style: result.passed
+                    ? style
+                    : style.copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorRed,
+                      ),
+              ),
+            ),
+        ],
       ),
     );
   }
