@@ -22,16 +22,15 @@ for dirname in "default_themes" "icon" "lottie" "in_app_logo_icons" "svg"; do
 
   rm -f "${ASSETS_DIR}/${dirname}"
 
-  if [[ "${APP_BUILD_PLATFORM}" = 'windows' ]]; then
-    if command -v cygpath >/dev/null 2>&1; then
-      LINK_SOURCE_DIR_WIN_PATH_VERSION=$(cygpath -w "${LINK_SOURCE_DIR}")
-      LINK_NAME_WIN_PATH_VERSION=$(cygpath -w "${ASSETS_DIR}")
-    else
-      LINK_SOURCE_DIR_WIN_PATH_VERSION=$(wslpath -w "${LINK_SOURCE_DIR}")
-      LINK_NAME_WIN_PATH_VERSION=$(wslpath -w "${ASSETS_DIR}")
-    fi
+  if [[ "${APP_BUILD_PLATFORM}" = 'windows' ]] && ! command -v cygpath >/dev/null 2>&1; then
+    # WSL: a Windows directory link, which the Windows Flutter follows.
+    LINK_SOURCE_DIR_WIN_PATH_VERSION=$(wslpath -w "${LINK_SOURCE_DIR}")
+    LINK_NAME_WIN_PATH_VERSION=$(wslpath -w "${ASSETS_DIR}")
     cmd.exe /c mklink /D "${LINK_NAME_WIN_PATH_VERSION}\\${dirname}" "${LINK_SOURCE_DIR_WIN_PATH_VERSION}"
   else
-    ln -s "${LINK_SOURCE_DIR}" "${ASSETS_DIR}/${dirname}"
+    # On Windows (Git Bash, CI) these make ln create real Windows links
+    # instead of copies (needs admin or Developer Mode); elsewhere unused.
+    MSYS=winsymlinks:nativestrict CYGWIN=winsymlinks:nativestrict \
+      ln -s "${LINK_SOURCE_DIR}" "${ASSETS_DIR}/${dirname}"
   fi
 done

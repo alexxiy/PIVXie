@@ -3,7 +3,7 @@ name: Test
 on:
   pull_request:
   push:
-    branches: [pivxie]
+    branches: [main]
   workflow_dispatch:
 
 jobs:

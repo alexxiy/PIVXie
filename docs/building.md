@@ -163,7 +163,7 @@ mkdir -p build/linux/x64/release/secp256k1
 ln -s lib64 build/linux/x64/release/secp256k1/lib
 ```
 
-Packaging files are in `flatpak/` (`alexxiy.pivxie.PIVXie`, runtime `org.freedesktop.Platform` 26.08) and `appimage/pivxie/`. Both start from the release bundle; `.github/workflows/build.yaml` shows the full steps.
+Packaging files are in `flatpak/` (`alexxiy.pivxie.PIVXie`, runtime `org.freedesktop.Platform` 26.08) and `appimage/pivxie/`. Both start from the release bundle; `.github/workflows/build.yaml` shows the full steps (for arm64; x86_64 is the same with `x64` paths and `x86_64` names).
 
 `pivx:` payment links: the app runs as a single instance (unless started with `-d <dir>`), so starting it again with a link hands the link to the running window. The desktop entries of both packages register the `pivx` scheme. To open links with a plain bundle, install a desktop entry for it, e.g. `~/.local/share/applications/pivxie.desktop` with `Exec=/path/to/bundle/pivxie %u` and `MimeType=x-scheme-handler/pivx;`, then run `xdg-mime default pivxie.desktop x-scheme-handler/pivx`.
 
@@ -171,7 +171,15 @@ Packaging files are in `flatpak/` (`alexxiy.pivxie.PIVXie`, runtime `org.freedes
 
 The SHIELD plugin has Windows and macOS build files (cargokit), and both targets configure with `build_app.sh -p windows` or `-p macos`, but these builds are untested.
 
+On Windows, run the scripts in Git Bash (or WSL). Before `flutter build windows`, build secp256k1 into `build/secp256k1.dll` (`scripts/windows/build_secp256k1.bat`, or see the CI workflow).
+
 For `pivx:` links, the Windows app registers itself for the current user when it starts, unless another installed app (e.g. PIVX Core) already handles them. The macOS app declares the scheme in `macos/Runner/Info.plist`.
+
+## CI builds
+
+`.github/workflows/build.yaml` (Actions > Build > Run workflow) builds what a Linux host can't: Linux arm64 (tarball, AppImage, Flatpak), Windows x64, macOS and an iOS archive. Android and Linux x86_64 are built on a Linux host as above. Use the same version and build number for both.
+
+Nothing is signed in CI. The Windows zip and the macOS app (only ad-hoc signed) are signed locally; the iOS archive is exported to App Store Connect from a Mac (Xcode Organizer or `xcodebuild -exportArchive`), which signs it. With `release` ticked, the Linux arm64, Windows and macOS files go on the draft release `v<version>`; the iOS archive stays in the run's artifacts.
 
 ## Troubleshooting
 

@@ -1,77 +1,247 @@
 name: Build
 
+# The builds the DevBox can't make: Linux arm64 (tarball, AppImage,
+# Flatpak), Windows, macOS and an iOS archive. Android and Linux x86_64
+# are built on the DevBox.
+#
+# Nothing here is signed and no signing keys live on GitHub. Sign the
+# Windows and macOS files locally; export the iOS archive to App Store
+# Connect from a Mac, which signs it.
+#
+# Run it from Actions > Build > Run workflow. With "release" ticked, the
+# Linux arm64, Windows and macOS files also go on the draft release
+# v<version> (made if there is none). A published release is never changed.
+
 on:
-  push:
-    tags:
-      - 'v[0-9]+.[0-9]+.[0-9]+'
   workflow_dispatch:
     inputs:
       version:
-        description: 'App version (e.g. 1.2.3)'
+        description: 'App version, e.g. 1.2.0'
         required: true
-        default: '0.0.1'
       build_number:
-        description: 'Build number (integer)'
+        description: 'Build number, the same as the DevBox build'
         required: true
-        default: '1'
       testnet:
         description: 'Include the PIVX testnet (test builds only)'
         type: boolean
         default: false
+      release:
+        description: 'Put the desktop builds on the draft release v<version>'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
 
 env:
   FLUTTER_VERSION: 3.47.7
-  ANDROID_NDK_VERSION: 28.0.13004108
+  # The Rust the Tor plugin pins (its rust-toolchain.toml, at the
+  # tor_ffi_plugin ref in the pubspec template): update them together.
+  TOR_RUST: 1.99.1
 
 jobs:
   version:
+    name: Version
     runs-on: ubuntu-24.04
     outputs:
       version: ${{ steps.ver.outputs.version }}
       build_number: ${{ steps.ver.outputs.build_number }}
       dart_defines: ${{ steps.ver.outputs.dart_defines }}
     steps:
-      - name: Set version
+      - name: Check inputs
         id: ver
+        env:
+          VERSION: ${{ inputs.version }}
+          BUILD_NUMBER: ${{ inputs.build_number }}
+          TESTNET: ${{ inputs.testnet }}
+          RELEASE: ${{ inputs.release }}
         run: |
-          if [ "${{ github.ref_type }}" = "tag" ]; then
-            VERSION="${{ github.ref_name }}"
-            VERSION="${VERSION#v}"
-            BUILD_NUMBER="${{ github.run_number }}"
-          else
-            VERSION="${{ inputs.version }}"
-            BUILD_NUMBER="${{ inputs.build_number }}"
+          if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::The version must look like 1.2.0, not '$VERSION'"
+            exit 1
+          fi
+          if ! [[ "$BUILD_NUMBER" =~ ^[0-9]+$ ]]; then
+            echo "::error::The build number must be a whole number, not '$BUILD_NUMBER'"
+            exit 1
           fi
           DEFINES=""
-          if [ "${{ inputs.testnet }}" = "true" ]; then
+          if [ "$TESTNET" = "true" ]; then
+            if [ "$RELEASE" = "true" ]; then
+              echo "::error::Testnet builds don't go on releases"
+              exit 1
+            fi
             DEFINES="--dart-define=PIVX_TESTNET=true"
           fi
-          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
-          echo "build_number=${BUILD_NUMBER}" >> "$GITHUB_OUTPUT"
-          echo "dart_defines=${DEFINES}" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "build_number=$BUILD_NUMBER" >> "$GITHUB_OUTPUT"
+          echo "dart_defines=$DEFINES" >> "$GITHUB_OUTPUT"
 
       - name: Post tester note
-        if: github.ref_type != 'tag'
+        if: ${{ !inputs.release }}
         run: |
           cat >> "$GITHUB_STEP_SUMMARY" << 'EOF'
           > [!CAUTION]
-          > **These are development builds, not releases.** They have not been tested and may contain bugs. Use them at your own risk and not with real funds.
+          > **These are development builds, not releases.** They have not been tested and may contain bugs. Use them at your own risk and not with real coins.
           EOF
 
-  build-android:
-    runs-on: ubuntu-24.04
+  linux-arm64:
+    name: Linux arm64
+    # 22.04 for its older glibc (2.35): the build then also runs on
+    # Debian 12 and Raspberry Pi OS.
+    runs-on: ubuntu-22.04-arm
     needs: version
+    env:
+      VERSION: ${{ needs.version.outputs.version }}
+      BUILD_NUMBER: ${{ needs.version.outputs.build_number }}
+      DART_DEFINES: ${{ needs.version.outputs.dart_defines }}
+      # Link the system libsecret and jsoncpp.
+      USE_SYSTEM_SECURE_STORAGE_DEPS: "1"
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y --no-install-recommends \
+            clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev \
+            libstdc++-12-dev libsecret-1-dev libjsoncpp-dev \
+            libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev \
+            binutils curl file squashfs-tools unzip xz-utils zip
+
+      # Flutter publishes no Linux arm64 SDK archive. Its git checkout
+      # fetches the arm64 Dart SDK and engine on first run.
+      - name: Install Flutter
+        run: |
+          git clone --depth 1 --branch "$FLUTTER_VERSION" \
+            https://github.com/flutter/flutter.git "$RUNNER_TEMP/flutter"
+          echo "$RUNNER_TEMP/flutter/bin" >> "$GITHUB_PATH"
+          "$RUNNER_TEMP/flutter/bin/flutter" config --no-analytics
+          "$RUNNER_TEMP/flutter/bin/flutter" --version
+
+      # The SHIELD library is Rust, built by cargokit; the Tor plugin
+      # builds with the Rust it pins.
+      - uses: dtolnay/rust-toolchain@stable
+
+      - name: Install the Tor plugin's Rust
+        run: rustup toolchain install "$TOR_RUST" --profile minimal
+
+      - name: Configure app
+        working-directory: scripts
+        run: echo yes | ./build_app.sh -a pivxie -p linux -i -s -v "$VERSION" -b "$BUILD_NUMBER"
+
+      # The QR scanner's camera support links a small static OpenCV, so the
+      # bundle runs without OpenCV installed.
+      - name: Cache OpenCV
+        uses: actions/cache@v5
+        with:
+          path: scripts/linux/build/opencv/install
+          key: opencv-ubuntu-22.04-arm64-${{ hashFiles('scripts/linux/build_opencv.sh') }}
+
+      - name: Build OpenCV
+        working-directory: scripts/linux
+        run: ./build_opencv.sh
+
+      - name: Build
+        run: |
+          flutter pub get
+          flutter build linux --release $DART_DEFINES
+
+      - name: Package tarball and AppImage
+        run: |
+          B=build/linux/arm64/release/bundle
+          mkdir -p out
+          tar -czf "out/pivxie-$VERSION-linux-aarch64.tar.gz" -C "$(dirname "$B")" bundle
+
+          mkdir -p AppDir
+          cp -r "$B"/* AppDir/
+          install -m755 appimage/pivxie/AppRun AppDir/AppRun
+          cp appimage/pivxie/pivxie.desktop AppDir/
+          cp asset_sources/icon/pivxie/icon.png AppDir/pivxie.png
+          curl -fsSL -o "$RUNNER_TEMP/appimagetool" \
+            https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-aarch64.AppImage
+          chmod +x "$RUNNER_TEMP/appimagetool"
+          ARCH=aarch64 "$RUNNER_TEMP/appimagetool" --appimage-extract-and-run \
+            AppDir "out/pivxie-$VERSION-aarch64.AppImage"
+
+      - name: Check the glibc it needs
+        run: |
+          NEWEST=$(find build/linux/arm64/release/bundle -type f \( -name pivxie -o -name '*.so' \) \
+            -exec objdump -T {} + 2>/dev/null | grep -o 'GLIBC_[0-9.]*' | sort -uV | tail -1 || true)
+          echo "Linux arm64 needs glibc ${NEWEST#GLIBC_} or newer." >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: pivxie-${{ env.VERSION }}-linux-aarch64
+          path: out/
+          retention-days: 14
+
+  flatpak-arm64:
+    name: Flatpak arm64
+    runs-on: ubuntu-24.04-arm
+    needs: [version, linux-arm64]
     env:
       VERSION: ${{ needs.version.outputs.version }}
     steps:
       - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
 
-      - uses: actions/setup-java@v5
+      - uses: actions/download-artifact@v8
         with:
-          distribution: temurin
-          java-version: '17'
+          name: pivxie-${{ env.VERSION }}-linux-aarch64
+          path: linux
+
+      - name: Cache Flatpak SDK
+        uses: actions/cache@v5
+        with:
+          path: ~/.local/share/flatpak
+          key: flatpak-freedesktop-26.08-aarch64-v1
+
+      - name: Install Flatpak tools and SDK
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y --no-install-recommends flatpak flatpak-builder imagemagick
+          flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+          flatpak install --user --noninteractive flathub \
+            org.freedesktop.Platform//26.08 \
+            org.freedesktop.Sdk//26.08
+
+      - name: Stage bundle and icon
+        run: |
+          tar -xzf "linux/pivxie-$VERSION-linux-aarch64.tar.gz" -C flatpak/
+          convert asset_sources/icon/pivxie/icon.png -resize 512x512 \
+            flatpak/alexxiy.pivxie.PIVXie.png
+
+      - name: Build Flatpak
+        run: |
+          flatpak-builder --user --force-clean --repo=flatpak-repo \
+            build-flatpak flatpak/alexxiy.pivxie.PIVXie.yaml
+          mkdir -p out
+          flatpak build-bundle flatpak-repo \
+            --runtime-repo=https://flathub.org/repo/flathub.flatpakrepo \
+            "out/pivxie-$VERSION-aarch64.flatpak" alexxiy.pivxie.PIVXie
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: pivxie-${{ env.VERSION }}-aarch64.flatpak
+          path: out/
+          retention-days: 14
+
+  windows:
+    name: Windows x64 (unsigned)
+    runs-on: windows-2025
+    needs: version
+    defaults:
+      run:
+        shell: bash
+    env:
+      VERSION: ${{ needs.version.outputs.version }}
+      BUILD_NUMBER: ${{ needs.version.outputs.build_number }}
+      DART_DEFINES: ${{ needs.version.outputs.dart_defines }}
+    steps:
+      # The build scripts are bash: check them out with LF line endings.
+      - name: Keep LF line endings
+        run: git config --global core.autocrlf false
+
+      - uses: actions/checkout@v6
 
       - uses: subosito/flutter-action@v2
         with:
@@ -79,96 +249,102 @@ jobs:
           channel: stable
           cache: true
 
-      # The SHIELD library (crypto_plugins/flutter_libpivxshield) is Rust,
-      # built by cargokit during the Flutter build.
       - uses: dtolnay/rust-toolchain@stable
-        with:
-          targets: aarch64-linux-android,armv7-linux-androideabi,x86_64-linux-android
 
-      - name: Install Android SDK packages
+      - name: Install the Tor plugin's Rust
+        run: rustup toolchain install "$TOR_RUST" --profile minimal
+
+      # coinlib_flutter bundles the DLL it finds at build/secp256k1.dll.
+      # The same commit as scripts/windows/build_secp256k1*.
+      - name: Build secp256k1
         run: |
-          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null
-          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" \
-            "platforms;android-37.0" "build-tools;36.0.0" "ndk;${ANDROID_NDK_VERSION}"
-          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/${ANDROID_NDK_VERSION}" >> "$GITHUB_ENV"
+          ROOT=$(pwd)
+          git clone https://github.com/bitcoin-core/secp256k1 ../secp256k1
+          cd ../secp256k1
+          git checkout 68b55209f1ba3e6c0417789598f5f75649e9c14c
+          cmake -S . -B build -A x64 -DSECP256K1_ENABLE_MODULE_RECOVERY=ON
+          cmake --build build --config Release
+          mkdir -p "$ROOT/build"
+          cp build/bin/Release/libsecp256k1-2.dll "$ROOT/build/secp256k1.dll"
 
       - name: Configure app
+        working-directory: scripts
+        run: echo yes | ./build_app.sh -a pivxie -p windows -i -v "$VERSION" -b "$BUILD_NUMBER"
+
+      - name: Build
+        run: flutter build windows --release $DART_DEFINES
+
+      - name: Package
         run: |
-          cd scripts
-          echo "yes" | ./build_app.sh -a pivxie -p android -i \
-            -v "${{ needs.version.outputs.version }}" \
-            -b "${{ needs.version.outputs.build_number }}"
-
-      - name: Get dependencies
-        run: flutter pub get
-
-      # Release signing comes from the ANDROID_KEYSTORE_BASE64,
-      # ANDROID_STORE_PASSWORD, ANDROID_KEY_ALIAS and ANDROID_KEY_PASSWORD
-      # secrets. Without them (forks, test runs) the build is signed with a
-      # throwaway key: fine for testing, never for publishing.
-      - name: Set up signing
-        env:
-          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
-          STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
-          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
-          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: |
-          if [ -n "$KEYSTORE_BASE64" ]; then
-            printf '%s' "$KEYSTORE_BASE64" | base64 --decode > android/release.jks
-          else
-            if [ "${{ github.ref_type }}" = "tag" ]; then
-              echo "::error::Release builds need the ANDROID_KEYSTORE_BASE64 secret"
-              exit 1
-            fi
-            echo "::warning::No signing secrets: using a throwaway key (test build only)"
-            STORE_PASSWORD=$(openssl rand -hex 16)
-            KEY_PASSWORD=$STORE_PASSWORD
-            KEY_ALIAS=test
-            keytool -genkeypair -keystore android/release.jks -storetype pkcs12 \
-              -alias "$KEY_ALIAS" -keyalg RSA -keysize 2048 -validity 365 \
-              -storepass "$STORE_PASSWORD" -keypass "$KEY_PASSWORD" \
-              -dname "CN=PIVXie test build" -noprompt
-          fi
-          cat > android/key.properties << EOF
-          storeFile=../release.jks
-          storePassword=$STORE_PASSWORD
-          keyAlias=$KEY_ALIAS
-          keyPassword=$KEY_PASSWORD
-          EOF
-
-      - name: Build APKs
-        run: |
-          flutter build apk --release --split-per-abi ${{ needs.version.outputs.dart_defines }}
-          flutter build apk --release ${{ needs.version.outputs.dart_defines }}
-
-      - name: Build AAB
-        run: flutter build appbundle --release ${{ needs.version.outputs.dart_defines }}
-
-      - name: Collect artifacts
-        run: |
-          mkdir -p out
-          for abi in arm64-v8a armeabi-v7a x86_64; do
-            cp "build/app/outputs/flutter-apk/app-${abi}-release.apk" \
-               "out/pivxie-${VERSION}-android-${abi}.apk"
-          done
-          cp build/app/outputs/flutter-apk/app-release.apk "out/pivxie-${VERSION}-android-universal.apk"
-          cp build/app/outputs/bundle/release/app-release.aab "out/pivxie-${VERSION}-android.aab"
+          mkdir -p stage out
+          cp -r build/windows/x64/runner/Release stage/PIVXie
+          (cd stage && 7z a -tzip "../out/pivxie-$VERSION-windows-x86_64-unsigned.zip" PIVXie)
 
       - uses: actions/upload-artifact@v7
         with:
-          name: pivxie-${{ env.VERSION }}-android
+          name: pivxie-${{ env.VERSION }}-windows-x86_64-unsigned
           path: out/
+          retention-days: 14
 
-  # Unsigned: sign the IPA with your Apple certificate before installing it.
-  build-ios:
+  macos:
+    name: macOS (unsigned)
     runs-on: macos-latest
     needs: version
     env:
       VERSION: ${{ needs.version.outputs.version }}
+      BUILD_NUMBER: ${{ needs.version.outputs.build_number }}
+      DART_DEFINES: ${{ needs.version.outputs.dart_defines }}
     steps:
       - uses: actions/checkout@v6
+
+      - uses: subosito/flutter-action@v2
         with:
-          fetch-depth: 0
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      # A universal app: Apple silicon and Intel.
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-darwin,x86_64-apple-darwin
+
+      - name: Install the Tor plugin's Rust
+        run: |
+          rustup toolchain install "$TOR_RUST" --profile minimal \
+            --target aarch64-apple-darwin,x86_64-apple-darwin
+
+      - name: Configure app
+        working-directory: scripts
+        run: echo yes | ./build_app.sh -a pivxie -p macos -i -v "$VERSION" -b "$BUILD_NUMBER"
+
+      - name: Build
+        run: flutter build macos --release $DART_DEFINES
+
+      # Only ad-hoc signed: sign it with the Developer ID certificate and
+      # notarize it before handing it out.
+      - name: Package
+        run: |
+          APP=$(find build/macos/Build/Products/Release -maxdepth 1 -name '*.app' | head -1)
+          mkdir -p out
+          ditto -c -k --sequesterRsrc --keepParent "$APP" \
+            "out/pivxie-$VERSION-macos-unsigned.zip"
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: pivxie-${{ env.VERSION }}-macos-unsigned
+          path: out/
+          retention-days: 14
+
+  ios:
+    name: iOS archive (unsigned)
+    runs-on: macos-latest
+    needs: version
+    env:
+      VERSION: ${{ needs.version.outputs.version }}
+      BUILD_NUMBER: ${{ needs.version.outputs.build_number }}
+      DART_DEFINES: ${{ needs.version.outputs.dart_defines }}
+    steps:
+      - uses: actions/checkout@v6
 
       - uses: subosito/flutter-action@v2
         with:
@@ -180,189 +356,79 @@ jobs:
         with:
           targets: aarch64-apple-ios
 
-      - name: Configure app
-        run: |
-          cd scripts
-          echo "yes" | ./build_app.sh -a pivxie -p ios -i \
-            -v "${{ needs.version.outputs.version }}" \
-            -b "${{ needs.version.outputs.build_number }}"
+      - name: Install the Tor plugin's Rust
+        run: rustup toolchain install "$TOR_RUST" --profile minimal --target aarch64-apple-ios
 
-      - name: Get dependencies
-        run: flutter pub get
+      - name: Configure app
+        working-directory: scripts
+        run: echo yes | ./build_app.sh -a pivxie -p ios -i -v "$VERSION" -b "$BUILD_NUMBER"
 
       - name: Build
-        run: flutter build ios --release --no-codesign ${{ needs.version.outputs.dart_defines }}
+        run: flutter build ipa --release --no-codesign $DART_DEFINES
 
-      - name: Package IPA
-        run: |
-          mkdir -p Payload
-          cp -r build/ios/iphoneos/Runner.app Payload/
-          zip -qr "pivxie-${VERSION}-ios-unsigned.ipa" Payload
-
-      - uses: actions/upload-artifact@v7
-        with:
-          name: pivxie-${{ env.VERSION }}-ios-unsigned.ipa
-          path: pivxie-${{ env.VERSION }}-ios-unsigned.ipa
-
-  build-linux:
-    runs-on: ubuntu-24.04
-    needs: version
-    env:
-      VERSION: ${{ needs.version.outputs.version }}
-    steps:
-      - uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-
-      - name: Install build dependencies
-        run: |
-          sudo apt-get update -q
-          sudo apt-get install -y --no-install-recommends \
-            clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev \
-            libsecret-1-dev libjsoncpp-dev \
-            libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev
-
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: stable
-          cache: true
-
-      - uses: dtolnay/rust-toolchain@stable
-
-      # -s: link the system libsecret and jsoncpp.
-      - name: Configure app
-        env:
-          USE_SYSTEM_SECURE_STORAGE_DEPS: "1"
-        run: |
-          cd scripts
-          echo "yes" | ./build_app.sh -a pivxie -p linux -i -s \
-            -v "${{ needs.version.outputs.version }}" \
-            -b "${{ needs.version.outputs.build_number }}"
-
-      # The QR scanner's camera support links a small static OpenCV, so the
-      # bundle runs without OpenCV installed.
-      - name: Cache OpenCV
-        uses: actions/cache@v5
-        with:
-          path: scripts/linux/build/opencv/install
-          key: opencv-${{ hashFiles('scripts/linux/build_opencv.sh') }}
-
-      - name: Build OpenCV
-        working-directory: scripts/linux
-        run: ./build_opencv.sh
-
-      - name: Get dependencies
-        run: flutter pub get
-
-      - name: Build
-        env:
-          USE_SYSTEM_SECURE_STORAGE_DEPS: "1"
-        run: flutter build linux --release ${{ needs.version.outputs.dart_defines }}
-
+      # For the App Store only, so it stays out of the release: on a Mac,
+      # export it with the company's account (Xcode Organizer, or
+      # xcodebuild -exportArchive), which signs it.
       - name: Package
         run: |
-          tar -czf "pivxie-${VERSION}-linux-x86_64.tar.gz" \
-            -C build/linux/x64/release bundle
+          mkdir -p out
+          ditto -c -k --sequesterRsrc --keepParent build/ios/archive/Runner.xcarchive \
+            "out/pivxie-$VERSION-build$BUILD_NUMBER-ios.xcarchive.zip"
 
       - uses: actions/upload-artifact@v7
         with:
-          name: pivxie-${{ env.VERSION }}-linux-x86_64.tar.gz
-          path: pivxie-${{ env.VERSION }}-linux-x86_64.tar.gz
+          name: ios-archive-${{ env.VERSION }}-build${{ env.BUILD_NUMBER }}
+          path: out/
+          retention-days: 30
 
-  build-flatpak:
+  release:
+    name: Draft release
+    if: ${{ inputs.release }}
+    needs: [version, linux-arm64, flatpak-arm64, windows, macos]
     runs-on: ubuntu-24.04
-    needs: [version, build-linux]
+    permissions:
+      contents: write
+    concurrency:
+      group: release-${{ needs.version.outputs.version }}
     env:
       VERSION: ${{ needs.version.outputs.version }}
+      BUILD_NUMBER: ${{ needs.version.outputs.build_number }}
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
     steps:
-      - uses: actions/checkout@v6
-
-      - name: Download Linux bundle
-        uses: actions/download-artifact@v8
+      # The desktop builds; the iOS archive is named apart and left out.
+      - uses: actions/download-artifact@v8
         with:
-          name: pivxie-${{ env.VERSION }}-linux-x86_64.tar.gz
+          pattern: pivxie-*
+          path: files
+          merge-multiple: true
 
-      - name: Stage bundle and icon
+      - name: Write release notes
         run: |
-          sudo apt-get update -q
-          sudo apt-get install -y imagemagick
-          tar -xzf "pivxie-${VERSION}-linux-x86_64.tar.gz" -C flatpak/
-          convert asset_sources/icon/pivxie/icon.png -resize 512x512 \
-            flatpak/alexxiy.pivxie.PIVXie.png
+          cat > notes.md << EOF
+          PIVXie $VERSION (build $BUILD_NUMBER), from $GITHUB_SHA.
 
-      - name: Install Flatpak tools
+          Before publishing:
+          - Windows: sign pivxie.exe and the DLLs in the \`-unsigned\` zip, upload it as \`pivxie-$VERSION-windows-x86_64.zip\` and delete the unsigned one.
+          - macOS: sign PIVXie.app with the Developer ID certificate, notarize and staple it, upload it as \`pivxie-$VERSION-macos.zip\` and delete the unsigned one.
+          - Add the Android and Linux x86_64 files built on the DevBox, and SHA256SUMS for the final files.
+          - Replace these notes with the release notes.
+          EOF
+
+      - name: Create or update the draft
         run: |
-          sudo apt-get update -q
-          sudo apt-get install -y flatpak flatpak-builder
-
-      - name: Set up Flathub remote
-        run: flatpak remote-add --user --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-
-      - name: Cache Flatpak SDK
-        uses: actions/cache@v5
-        with:
-          path: ~/.local/share/flatpak
-          key: flatpak-freedesktop-26.08-v1
-
-      - name: Install Flatpak SDK
-        run: |
-          flatpak install --user --noninteractive flathub \
-            org.freedesktop.Platform//26.08 \
-            org.freedesktop.Sdk//26.08
-
-      - name: Build Flatpak
-        run: |
-          flatpak-builder --user --force-clean \
-            --repo=flatpak-repo \
-            build-flatpak flatpak/alexxiy.pivxie.PIVXie.yaml
-
-      - name: Bundle Flatpak
-        run: |
-          flatpak build-bundle flatpak-repo \
-            --runtime-repo=https://flathub.org/repo/flathub.flatpakrepo \
-            "pivxie-${VERSION}-x86_64.flatpak" \
-            alexxiy.pivxie.PIVXie
-
-      - uses: actions/upload-artifact@v7
-        with:
-          name: pivxie-${{ env.VERSION }}-x86_64.flatpak
-          path: pivxie-${{ env.VERSION }}-x86_64.flatpak
-
-  build-appimage:
-    runs-on: ubuntu-24.04
-    needs: [version, build-linux]
-    env:
-      VERSION: ${{ needs.version.outputs.version }}
-    steps:
-      - uses: actions/checkout@v6
-
-      - name: Download Linux bundle
-        uses: actions/download-artifact@v8
-        with:
-          name: pivxie-${{ env.VERSION }}-linux-x86_64.tar.gz
-
-      - name: Install AppImage tools
-        run: |
-          sudo apt-get update -q
-          sudo apt-get install -y squashfs-tools
-
-      - name: Build AppImage
-        run: |
-          tar -xzf "pivxie-${VERSION}-linux-x86_64.tar.gz"
-          mkdir -p AppDir
-          cp -r bundle/* AppDir/
-          cp appimage/pivxie/AppRun AppDir/AppRun
-          chmod +x AppDir/AppRun
-          cp appimage/pivxie/pivxie.desktop AppDir/
-          cp asset_sources/icon/pivxie/icon.png AppDir/pivxie.png
-          curl -fsSL -o appimagetool \
-            https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage
-          chmod +x appimagetool
-          ARCH=x86_64 ./appimagetool --appimage-extract-and-run AppDir \
-            "pivxie-${VERSION}-x86_64.AppImage"
-
-      - uses: actions/upload-artifact@v7
-        with:
-          name: pivxie-${{ env.VERSION }}-x86_64.AppImage
-          path: pivxie-${{ env.VERSION }}-x86_64.AppImage
+          TAG="v$VERSION"
+          ls -l files
+          if IS_DRAFT=$(gh release view "$TAG" --json isDraft --jq .isDraft 2>/dev/null); then
+            if [ "$IS_DRAFT" != "true" ]; then
+              echo "::error::$TAG is already published, so it was left as it is. The files are in this run's artifacts."
+              exit 1
+            fi
+            gh release upload "$TAG" files/* --clobber
+            gh release edit "$TAG" --target "$GITHUB_SHA"
+            echo "Updated the draft release $TAG (its notes were kept)." >> "$GITHUB_STEP_SUMMARY"
+          else
+            gh release create "$TAG" files/* --draft --target "$GITHUB_SHA" \
+              --title "PIVXie $VERSION" --notes-file notes.md
+            echo "Made the draft release $TAG." >> "$GITHUB_STEP_SUMMARY"
+          fi

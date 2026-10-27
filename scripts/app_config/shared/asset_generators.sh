@@ -13,13 +13,16 @@ APP_BUILD_PLATFORM=$1
 pushd "${APP_PROJECT_ROOT_DIR}"
 YAML_FILE="${APP_PROJECT_ROOT_DIR}/scripts/app_config/platforms/${APP_BUILD_PLATFORM}/flutter_launcher_icons.yaml"
 if [[ "${APP_BUILD_PLATFORM}" = 'windows' ]]; then
-  cmd.exe /c flutter pub get
   if command -v cygpath >/dev/null 2>&1; then
-    WIN_PATH_VERSION=$(cygpath -w "${YAML_FILE}")
+    # Git Bash (CI) runs the Windows Flutter directly. Its path conversion
+    # would turn cmd.exe's /c into C:/.
+    flutter pub get
+    dart run flutter_launcher_icons -f "$(cygpath -w "${YAML_FILE}")"
   else
-    WIN_PATH_VERSION=$(wslpath -w "${YAML_FILE}")
+    # WSL: the Windows Flutter through cmd.exe.
+    cmd.exe /c flutter pub get
+    cmd.exe /c dart run flutter_launcher_icons -f "$(wslpath -w "${YAML_FILE}")"
   fi
-  cmd.exe /c dart run flutter_launcher_icons -f "${WIN_PATH_VERSION}"
   # not needed in windows
 #  cmd.exe /c dart run flutter_native_splash:create
 else
@@ -30,8 +33,10 @@ else
     dart run flutter_native_splash:create
     # The splash tool gives the launch theme the shortEdges cutout mode,
     # deprecated since Android 15 (Play flags it). enableEdgeToEdge() in
-    # MainActivity sets the cutout mode at start anyway.
-    sed -i '/android:windowLayoutInDisplayCutoutMode/d' android/app/src/main/res/values*/styles.xml
+    # MainActivity sets the cutout mode at start anyway. (-i.bak works with
+    # both GNU and macOS sed.)
+    sed -i.bak '/android:windowLayoutInDisplayCutoutMode/d' android/app/src/main/res/values*/styles.xml
+    rm -f android/app/src/main/res/values*/styles.xml.bak
   fi
 fi
 popd
