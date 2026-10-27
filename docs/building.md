@@ -86,7 +86,7 @@ The Android emulator works only with x86_64 images. A real phone is better for c
 
 ## Server
 
-PIVXie gets chain data from a [pivx-bridge](https://github.com/PIVX-Labs/pivx-bridge) server. The bridge must run with `ADDR_INDEX=true` for transaction history. You can add your own server in the app under the PIVX node settings, and set the default one in `lib/wallets/crypto_currency/coins/pivx.dart` (`defaultNode`).
+PIVXie gets chain data from a [pivx-bridge](https://github.com/alexxiy/pivx-bridge) server. The bridge must run with `ADDR_INDEX=true` for transaction history. You can add your own server in the app under the PIVX node settings, and set the default one in `lib/wallets/crypto_currency/coins/pivx.dart` (`defaultNode`).
 
 ## Tests
 
