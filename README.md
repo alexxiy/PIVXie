@@ -4,7 +4,7 @@
 
 **App Store:** coming soon
 
-PIVXie is a non-custodial mobile wallet for [PIVX](https://pivx.org). Your recovery phrase and keys never leave your device. The app talks to the PIVX network through a [pivx-bridge](https://github.com/PIVX-Labs/pivx-bridge) server, and you can point it at your own.
+PIVXie is a non-custodial mobile wallet for [PIVX](https://pivx.org). Your recovery phrase and keys never leave your device. The app talks to the PIVX network through a [pivx-bridge](https://github.com/alexxiy/pivx-bridge) server, and you can point it at your own.
 
 Website: [pivxie.me](https://pivxie.me)
 
