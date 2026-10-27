@@ -49,8 +49,13 @@ jobs:
           echo "$FILES"
           dart format --output=none --set-exit-if-changed $FILES
 
+      # The Isar tests load libisar.so: without a Linux build, the one
+      # isar_community_flutter_libs ships (the version pub resolved).
       - name: Test
         run: |
+          ISAR_PKG=$(jq -r '.packages[] | select(.name == "isar_community_flutter_libs") | .rootUri' .dart_tool/package_config.json)
+          export ISAR_LIB="${ISAR_PKG#file://}/linux/libisar.so"
+          test -s "$ISAR_LIB"
           flutter test --concurrency=4 $(find test -name "*_test.dart" ! -path "test/pivx/*")
 
       # The regtest tests skip themselves here: they need a PIVX Core
