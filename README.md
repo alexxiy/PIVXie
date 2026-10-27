@@ -1,5 +1,9 @@
 # PIVXie
 
+<a href="https://play.google.com/store/apps/details?id=alexxiy.pivxie"><img src="docs/badges/google-play.svg" alt="Get it on Google Play" height="56"></a>
+
+**App Store:** coming soon
+
 PIVXie is a non-custodial mobile wallet for [PIVX](https://pivx.org). Your recovery phrase and keys never leave your device. The app talks to the PIVX network through a [pivx-bridge](https://github.com/PIVX-Labs/pivx-bridge) server, and you can point it at your own.
 
 Website: [pivxie.me](https://pivxie.me)
@@ -36,3 +40,5 @@ PIVXie is built on [Stack Wallet](https://github.com/cypherstack/stack_wallet) b
 ## License
 
 [GPLv3](LICENSE)
+
+Google Play and the Google Play logo are trademarks of Google LLC.
