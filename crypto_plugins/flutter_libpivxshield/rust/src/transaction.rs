@@ -16,7 +16,6 @@ use crate::prover::{self, ImplTxProver};
 use either::Either;
 use incrementalmerkletree::frontier::CommitmentTree;
 use incrementalmerkletree::witness::IncrementalWitness;
-use pivx_client_backend::data_api::DecryptedTransaction;
 use pivx_client_backend::decrypt_transaction;
 use pivx_client_backend::TransferType;
 use pivx_client_backend::keys::UnifiedFullViewingKey;
@@ -53,7 +52,9 @@ use rand_core::OsRng;
 use rayon::prelude::*;
 use sapling::builder::ProverProgress;
 use sapling::note::ExtractedNoteCommitment;
-use sapling::note_encryption::{try_sapling_note_decryption, PreparedIncomingViewingKey, Zip212Enforcement};
+use sapling::keys::OutgoingViewingKey;
+use sapling::note_encryption::{PreparedIncomingViewingKey, SaplingDomain, Zip212Enforcement};
+use sapling::value::ValueCommitment;
 use sapling::zip32::ExtendedSpendingKey;
 use sapling::Anchor;
 use sapling::NullifierDerivingKey;
@@ -65,7 +66,10 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::io::Cursor;
 use std::str::FromStr;
-use zcash_note_encryption::{EphemeralKeyBytes, ShieldedOutput, ENC_CIPHERTEXT_SIZE};
+use zcash_note_encryption::{
+    try_note_decryption, try_output_recovery_with_ovk, EphemeralKeyBytes, ShieldedOutput, ENC_CIPHERTEXT_SIZE,
+    OUT_CIPHERTEXT_SIZE,
+};
 use zcash_transparent::bundle::{OutPoint, TxOut};
 
 pub const DEPTH: u8 = 32;
@@ -149,28 +153,10 @@ impl SpendableNote {
 
 #[derive(Serialize, Deserialize)]
 pub struct Block {
+    /// Hex of each shield transaction: a full raw one (the bridge's `pivx`
+    /// stream format) or a compact packet (its `compact` format, see
+    /// [`COMPACT_TX`]).
     pub txs: Vec<String>,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct CompactBlock {
-    pub txs: Vec<CompactTxData>,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct CompactTxData {
-    pub nullifiers: Vec<String>,
-    pub outputs: Vec<CompactOutputData>,
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct CompactOutputData {
-    #[serde(with = "serde_bytes")]
-    pub cmu: Vec<u8>,
-    #[serde(with = "serde_bytes")]
-    pub epk: Vec<u8>,
-    #[serde(with = "serde_bytes")]
-    pub enc_ciphertext: Vec<u8>,
 }
 
 /// A note received by the wallet in a specific transaction.
@@ -198,13 +184,21 @@ pub struct SentNote {
 /// or sent shield outputs recoverable with our outgoing viewing key).
 #[derive(Serialize, Deserialize)]
 pub struct WalletTxDetail {
+    /// Empty for a compact packet, which has no txid: the caller finds
+    /// the transaction in its block by `nullifiers` and `commitments`.
     pub txid: String,
     pub hex: String,
+    /// Index of the transaction's block in the blocks passed in.
+    #[serde(default)]
+    pub block: u32,
     pub received: Vec<ReceivedNote>,
     #[serde(default)]
     pub sent: Vec<SentNote>,
     /// All nullifiers revealed by the tx (the caller matches its own).
     pub nullifiers: Vec<String>,
+    /// Note commitments (cmu) of all the tx's shield outputs, in order.
+    #[serde(default)]
+    pub commitments: Vec<String>,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -247,7 +241,186 @@ pub(crate) fn raw_txid(raw_hex: &str) -> BoxResult<String> {
     Ok(hex::encode(twice))
 }
 
-/// Scan full raw transactions (the bridge's default `pivx` stream format).
+/// Packet type of a transaction in the bridge's `compact` stream: the
+/// nullifiers and outputs of its Sapling bundle without proofs or
+/// signatures. A full raw transaction (version 3) starts with 0x03.
+pub const COMPACT_TX: u8 = 0x04;
+
+/// A Sapling output from a compact packet: all of an output but its proof.
+struct CompactOutput {
+    cv: ValueCommitment,
+    cmu: ExtractedNoteCommitment,
+    epk: EphemeralKeyBytes,
+    enc_ciphertext: [u8; ENC_CIPHERTEXT_SIZE],
+    out_ciphertext: [u8; OUT_CIPHERTEXT_SIZE],
+}
+
+impl ShieldedOutput<SaplingDomain, ENC_CIPHERTEXT_SIZE> for CompactOutput {
+    fn ephemeral_key(&self) -> EphemeralKeyBytes {
+        self.epk.clone()
+    }
+    fn cmstar_bytes(&self) -> [u8; 32] {
+        self.cmu.to_bytes()
+    }
+    fn enc_ciphertext(&self) -> &[u8; ENC_CIPHERTEXT_SIZE] {
+        &self.enc_ciphertext
+    }
+}
+
+/// A transaction from the shield stream.
+enum StreamTx {
+    Full(Box<Transaction>),
+    Compact {
+        nullifiers: Vec<Nullifier>,
+        outputs: Vec<CompactOutput>,
+    },
+}
+
+/// A Bitcoin CompactSize at `pos`: its value and the position after it.
+fn read_compact_size(data: &[u8], pos: usize) -> BoxResult<(usize, usize)> {
+    let first = *data.get(pos).ok_or("Truncated compact packet")?;
+    let len = match first {
+        0xfd => 2,
+        0xfe => 4,
+        0xff => 8,
+        n => return Ok((n as usize, pos + 1)),
+    };
+    let bytes = data.get(pos + 1..pos + 1 + len).ok_or("Truncated compact packet")?;
+    let mut v = [0u8; 8];
+    v[..len].copy_from_slice(bytes);
+    let n = usize::try_from(u64::from_le_bytes(v)).map_err(|_| "Compact packet count too large")?;
+    Ok((n, pos + 1 + len))
+}
+
+fn take<const N: usize>(data: &[u8], pos: &mut usize) -> [u8; N] {
+    let mut out = [0u8; N];
+    out.copy_from_slice(&data[*pos..*pos + N]);
+    *pos += N;
+    out
+}
+
+/// A compact packet: `[0x04][spends][outputs]`, then 32 bytes of nullifier
+/// per spend and per output cv, cmu, epk (32 each), enc_ciphertext and
+/// out_ciphertext (the bridge's `encode_compact_packet`).
+fn parse_compact_tx(data: &[u8]) -> BoxResult<StreamTx> {
+    const OUTPUT_SIZE: usize = 3 * 32 + ENC_CIPHERTEXT_SIZE + OUT_CIPHERTEXT_SIZE;
+    let (spends, pos) = read_compact_size(data, 1)?;
+    let (outputs, mut pos) = read_compact_size(data, pos)?;
+    let len = spends
+        .checked_mul(32)
+        .zip(outputs.checked_mul(OUTPUT_SIZE))
+        .and_then(|(s, o)| s.checked_add(o)?.checked_add(pos));
+    if len != Some(data.len()) {
+        return Err("Compact packet has the wrong length".into());
+    }
+    let nullifiers = (0..spends).map(|_| Nullifier(take(data, &mut pos))).collect();
+    let outputs = (0..outputs)
+        .map(|_| -> BoxResult<CompactOutput> {
+            let cv = ValueCommitment::from_bytes_not_small_order(&take(data, &mut pos))
+                .into_option()
+                .ok_or("Invalid cv in compact packet")?;
+            let cmu = ExtractedNoteCommitment::from_bytes(&take(data, &mut pos))
+                .into_option()
+                .ok_or("Invalid cmu in compact packet")?;
+            Ok(CompactOutput {
+                cv,
+                cmu,
+                epk: EphemeralKeyBytes(take(data, &mut pos)),
+                enc_ciphertext: take(data, &mut pos),
+                out_ciphertext: take(data, &mut pos),
+            })
+        })
+        .collect::<BoxResult<_>>()?;
+    Ok(StreamTx::Compact { nullifiers, outputs })
+}
+
+fn parse_stream_tx(tx_hex: &str) -> BoxResult<StreamTx> {
+    let data = hex::decode(tx_hex).map_err(|_| "Tx hex is invalid")?;
+    if data.first() == Some(&COMPACT_TX) {
+        return parse_compact_tx(&data);
+    }
+    let tx = Transaction::read(Cursor::new(data), pivx_primitives::consensus::BranchId::Sapling)
+        .map_err(|_| "Couldn't parse tx")?;
+    Ok(StreamTx::Full(Box::new(tx)))
+}
+
+/// The keys `decrypt_transaction` tries on each output, for compact
+/// packets.
+struct CompactKeys {
+    domain: SaplingDomain,
+    ivk_external: PreparedIncomingViewingKey,
+    ivk_internal: PreparedIncomingViewingKey,
+    ovk: OutgoingViewingKey,
+}
+
+/// A stream transaction's Sapling parts and the outputs the wallet could
+/// decrypt: (output index, note, memo, kind).
+struct ScannedTx {
+    nullifiers: Vec<Nullifier>,
+    cmus: Vec<ExtractedNoteCommitment>,
+    decrypted: Vec<(usize, Note, Option<String>, TransferType)>,
+}
+
+fn scan_tx(
+    tx: &StreamTx,
+    keys: &HashMap<AccountId, UnifiedFullViewingKey>,
+    compact_keys: &CompactKeys,
+    is_testnet: bool,
+) -> ScannedTx {
+    match tx {
+        StreamTx::Full(tx) => {
+            let decrypted = if is_testnet {
+                decrypt_transaction(&TEST_NETWORK, BlockHeight::from_u32(320), tx, keys)
+            } else {
+                decrypt_transaction(&MAIN_NETWORK, BlockHeight::from_u32(320), tx, keys)
+            };
+            let bundle = tx.sapling_bundle();
+            ScannedTx {
+                nullifiers: bundle
+                    .map(|b| b.shielded_spends().iter().map(|s| *s.nullifier()).collect())
+                    .unwrap_or_default(),
+                cmus: bundle
+                    .map(|b| b.shielded_outputs().iter().map(|o| *o.cmu()).collect())
+                    .unwrap_or_default(),
+                decrypted: decrypted
+                    .sapling_outputs()
+                    .iter()
+                    .map(|o| (o.index(), o.note().clone(), memo_text(o.memo().as_slice()), o.transfer_type()))
+                    .collect(),
+            }
+        }
+        StreamTx::Compact { nullifiers, outputs } => {
+            let k = compact_keys;
+            // In the order decrypt_transaction tries them.
+            let decrypted = outputs
+                .iter()
+                .enumerate()
+                .filter_map(|(i, o)| {
+                    try_note_decryption(&k.domain, &k.ivk_external, o)
+                        .map(|r| (r, TransferType::Incoming))
+                        .or_else(|| {
+                            try_note_decryption(&k.domain, &k.ivk_internal, o)
+                                .map(|r| (r, TransferType::WalletInternal))
+                        })
+                        .or_else(|| {
+                            try_output_recovery_with_ovk(&k.domain, &k.ovk, o, &o.cv, &o.out_ciphertext)
+                                .map(|r| (r, TransferType::Outgoing))
+                        })
+                        .map(|((note, _, memo), kind)| (i, note, memo_text(&memo), kind))
+                })
+                .collect();
+            ScannedTx {
+                nullifiers: nullifiers.clone(),
+                cmus: outputs.iter().map(|o| o.cmu).collect(),
+                decrypted,
+            }
+        }
+    }
+}
+
+/// Scan the bridge's shield stream: full raw transactions (`pivx` format)
+/// or compact packets (`compact` format), which give the same notes, tree
+/// and nullifiers. A compact wallet transaction comes back without txid.
 pub fn handle_blocks(
     tree_hex: &str,
     blocks: Vec<Block>,
@@ -257,52 +430,49 @@ pub fn handle_blocks(
 ) -> BoxResult<HandleBlocksResult> {
     let mut tree = read_commitment_tree(tree_hex).map_err(|_| "Couldn't read commitment tree")?;
     let extfvk = decode_extended_full_viewing_key(enc_extfvk, is_testnet)?;
+    let dfvk = extfvk.to_diversifiable_full_viewing_key();
     let key = UnifiedFullViewingKey::from_sapling_extended_full_viewing_key(extfvk)
         .map_err(|_| "Failed to create unified full viewing key")?;
     let mut comp_note = comp_notes
         .into_iter()
         .map(SpendableNote::from_js)
         .collect::<BoxResult<Vec<SpendableNote>>>()?;
-    let hexes = blocks.into_iter().flat_map(|b| b.txs).collect::<Vec<_>>();
+    let hexes = blocks
+        .into_iter()
+        .enumerate()
+        .flat_map(|(i, b)| b.txs.into_iter().map(move |h| (i as u32, h)))
+        .collect::<Vec<_>>();
 
     let mut keys = HashMap::new();
     let nullif_key = key.sapling().ok_or("Cannot generate nullifier key")?.to_nk(Scope::External);
     keys.insert(AccountId::default(), key.clone());
+    let compact_keys = CompactKeys {
+        // PIVX uses pre-ZIP212 note encoding.
+        domain: SaplingDomain::new(Zip212Enforcement::Off),
+        ivk_external: PreparedIncomingViewingKey::new(&dfvk.to_ivk(Scope::External)),
+        ivk_internal: PreparedIncomingViewingKey::new(&dfvk.to_ivk(Scope::Internal)),
+        ovk: dfvk.fvk().ovk,
+    };
 
     let txs = hexes
         .iter()
-        .map(|h| -> BoxResult<(&String, Transaction)> {
-            let tx = Transaction::read(
-                Cursor::new(hex::decode(h).map_err(|_| "Tx hex is invalid")?),
-                pivx_primitives::consensus::BranchId::Sapling,
-            )
-            .map_err(|_| "Couldn't parse tx")?;
-            Ok((h, tx))
-        })
+        .map(|(_, h)| parse_stream_tx(h))
         .collect::<BoxResult<Vec<_>>>()?;
-
-    let decrypted_txs = txs
+    let scanned_txs = txs
         .par_iter()
-        .map(|(_, tx)| {
-            if is_testnet {
-                decrypt_transaction(&TEST_NETWORK, BlockHeight::from_u32(320), tx, &keys)
-            } else {
-                decrypt_transaction(&MAIN_NETWORK, BlockHeight::from_u32(320), tx, &keys)
-            }
-        })
+        .map(|tx| scan_tx(tx, &keys, &compact_keys, is_testnet))
         .collect::<Vec<_>>();
 
     let mut nullifiers = vec![];
     let mut new_notes: Vec<SpendableNote> = vec![];
     let mut wallet_transactions = vec![];
-    for ((hex_tx, tx), decrypted_tx) in txs.iter().zip(decrypted_txs) {
+    for (((block, hex_tx), tx), scanned) in hexes.iter().zip(&txs).zip(&scanned_txs) {
         let old_note_length = new_notes.len();
         let mut indices = vec![];
         let mut sent = vec![];
-        let tx_nullifiers = handle_transaction(
+        handle_transaction(
             &mut tree,
-            tx,
-            &decrypted_tx,
+            scanned,
             &nullif_key,
             &mut comp_note,
             &mut new_notes,
@@ -310,10 +480,8 @@ pub fn handle_blocks(
             &mut sent,
             is_testnet,
         )
-        .map_err(|_| "Couldn't handle transaction")?
-            .into_iter()
-            .map(|n| hex::encode(n.0))
-            .collect::<Vec<_>>();
+        .map_err(|_| "Couldn't handle transaction")?;
+        let tx_nullifiers = scanned.nullifiers.iter().map(|n| hex::encode(n.0)).collect::<Vec<_>>();
         let received_here = &new_notes[old_note_length..];
         let spends_ours = comp_note
             .iter()
@@ -321,8 +489,12 @@ pub fn handle_blocks(
             .any(|n| tx_nullifiers.contains(&n.nullifier));
         if !received_here.is_empty() || spends_ours || !sent.is_empty() {
             wallet_transactions.push(WalletTxDetail {
-                txid: raw_txid(hex_tx)?,
-                hex: (*hex_tx).clone(),
+                txid: match tx {
+                    StreamTx::Full(_) => raw_txid(hex_tx)?,
+                    StreamTx::Compact { .. } => String::new(),
+                },
+                hex: hex_tx.clone(),
+                block: *block,
                 received: received_here
                     .iter()
                     .zip(&indices)
@@ -336,6 +508,7 @@ pub fn handle_blocks(
                     .collect(),
                 sent,
                 nullifiers: tx_nullifiers.clone(),
+                commitments: scanned.cmus.iter().map(|c| hex::encode(c.to_bytes())).collect(),
             });
         }
         nullifiers.extend(tx_nullifiers);
@@ -353,152 +526,51 @@ pub fn handle_blocks(
     })
 }
 
-struct CompactOutputRef {
-    epk: EphemeralKeyBytes,
-    cmu: [u8; 32],
-    enc_ciphertext: [u8; ENC_CIPHERTEXT_SIZE],
-}
-
-impl ShieldedOutput<sapling::note_encryption::SaplingDomain, ENC_CIPHERTEXT_SIZE> for CompactOutputRef {
-    fn ephemeral_key(&self) -> EphemeralKeyBytes {
-        self.epk.clone()
-    }
-    fn cmstar_bytes(&self) -> [u8; 32] {
-        self.cmu
-    }
-    fn enc_ciphertext(&self) -> &[u8; ENC_CIPHERTEXT_SIZE] {
-        &self.enc_ciphertext
-    }
-}
-
-struct PreparedCompactOutput {
-    node: Node,
-    decrypted: Option<(Note, Option<String>)>,
-}
-
-fn prepare_compact_output(o: &CompactOutputData, ivk: &PreparedIncomingViewingKey) -> Result<PreparedCompactOutput, String> {
-    let cmu_bytes: [u8; 32] = o.cmu.as_slice().try_into().map_err(|_| "invalid cmu length".to_string())?;
-    let epk_bytes: [u8; 32] = o.epk.as_slice().try_into().map_err(|_| "invalid epk length".to_string())?;
-    let enc_bytes: [u8; ENC_CIPHERTEXT_SIZE] = o
-        .enc_ciphertext
-        .as_slice()
-        .try_into()
-        .map_err(|_| "invalid enc_ciphertext length".to_string())?;
-    let cmu = ExtractedNoteCommitment::from_bytes(&cmu_bytes)
-        .into_option()
-        .ok_or_else(|| "invalid cmu".to_string())?;
-    let node = Node::from_cmu(&cmu);
-    let r = CompactOutputRef { epk: EphemeralKeyBytes(epk_bytes), cmu: cmu_bytes, enc_ciphertext: enc_bytes };
-    // PIVX uses pre-ZIP212 note encoding.
-    let decrypted = try_sapling_note_decryption(ivk, &r, Zip212Enforcement::Off)
-        .map(|(note, _addr, memo_bytes)| (note, memo_text(memo_bytes.as_slice())));
-    Ok(PreparedCompactOutput { node, decrypted })
-}
-
-/// Scan the bridge's compact (0x04) stream. No raw txs, so no
-/// per-transaction details are returned.
-pub fn handle_blocks_compact(
-    tree_hex: &str,
-    blocks: Vec<CompactBlock>,
-    enc_extfvk: &str,
-    is_testnet: bool,
-    comp_notes: Vec<JSSpendableNote>,
-) -> BoxResult<HandleBlocksResult> {
-    let mut tree = read_commitment_tree(tree_hex).map_err(|_| "Couldn't read commitment tree")?;
-    let extfvk = decode_extended_full_viewing_key(enc_extfvk, is_testnet)?;
-    let ivk = PreparedIncomingViewingKey::new(&extfvk.to_diversifiable_full_viewing_key().fvk().vk.ivk());
-    let nullif_key = extfvk.to_diversifiable_full_viewing_key().to_nk(Scope::External);
-    let mut existing = comp_notes.into_iter().map(SpendableNote::from_js).collect::<BoxResult<Vec<_>>>()?;
-    let mut nullifiers = vec![];
-    let mut new_notes: Vec<SpendableNote> = vec![];
-    for b in &blocks {
-        for tx in &b.txs {
-            for nf in &tx.nullifiers {
-                nullifiers.push(nf.to_lowercase());
-            }
-        }
-    }
-    let all_outputs: Vec<&CompactOutputData> =
-        blocks.iter().flat_map(|b| b.txs.iter()).flat_map(|t| t.outputs.iter()).collect();
-    let prepared = all_outputs
-        .par_iter()
-        .map(|&o| prepare_compact_output(o, &ivk))
-        .collect::<Result<Vec<_>, String>>()?;
-    for prep in &prepared {
-        tree.append(prep.node).map_err(|_| "Failed to add cmu to tree")?;
-        for note in existing.iter_mut().chain(new_notes.iter_mut()) {
-            note.witness.append(prep.node).map_err(|_| "Failed to add cmu to witness")?;
-        }
-        if let Some((note, memo)) = &prep.decrypted {
-            let witness = IncrementalWitness::<Node, DEPTH>::from_tree(tree.clone());
-            let nullifier = get_nullifier_from_note_internal(&nullif_key, note, &witness)?;
-            new_notes.push(SpendableNote { note: note.clone(), witness, nullifier, memo: memo.clone() });
-        }
-    }
-    let mut buff = Vec::new();
-    write_commitment_tree(&tree, &mut buff).map_err(|_| "Cannot write tree to buffer")?;
-    Ok(HandleBlocksResult {
-        decrypted_notes: serialize_notes(existing, is_testnet)?,
-        decrypted_new_notes: serialize_notes(new_notes, is_testnet)?,
-        nullifiers,
-        commitment_tree: hex::encode(buff),
-        wallet_transactions: vec![],
-    })
-}
-
-/// Add a tx to the commitment tree; witness our outputs; return its nullifiers.
-/// The output index of each note added to `new_witnesses` goes to `indices`;
-/// outputs we sent to others (recovered with our ovk) go to `sent`.
+/// Add a tx's outputs to the commitment tree and our witnesses, and keep
+/// the notes that are ours. The output index of each note added to
+/// `new_witnesses` goes to `indices`; outputs we sent to others
+/// (recovered with our ovk) go to `sent`.
 #[allow(clippy::too_many_arguments)]
-pub fn handle_transaction(
+fn handle_transaction(
     tree: &mut CommitmentTree<Node, DEPTH>,
-    tx: &Transaction,
-    decrypted_tx: &DecryptedTransaction<'_, AccountId>,
+    scanned: &ScannedTx,
     nullif_key: &NullifierDerivingKey,
     witnesses: &mut [SpendableNote],
     new_witnesses: &mut Vec<SpendableNote>,
     indices: &mut Vec<u32>,
     sent: &mut Vec<SentNote>,
     is_testnet: bool,
-) -> BoxResult<Vec<Nullifier>> {
-    let mut nullifiers: Vec<Nullifier> = vec![];
-    if let Some(sapling) = tx.sapling_bundle() {
-        for x in sapling.shielded_spends() {
-            nullifiers.push(*x.nullifier());
+) -> BoxResult<()> {
+    for (i, cmu) in scanned.cmus.iter().enumerate() {
+        let node = Node::from_cmu(cmu);
+        tree.append(node).map_err(|_| "Failed to add cmu to tree")?;
+        for SpendableNote { ref mut witness, .. } in witnesses.iter_mut().chain(new_witnesses.iter_mut()) {
+            witness.append(node).map_err(|_| "Failed to add cmu to witness")?;
         }
-        for (i, out) in sapling.shielded_outputs().iter().enumerate() {
-            tree.append(Node::from_cmu(out.cmu())).map_err(|_| "Failed to add cmu to tree")?;
-            for SpendableNote { ref mut witness, .. } in witnesses.iter_mut().chain(new_witnesses.iter_mut()) {
-                witness.append(Node::from_cmu(out.cmu())).map_err(|_| "Failed to add cmu to witness")?;
-            }
-            for output in decrypted_tx.sapling_outputs() {
-                if output.index() == i && output.transfer_type() == TransferType::Outgoing {
-                    // Someone else's note: never ours to spend.
-                    sent.push(SentNote {
-                        value: output.note().value().inner(),
-                        address: encode_payment_address_internal(&output.note().recipient(), is_testnet),
-                        memo: memo_text(output.memo().as_slice()),
-                        index: i as u32,
-                    });
-                    break;
-                }
-                if output.index() == i {
-                    let note = output.note();
-                    let witness = IncrementalWitness::<Node, DEPTH>::from_tree(tree.clone());
-                    let nullifier = get_nullifier_from_note_internal(nullif_key, note, &witness)?;
-                    new_witnesses.push(SpendableNote {
-                        note: note.clone(),
-                        witness,
-                        nullifier,
-                        memo: memo_text(output.memo().as_slice()),
-                    });
-                    indices.push(i as u32);
-                    break;
-                }
-            }
+        let Some((_, note, memo, kind)) = scanned.decrypted.iter().find(|d| d.0 == i) else {
+            continue;
+        };
+        if matches!(kind, TransferType::Outgoing) {
+            // Someone else's note: never ours to spend.
+            sent.push(SentNote {
+                value: note.value().inner(),
+                address: encode_payment_address_internal(&note.recipient(), is_testnet),
+                memo: memo.clone(),
+                index: i as u32,
+            });
+        } else {
+            let witness = IncrementalWitness::<Node, DEPTH>::from_tree(tree.clone());
+            let nullifier = get_nullifier_from_note_internal(nullif_key, note, &witness)?;
+            new_witnesses.push(SpendableNote {
+                note: note.clone(),
+                witness,
+                nullifier,
+                memo: memo.clone(),
+            });
+            indices.push(i as u32);
         }
     }
-    Ok(nullifiers)
+    Ok(())
 }
 
 pub fn get_nullifier_from_note_internal(

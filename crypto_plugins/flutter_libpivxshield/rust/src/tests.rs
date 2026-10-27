@@ -111,6 +111,19 @@ fn load_prover() -> bool {
 /// wallet's shield address, or with `to_transparent` back to the key's own
 /// transparent address.
 fn pay_from_utxo(value: u64, amount: u64, subtract_fee: bool, to_transparent: bool) -> Result<Value, String> {
+    let to = (!to_transparent).then(|| {
+        let extfvk = call("generate_extfvk", json!({"key": EXTSK, "is_testnet": true}));
+        call("default_address", json!({"key": extfvk, "is_testnet": true}))["address"]
+            .as_str()
+            .unwrap()
+            .to_string()
+    });
+    pay_from_utxo_to(value, amount, subtract_fee, to)
+}
+
+/// Pays `amount` from one transparent output worth `value` to `to`, or
+/// without one back to the key's own transparent address.
+fn pay_from_utxo_to(value: u64, amount: u64, subtract_fee: bool, to: Option<String>) -> Result<Value, String> {
     let secp = secp256k1::Secp256k1::new();
     let key = secp256k1::SecretKey::from_slice(&[1u8; 32]).unwrap();
     // Deprecated upstream without a replacement yet.
@@ -121,12 +134,7 @@ fn pay_from_utxo(value: u64, amount: u64, subtract_fee: bool, to_transparent: bo
         &TEST_NETWORK.b58_script_address_prefix(),
         &owner,
     );
-    let extfvk = call("generate_extfvk", json!({"key": EXTSK, "is_testnet": true}));
-    let to = if to_transparent {
-        json!(change)
-    } else {
-        call("default_address", json!({"key": extfvk, "is_testnet": true}))["address"].clone()
-    };
+    let to = to.unwrap_or_else(|| change.clone());
     let args = json!({
         "utxos": [{
             "txid": "11".repeat(32),
@@ -204,4 +212,107 @@ fn txid_of_normal_and_special_transactions() {
     let real = crate::transaction::raw_txid(&special_hex).unwrap();
     assert_ne!(real, txid);
     assert_ne!(parsed.txid().to_string(), real);
+}
+
+/// The bridge's compact packet (`encode_compact_packet`, format
+/// `compact`) of a raw transaction.
+fn compact_packet(raw_hex: &str) -> String {
+    let tx = Transaction::read(&hex::decode(raw_hex).unwrap()[..], BranchId::Sapling).unwrap();
+    let bundle = tx.sapling_bundle().unwrap();
+    let mut p = vec![0x04, bundle.shielded_spends().len() as u8, bundle.shielded_outputs().len() as u8];
+    for s in bundle.shielded_spends() {
+        p.extend_from_slice(&s.nullifier().0);
+    }
+    for o in bundle.shielded_outputs() {
+        p.extend_from_slice(&o.cv().to_bytes());
+        p.extend_from_slice(&o.cmu().to_bytes());
+        p.extend_from_slice(&o.ephemeral_key().0);
+        p.extend_from_slice(o.enc_ciphertext());
+        p.extend_from_slice(o.out_ciphertext());
+    }
+    hex::encode(p)
+}
+
+/// Scans `raw_hex` once as a raw transaction and once as its compact
+/// packet: everything but the txid must come out the same.
+fn assert_compact_scans_the_same(raw_hex: &str, extfvk: &Value, is_testnet: bool) -> Value {
+    let scan = |tx: &str| {
+        call("handle_blocks", json!({
+            "tree": "000000",
+            "blocks": [{"txs": []}, {"txs": [tx]}],
+            "extfvk": extfvk,
+            "is_testnet": is_testnet,
+            "notes": [],
+        }))
+    };
+    let full = scan(raw_hex);
+    let mut compact = scan(&compact_packet(raw_hex));
+    for key in ["decrypted_notes", "decrypted_new_notes", "nullifiers", "commitment_tree"] {
+        assert_eq!(full[key], compact[key], "{key}");
+    }
+    let wtx = full["wallet_transactions"].as_array().unwrap();
+    let cwtx = compact["wallet_transactions"].as_array_mut().unwrap();
+    assert_eq!(wtx.len(), cwtx.len());
+    for (f, c) in wtx.iter().zip(cwtx.iter_mut()) {
+        assert_eq!(f["txid"].as_str().unwrap().len(), 64);
+        assert_eq!(c["txid"], "", "a compact packet has no txid");
+        assert_eq!(c["block"], 1);
+        assert_eq!(c["hex"], compact_packet(raw_hex));
+        c["txid"] = f["txid"].clone();
+        c["hex"] = f["hex"].clone();
+        assert_eq!(f, &*c);
+    }
+    full
+}
+
+#[test]
+fn compact_packets_scan_like_raw_transactions() {
+    // A note to the test wallet.
+    let extfvk = call("generate_extfvk", json!({"key": EXTSK, "is_testnet": true}));
+    let r = assert_compact_scans_the_same(TX, &extfvk, true);
+    assert_eq!(r["wallet_transactions"][0]["received"][0]["value"], 1000000000u64);
+    assert_eq!(r["wallet_transactions"][0]["commitments"].as_array().unwrap().len(), 1);
+
+    // Someone else's mainnet tx (2 spends, 1 output): same tree and
+    // nullifiers, nothing for this wallet.
+    let extsk = call("generate_extsk", json!({"seed_hex": "00".repeat(32), "coin_type": 119}));
+    let extfvk = call("generate_extfvk", json!({"key": extsk, "is_testnet": false}));
+    let r = assert_compact_scans_the_same(MAINNET_SAPLING_TX.trim(), &extfvk, false);
+    assert_eq!(r["nullifiers"].as_array().unwrap().len(), 2);
+    assert!(r["wallet_transactions"].as_array().unwrap().is_empty());
+}
+
+#[test]
+fn bad_compact_packets_are_refused() {
+    let extfvk = call("generate_extfvk", json!({"key": EXTSK, "is_testnet": true}));
+    let packet = compact_packet(TX);
+    for bad in [&packet[..packet.len() - 2], "04", "0401ff"] {
+        let args = json!({
+            "tree": "000000",
+            "blocks": [{"txs": [bad]}],
+            "extfvk": extfvk,
+            "is_testnet": true,
+            "notes": [],
+        });
+        assert!(dispatch("handle_blocks", &args.to_string()).is_err(), "{bad}");
+    }
+}
+
+#[test]
+fn compact_packets_recover_sent_outputs() {
+    if !load_prover() {
+        return;
+    }
+    // A payment from the test wallet to another wallet's shield address:
+    // only the test wallet's outgoing viewing key can read that output.
+    let other = call("generate_extsk", json!({"seed_hex": "07".repeat(32), "coin_type": 1}));
+    let other = call("generate_extfvk", json!({"key": other, "is_testnet": true}));
+    let to = call("default_address", json!({"key": other, "is_testnet": true}))["address"].clone();
+    let tx = pay_from_utxo_to(300_000_000, 100_000_000, false, Some(to.as_str().unwrap().to_string())).unwrap();
+    let extfvk = call("generate_extfvk", json!({"key": EXTSK, "is_testnet": true}));
+    let r = assert_compact_scans_the_same(tx["txhex"].as_str().unwrap(), &extfvk, true);
+    let sent = &r["wallet_transactions"][0]["sent"];
+    assert_eq!(sent.as_array().unwrap().len(), 1);
+    assert_eq!(sent[0]["value"], 100_000_000u64);
+    assert_eq!(sent[0]["address"], to);
 }

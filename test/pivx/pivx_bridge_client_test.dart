@@ -119,4 +119,46 @@ void main() {
       );
     });
   });
+
+  group("shield scan requests", () {
+    late HttpServer server;
+    final requests = <Uri>[];
+
+    setUp(() async {
+      requests.clear();
+      server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+      server.listen((request) async {
+        requests.add(request.uri);
+        request.response.write(switch (request.uri.path) {
+          "/getblockhash" => '"00ab"',
+          "/getblock" => '{"tx":["t1","t2"],"finalsaplingroot":"r1"}',
+          _ => "",
+        });
+        await request.response.close();
+      });
+      addTearDown(() => server.close(force: true));
+    });
+
+    test("a block's txids and Sapling root come from getblock", () async {
+      final client = _client(server);
+      expect(await client.blockTxids(7), ["t1", "t2"]);
+      expect(await client.finalSaplingRoot(7), "r1");
+      expect(requests.map((u) => "${u.path} ${u.queryParameters["params"]}"), [
+        "/getblockhash 7",
+        "/getblock 00ab,1",
+        "/getblockhash 7",
+        "/getblock 00ab,1",
+      ]);
+    });
+
+    test("the compact stream is asked for by format", () async {
+      final client = _client(server);
+      await client.shieldData(5, compact: true).drain<void>();
+      await client.shieldData(5).drain<void>();
+      expect(requests.map((u) => u.queryParameters), [
+        {"startBlock": "5", "format": "compact"},
+        {"startBlock": "5"},
+      ]);
+    });
+  });
 }

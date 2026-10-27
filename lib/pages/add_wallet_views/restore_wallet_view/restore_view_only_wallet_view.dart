@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
@@ -16,12 +17,14 @@ import '../../../providers/global/secure_store_provider.dart';
 import '../../../providers/providers.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/clipboard_interface.dart';
+import '../../../utilities/constants.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/api/pivx/pivx_bridge_client.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../wallets/crypto_currency/intermediate/bip39_hd_currency.dart';
 import '../../../wallets/isar/models/wallet_info.dart';
+import '../../../wallets/wallet/impl/pivx_wallet.dart';
 import '../../../wallets/wallet/wallet.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/desktop/desktop_app_bar.dart';
@@ -60,9 +63,16 @@ class RestoreViewOnlyWalletView extends ConsumerStatefulWidget {
 class _RestoreViewOnlyWalletViewState
     extends ConsumerState<RestoreViewOnlyWalletView> {
   late final TextEditingController viewKeyController;
+  late final TextEditingController birthdayController;
+  late final FocusNode birthdayFocusNode;
 
   bool _enableRestoreButton = false;
   bool _buttonLock = false;
+
+  /// Shown while the key looks like a shield viewing key: an xpub's
+  /// history comes from the bridge's index, but a viewing key's notes
+  /// are only found by scanning the chain.
+  bool _showBirthday = false;
 
   /// Whether [key] is a shield viewing key of the wallet's network, as
   /// PIVX Core's `exportsaplingviewingkey` gives it (e.g. the key
@@ -144,6 +154,11 @@ class _RestoreViewOnlyWalletViewState
   Future<void> _attemptRestore() async {
     final key = viewKeyController.text.trim();
     final isShieldKey = _isShieldViewingKey(key);
+    // Where the shield scan starts. Without it, a viewing key is scanned
+    // from Sapling activation (see PivxWallet.shieldRestoreHeight).
+    final birthday = isShieldKey
+        ? int.tryParse(birthdayController.text.trim())
+        : null;
     final Map<String, dynamic> otherDataJson = {
       WalletInfoKeys.isViewOnlyKey: true,
     };
@@ -165,11 +180,13 @@ class _RestoreViewOnlyWalletViewState
       final info = WalletInfo.createNew(
         coin: widget.coin,
         name: widget.walletName,
-        restoreHeight: widget.restoreBlockHeight,
+        restoreHeight: birthday ?? widget.restoreBlockHeight,
         otherDataJsonString: jsonEncode(otherDataJson),
       );
 
       bool isRestoring = true;
+      // Set once made, so a cancel can stop its scan.
+      Wallet? created;
       // show restoring in progress
 
       if (mounted) {
@@ -180,8 +197,11 @@ class _RestoreViewOnlyWalletViewState
             barrierDismissible: false,
             builder: (context) {
               return RestoringDialog(
+                walletId: info.walletId,
                 onCancel: () async {
                   isRestoring = false;
+                  final restoring = created;
+                  if (restoring is PivxWallet) restoring.cancelRecover();
 
                   await ref
                       .read(pWallets)
@@ -227,6 +247,7 @@ class _RestoreViewOnlyWalletViewState
           prefs: ref.read(prefsChangeNotifierProvider),
           viewOnlyData: viewOnlyData,
         );
+        created = wallet;
 
         await wallet.init();
 
@@ -301,11 +322,15 @@ class _RestoreViewOnlyWalletViewState
   void initState() {
     super.initState();
     viewKeyController = TextEditingController();
+    birthdayController = TextEditingController();
+    birthdayFocusNode = FocusNode();
   }
 
   @override
   void dispose() {
     viewKeyController.dispose();
+    birthdayController.dispose();
+    birthdayFocusNode.dispose();
     super.dispose();
   }
 
@@ -372,6 +397,7 @@ class _RestoreViewOnlyWalletViewState
                           onChanged: (value) {
                             setState(() {
                               _enableRestoreButton = value.trim().isNotEmpty;
+                              _showBirthday = value.trim().startsWith("pxview");
                             });
                           },
                         ),
@@ -389,6 +415,45 @@ class _RestoreViewOnlyWalletViewState
                                 : STextStyles.itemSubtitle(context),
                           ),
                         ),
+                        if (_showBirthday) ...[
+                          SizedBox(height: isDesktop ? 16 : 12),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(
+                              Constants.size.circularBorderRadius,
+                            ),
+                            child: TextField(
+                              key: const Key("viewOnlyBirthdayFieldKey"),
+                              controller: birthdayController,
+                              focusNode: birthdayFocusNode,
+                              autocorrect: false,
+                              enableSuggestions: false,
+                              keyboardType: TextInputType.number,
+                              inputFormatters: [
+                                FilteringTextInputFormatter.digitsOnly,
+                              ],
+                              style: STextStyles.field(context),
+                              decoration: standardInputDecoration(
+                                l10n.restoreBirthday,
+                                birthdayFocusNode,
+                                context,
+                              ),
+                            ),
+                          ),
+                          SizedBox(height: isDesktop ? 16 : 12),
+                          RoundedWhiteContainer(
+                            child: Text(
+                              l10n.restoreBirthdayInfo,
+                              style: isDesktop
+                                  ? STextStyles.desktopTextExtraSmall(context)
+                                        .copyWith(
+                                          color: Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .textSubtitle1,
+                                        )
+                                  : STextStyles.itemSubtitle(context),
+                            ),
+                          ),
+                        ],
                         if (!isDesktop) const Spacer(),
                         SizedBox(height: isDesktop ? 24 : 16),
                         PrimaryButton(

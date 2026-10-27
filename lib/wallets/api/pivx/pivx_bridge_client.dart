@@ -60,7 +60,7 @@ String restoreFailureText(Object error, NodeModel node) {
     TimeoutException() ||
     HttpException() ||
     TlsException() => l10n.restoreNodeUnreachable(name),
-    _ => "$error",
+    _ => "$error".replaceFirst("Exception: ", ""),
   };
 }
 
@@ -508,16 +508,25 @@ class PivxBridgeClient {
   // Streaming (shield data, sapling params)
   // ---------------------------------------------------------------------------
 
-  /// Raw byte stream of `/getshielddata?startBlock=N` (bridge `pivx`
-  /// format: length-prefixed raw v3 txs, each block closed by a 0x5d
-  /// footer carrying height and time).
+  /// Raw byte stream of `/getshielddata?startBlock=N`: by default the
+  /// bridge's `pivx` format (length-prefixed raw v3 txs, each block closed
+  /// by a 0x5d footer carrying height and time). With [compact], its
+  /// `compact` format: each block opened by a 0x5d header with its height,
+  /// then one packet per tx with only the Sapling parts a wallet scans
+  /// (about a sixth of the bytes). A server without that format sends the
+  /// default one, and the stream parser reads both.
   ///
   /// Fails when no data arrives for [_timeout], so a stalled stream
   /// can't hold up the sync forever.
-  Stream<List<int>> shieldData(int startBlock) async* {
+  Stream<List<int>> shieldData(int startBlock, {bool compact = false}) async* {
     await _localNetworkReady();
     final request = await _http
-        .getUrl(_uri("/getshielddata", {"startBlock": "$startBlock"}))
+        .getUrl(
+          _uri("/getshielddata", {
+            "startBlock": "$startBlock",
+            if (compact) "format": "compact",
+          }),
+        )
         .timeout(_timeout);
     final response = await request.close().timeout(_timeout);
     if (response.statusCode != 200) {
@@ -532,12 +541,21 @@ class PivxBridgeClient {
 
   /// `finalsaplingroot` of the block at [height] (display hex), via the
   /// bridge's RPC proxy.
-  Future<String?> finalSaplingRoot(int height) async {
+  Future<String?> finalSaplingRoot(int height) async =>
+      (await _block(height))["finalsaplingroot"] as String?;
+
+  /// Txids of the block at [height], in block order.
+  Future<List<String>> blockTxids(int height) async => [
+    for (final txid in (await _block(height))["tx"] as List) txid as String,
+  ];
+
+  /// `getblock` (verbosity 1) of the block at [height], via the bridge's
+  /// RPC proxy.
+  Future<Map<dynamic, dynamic>> _block(int height) async {
     final hash = (await _getText("/getblockhash", {
       "params": "$height",
     })).trim().replaceAll('"', '');
-    final block = await _getJson("/getblock", {"params": "$hash,1"}) as Map;
-    return block["finalsaplingroot"] as String?;
+    return await _getJson("/getblock", {"params": "$hash,1"}) as Map;
   }
 
   /// `listmasternodes` (via the RPC proxy) filtered by [filter], e.g. a

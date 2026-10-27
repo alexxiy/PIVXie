@@ -396,58 +396,112 @@ List<String> pivxOutputScripts(Map<String, dynamic> json) => [
 /// One output of a raw transaction: its value and script.
 typedef PivxRawOutput = ({BigInt value, Uint8List script});
 
-/// Outputs of a raw PIVX transaction (any version: outputs come before
-/// the Sapling data).
-List<PivxRawOutput> pivxTxOutputs(Uint8List raw) {
-  final view = ByteData.sublistView(raw);
-  int pos = 4; // nVersion (+ nType)
-  int varint() {
-    final first = raw[pos++];
-    if (first < 0xfd) return first;
-    final int v;
-    if (first == 0xfd) {
-      v = view.getUint16(pos, Endian.little);
-      pos += 2;
-    } else if (first == 0xfe) {
-      v = view.getUint32(pos, Endian.little);
-      pos += 4;
-    } else {
-      v = view.getUint64(pos, Endian.little);
-      pos += 8;
-    }
-    return v;
-  }
+/// Reads a raw PIVX transaction from the start: nVersion and nType
+/// (int16 each), inputs, outputs, nLockTime, then for Sapling versions
+/// (3 and up) an optional Sapling bundle.
+class _PivxRawTxReader {
+  _PivxRawTxReader(this.raw) : view = ByteData.sublistView(raw);
 
-  final inputs = varint();
-  for (int i = 0; i < inputs; i++) {
-    pos += 36; // prevout
-    final scriptSig = varint();
-    pos += scriptSig;
-    pos += 4; // nSequence
-  }
-  final count = varint();
-  final outputs = <PivxRawOutput>[];
-  for (int i = 0; i < count; i++) {
-    final value = BigInt.from(view.getInt64(pos, Endian.little));
-    pos += 8;
-    final length = varint();
-    if (pos + length > raw.length) {
+  final Uint8List raw;
+  final ByteData view;
+  int pos = 0;
+
+  Uint8List take(int length) {
+    if (length < 0 || pos + length > raw.length) {
       throw const FormatException("Truncated transaction");
     }
-    outputs.add((value: value, script: raw.sublist(pos, pos + length)));
-    pos += length;
+    return Uint8List.sublistView(raw, pos, pos += length);
   }
-  return outputs;
+
+  int varint() {
+    final first = take(1)[0];
+    if (first < 0xfd) return first;
+    final bytes = ByteData.sublistView(
+      take(first == 0xfd ? 2 : (first == 0xfe ? 4 : 8)),
+    );
+    return switch (first) {
+      0xfd => bytes.getUint16(0, Endian.little),
+      0xfe => bytes.getUint32(0, Endian.little),
+      _ => bytes.getUint64(0, Endian.little),
+    };
+  }
+
+  /// Reads up to and including the outputs.
+  List<PivxRawOutput> outputs() {
+    pos = 4; // nVersion (+ nType)
+    final inputs = varint();
+    for (int i = 0; i < inputs; i++) {
+      take(36); // prevout
+      take(varint()); // scriptSig
+      take(4); // nSequence
+    }
+    final count = varint();
+    return [
+      for (int i = 0; i < count; i++)
+        (
+          value: BigInt.from(
+            ByteData.sublistView(take(8)).getInt64(0, Endian.little),
+          ),
+          script: Uint8List.fromList(take(varint())),
+        ),
+    ];
+  }
 }
 
-/// Outputs of the raw transaction [rawHex], after checking that it
-/// hashes to [txid]. Throws when it does not.
-List<PivxRawOutput> pivxVerifiedOutputs(String txid, String rawHex) {
+/// Outputs of a raw PIVX transaction (any version: outputs come before
+/// the Sapling data).
+List<PivxRawOutput> pivxTxOutputs(Uint8List raw) =>
+    _PivxRawTxReader(raw).outputs();
+
+/// The Sapling parts of a transaction a shield scan sees: the nullifiers
+/// its spends reveal and the note commitments (cmu) of its outputs, both
+/// as hex of the wire bytes, in order.
+typedef PivxShieldParts = ({List<String> nullifiers, List<String> commitments});
+
+/// [PivxShieldParts] of a raw PIVX transaction; empty lists when it has
+/// no Sapling bundle.
+PivxShieldParts pivxTxShieldParts(Uint8List raw) {
+  final tx = _PivxRawTxReader(raw);
+  final version = tx.view.getInt16(0, Endian.little);
+  tx.outputs();
+  tx.take(4); // nLockTime
+  if (version < 3 || tx.take(1)[0] == 0) {
+    return (nullifiers: const [], commitments: const []);
+  }
+  tx.take(8); // valueBalance
+  // Spend: cv, anchor, nullifier, rk (32 each), proof 192, signature 64.
+  final spends = tx.varint();
+  final nullifiers = [
+    for (int i = 0; i < spends; i++)
+      Uint8List.sublistView(tx.take(384), 64, 96).toHex,
+  ];
+  // Output: cv, cmu, epk (32 each), enc 580, out 80, proof 192.
+  final outputs = tx.varint();
+  final commitments = [
+    for (int i = 0; i < outputs; i++)
+      Uint8List.sublistView(tx.take(948), 32, 64).toHex,
+  ];
+  return (nullifiers: nullifiers, commitments: commitments);
+}
+
+/// Parse [rawHex] after checking that it hashes to [txid]. Throws when it
+/// does not.
+T _pivxVerified<T>(String txid, String rawHex, T Function(Uint8List) parse) {
   final raw = rawHex.toUint8ListFromHex;
   final id = Uint8List.fromList(coinlib.sha256DoubleHash(raw).reversed.toList())
       .toHex;
   if (id != txid) {
     throw Exception(l10n.txWrongFromServer(txid));
   }
-  return pivxTxOutputs(raw);
+  return parse(raw);
 }
+
+/// Outputs of the raw transaction [rawHex], after checking that it
+/// hashes to [txid]. Throws when it does not.
+List<PivxRawOutput> pivxVerifiedOutputs(String txid, String rawHex) =>
+    _pivxVerified(txid, rawHex, pivxTxOutputs);
+
+/// [PivxShieldParts] of the raw transaction [rawHex], after checking that
+/// it hashes to [txid]. Throws when it does not.
+PivxShieldParts pivxVerifiedShieldParts(String txid, String rawHex) =>
+    _pivxVerified(txid, rawHex, pivxTxShieldParts);

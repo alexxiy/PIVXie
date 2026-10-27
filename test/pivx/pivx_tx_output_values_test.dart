@@ -58,4 +58,62 @@ void main() {
       throwsA(anything),
     );
   });
+
+  group("shield parts", () {
+    String hex(List<int> b) =>
+        b.map((e) => e.toRadixString(16).padLeft(2, "0")).join();
+
+    // Spend: cv, anchor, nullifier, rk (32 each), proof 192, signature 64.
+    List<int> spend(int nf) => [
+      ...List.filled(64, 0x11),
+      ...List.filled(32, nf),
+      ...List.filled(32 + 192 + 64, 0x22),
+    ];
+    // Output: cv, cmu, epk (32 each), enc 580, out 80, proof 192.
+    List<int> output(int cmu) => [
+      ...List.filled(32, 0x33),
+      ...List.filled(32, cmu),
+      ...List.filled(32 + 580 + 80 + 192, 0x44),
+    ];
+
+    test("nullifiers and commitments of a Sapling transaction", () {
+      final raw = tx(
+        version: [3, 0, 0, 0],
+        values: [5000],
+        tail: [
+          1, // sapData present
+          ...le(-7000, 8), // valueBalance
+          2, ...spend(0xa1), ...spend(0xa2),
+          1, ...output(0xc1),
+          ...List.filled(64, 0x55), // bindingSig
+        ],
+      );
+      final parts = pivxTxShieldParts(raw);
+      expect(parts.nullifiers, [
+        hex(List.filled(32, 0xa1)),
+        hex(List.filled(32, 0xa2)),
+      ]);
+      expect(parts.commitments, [hex(List.filled(32, 0xc1))]);
+    });
+
+    test("transactions without shield data have none", () {
+      for (final raw in [
+        tx(version: le(1, 4), values: [1]),
+        tx(version: [3, 0, 0, 0], values: [1], tail: [0]),
+      ]) {
+        final parts = pivxTxShieldParts(raw);
+        expect(parts.nullifiers, isEmpty);
+        expect(parts.commitments, isEmpty);
+      }
+    });
+
+    test("a truncated shield bundle is rejected", () {
+      final raw = tx(
+        version: [3, 0, 0, 0],
+        values: [1],
+        tail: [1, ...le(0, 8), 0, 1, ...output(1).take(500)],
+      );
+      expect(() => pivxTxShieldParts(raw), throwsFormatException);
+    });
+  });
 }

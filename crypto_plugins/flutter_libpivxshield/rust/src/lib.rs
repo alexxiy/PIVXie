@@ -67,15 +67,6 @@ struct HandleBlocksArgs {
 }
 
 #[derive(Deserialize)]
-struct HandleCompactArgs {
-    tree: String,
-    blocks: Vec<transaction::CompactBlock>,
-    extfvk: String,
-    is_testnet: bool,
-    notes: Vec<transaction::JSSpendableNote>,
-}
-
-#[derive(Deserialize)]
 struct TreeArgs {
     tree: String,
 }
@@ -130,12 +121,6 @@ fn dispatch(method: &str, args: &str) -> CallResult {
         "handle_blocks" => {
             let a: HandleBlocksArgs = parse(args)?;
             transaction::handle_blocks(&a.tree, a.blocks, &a.extfvk, a.is_testnet, a.notes)
-                .map_err(err)
-                .and_then(|v| serde_json::to_value(v).map_err(err))
-        }
-        "handle_blocks_compact" => {
-            let a: HandleCompactArgs = parse(args)?;
-            transaction::handle_blocks_compact(&a.tree, a.blocks, &a.extfvk, a.is_testnet, a.notes)
                 .map_err(err)
                 .and_then(|v| serde_json::to_value(v).map_err(err))
         }

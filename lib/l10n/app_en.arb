@@ -2755,6 +2755,19 @@
   "restoreEnterViewOnly": "Enter view only details",
   "restoreWatchKey": "Extended public key or viewing key",
   "restoreWatchKeyInfo": "Use an extended public key to watch a wallet's transparent addresses, or a shield viewing key to watch shield addresses, such as the key PIVX.name publishes.",
+  "restoreBirthday": "Birthday block (optional)",
+  "restoreBirthdayInfo": "The block of the key's first transaction, or any block before it. Left empty, the scan starts at the beginning of SHIELD: it downloads much more and can take a long time.",
+  "restoreBirthdayAboveTip": "Block {height} isn't on the chain yet: the network is at block {tip}.",
+  "@restoreBirthdayAboveTip": {
+    "placeholders": {
+      "height": {
+        "type": "int"
+      },
+      "tip": {
+        "type": "int"
+      }
+    }
+  },
   "restoreInvalidSeed": "Invalid seed phrase!",
   "restoreScanSemantics": "View QR Code Button. Opens Camera To Scan QR Code For Restoring Wallet.",
   "restorePasteSemantics": "Paste Button. Pastes From Clipboard For Restoring Wallet.",

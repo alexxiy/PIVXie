@@ -8,6 +8,7 @@ import 'dart:typed_data';
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:decimal/decimal.dart';
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:isar_community/isar.dart';
 import 'package:mutex/mutex.dart';
 
@@ -120,6 +121,11 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
   /// The first load of [_shield], which callers at the same time share:
   /// two loads would give two states, one overwriting the other's file.
   Future<PivxShieldState>? _shieldLoading;
+
+  /// Set after a Sapling root mismatch or a compact block that doesn't
+  /// match the chain: the shield scan then reads full transactions
+  /// instead of the bridge's compact stream until the app restarts.
+  bool _shieldFullStream = false;
 
   /// Remove what a PIVX wallet keeps outside the wallet tables: masternode
   /// private keys and the shield state file (its notes and history). For
@@ -1155,6 +1161,12 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
       ]);
     }
     await updateChainHeight();
+    // A birthday typed for a viewing key: past the tip, the scan would
+    // start at the newest checkpoint and miss everything before it.
+    final tip = await chainHeight;
+    if (isShieldViewOnly && tip > 0 && info.restoreHeight > tip) {
+      throw Exception(l10n.restoreBirthdayAboveTip(info.restoreHeight, tip));
+    }
     if (_shieldSupported) {
       await _resetShield(fromHeight: shieldRestoreHeight);
     }
@@ -1300,10 +1312,12 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
       libPivxShield.isValidAddress(address, isTestnet: _isTestnet);
 
   /// Where a restore starts the shield scan: the restore height, or the
-  /// shield launch when there's none.
+  /// shield launch when there's none. A viewing key may come from PIVX
+  /// Core (e.g. PIVX.name's), with notes from before MyPIVXWallet's shield
+  /// launch: without a birthday it is scanned from Sapling activation.
   int get shieldRestoreHeight => info.restoreHeight > 0
       ? info.restoreHeight
-      : (_isTestnet ? 0 : _kMainnetDefaultShieldStart);
+      : (_isTestnet || isShieldViewOnly ? 0 : _kMainnetDefaultShieldStart);
 
   /// The other accounts of this wallet's recovery phrase, after this one,
   /// that have been used: what restoring the phrase brings back. Only the

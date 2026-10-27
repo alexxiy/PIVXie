@@ -15,6 +15,7 @@ import 'dart:typed_data';
 
 import 'package:bip39/bip39.dart' as bip39;
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
+import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter_libpivxshield/flutter_libpivxshield.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:paymint/utilities/enums/derive_path_type_enum.dart';
@@ -22,6 +23,7 @@ import 'package:paymint/utilities/extensions/extensions.dart';
 import 'package:paymint/wallets/api/pivx/pivx_bridge_client.dart';
 import 'package:paymint/wallets/crypto_currency/crypto_currency.dart';
 import 'package:paymint/wallets/wallet/impl/pivx/pivx_shield_stream.dart';
+import 'package:paymint/wallets/wallet/impl/pivx/pivx_tx_parser.dart';
 
 // A fresh mnemonic per run keeps runs independent on a reused regtest chain.
 final _mnemonic = bip39.generateMnemonic();
@@ -41,7 +43,9 @@ Future<void> _waitFor(Future<bool> Function() check) async {
   throw Exception("timed out");
 }
 
-/// Minimal port of the wallet's scanning loop (see pivx_wallet_shield.dart).
+/// Minimal port of the wallet's scanning loop (see pivx_wallet_shield.dart):
+/// the bridge's compact stream, with txids found in the blocks. The
+/// classify suite reads the full (`pivx`) stream.
 class _Scanner {
   _Scanner(this.bridge, this.extfvk, this.height, this.tree);
 
@@ -53,8 +57,9 @@ class _Scanner {
   final walletTxs = <Map<String, dynamic>>[];
 
   Future<void> sync() async {
-    final blocks = await parsePivxShieldStream(bridge.shieldData(height + 1))
-        .toList();
+    final blocks = await parsePivxShieldStream(
+      bridge.shieldData(height + 1, compact: true),
+    ).toList();
     if (blocks.isEmpty) return;
     final r = await PivxShield.handleBlocks(
       tree: tree,
@@ -63,6 +68,25 @@ class _Scanner {
       isTestnet: true,
       notes: notes,
     );
+    for (final w in r["wallet_transactions"] as List) {
+      final wtx = w as Map;
+      expect(wtx["txid"], isEmpty, reason: "compact packets have no txid");
+      final block = blocks[wtx["block"] as int].height;
+      for (final txid in await bridge.blockTxids(block)) {
+        final parts = pivxVerifiedShieldParts(txid, await bridge.rawTx(txid));
+        if (listEquals(
+              parts.nullifiers,
+              List<String>.from(wtx["nullifiers"] as List),
+            ) &&
+            listEquals(
+              parts.commitments,
+              List<String>.from(wtx["commitments"] as List),
+            )) {
+          wtx["txid"] = txid;
+        }
+      }
+      expect(wtx["txid"], isNotEmpty, reason: "no tx of block $block matches");
+    }
     final spent = Set<String>.from(r["nullifiers"] as List);
     notes = [
       for (final n in [

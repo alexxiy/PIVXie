@@ -303,34 +303,52 @@ extension _PivxShield on PivxWallet {
       void progress(int height) =>
           _syncProgress(0.1 + 0.85 * (height - scannedFrom) / span);
 
-      // The next batch downloads while the previous one is scanned (in a
-      // background isolate); batches are still scanned one after another.
-      var batch = <PivxShieldBlock>[];
-      Future<void>? scanning;
-      try {
-        await for (final block in parsePivxShieldStream(
-          bridge.shieldData(state.lastProcessedBlock + 1),
-        )) {
+      // A dropped connection resumes after the last saved batch.
+      await retryShieldStream(
+        position: () => state.lastProcessedBlock,
+        onRetry: (e) => Logging.instance.w(
+          "PIVX ${info.name}: shield stream failed after block "
+          "${state.lastProcessedBlock}, resuming: $e",
+        ),
+        attempt: () async {
+          // A cancel during a stalled stream lands here after the timeout.
           if (_recovering && _recoverCancelled) {
             throw Exception(l10n.restoreCancelled);
           }
-          progress(block.height);
-          batch.add(block);
-          if (batch.length >= _kShieldBatchBlocks) {
+          // The next batch downloads while the previous one is scanned (in
+          // a background isolate); batches are still scanned one after
+          // another.
+          var batch = <PivxShieldBlock>[];
+          Future<void>? scanning;
+          try {
+            await for (final block in parsePivxShieldStream(
+              bridge.shieldData(
+                state.lastProcessedBlock + 1,
+                compact: !_shieldFullStream,
+              ),
+            )) {
+              if (_recovering && _recoverCancelled) {
+                throw Exception(l10n.restoreCancelled);
+              }
+              progress(block.height);
+              batch.add(block);
+              if (batch.length >= _kShieldBatchBlocks) {
+                await scanning;
+                scanning = _processShieldBlocks(state, batch, walletTxids)
+                  // Errors surface at the next await, not as uncaught.
+                  ..ignore();
+                batch = [];
+              }
+            }
+          } finally {
+            // Never leave a scan running past this point, even on errors.
             await scanning;
-            scanning = _processShieldBlocks(state, batch, walletTxids)
-              // Errors surface at the next await, not as uncaught.
-              ..ignore();
-            batch = [];
           }
-        }
-      } finally {
-        // Never leave a scan running past this point, even on errors.
-        await scanning;
-      }
-      if (batch.isNotEmpty) {
-        await _processShieldBlocks(state, batch, walletTxids);
-      }
+          if (batch.isNotEmpty) {
+            await _processShieldBlocks(state, batch, walletTxids);
+          }
+        },
+      );
       progress(tip);
     }
 
@@ -344,8 +362,9 @@ extension _PivxShield on PivxWallet {
       if (remote != null && remote != local) {
         Logging.instance.e(
           "PIVX shield: sapling root mismatch at ${state.lastProcessedBlock} "
-          "(local $local, chain $remote); resyncing",
+          "(local $local, chain $remote); resyncing from full transactions",
         );
+        _shieldFullStream = true;
         await _resetShield(fromHeight: state.startHeight);
         return;
       }
@@ -415,8 +434,12 @@ extension _PivxShield on PivxWallet {
     ].where((n) => !spent.contains(n["nullifier"])).toList();
     state.pendingSpent.removeWhere((_, nfs) => nfs.any(spent.contains));
 
-    for (final w in r["wallet_transactions"] as List) {
-      final wtx = Map<String, dynamic>.from(w as Map);
+    final walletTxs = [
+      for (final w in r["wallet_transactions"] as List)
+        Map<String, dynamic>.from(w as Map),
+    ];
+    await _findCompactTxids(walletTxs, relevant);
+    for (final wtx in walletTxs) {
       final txid = wtx["txid"] as String;
       // Its notes are in [unspentNotes] now.
       state.pendingIncoming.remove(txid);
@@ -458,6 +481,55 @@ extension _PivxShield on PivxWallet {
     state.commitmentTree = r["commitment_tree"] as String;
     state.lastProcessedBlock = relevant.last.height;
     await state.save(walletId);
+  }
+
+  /// Compact stream packets carry no txid (the library leaves it empty):
+  /// find each such wallet tx among its block's transactions by the
+  /// nullifiers and note commitments it revealed. Without a match the
+  /// stream and the chain disagree: the scan goes on from full
+  /// transactions (see [retryShieldStream]).
+  Future<void> _findCompactTxids(
+    List<Map<String, dynamic>> walletTxs,
+    List<PivxShieldBlock> blocks,
+  ) async {
+    final blockParts = <int, Map<String, PivxShieldParts>>{};
+    for (final wtx in walletTxs) {
+      if ((wtx["txid"] as String).isNotEmpty) continue;
+      final height = blocks[(wtx["block"] as num).toInt()].height;
+      final parts = blockParts[height] ??= await _blockShieldParts(height);
+      final nullifiers = List<String>.from(wtx["nullifiers"] as List);
+      final commitments = List<String>.from(wtx["commitments"] as List);
+      final txid = parts.entries
+          .where(
+            (e) =>
+                listEquals(e.value.nullifiers, nullifiers) &&
+                listEquals(e.value.commitments, commitments),
+          )
+          .firstOrNull
+          ?.key;
+      if (txid == null) {
+        _shieldFullStream = true;
+        throw PivxCompactStreamMismatch(
+          "PIVX shield: no transaction of block $height matches the stream",
+        );
+      }
+      wtx["txid"] = txid;
+    }
+  }
+
+  /// [PivxShieldParts] of every transaction in the block at [height],
+  /// from raw transactions checked against their txids.
+  Future<Map<String, PivxShieldParts>> _blockShieldParts(int height) async {
+    final txids = await bridge.blockTxids(height);
+    final parts = <String, PivxShieldParts>{};
+    for (var i = 0; i < txids.length; i += PivxWallet._kParallelRequests) {
+      final ids = txids.skip(i).take(PivxWallet._kParallelRequests).toList();
+      final raws = await Future.wait(ids.map(bridge.rawTx));
+      for (final (j, txid) in ids.indexed) {
+        parts[txid] = pivxVerifiedShieldParts(txid, raws[j]);
+      }
+    }
+    return parts;
   }
 
   Future<void> _storeShieldHistory(Set<String> txids) async {
