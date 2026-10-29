@@ -240,15 +240,18 @@ void main() {
     "watch long-poll wakes on our mempool tx and on blocks only",
     () async {
       final mine = addressAt(0, 5);
-      late int height;
       late PivxBridgeWatch r;
       late String paid;
-      // The VM's miner (a block a minute) may wake the watch first: then
-      // the round is tried again.
+      // The bridge's index follows the node every 2 s, so right after a
+      // block it may trail getblockcount: from then on the tip comes from
+      // the watch answers. A block (the regtest miner makes one a minute)
+      // wakes a watch too: then the round is tried again.
+      var height = await bridge.getBlockCount();
       for (var round = 1; ; round++) {
-        height = await bridge.getBlockCount();
         // Establish the mempool sequence.
         final base = await bridge.watch(height: height, timeoutSeconds: 1);
+        height = base.height;
+        if (base.changed && round < 5) continue;
         expect(base.changed, isFalse);
 
         // An unrelated tx does not wake us; a payment to our address does.
@@ -267,7 +270,8 @@ void main() {
         await Future<void>.delayed(const Duration(seconds: 3));
         paid = await _cli(["sendtoaddress", mine, "1"]);
         r = await watched;
-        if (!r.newBlock || round == 3) break;
+        if (!r.newBlock || round >= 5) break;
+        height = r.height;
       }
       expect(r.changed, isTrue);
       expect(r.newBlock, isFalse);
