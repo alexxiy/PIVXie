@@ -23,7 +23,8 @@ Uso diario
 • Libreta de direcciones y control de monedas.
 • Firma y verifica mensajes.
 • Un historial claro: las recompensas de staking, las recompensas de masternode, los pagos de propuestas y las transacciones SHIELD están etiquetados, y puedes filtrar por cada tipo.
-• Varias cuentas con una sola frase de recuperación y billeteras de solo lectura a partir de una clave pública extendida.
+• Varias cuentas con una sola frase de recuperación y billeteras de solo lectura a partir de una clave pública extendida o una clave de visualización SHIELD.
+• Disponible en 14 idiomas. PIVXie sigue el idioma de tu teléfono, o puedes elegir uno en Configuración.
 
 Copias de seguridad y protección
 • Restaura con tu frase de recuperación de 12 o 24 palabras, con una frase de contraseña opcional. Las frases de recuperación de MyPIVXWallet también funcionan.
@@ -31,7 +32,7 @@ Copias de seguridad y protección
 • Bloqueo con PIN y biometría, y un PIN de coacción que abre la app solo con las billeteras que elijas.
 
 Tu propio servidor, si quieres
-PIVXie se conecta de forma predeterminada al bridge de PIVXie. Puedes cambiar a tu propio servidor pivx-bridge en cualquier momento.
+PIVXie se conecta de forma predeterminada a sus propios servidores bridge en Europa, EE. UU. y Singapur, y usa el más rápido. Puedes cambiar a tu propio servidor pivx-bridge en cualquier momento.
 
 Guarda tu frase de recuperación por escrito en un lugar seguro. Quien la tenga controla tus monedas, y nadie, ni siquiera el equipo de PIVXie, puede restaurarla por ti.
 

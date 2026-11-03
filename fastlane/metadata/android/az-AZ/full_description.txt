@@ -23,7 +23,8 @@ Gündəlik istifadə
 • Ünvan kitabı və coin nəzarəti.
 • Mesajları imzalayın və yoxlayın.
 • Aydın tarixçə: staking mükafatları, masternod mükafatları, təklif ödənişləri və SHIELD əməliyyatları işarələnir, hər növə görə filtr edə bilərsiniz.
-• Bir bərpa ifadəsindən bir neçə hesab və genişləndirilmiş açıq açardan yalnız baxış pulqabıları.
+• Bir bərpa ifadəsindən bir neçə hesab və genişləndirilmiş açıq açardan və ya SHIELD baxış açarından yalnız baxış pulqabıları.
+• 14 dildə mövcuddur. PIVXie telefonunuzun dilini izləyir, ya da Parametrlər bölməsində dil seçə bilərsiniz.
 
 Ehtiyat nüsxələr və təhlükəsizlik
 • 12 və ya 24 sözlük bərpa ifadənizlə, istəsəniz parol ifadəsi ilə birlikdə bərpa edin. MyPIVXWallet bərpa ifadələri də işləyir.
@@ -31,7 +32,7 @@ Ehtiyat nüsxələr və təhlükəsizlik
 • PIN və biometrik kilid, həmçinin tətbiqi yalnız seçdiyiniz pulqabılarla açan təzyiq PIN-i.
 
 İstəsəniz, öz serveriniz
-PIVXie standart olaraq PIVXie bridge serverinə qoşulur. İstənilən vaxt öz pivx-bridge serverinizə keçə bilərsiniz.
+PIVXie standart olaraq Avropa, ABŞ və Sinqapurdakı öz bridge serverlərinə qoşulur və ən sürətlisindən istifadə edir. İstənilən vaxt öz pivx-bridge serverinizə keçə bilərsiniz.
 
 Bərpa ifadənizi yazıb təhlükəsiz yerdə saxlayın. Ona sahib olan hər kəs coinlərinizə nəzarət edir və heç kim, PIVXie komandası da daxil olmaqla, onu sizin üçün bərpa edə bilməz.
 

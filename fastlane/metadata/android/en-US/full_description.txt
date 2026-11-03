@@ -23,7 +23,8 @@ Everyday use
 • Address book and coin control.
 • Sign and verify messages.
 • A clear history: staking rewards, masternode rewards, proposal payments and SHIELD transactions are labelled, and you can filter by each kind.
-• Several accounts from one recovery phrase, and watch-only wallets from an extended public key.
+• Several accounts from one recovery phrase, and view-only wallets from an extended public key or a SHIELD viewing key.
+• Available in 14 languages. PIVXie follows your phone's language, or you can pick one in Settings.
 
 Backups and security
 • Restore with your 12- or 24-word recovery phrase, with an optional passphrase. Recovery phrases from MyPIVXWallet work too.
@@ -31,7 +32,7 @@ Backups and security
 • PIN and biometric lock, and a duress PIN that opens the app with only the wallets you choose.
 
 Your own server, if you like
-PIVXie connects to the PIVXie bridge by default. You can switch to your own pivx-bridge server at any time.
+PIVXie connects to its own bridge servers in Europe, the US and Singapore by default and uses the fastest one. You can switch to your own pivx-bridge server at any time.
 
 Keep your recovery phrase written down somewhere safe. Whoever has it controls your coins, and nobody, the PIVXie team included, can restore it for you.
 

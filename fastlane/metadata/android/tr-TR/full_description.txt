@@ -23,7 +23,8 @@ Günlük kullanım
 • Adres defteri ve coin kontrolü.
 • Mesajları imzalayın ve doğrulayın.
 • Anlaşılır bir geçmiş: staking ödülleri, masternode ödülleri, teklif ödemeleri ve SHIELD işlemleri etiketlenir; her türe göre filtreleyebilirsiniz.
-• Tek bir kurtarma ifadesinden birden fazla hesap ve genişletilmiş açık anahtardan salt görüntüleme cüzdanları.
+• Tek bir kurtarma ifadesinden birden fazla hesap ve genişletilmiş açık anahtardan ya da SHIELD görüntüleme anahtarından salt görüntüleme cüzdanları.
+• 14 dilde kullanılabilir. PIVXie telefonunuzun dilini izler ya da Ayarlar'dan bir dil seçebilirsiniz.
 
 Yedekler ve güvenlik
 • 12 veya 24 kelimelik kurtarma ifadenizle, isterseniz bir parola ifadesiyle birlikte geri yükleyin. MyPIVXWallet kurtarma ifadeleri de çalışır.
@@ -31,7 +32,7 @@ Yedekler ve güvenlik
 • PIN ve biyometrik kilit, ayrıca uygulamayı yalnızca seçtiğiniz cüzdanlarla açan bir zorlama PIN'i.
 
 İsterseniz kendi sunucunuz
-PIVXie varsayılan olarak PIVXie bridge sunucusuna bağlanır. İstediğiniz zaman kendi pivx-bridge sunucunuza geçebilirsiniz.
+PIVXie varsayılan olarak Avrupa, ABD ve Singapur'daki kendi bridge sunucularına bağlanır ve en hızlısını kullanır. İstediğiniz zaman kendi pivx-bridge sunucunuza geçebilirsiniz.
 
 Kurtarma ifadenizi yazıp güvenli bir yerde saklayın. Ona sahip olan coin'lerinizi kontrol eder ve PIVXie ekibi dahil hiç kimse onu sizin için geri getiremez.
 
