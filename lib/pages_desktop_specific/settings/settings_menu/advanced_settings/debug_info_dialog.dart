@@ -42,15 +42,14 @@ class _DebugInfoDialog extends ConsumerState<DesktopLoggingDialog> {
   bool _lock = false;
 
   Future<void> _edit() async {
-    final currentPath = ref.read(prefsChangeNotifierProvider).logsPath ??
+    final currentPath =
+        ref.read(prefsChangeNotifierProvider).logsPath ??
         Logging.instance.logsDirPath;
     final newPath = await _pickDir(context, currentPath);
 
     // test if has permission to write
     if (newPath != null) {
-      final file = File(
-        "$newPath${Platform.pathSeparator}._test",
-      );
+      final file = File("$newPath${Platform.pathSeparator}._test");
       if (!file.existsSync()) {
         file.createSync();
         file.deleteSync();
@@ -64,7 +63,7 @@ class _DebugInfoDialog extends ConsumerState<DesktopLoggingDialog> {
       setState(() {
         fileLocationController.text =
             ref.read(prefsChangeNotifierProvider).logsPath ??
-                Logging.instance.logsDirPath;
+            Logging.instance.logsDirPath;
       });
     }
   }
@@ -74,8 +73,9 @@ class _DebugInfoDialog extends ConsumerState<DesktopLoggingDialog> {
     if (Platform.isIOS) {
       chosenPath = currentPath;
     } else {
-      final String path =
-          Platform.isWindows ? currentPath.replaceAll("/", "\\") : currentPath;
+      final String path = Platform.isWindows
+          ? currentPath.replaceAll("/", "\\")
+          : currentPath;
       chosenPath = await FilePicker.getDirectoryPath(
         dialogTitle: l10n.logsChooseLocation,
         initialDirectory: path,
@@ -91,7 +91,7 @@ class _DebugInfoDialog extends ConsumerState<DesktopLoggingDialog> {
     fileLocationController = TextEditingController();
     fileLocationController.text =
         ref.read(prefsChangeNotifierProvider).logsPath ??
-            Logging.instance.logsDirPath;
+        Logging.instance.logsDirPath;
   }
 
   @override
@@ -128,14 +128,12 @@ class _DebugInfoDialog extends ConsumerState<DesktopLoggingDialog> {
                 Text(
                   l10n.logsLocation,
                   style: STextStyles.desktopTextFieldLabel(context),
-                  textAlign: TextAlign.left,
+                  textAlign: TextAlign.start,
                 ),
               ],
             ),
           ),
-          const SizedBox(
-            height: 10,
-          ),
+          const SizedBox(height: 10),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 32),
             child: TextField(
@@ -149,9 +147,7 @@ class _DebugInfoDialog extends ConsumerState<DesktopLoggingDialog> {
                 suffixIcon: UnconstrainedBox(
                   child: Row(
                     children: [
-                      const SizedBox(
-                        width: 16,
-                      ),
+                      const SizedBox(width: 16),
                       SvgPicture.asset(
                         Assets.svg.folder,
                         color: Theme.of(context)
@@ -160,16 +156,12 @@ class _DebugInfoDialog extends ConsumerState<DesktopLoggingDialog> {
                         width: 16,
                         height: 16,
                       ),
-                      const SizedBox(
-                        width: 12,
-                      ),
+                      const SizedBox(width: 12),
                     ],
                   ),
                 ),
               ),
-              key: const Key(
-                "logsDirPathLocationControllerKey",
-              ),
+              key: const Key("logsDirPathLocationControllerKey"),
               readOnly: true,
               toolbarOptions: const ToolbarOptions(
                 copy: true,
@@ -180,17 +172,12 @@ class _DebugInfoDialog extends ConsumerState<DesktopLoggingDialog> {
               onChanged: (newValue) {},
             ),
           ),
-          const SizedBox(
-            height: 8,
-          ),
+          const SizedBox(height: 8),
           const Padding(
             padding: EdgeInsets.all(32),
             child: LogLevelPreferenceWidget(),
           ),
-          if (!Platform.isMacOS)
-            const SizedBox(
-              height: 8,
-            ),
+          if (!Platform.isMacOS) const SizedBox(height: 8),
           if (!Platform.isMacOS)
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -210,19 +197,14 @@ class _DebugInfoDialog extends ConsumerState<DesktopLoggingDialog> {
                 ],
               ),
             ),
-          if (!Platform.isMacOS)
-            const SizedBox(
-              height: 16,
-            ),
+          if (!Platform.isMacOS) const SizedBox(height: 16),
           if (!Platform.isMacOS)
             Padding(
               padding: const EdgeInsets.all(32),
               child: Row(
                 children: [
                   const Spacer(),
-                  const SizedBox(
-                    width: 16,
-                  ),
+                  const SizedBox(width: 16),
                   Expanded(
                     child: PrimaryButton(
                       label: l10n.logsSelectLocation,

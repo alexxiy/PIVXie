@@ -41,8 +41,9 @@ class _LogLevelPreferenceWidgetState
 
   @override
   Widget build(BuildContext context) {
-    final current =
-        ref.watch(prefsChangeNotifierProvider.select((s) => s.logLevel));
+    final current = ref.watch(
+      prefsChangeNotifierProvider.select((s) => s.logLevel),
+    );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -51,7 +52,7 @@ class _LogLevelPreferenceWidgetState
           style: Util.isDesktop
               ? STextStyles.desktopTextFieldLabel(context)
               : STextStyles.fieldLabel(context),
-          textAlign: TextAlign.left,
+          textAlign: TextAlign.start,
         ),
         Slider(
           min: 0,
@@ -70,8 +71,9 @@ class _LogLevelPreferenceWidgetState
           Padding(
             padding: const EdgeInsets.only(top: 10),
             child: RoundedContainer(
-              color:
-                  Theme.of(context).extension<StackColors>()!.warningBackground,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .warningBackground,
               child: SelectableText.rich(
                 TextSpan(
                   children: l10nSpans(

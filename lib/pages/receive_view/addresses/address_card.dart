@@ -190,7 +190,7 @@ class _AddressCardState extends ConsumerState<AddressCard> {
                           ? label!.value
                           : l10n.receiveNoLabel,
                       style: STextStyles.itemSubtitle(context),
-                      textAlign: TextAlign.left,
+                      textAlign: TextAlign.start,
                     ),
                     SimpleEditButton(
                       editValue: label!.value,

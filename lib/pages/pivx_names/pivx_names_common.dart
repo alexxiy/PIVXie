@@ -9,6 +9,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../db/hive/db.dart';
 import '../../l10n/l10n.dart';
 import '../../notifications/show_flush_bar.dart';
+import '../../services/pivx_name/pivx_name.dart';
 import '../../services/pivx_name/pivx_names_protocol.dart';
 import '../../services/pivx_name/pivx_names_registrar.dart';
 import '../../themes/stack_colors.dart';
@@ -302,7 +303,7 @@ class PivxNamesAppBar extends StatelessWidget implements PreferredSizeWidget {
     final colors = Theme.of(context).extension<StackColors>()!;
     final inset = Util.isDesktop ? 20.0 : 10.0;
     Widget action(Widget child) => Padding(
-      padding: EdgeInsets.only(top: inset, bottom: inset, right: 10),
+      padding: EdgeInsetsDirectional.only(top: inset, bottom: inset, end: 10),
       child: AspectRatio(aspectRatio: 1, child: child),
     );
     return AppBar(
@@ -420,52 +421,25 @@ class _InfoDialogState extends State<_InfoDialog> {
     (
       l10n.pivxNamesInfoHowTitle,
       [
-        (
-          Icons.person_outline_rounded,
-          l10n.pivxNamesInfoHow1,
-        ),
-        (
-          Icons.key_rounded,
-          l10n.pivxNamesInfoHow2,
-        ),
-        (
-          Icons.info_outline_rounded,
-          l10n.pivxNamesInfoService,
-        ),
+        (Icons.person_outline_rounded, l10n.pivxNamesInfoHow1),
+        (Icons.key_rounded, l10n.pivxNamesInfoHow2),
+        (Icons.info_outline_rounded, l10n.pivxNamesInfoService),
       ],
     ),
     (
       l10n.pivxNamesInfoBenefitsTitle,
       [
-        (
-          Icons.sell_outlined,
-          l10n.pivxNamesInfoBenefits1,
-        ),
-        (
-          Icons.link_rounded,
-          l10n.pivxNamesInfoBenefits2,
-        ),
-        (
-          Icons.visibility_off_outlined,
-          l10n.pivxNamesInfoBenefits3,
-        ),
+        (Icons.sell_outlined, l10n.pivxNamesInfoBenefits1),
+        (Icons.link_rounded, l10n.pivxNamesInfoBenefits2),
+        (Icons.visibility_off_outlined, l10n.pivxNamesInfoBenefits3),
       ],
     ),
     (
       l10n.pivxNamesInfoControlTitle,
       [
-        (
-          Icons.swap_horiz_rounded,
-          l10n.pivxNamesInfoControl1,
-        ),
-        (
-          Icons.edit_outlined,
-          l10n.pivxNamesInfoControl2,
-        ),
-        (
-          Icons.shopping_bag_outlined,
-          l10n.pivxNamesInfoControl3,
-        ),
+        (Icons.swap_horiz_rounded, l10n.pivxNamesInfoControl1),
+        (Icons.edit_outlined, l10n.pivxNamesInfoControl2),
+        (Icons.shopping_bag_outlined, l10n.pivxNamesInfoControl3),
       ],
     ),
     (l10n.pivxNamesInfoQuestionTitle, []),
@@ -696,7 +670,11 @@ class PivxNamesSteps extends StatelessWidget {
 
     return Row(
       children: [
-        item(PivxNamesStep.check, PivxNamesIcons.search, l10n.pivxNamesStepCheck),
+        item(
+          PivxNamesStep.check,
+          PivxNamesIcons.search,
+          l10n.pivxNamesStepCheck,
+        ),
         item(PivxNamesStep.pay, PivxNamesIcons.balance, l10n.pivxNamesStepPay),
         item(PivxNamesStep.done, PivxNamesIcons.done, l10n.pivxNamesStepDone),
       ],
@@ -821,7 +799,11 @@ class PivxNamesStatusPill extends StatelessWidget {
     final colors = Theme.of(context).extension<StackColors>()!;
     final s = status;
     return PivxNamesPill(
-      text: s?.label ?? (raw == null ? l10n.pivxNamesStatusSent : l10n.pivxNamesStatusCode("$raw")),
+      text:
+          s?.label ??
+          (raw == null
+              ? l10n.pivxNamesStatusSent
+              : l10n.pivxNamesStatusCode("$raw")),
       color: pivxNamesStatusColor(s, colors),
       icon: switch (s) {
         PivxNamesTxStatus.done => PivxNamesIcons.check,
@@ -968,6 +950,7 @@ class _PivxNamesSearchFieldState extends State<PivxNamesSearchField> {
     borderRadius: BorderRadius.circular(Constants.size.circularBorderRadius),
     child: TextField(
       controller: _controller,
+      textDirection: TextDirection.ltr,
       focusNode: _focus,
       autocorrect: false,
       enableSuggestions: false,
@@ -998,6 +981,248 @@ class _PivxNamesSearchFieldState extends State<PivxNamesSearchField> {
           ),
     ),
   );
+}
+
+// =============================================================================
+// Filters
+
+/// The search field with a filter button on its right.
+class PivxNamesSearchBar extends StatelessWidget {
+  const PivxNamesSearchBar({
+    super.key,
+    required this.search,
+    required this.filter,
+    required this.open,
+    required this.onToggle,
+  });
+
+  final PivxNamesSearchField search;
+  final PivxNamesFilter filter;
+
+  /// Whether the filters show.
+  final bool open;
+  final VoidCallback onToggle;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<StackColors>()!;
+    final active = filter != kPivxNamesNoFilter;
+    final radius = BorderRadius.circular(Constants.size.circularBorderRadius);
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Expanded(child: search),
+          const SizedBox(width: 8),
+          SizedBox(
+            width: 52,
+            child: Tooltip(
+              message: l10n.pivxNamesFilters,
+              child: Material(
+                color: open
+                    ? colors.textFieldActiveBG
+                    : colors.textFieldDefaultBG,
+                borderRadius: radius,
+                child: InkWell(
+                  borderRadius: radius,
+                  onTap: onToggle,
+                  child: Semantics(
+                    button: true,
+                    toggled: open,
+                    label: l10n.pivxNamesFilters,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Icon(
+                          Icons.tune_rounded,
+                          size: 22,
+                          color: open || active
+                              ? colors.accentColorBlue
+                              : colors.textDark,
+                        ),
+                        // Filters in use, even with the panel closed.
+                        if (active)
+                          PositionedDirectional(
+                            top: 10,
+                            end: 10,
+                            child: Container(
+                              width: 8,
+                              height: 8,
+                              decoration: BoxDecoration(
+                                color: colors.accentColorBlue,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Status (when [withStatus]), zone and order of a names list, as chips.
+class PivxNamesFilterPanel extends StatelessWidget {
+  const PivxNamesFilterPanel({
+    super.key,
+    required this.filter,
+    required this.zones,
+    required this.onChanged,
+    this.withStatus = false,
+  });
+
+  final PivxNamesFilter filter;
+
+  /// The registrar's zones, bare ("pivx").
+  final List<String> zones;
+  final ValueChanged<PivxNamesFilter> onChanged;
+  final bool withStatus;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<StackColors>()!;
+    final f = filter;
+    Widget title(String text) => Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Text(text, style: STextStyles.w600_12(context)),
+    );
+    Widget chips(List<Widget> children) => Padding(
+      padding: const EdgeInsets.only(bottom: 14),
+      child: Wrap(spacing: 8, runSpacing: 8, children: children),
+    );
+    return Container(
+      margin: const EdgeInsets.only(top: 8),
+      padding: const EdgeInsetsDirectional.fromSTEB(14, 12, 14, 0),
+      decoration: BoxDecoration(
+        color: colors.popupBG,
+        borderRadius: BorderRadius.circular(
+          Constants.size.circularBorderRadius,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  l10n.pivxNamesFilters,
+                  style: STextStyles.w600_14(context),
+                ),
+              ),
+              TextButton(
+                onPressed: f == kPivxNamesNoFilter
+                    ? null
+                    : () => onChanged(kPivxNamesNoFilter),
+                child: Text(l10n.commonReset),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          if (withStatus) ...[
+            title(l10n.pivxNamesFilterStatus),
+            chips([
+              for (final (status, label) in [
+                (PivxNamesStatusFilter.all, l10n.pivxNamesFilterAll),
+                (PivxNamesStatusFilter.onSale, l10n.pivxNamesFilterOnSale),
+                (PivxNamesStatusFilter.active, l10n.pivxNamesActive),
+              ])
+                _PivxNamesChip(
+                  label: label,
+                  selected: f.status == status,
+                  onTap: () =>
+                      onChanged((status: status, zone: f.zone, sort: f.sort)),
+                ),
+            ]),
+          ],
+          title(l10n.pivxNamesZone),
+          chips([
+            _PivxNamesChip(
+              label: l10n.pivxNamesFilterAll,
+              selected: f.zone == null,
+              onTap: () =>
+                  onChanged((status: f.status, zone: null, sort: f.sort)),
+            ),
+            for (final zone in zones)
+              _PivxNamesChip(
+                label: ".$zone",
+                color: _zoneColors[".$zone"],
+                selected: f.zone == zone,
+                onTap: () =>
+                    onChanged((status: f.status, zone: zone, sort: f.sort)),
+              ),
+          ]),
+          title(l10n.pivxNamesSortBy),
+          chips([
+            for (final (sort, label) in [
+              (PivxNamesSort.nameAsc, l10n.pivxNamesSortNameAsc),
+              (PivxNamesSort.nameDesc, l10n.pivxNamesSortNameDesc),
+              (PivxNamesSort.priceAsc, l10n.pivxNamesSortPriceAsc),
+              (PivxNamesSort.priceDesc, l10n.pivxNamesSortPriceDesc),
+              (PivxNamesSort.newest, l10n.pivxNamesSortNewest),
+              (PivxNamesSort.oldest, l10n.pivxNamesSortOldest),
+            ])
+              _PivxNamesChip(
+                label: label,
+                selected: f.sort == sort,
+                onTap: () =>
+                    onChanged((status: f.status, zone: f.zone, sort: sort)),
+              ),
+          ]),
+        ],
+      ),
+    );
+  }
+}
+
+class _PivxNamesChip extends StatelessWidget {
+  const _PivxNamesChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+    this.color,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  /// The text's colour when not selected (a zone's).
+  final Color? color;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<StackColors>()!;
+    final radius = BorderRadius.circular(100);
+    return Semantics(
+      selected: selected,
+      child: Material(
+        color: selected ? colors.accentColorBlue : colors.textFieldDefaultBG,
+        borderRadius: radius,
+        child: InkWell(
+          borderRadius: radius,
+          onTap: selected ? null : onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            child: Text(
+              label,
+              style: STextStyles.w600_12(context).copyWith(
+                color: selected
+                    ? colors.buttonTextPrimary
+                    : color ?? colors.textDark,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 /// Loading, an error with Retry, or an empty list's [empty].
@@ -1097,10 +1322,21 @@ String pivxNamesShortId(String id) => id.length > 12
     ? "${id.substring(0, 6)}…${id.substring(id.length - 6)}"
     : id;
 
+/// The zones names are registered in, as the registrar serves them, or the
+/// app's own when it can't be asked (a list or a check then says why).
+Future<List<String>> pivxNamesZones(PivxWallet wallet) async {
+  try {
+    return await PivxNamesRegistrar.forCoin(wallet.cryptoCurrency)!.zones();
+  } catch (_) {
+    return kPivxNameZones;
+  }
+}
+
 /// What went wrong, for the user: the registrar's own words when it
 /// refused, else the error.
-String pivxNamesError(Object e) =>
-    e is PivxNamesException ? e.message : l10n.commonSomethingWentWrongError(e.toString());
+String pivxNamesError(Object e) => e is PivxNamesException
+    ? e.message
+    : l10n.commonSomethingWentWrongError(e.toString());
 
 Future<void> pivxNamesCopy(
   BuildContext context,
@@ -1122,12 +1358,12 @@ Future<void> showPivxNamesError(
   BuildContext context,
   Object error, {
   String? title,
-  }) => showDialog<void>(
-    context: context,
-    builder: (_) => StackOkDialog(
-      title: title ?? l10n.commonSomethingWentWrong,
-      message: pivxNamesError(error),
-    ),
+}) => showDialog<void>(
+  context: context,
+  builder: (_) => StackOkDialog(
+    title: title ?? l10n.commonSomethingWentWrong,
+    message: pivxNamesError(error),
+  ),
 );
 
 /// Asks before [action]; true when the user goes ahead.

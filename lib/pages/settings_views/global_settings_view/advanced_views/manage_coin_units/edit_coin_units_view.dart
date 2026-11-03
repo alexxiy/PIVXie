@@ -108,7 +108,7 @@ class _EditCoinUnitsViewState extends ConsumerState<EditCoinUnitsView> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(left: 32),
+                  padding: const EdgeInsetsDirectional.only(start: 32),
                   child: Text(
                     l10n.unitsEdit(widget.coin.prettyName),
                     style: STextStyles.desktopH3(context),
@@ -221,7 +221,10 @@ class _EditCoinUnitsViewState extends ConsumerState<EditCoinUnitsView> {
                       ),
                       onPressed: chooseUnit,
                       child: Padding(
-                        padding: const EdgeInsets.only(left: 12, right: 17),
+                        padding: const EdgeInsetsDirectional.only(
+                          start: 12,
+                          end: 17,
+                        ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -271,7 +274,7 @@ class _EditCoinUnitsViewState extends ConsumerState<EditCoinUnitsView> {
                           : null,
                       suffixIcon: _decimalsController.text.isNotEmpty
                           ? Padding(
-                              padding: const EdgeInsets.only(right: 0),
+                              padding: const EdgeInsetsDirectional.only(end: 0),
                               child: UnconstrainedBox(
                                 child: Row(
                                   children: [

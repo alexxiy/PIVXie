@@ -263,7 +263,7 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
                   isExpanded: true,
                   iconStyleData: IconStyleData(
                     icon: Padding(
-                      padding: const EdgeInsets.only(right: 10),
+                      padding: const EdgeInsetsDirectional.only(end: 10),
                       child: SvgPicture.asset(
                         Assets.svg.chevronDown,
                         width: 12,

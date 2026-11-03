@@ -194,11 +194,11 @@ class ContactPopUp extends ConsumerWidget {
                                 ),
                               ...addresses.map(
                                 (e) => Padding(
-                                  padding: const EdgeInsets.only(
+                                  padding: const EdgeInsetsDirectional.only(
                                     top: 12,
                                     bottom: 12,
-                                    left: 28,
-                                    right: 24,
+                                    start: 28,
+                                    end: 24,
                                   ),
                                   child: Row(
                                     crossAxisAlignment:

@@ -81,9 +81,8 @@ class SyncingPreferencesView extends ConsumerWidget {
                                 ),
                               ),
                               onPressed: () {
-                                Navigator.of(
-                                  context,
-                                ).pushNamed(SyncingOptionsView.routeName);
+                                Navigator.of(context)
+                                    .pushNamed(SyncingOptionsView.routeName);
                               },
                               child: Padding(
                                 padding: const EdgeInsets.all(12),
@@ -98,7 +97,7 @@ class SyncingPreferencesView extends ConsumerWidget {
                                           style: STextStyles.titleBold12(
                                             context,
                                           ),
-                                          textAlign: TextAlign.left,
+                                          textAlign: TextAlign.start,
                                         ),
                                         Text(
                                           _currentTypeDescription(
@@ -112,7 +111,7 @@ class SyncingPreferencesView extends ConsumerWidget {
                                           style: STextStyles.itemSubtitle(
                                             context,
                                           ),
-                                          textAlign: TextAlign.left,
+                                          textAlign: TextAlign.start,
                                         ),
                                       ],
                                     ),

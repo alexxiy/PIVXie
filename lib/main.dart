@@ -142,7 +142,10 @@ void main(List<String> args) async {
         // minimal but still Inter-font styled screen.
         errorApp = MaterialApp(
           debugShowCheckedModeBanner: false,
-          theme: ThemeData(fontFamily: GoogleFonts.inter().fontFamily),
+          theme: ThemeData(
+            fontFamily: GoogleFonts.inter().fontFamily,
+            fontFamilyFallback: const [kArabicFontFamily],
+          ),
           // No prefs here: the system language.
           supportedLocales: AppLocalizations.supportedLocales,
           localeListResolutionCallback: Language.resolveLocale,
@@ -156,16 +159,18 @@ void main(List<String> args) async {
                   Text(
                     l10n.appIsAlreadyRunning(AppConfig.appName),
                     textAlign: TextAlign.center,
-                    style: GoogleFonts.inter(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
+                    style: withArabicFallback(
+                      GoogleFonts.inter(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     l10n.appCloseOtherWindow,
                     textAlign: TextAlign.center,
-                    style: GoogleFonts.inter(fontSize: 16),
+                    style: withArabicFallback(GoogleFonts.inter(fontSize: 16)),
                   ),
                 ],
               ),
@@ -647,6 +652,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
         highlightColor: colorScheme.highlight,
         brightness: colorScheme.brightness,
         fontFamily: GoogleFonts.inter().fontFamily,
+        fontFamilyFallback: const [kArabicFontFamily],
         textTheme: kTextThemeFontFeatures,
         primaryTextTheme: kTextThemeFontFeatures,
         unselectedWidgetColor: colorScheme.radioButtonBorderDisabled,

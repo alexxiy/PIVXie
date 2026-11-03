@@ -139,9 +139,10 @@ class _DesktopAttentionDeleteWallet
                                               MainAxisAlignment.spaceBetween,
                                           children: [
                                             Padding(
-                                              padding: const EdgeInsets.only(
-                                                left: 32,
-                                              ),
+                                              padding:
+                                                  const EdgeInsetsDirectional.only(
+                                                    start: 32,
+                                                  ),
                                               child: Text(
                                                 l10n.walletKeys,
                                                 style: STextStyles.desktopH3(
@@ -239,7 +240,7 @@ class ErrorLoadingKeysDialog extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Padding(
-                padding: const EdgeInsets.only(left: 32),
+                padding: const EdgeInsetsDirectional.only(start: 32),
                 child: Text(
                   l10n.walletDecryptionError,
                   style: STextStyles.desktopH3(context),

@@ -222,6 +222,10 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
     }
   }
 
+  /// The default 20 around a field, plus two rows of suggestions below it
+  /// (48 each with the tap target, 8 between, 4 under).
+  static const _wordFieldScrollPadding = EdgeInsets.fromLTRB(20, 20, 20, 128);
+
   Widget _wordSuggestions(int index) {
     final words = _hideSeedWords ? const <String>[] : _suggestionsFor(index);
     if (words.isEmpty) return const SizedBox.shrink();
@@ -229,7 +233,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
       child: Align(
-        alignment: Alignment.centerLeft,
+        alignment: AlignmentDirectional.centerStart,
         child: Wrap(
           spacing: 8,
           runSpacing: 8,
@@ -505,9 +509,9 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
       filled: true,
       contentPadding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
       prefixIcon: Align(
-        alignment: Alignment.centerLeft,
+        alignment: AlignmentDirectional.centerStart,
         child: Padding(
-          padding: const EdgeInsets.only(left: 12, bottom: 2),
+          padding: const EdgeInsetsDirectional.only(start: 12, bottom: 2),
           child: Text(
             prefix,
             style: STextStyles.fieldLabel(
@@ -530,7 +534,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
       ),
       suffixIcon: Center(
         child: Padding(
-          padding: const EdgeInsets.only(right: 12),
+          padding: const EdgeInsetsDirectional.only(end: 12),
           child: suffixIcon,
         ),
       ),
@@ -712,10 +716,10 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
               ),
               actions: [
                 Padding(
-                  padding: const EdgeInsets.only(
+                  padding: const EdgeInsetsDirectional.only(
                     top: 10,
                     bottom: 10,
-                    right: 10,
+                    end: 10,
                   ),
                   child: AspectRatio(
                     aspectRatio: 1,
@@ -739,10 +743,10 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.only(
+                  padding: const EdgeInsetsDirectional.only(
                     top: 10,
                     bottom: 10,
-                    right: 10,
+                    end: 10,
                   ),
                   child: AspectRatio(
                     aspectRatio: 1,
@@ -967,17 +971,18 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                                         ).isEmpty))
                                                   Align(
                                                     alignment:
-                                                        Alignment.topLeft,
+                                                        AlignmentDirectional
+                                                            .topStart,
                                                     child: Padding(
                                                       padding:
-                                                          const EdgeInsets.only(
-                                                            left: 12.0,
+                                                          const EdgeInsetsDirectional.only(
+                                                            start: 12.0,
                                                             bottom: 4.0,
                                                           ),
                                                       child: Text(
                                                         l10n.restoreCheckSpelling,
                                                         textAlign:
-                                                            TextAlign.left,
+                                                            TextAlign.start,
                                                         style:
                                                             STextStyles.label(
                                                               context,
@@ -1084,6 +1089,8 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                                     });
                                                   },
                                                   controller: _controllers[i],
+                                                  textDirection:
+                                                      TextDirection.ltr,
                                                   style:
                                                       STextStyles.field(
                                                         context,
@@ -1108,17 +1115,18 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                                             .isEmpty))
                                                   Align(
                                                     alignment:
-                                                        Alignment.topLeft,
+                                                        AlignmentDirectional
+                                                            .topStart,
                                                     child: Padding(
                                                       padding:
-                                                          const EdgeInsets.only(
-                                                            left: 12.0,
+                                                          const EdgeInsetsDirectional.only(
+                                                            start: 12.0,
                                                             bottom: 4.0,
                                                           ),
                                                       child: Text(
                                                         l10n.restoreCheckSpelling,
                                                         textAlign:
-                                                            TextAlign.left,
+                                                            TextAlign.start,
                                                         style:
                                                             STextStyles.label(
                                                               context,
@@ -1197,6 +1205,10 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                         ? TextInputAction.next
                                         : TextInputAction.done,
                                     focusNode: _focusNodes[i - 1],
+                                    // A focused field is scrolled above the
+                                    // keyboard with room for the suggestions
+                                    // under it, or they'd be behind it.
+                                    scrollPadding: _wordFieldScrollPadding,
                                     // Like predictive text: Next takes
                                     // the first suggestion.
                                     onFieldSubmitted: (_) => _submitWord(i - 1),
@@ -1232,6 +1244,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                       });
                                     },
                                     controller: _controllers[i - 1],
+                                    textDirection: TextDirection.ltr,
                                     style: STextStyles.field(context).copyWith(
                                       color: Theme.of(context)
                                           .extension<StackColors>()!
@@ -1249,15 +1262,15 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                                     (_focusedField != i - 1 ||
                                         _suggestionsFor(i - 1).isEmpty))
                                   Align(
-                                    alignment: Alignment.topLeft,
+                                    alignment: AlignmentDirectional.topStart,
                                     child: Padding(
-                                      padding: const EdgeInsets.only(
-                                        left: 12.0,
+                                      padding: const EdgeInsetsDirectional.only(
+                                        start: 12.0,
                                         bottom: 4.0,
                                       ),
                                       child: Text(
                                         l10n.restoreCheckSpelling,
-                                        textAlign: TextAlign.left,
+                                        textAlign: TextAlign.start,
                                         style: STextStyles.label(context)
                                             .copyWith(
                                               color: Theme.of(context)

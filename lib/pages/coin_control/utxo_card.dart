@@ -202,9 +202,10 @@ class _UtxoCardState extends ConsumerState<UtxoCard> {
                   GestureDetector(
                     onTap: widget.onPressed,
                     child: Padding(
-                      padding: const EdgeInsets.only(left: 10),
+                      padding: const EdgeInsetsDirectional.only(start: 10),
                       child: SvgPicture.asset(
                         Assets.svg.chevronRight,
+                        matchTextDirection: true,
                         width: 20,
                         height: 20,
                         colorFilter: ColorFilter.mode(

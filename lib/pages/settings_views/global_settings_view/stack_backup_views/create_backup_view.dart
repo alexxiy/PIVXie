@@ -371,7 +371,7 @@ class _RestoreFromFileViewState extends ConsumerState<CreateBackupView> {
                             .extension<StackColors>()!
                             .textDark3,
                       ),
-                  textAlign: TextAlign.left,
+                  textAlign: TextAlign.start,
                 ),
               ),
             ClipRRect(

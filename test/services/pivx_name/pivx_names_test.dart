@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:cryptography/cryptography.dart' as c;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:paymint/services/pivx_name/pivx_name.dart';
 import 'package:paymint/services/pivx_name/pivx_name_resolver.dart';
 import 'package:paymint/services/pivx_name/pivx_names_identity.dart';
 import 'package:paymint/services/pivx_name/pivx_names_protocol.dart';
@@ -376,8 +377,32 @@ void main() {
       expect(info.address, liveTarget);
       expect(info.paymentConfirmations, 40);
       expect(info.refundConfirmations, 120);
+      expect(info.zones, kPivxNameZones);
       await r.paymentInfo();
       expect(calls, ["GET getPaymentAddress"]);
+    });
+
+    test("zones, as served, of those the app knows", () async {
+      Object? zones;
+      routes["getPaymentAddress"] = (_) => {
+        "address": liveTarget,
+        "network": "mainnet",
+        "zones": zones,
+      };
+      zones = ["safe", "pivx", "moon", "pivx"];
+      expect(await registrar().zones(), ["safe", "pivx"]);
+      for (final odd in [
+        <String>[],
+        ["moon"],
+        "pivx",
+      ]) {
+        zones = odd;
+        await expectLater(
+          registrar().zones(),
+          throwsA(isA<PivxNamesException>()),
+          reason: "$odd",
+        );
+      }
     });
 
     test("confirmation targets, when served", () async {
@@ -415,13 +440,32 @@ void main() {
 
     test("availability", () async {
       final answers = {
-        "free.pivx": {"exists": false, "price": 1200000000},
-        "taken.pivx": {"exists": true},
-        "taken2.pivx": {"exists": true, "price": "0"},
+        "free.pivx": {
+          "exists": false,
+          "price": 1200000000,
+          "reg_pending": false,
+          "update_price": 100000000,
+        },
+        "paid.pivx": {
+          "exists": false,
+          "price": 1200000000,
+          "reg_pending": true,
+          "update_price": 100000000,
+        },
+        "taken.pivx": {"exists": true, "update_price": 300000000},
         "sale.pivx": {
           "exists": true,
           "price": "500000000.00000000",
           "pubkey": liveOwnerKey,
+          "update_price": 100000000,
+        },
+        // Without the update price, or (free) without saying whether
+        // someone's registration is on its way.
+        "old.pivx": {"exists": true},
+        "old2.pivx": {
+          "exists": false,
+          "price": 1200000000,
+          "update_price": 100000000,
         },
       };
       routes.addAll({
@@ -432,14 +476,25 @@ void main() {
           },
       });
       final r = registrar();
-      final free = await r.check("free.pivx");
-      expect(free, isA<PivxNamesAvailable>());
-      expect((free as PivxNamesAvailable).price, BigInt.from(1200000000));
-      expect(await r.check("taken.pivx"), isA<PivxNamesTaken>());
-      expect(await r.check("taken2.pivx"), isA<PivxNamesTaken>());
+      final free = await r.check("free.pivx") as PivxNamesAvailable;
+      expect(free.price, BigInt.from(1200000000));
+      expect(free.pending, isFalse);
+      expect(free.updatePrice, BigInt.from(100000000));
+      expect((await r.check("paid.pivx") as PivxNamesAvailable).pending, true);
+      final taken = await r.check("taken.pivx");
+      expect(taken, isA<PivxNamesTaken>());
+      expect(taken.updatePrice, BigInt.from(300000000));
       final sale = await r.check("sale.pivx") as PivxNamesListed;
       expect(sale.price, BigInt.from(500000000));
       expect(sale.owner, liveOwnerKey);
+      expect(sale.updatePrice, BigInt.from(100000000));
+      for (final name in ["old.pivx", "old2.pivx"]) {
+        await expectLater(
+          r.check(name),
+          throwsA(isA<PivxNamesException>()),
+          reason: name,
+        );
+      }
     });
 
     test("progress, by memo then by transaction", () async {
@@ -448,7 +503,7 @@ void main() {
       routes["check/alice.pivx"] = (body) {
         if (body!.containsKey("reg_id")) {
           expect(body["reg_id"], base64.encode(utf8.encode(memo)));
-          return seen ? {"tx_id": "ab" * 32} : <Object>[];
+          return seen ? {"tx_id": "ab" * 32} : <String, Object>{};
         }
         expect(body["tx_id"], "ab" * 32);
         return {"status": 0, "confirmations": "12"};
@@ -465,48 +520,62 @@ void main() {
       expect(status.confirmations, 12);
     });
 
-    test("update prices by label length", () async {
-      routes["prices"] = (body) {
-        expect(body, {"type": "upd"});
-        return {"1": 1000, "2": 900, "7": "100"};
-      };
-      final r = registrar();
-      expect(await r.updatePriceFor("a.pivx"), BigInt.from(1000));
-      expect(await r.updatePriceFor("ab.safe"), BigInt.from(900));
-      expect(await r.updatePriceFor("abcdefg.pivx"), BigInt.from(100));
-      expect(await r.updatePriceFor("abcdefghijk.pivx"), BigInt.from(100));
-      expect(calls, ["POST prices"]);
-    });
-
-    test("names lists", () async {
+    test("names lists, sorted and filtered by the registrar", () async {
       routes["domains"] = (body) {
+        final echo = {
+          for (final k in ["sort", "order", "zone", "status"]) k: body![k],
+          "min_price": null,
+          "max_price": null,
+        };
         if (body!["type"] == "my") {
           expect(body, {
             "type": "my",
+            "pubkey": liveOwnerKey,
             "page": 2,
             "count": 20,
-            "pubkey": liveOwnerKey,
             "search": "ali",
+            "sort": "price",
+            "order": "desc",
+            "zone": "pivx",
+            "status": "listed",
           });
           return {
+            ...echo,
             "count": 21,
             "domains": [
               {
                 "domain": "alice.pivx",
-                "price": "0",
+                "price": 300000000,
                 "tx_price": 100000000,
                 "address": liveTarget,
+                "updated_ts": 1760000000,
               },
-              {"domain": "Bad Name", "price": 0},
+              {"domain": "Bad Name", "price": 0, "tx_price": 1},
             ],
           };
         }
-        expect(body, {"type": "marketplace", "page": 1, "count": 20});
+        // No key: each name comes with its owner's.
+        expect(body.containsKey("pubkey"), isFalse);
+        expect(body["count"], 20);
+        expect(body["sort"], "listed");
+        expect(body["order"], "desc");
+        expect(body["zone"], "");
+        expect(body["status"], "all");
+        final first = body["after"] == null;
+        if (!first) expect(body["after"], "WyJsaXN0ZWQiXQ");
         return {
-          "count": 1,
+          ...echo,
+          "count": 2,
           "domains": [
-            {"domain": "sale.pivx", "price": 700000000},
+            {
+              "domain": first ? "sale.pivx" : "more.safe",
+              "price": 700000000,
+              "tx_price": 100000000,
+              "pubkey": liveOwnerKey,
+              "listed_ts": 1760000000,
+            },
           ],
+          "next": first ? "WyJsaXN0ZWQiXQ" : null,
         };
       };
       final r = registrar();
@@ -514,15 +583,84 @@ void main() {
         pubkey: liveOwnerKey,
         page: 2,
         search: "ali",
+        filter: (
+          status: PivxNamesStatusFilter.onSale,
+          zone: "pivx",
+          sort: PivxNamesSort.priceDesc,
+        ),
       );
       expect(mine.count, 21);
       expect(mine.items, hasLength(1));
       expect(mine.items.single.name, "alice.pivx");
-      expect(mine.items.single.price, BigInt.zero);
+      expect(mine.items.single.price, BigInt.from(300000000));
       expect(mine.items.single.updatePrice, BigInt.from(100000000));
       expect(mine.items.single.address, liveTarget);
-      final market = await r.marketplace();
+
+      const newest = (
+        status: PivxNamesStatusFilter.all,
+        zone: null,
+        sort: PivxNamesSort.newest,
+      );
+      final market = await r.marketplace(filter: newest);
+      expect(market.count, 2);
       expect(market.items.single.price, BigInt.from(700000000));
+      expect(market.items.single.owner, liveOwnerKey);
+      expect(market.next, "WyJsaXN0ZWQiXQ");
+      final more = await r.marketplace(after: market.next, filter: newest);
+      expect(more.items.single.name, "more.safe");
+      expect(more.next, isNull);
+    });
+
+    test("a list not sorted or filtered as asked is refused", () async {
+      Map<String, Object?> answer = {};
+      routes["domains"] = (_) => answer;
+      final r = registrar();
+      // A registrar from before the options: no word about them.
+      answer = {
+        "count": 1,
+        "domains": [
+          {"domain": "a.pivx", "price": 1, "tx_price": 1},
+        ],
+      };
+      await expectLater(r.marketplace(), throwsA(isA<PivxNamesException>()));
+      // Another order than the one asked for.
+      answer = {
+        ...answer,
+        "sort": "name",
+        "order": "asc",
+        "zone": "",
+        "status": "all",
+        "next": null,
+      };
+      await expectLater(
+        r.marketplace(
+          filter: (
+            status: PivxNamesStatusFilter.all,
+            zone: null,
+            sort: PivxNamesSort.nameDesc,
+          ),
+        ),
+        throwsA(isA<PivxNamesException>()),
+      );
+      expect((await r.marketplace()).items.single.name, "a.pivx");
+      // No update price, or the marketplace without its place.
+      for (final odd in [
+        {
+          ...answer,
+          "domains": [
+            {"domain": "a.pivx", "price": 1},
+          ],
+        },
+        {...answer}..remove("next"),
+        {...answer, "next": ""},
+      ]) {
+        answer = odd;
+        await expectLater(
+          r.marketplace(),
+          throwsA(isA<PivxNamesException>()),
+          reason: "$odd",
+        );
+      }
     });
 
     test("balance and withdrawal", () async {
@@ -586,8 +724,12 @@ void main() {
                 "count": 1,
                 "tx": [
                   {
+                    "block_id": 5000000,
+                    "time": 1760000000,
                     "domain_name": "alice.pivx",
-                    "op": "REG",
+                    "op": "LST",
+                    "amount": 100000000,
+                    "price": 2500000000,
                     "confirmations": 3,
                     "status": 2,
                     "tx_id": "cd" * 32,
@@ -602,6 +744,7 @@ void main() {
                     "date": 1760000000,
                     "amount": "95000000",
                     "fee": "5%",
+                    "address": liveTarget,
                     "tx_id": "ef" * 32,
                     "status": 3,
                   },
@@ -615,8 +758,12 @@ void main() {
         nonce: 1760000000,
         signature: "sig",
       );
-      expect(incoming.items.single.status, PivxNamesTxStatus.queuedProof);
-      expect(incoming.items.single.name, "alice.pivx");
+      final paid = incoming.items.single;
+      expect(paid.status, PivxNamesTxStatus.queuedProof);
+      expect(paid.name, "alice.pivx");
+      expect(paid.time, DateTime.utc(2025, 10, 9, 8, 53, 20));
+      expect(paid.amount, BigInt.from(100000000));
+      expect(paid.price, BigInt.from(2500000000));
       final refunds = await r.refunds(
         pubkey: liveOwnerKey,
         page: 1,
@@ -627,6 +774,7 @@ void main() {
       expect(refund.date, DateTime.utc(2025, 10, 9, 8, 53, 20));
       expect(refund.amount, BigInt.from(95000000));
       expect(refund.fee, "5");
+      expect(refund.address, liveTarget);
       expect(refund.status, PivxNamesRefundStatus.paid);
       // TX_REFUND_* of the registrar's config.php.
       expect(
@@ -655,7 +803,7 @@ void main() {
       routes["balance"] = (_) => jsonEncode({
         "error": {"error_message": "Invalid\u202e signature\n"},
       });
-      routes["prices"] = (_) => "<html>502</html>";
+      routes["domains"] = (_) => "<html>502</html>";
       final r = registrar();
       await expectLater(
         r.balance(liveOwnerKey),
@@ -666,7 +814,7 @@ void main() {
         ),
       );
       await expectLater(
-        r.updatePrices(),
+        r.marketplace(),
         throwsA(
           isA<PivxNamesException>().having(
             (e) => e.fromServer,
@@ -690,7 +838,7 @@ void main() {
             "tx_id": "AB" * 32,
             "memo": "PiNS:1:UPD:\u2066x",
           },
-          {"domain_name": "bob.pivx", "tx_id": "zz", "status": 9},
+          {"domain_name": "bob.pivx", "time": null, "tx_id": "zz", "status": 9},
         ],
       };
       final r = registrar();
@@ -706,6 +854,9 @@ void main() {
       expect(items[0].status, PivxNamesTxStatus.pendingProof);
       expect(items[0].txId, "ab" * 32);
       expect(items[0].memo, "PiNS:1:UPD: x");
+      expect(items[0].time, isNull);
+      expect(items[0].amount, BigInt.zero);
+      expect(items[1].time, isNull);
       expect(items[1].txId, "");
       expect(items[1].status, PivxNamesTxStatus.rejected);
       // Not a name: never put in a lookup path.

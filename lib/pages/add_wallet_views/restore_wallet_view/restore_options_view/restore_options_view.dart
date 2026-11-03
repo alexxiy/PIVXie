@@ -283,7 +283,7 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
                   color: Theme.of(context).extension<StackColors>()!.textDark3,
                 )
               : STextStyles.smallMed12(context),
-          textAlign: TextAlign.left,
+          textAlign: TextAlign.start,
         ),
         SizedBox(height: Util.isDesktop ? 16 : 8),
         if (Util.isDesktop)
@@ -314,7 +314,7 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
                 icon: ConditionalParent(
                   condition: Util.isDesktop,
                   builder: (child) => Padding(
-                    padding: const EdgeInsets.only(right: 10),
+                    padding: const EdgeInsetsDirectional.only(end: 10),
                     child: child,
                   ),
                   child: SvgPicture.asset(
@@ -359,11 +359,11 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
             header: Container(
               color: Colors.transparent,
               child: Padding(
-                padding: EdgeInsets.only(
+                padding: EdgeInsetsDirectional.only(
                   top: 8.0,
                   bottom: 8.0,
-                  right: 10,
-                  left: Util.isDesktop ? 16 : 0,
+                  end: 10,
+                  start: Util.isDesktop ? 16 : 0,
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -378,7 +378,7 @@ class _SeedRestoreOptionState extends ConsumerState<SeedRestoreOption> {
                                       .textDark3,
                                 )
                           : STextStyles.smallMed12(context),
-                      textAlign: TextAlign.left,
+                      textAlign: TextAlign.start,
                     ),
                     SvgPicture.asset(
                       _expandedAdvanced

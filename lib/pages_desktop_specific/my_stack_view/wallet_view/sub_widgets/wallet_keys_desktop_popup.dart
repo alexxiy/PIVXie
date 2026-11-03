@@ -59,7 +59,7 @@ class WalletKeysDesktopPopup extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Padding(
-                padding: const EdgeInsets.only(left: 32),
+                padding: const EdgeInsetsDirectional.only(start: 32),
                 child: Text(
                   keyData != null ? l10n.walletKeys : l10n.walletSeed,
                   style: STextStyles.desktopH3(context),

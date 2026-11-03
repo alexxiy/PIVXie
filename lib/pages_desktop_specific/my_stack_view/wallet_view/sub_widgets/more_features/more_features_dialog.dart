@@ -65,7 +65,7 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Padding(
-                        padding: const EdgeInsets.only(left: 32),
+                        padding: const EdgeInsetsDirectional.only(start: 32),
                         child: Text(
                           l10n.commonWarningExclaim,
                           style: STextStyles.desktopH3(context),
@@ -168,7 +168,7 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Padding(
-                padding: const EdgeInsets.only(left: 32),
+                padding: const EdgeInsetsDirectional.only(start: 32),
                 child: Text(
                   l10n.walletMoreFeatures,
                   style: STextStyles.desktopH3(context),

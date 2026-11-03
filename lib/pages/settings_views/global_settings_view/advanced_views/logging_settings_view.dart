@@ -248,7 +248,7 @@ class _LoggingSettingsViewState extends ConsumerState<LoggingSettingsView> {
                     Text(
                       l10n.logsLocation,
                       style: STextStyles.fieldLabel(context),
-                      textAlign: TextAlign.left,
+                      textAlign: TextAlign.start,
                     ),
                   ],
                 ),

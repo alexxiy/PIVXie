@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../../l10n/l10n.dart';
 import '../../../pages/settings_views/global_settings_view/support_view.dart';
 import '../../../themes/stack_colors.dart';
@@ -36,14 +37,8 @@ class _DesktopSupportView extends ConsumerState<DesktopSupportView> {
         isCompactHeight: true,
         leading: Row(
           children: [
-            const SizedBox(
-              width: 24,
-              height: 24,
-            ),
-            Text(
-              l10n.settingsSupport,
-              style: STextStyles.desktopH3(context),
-            ),
+            const SizedBox(width: 24, height: 24),
+            Text(l10n.settingsSupport, style: STextStyles.desktopH3(context)),
           ],
         ),
       ),
@@ -51,15 +46,8 @@ class _DesktopSupportView extends ConsumerState<DesktopSupportView> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: EdgeInsets.fromLTRB(24, 10, 0, 0),
-            child: Row(
-              children: [
-                SizedBox(
-                  width: 576,
-                  child: SupportView(),
-                ),
-              ],
-            ),
+            padding: EdgeInsetsDirectional.fromSTEB(24, 10, 0, 0),
+            child: Row(children: [SizedBox(width: 576, child: SupportView())]),
           ),
         ],
       ),

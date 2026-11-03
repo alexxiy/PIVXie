@@ -43,8 +43,9 @@ class _StartupPreferencesViewState
 
   @override
   void initState() {
-    final possibleWalletId =
-        ref.read(prefsChangeNotifierProvider).startupWalletId;
+    final possibleWalletId = ref
+        .read(prefsChangeNotifierProvider)
+        .startupWalletId;
 
     // check if wallet exists (hasn't been deleted or otherwise missing)
     if (possibleWalletId != null) {
@@ -112,8 +113,9 @@ class _StartupPreferencesViewState
                                     ),
                                     onPressed: () {
                                       ref
-                                          .read(prefsChangeNotifierProvider)
-                                          .gotoWalletOnStartup = false;
+                                              .read(prefsChangeNotifierProvider)
+                                              .gotoWalletOnStartup =
+                                          false;
                                     },
                                     child: Container(
                                       color: Colors.transparent,
@@ -127,28 +129,25 @@ class _StartupPreferencesViewState
                                               width: 20,
                                               height: 20,
                                               child: Radio(
-                                                activeColor:
-                                                    Theme.of(context)
-                                                        .extension<
-                                                          StackColors
-                                                        >()!
-                                                        .radioButtonIconEnabled,
+                                                activeColor: Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .radioButtonIconEnabled,
                                                 value: false,
                                                 groupValue: ref.watch(
                                                   prefsChangeNotifierProvider
                                                       .select(
-                                                        (value) =>
-                                                            value
-                                                                .gotoWalletOnStartup,
+                                                        (value) => value
+                                                            .gotoWalletOnStartup,
                                                       ),
                                                 ),
                                                 onChanged: (value) {
                                                   if (value is bool) {
                                                     ref
-                                                        .read(
-                                                          prefsChangeNotifierProvider,
-                                                        )
-                                                        .gotoWalletOnStartup = value;
+                                                            .read(
+                                                              prefsChangeNotifierProvider,
+                                                            )
+                                                            .gotoWalletOnStartup =
+                                                        value;
                                                   }
                                                 },
                                               ),
@@ -165,15 +164,17 @@ class _StartupPreferencesViewState
                                                         STextStyles.titleBold12(
                                                           context,
                                                         ),
-                                                    textAlign: TextAlign.left,
+                                                    textAlign: TextAlign.start,
                                                   ),
                                                   Text(
-                                                    l10n.startupAppHomeScreen(AppConfig.appName),
+                                                    l10n.startupAppHomeScreen(
+                                                      AppConfig.appName,
+                                                    ),
                                                     style:
                                                         STextStyles.itemSubtitle(
                                                           context,
                                                         ),
-                                                    textAlign: TextAlign.left,
+                                                    textAlign: TextAlign.start,
                                                   ),
                                                 ],
                                               ),
@@ -197,8 +198,9 @@ class _StartupPreferencesViewState
                                     ),
                                     onPressed: () {
                                       ref
-                                          .read(prefsChangeNotifierProvider)
-                                          .gotoWalletOnStartup = true;
+                                              .read(prefsChangeNotifierProvider)
+                                              .gotoWalletOnStartup =
+                                          true;
                                     },
                                     child: Container(
                                       color: Colors.transparent,
@@ -212,28 +214,25 @@ class _StartupPreferencesViewState
                                               width: 20,
                                               height: 20,
                                               child: Radio(
-                                                activeColor:
-                                                    Theme.of(context)
-                                                        .extension<
-                                                          StackColors
-                                                        >()!
-                                                        .radioButtonIconEnabled,
+                                                activeColor: Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .radioButtonIconEnabled,
                                                 value: true,
                                                 groupValue: ref.watch(
                                                   prefsChangeNotifierProvider
                                                       .select(
-                                                        (value) =>
-                                                            value
-                                                                .gotoWalletOnStartup,
+                                                        (value) => value
+                                                            .gotoWalletOnStartup,
                                                       ),
                                                 ),
                                                 onChanged: (value) {
                                                   if (value is bool) {
                                                     ref
-                                                        .read(
-                                                          prefsChangeNotifierProvider,
-                                                        )
-                                                        .gotoWalletOnStartup = value;
+                                                            .read(
+                                                              prefsChangeNotifierProvider,
+                                                            )
+                                                            .gotoWalletOnStartup =
+                                                        value;
                                                   }
                                                 },
                                               ),
@@ -250,37 +249,36 @@ class _StartupPreferencesViewState
                                                         STextStyles.titleBold12(
                                                           context,
                                                         ),
-                                                    textAlign: TextAlign.left,
+                                                    textAlign: TextAlign.start,
                                                   ),
                                                   (safe &&
                                                           ref.watch(
                                                                 prefsChangeNotifierProvider
                                                                     .select(
-                                                                      (value) =>
-                                                                          value
-                                                                              .startupWalletId,
+                                                                      (
+                                                                        value,
+                                                                      ) => value
+                                                                          .startupWalletId,
                                                                     ),
                                                               ) !=
                                                               null)
                                                       ? Padding(
-                                                        padding:
-                                                            const EdgeInsets.only(
-                                                              top: 12,
-                                                            ),
-                                                        child: Row(
-                                                          children: [
-                                                            SvgPicture.file(
-                                                              File(
-                                                                ref.watch(
-                                                                  coinIconProvider(
-                                                                    ref.watch(
-                                                                      pWalletCoin(
-                                                                        ref.watch(
-                                                                          prefsChangeNotifierProvider.select(
-                                                                            (
-                                                                              value,
-                                                                            ) =>
-                                                                                value.startupWalletId!,
+                                                          padding:
+                                                              const EdgeInsets.only(
+                                                                top: 12,
+                                                              ),
+                                                          child: Row(
+                                                            children: [
+                                                              SvgPicture.file(
+                                                                File(
+                                                                  ref.watch(
+                                                                    coinIconProvider(
+                                                                      ref.watch(
+                                                                        pWalletCoin(
+                                                                          ref.watch(
+                                                                            prefsChangeNotifierProvider.select(
+                                                                              (value) => value.startupWalletId!,
+                                                                            ),
                                                                           ),
                                                                         ),
                                                                       ),
@@ -288,41 +286,39 @@ class _StartupPreferencesViewState
                                                                   ),
                                                                 ),
                                                               ),
-                                                            ),
-                                                            const SizedBox(
-                                                              width: 10,
-                                                            ),
-                                                            Text(
-                                                              ref.watch(
-                                                                pWalletName(
-                                                                  ref.watch(
-                                                                    prefsChangeNotifierProvider
-                                                                        .select(
-                                                                          (
-                                                                            value,
-                                                                          ) =>
-                                                                              value.startupWalletId!,
-                                                                        ),
+                                                              const SizedBox(
+                                                                width: 10,
+                                                              ),
+                                                              Text(
+                                                                ref.watch(
+                                                                  pWalletName(
+                                                                    ref.watch(
+                                                                      prefsChangeNotifierProvider.select(
+                                                                        (
+                                                                          value,
+                                                                        ) => value
+                                                                            .startupWalletId!,
+                                                                      ),
+                                                                    ),
                                                                   ),
                                                                 ),
+                                                                style:
+                                                                    STextStyles.itemSubtitle(
+                                                                      context,
+                                                                    ),
                                                               ),
-                                                              style:
-                                                                  STextStyles.itemSubtitle(
-                                                                    context,
-                                                                  ),
-                                                            ),
-                                                          ],
-                                                        ),
-                                                      )
+                                                            ],
+                                                          ),
+                                                        )
                                                       : Text(
-                                                        l10n.startupSpecificWalletText,
-                                                        style:
-                                                            STextStyles.itemSubtitle(
-                                                              context,
-                                                            ),
-                                                        textAlign:
-                                                            TextAlign.left,
-                                                      ),
+                                                          l10n.startupSpecificWalletText,
+                                                          style:
+                                                              STextStyles.itemSubtitle(
+                                                                context,
+                                                              ),
+                                                          textAlign:
+                                                              TextAlign.start,
+                                                        ),
                                                 ],
                                               ),
                                             ),
@@ -346,9 +342,9 @@ class _StartupPreferencesViewState
                                   Container(
                                     color: Colors.transparent,
                                     child: Padding(
-                                      padding: const EdgeInsets.only(
-                                        left: 12.0,
-                                        right: 12,
+                                      padding: const EdgeInsetsDirectional.only(
+                                        start: 12.0,
+                                        end: 12,
                                         bottom: 12,
                                       ),
                                       child: Row(
@@ -388,7 +384,7 @@ class _StartupPreferencesViewState
                                                     style: STextStyles.link2(
                                                       context,
                                                     ),
-                                                    textAlign: TextAlign.left,
+                                                    textAlign: TextAlign.start,
                                                   ),
                                                 ],
                                               ),

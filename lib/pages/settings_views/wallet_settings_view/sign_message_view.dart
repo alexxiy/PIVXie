@@ -76,7 +76,7 @@ Future<void> showSignMessageDialog(BuildContext context, String walletId) =>
             Row(
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(left: 32),
+                  padding: const EdgeInsetsDirectional.only(start: 32),
                   child: Text(
                     l10n.signTitle,
                     style: STextStyles.desktopH3(context),

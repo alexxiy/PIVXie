@@ -178,9 +178,10 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
                                 ),
                                 suffixIcon: searchNodeController.text.isNotEmpty
                                     ? Padding(
-                                        padding: const EdgeInsets.only(
-                                          right: 0,
-                                        ),
+                                        padding:
+                                            const EdgeInsetsDirectional.only(
+                                              end: 0,
+                                            ),
                                         child: UnconstrainedBox(
                                           child: Row(
                                             children: [
@@ -296,7 +297,10 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
                                         ),
                                       ],
                                     ),
-                                    SvgPicture.asset(Assets.svg.chevronRight),
+                                    SvgPicture.asset(
+                                      Assets.svg.chevronRight,
+                                      matchTextDirection: true,
+                                    ),
                                   ],
                                 ),
                               ),
@@ -324,7 +328,7 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
 
   Widget _singleCoinNodes(CryptoCurrency coin) {
     return Padding(
-      padding: const EdgeInsets.only(right: 30),
+      padding: const EdgeInsetsDirectional.only(end: 30),
       child: RoundedWhiteContainer(
         radiusMultiplier: 2,
         padding: const EdgeInsets.all(20),

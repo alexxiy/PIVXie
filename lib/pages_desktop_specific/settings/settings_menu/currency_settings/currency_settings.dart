@@ -11,6 +11,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
+
 import '../../../../l10n/l10n.dart';
 import '../../../../pages/settings_views/global_settings_view/currency_view.dart';
 import '../../../../utilities/assets.dart';
@@ -54,9 +55,7 @@ Future<void> chooseCurrency(BuildContext context) async {
                 const DesktopDialogCloseButton(),
               ],
             ),
-            const Expanded(
-              child: BaseCurrencySettingsView(),
-            ),
+            const Expanded(child: BaseCurrencySettingsView()),
           ],
         ),
       );
@@ -71,9 +70,7 @@ class _CurrencySettings extends ConsumerState<CurrencySettings> {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.only(
-            right: 30,
-          ),
+          padding: const EdgeInsetsDirectional.only(end: 30),
           child: RoundedWhiteContainer(
             radiusMultiplier: 2,
             child: Column(
@@ -99,10 +96,10 @@ class _CurrencySettings extends ConsumerState<CurrencySettings> {
                             style: STextStyles.desktopTextSmall(context),
                           ),
                           TextSpan(
-                            text:
-                                "\n\n${l10n.currencyText}",
-                            style:
-                                STextStyles.desktopTextExtraExtraSmall(context),
+                            text: "\n\n${l10n.currencyText}",
+                            style: STextStyles.desktopTextExtraExtraSmall(
+                              context,
+                            ),
                           ),
                         ],
                       ),
@@ -113,9 +110,7 @@ class _CurrencySettings extends ConsumerState<CurrencySettings> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Padding(
-                      padding: const EdgeInsets.all(
-                        10,
-                      ),
+                      padding: const EdgeInsets.all(10),
                       child: PrimaryButton(
                         width: 200,
                         buttonHeight: ButtonHeight.m,

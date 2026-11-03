@@ -147,7 +147,7 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                             .extension<StackColors>()!
                             .textDark3,
                       ),
-                  textAlign: TextAlign.left,
+                  textAlign: TextAlign.start,
                 ),
               ),
               child,
@@ -220,7 +220,7 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                             .extension<StackColors>()!
                             .textDark3,
                       ),
-                  textAlign: TextAlign.left,
+                  textAlign: TextAlign.start,
                 ),
               ),
             ClipRRect(

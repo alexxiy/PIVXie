@@ -53,7 +53,7 @@ class _LanguageOptionSettings extends ConsumerState<LanguageOptionSettings> {
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.only(right: 30),
+            padding: const EdgeInsetsDirectional.only(end: 30),
             child: RoundedWhiteContainer(
               radiusMultiplier: 2,
               child: Column(
@@ -116,7 +116,7 @@ class _LanguageOptionSettings extends ConsumerState<LanguageOptionSettings> {
           if (AppConfig.hasFeature(AppFeature.darkTheme)) ...[
             const SizedBox(height: 20),
             Padding(
-              padding: const EdgeInsets.only(right: 30),
+              padding: const EdgeInsetsDirectional.only(end: 30),
               child: RoundedWhiteContainer(
                 radiusMultiplier: 2,
                 padding: const EdgeInsets.all(20),
@@ -162,7 +162,7 @@ class _LanguageOptionSettings extends ConsumerState<LanguageOptionSettings> {
           ],
           const SizedBox(height: 20),
           Padding(
-            padding: const EdgeInsets.only(right: 30),
+            padding: const EdgeInsetsDirectional.only(end: 30),
             child: RoundedWhiteContainer(
               radiusMultiplier: 2,
               padding: const EdgeInsets.all(20),

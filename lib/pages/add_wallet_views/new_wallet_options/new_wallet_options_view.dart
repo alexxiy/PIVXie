@@ -179,7 +179,9 @@ class _NewWalletOptionsViewState extends ConsumerState<NewWalletOptionsView> {
                       ),
                 iconStyleData: IconStyleData(
                   icon: Padding(
-                    padding: EdgeInsets.only(right: Util.isDesktop ? 0 : 10),
+                    padding: EdgeInsetsDirectional.only(
+                      end: Util.isDesktop ? 0 : 10,
+                    ),
                     child: SvgPicture.asset(
                       Assets.svg.chevronDown,
                       width: 12,

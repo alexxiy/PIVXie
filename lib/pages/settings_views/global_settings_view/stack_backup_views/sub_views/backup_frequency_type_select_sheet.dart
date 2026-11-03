@@ -78,7 +78,7 @@ class BackupFrequencyTypeSelectSheet extends ConsumerWidget {
                     Text(
                       l10n.backupAutoFrequency,
                       style: STextStyles.pageTitleH2(context),
-                      textAlign: TextAlign.left,
+                      textAlign: TextAlign.start,
                     ),
                     const SizedBox(height: 24),
                     for (int i = 0; i < BackupFrequencyType.values.length; i++)
@@ -138,7 +138,7 @@ class BackupFrequencyTypeSelectSheet extends ConsumerWidget {
                                           style: STextStyles.titleBold12(
                                             context,
                                           ),
-                                          textAlign: TextAlign.left,
+                                          textAlign: TextAlign.start,
                                         ),
                                       ],
                                     ),

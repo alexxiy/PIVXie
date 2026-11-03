@@ -139,6 +139,7 @@ class _NewContactAddressEntryFormState
             enableSuggestions: Util.isDesktop ? false : true,
             focusNode: addressFocusNode,
             controller: addressController,
+            textDirection: TextDirection.ltr,
             style: STextStyles.field(context),
             decoration:
                 standardInputDecoration(
@@ -237,7 +238,7 @@ class _NewContactAddressEntryFormState
                   const SizedBox(height: 4),
                   Text(
                     l10n.sendInvalidAddress,
-                    textAlign: TextAlign.left,
+                    textAlign: TextAlign.start,
                     style: STextStyles.label(context).copyWith(
                       color: Theme.of(context)
                           .extension<StackColors>()!

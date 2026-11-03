@@ -127,7 +127,11 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
           ),
           actions: [
             Padding(
-              padding: const EdgeInsets.only(top: 10, bottom: 10, right: 10),
+              padding: const EdgeInsetsDirectional.only(
+                top: 10,
+                bottom: 10,
+                end: 10,
+              ),
               child: AspectRatio(
                 aspectRatio: 1,
                 child: AppBarIconButton(
@@ -160,7 +164,11 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.only(top: 10, bottom: 10, right: 10),
+              padding: const EdgeInsetsDirectional.only(
+                top: 10,
+                bottom: 10,
+                end: 10,
+              ),
               child: AspectRatio(
                 aspectRatio: 1,
                 child: AppBarIconButton(
@@ -265,7 +273,7 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
                         Expanded(
                           child: Text(
                             _contact.name,
-                            textAlign: TextAlign.left,
+                            textAlign: TextAlign.start,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: STextStyles.pageTitleH2(context),

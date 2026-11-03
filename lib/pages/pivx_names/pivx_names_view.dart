@@ -40,6 +40,7 @@ class PivxNamesView extends ConsumerStatefulWidget {
 class _PivxNamesViewState extends ConsumerState<PivxNamesView> {
   final _label = TextEditingController();
   final _focus = FocusNode();
+  List<String> _zones = kPivxNameZones;
   String _zone = ".${kPivxNameZones.first}";
 
   bool _checking = false;
@@ -61,6 +62,7 @@ class _PivxNamesViewState extends ConsumerState<PivxNamesView> {
     _focus.addListener(() => setState(() {}));
     pivxNamesChanges.addListener(_changed);
     unawaited(_loadKey());
+    unawaited(_loadZones());
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) unawaited(showPivxNamesInfoOnce(context));
     });
@@ -71,6 +73,16 @@ class _PivxNamesViewState extends ConsumerState<PivxNamesView> {
       final key = await pivxNamesPublicKey(_wallet);
       if (mounted) setState(() => _ownKey = key);
     } catch (_) {}
+  }
+
+  Future<void> _loadZones() async {
+    final zones = await pivxNamesZones(_wallet);
+    if (!mounted) return;
+    setState(() {
+      _zones = zones;
+      // A zone the registrar doesn't take.
+      if (!zones.contains(_zone.substring(1))) _zone = ".${zones.first}";
+    });
   }
 
   @override
@@ -174,6 +186,7 @@ class _PivxNamesViewState extends ConsumerState<PivxNamesView> {
         walletId: widget.walletId,
         op: PivxNamesOp.ult,
         name: l.name,
+        price: l.updatePrice,
         returnTo: PivxNamesView.routeName,
       ),
     );
@@ -196,7 +209,7 @@ class _PivxNamesViewState extends ConsumerState<PivxNamesView> {
             children: [
               Text(l10n.pivxNamesZone, style: STextStyles.pageTitleH2(context)),
               const SizedBox(height: 8),
-              for (final z in kPivxNameZones)
+              for (final z in _zones)
                 ListTile(
                   contentPadding: EdgeInsets.zero,
                   title: PivxNamesNameText(
@@ -253,8 +266,10 @@ class _PivxNamesViewState extends ConsumerState<PivxNamesView> {
     Widget box({
       required Color color,
       required String text,
+      String? note,
       required String action,
       required VoidCallback onTap,
+      bool primary = true,
     }) => Container(
       margin: const EdgeInsets.only(top: 12),
       padding: const EdgeInsets.all(12),
@@ -272,13 +287,28 @@ class _PivxNamesViewState extends ConsumerState<PivxNamesView> {
             text,
             style: STextStyles.w600_14(context).copyWith(color: color),
           ),
+          // An own payment on its way says so below instead.
+          if (note != null && inFlight == null) ...[
+            const SizedBox(height: 4),
+            Text(
+              note,
+              style: STextStyles.w500_12(context)
+                  .copyWith(color: colors.textSubtitle1),
+            ),
+          ],
           const SizedBox(height: 10),
           if (inFlight != null)
             PivxNamesInFlightNote(tracked: inFlight)
-          else
+          else if (primary)
             PrimaryButton(
               label: action,
               // On phones as high as Check above it.
+              buttonHeight: Util.isDesktop ? ButtonHeight.m : null,
+              onPressed: onTap,
+            )
+          else
+            SecondaryButton(
+              label: action,
               buttonHeight: Util.isDesktop ? ButtonHeight.m : null,
               onPressed: onTap,
             ),
@@ -286,6 +316,16 @@ class _PivxNamesViewState extends ConsumerState<PivxNamesView> {
       ),
     );
     return switch (result) {
+      // Someone's registration is paid for: only the first one paid gets
+      // the name, and a second would be refunded.
+      PivxNamesAvailable(pending: true) => box(
+        color: pivxNamesReadable(colors.accentColorOrange, colors),
+        text: l10n.pivxNamesRegPending,
+        note: l10n.pivxNamesRegPendingNote,
+        action: l10n.pivxNamesCheckAgain,
+        primary: false,
+        onTap: _check,
+      ),
       PivxNamesAvailable() => box(
         color: green,
         text: l10n.pivxNamesAvailableFor(
@@ -396,73 +436,80 @@ class _PivxNamesViewState extends ConsumerState<PivxNamesView> {
                       style: STextStyles.w600_16(context),
                     ),
                     const SizedBox(height: 12),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: TextField(
-                        controller: _label,
-                        focusNode: _focus,
-                        autocorrect: false,
-                        enableSuggestions: false,
-                        textInputAction: TextInputAction.search,
-                        onSubmitted: (_) => _check(),
-                        onChanged: (_) => _edited(),
-                        inputFormatters: [
-                          TextInputFormatter.withFunction((old, value) {
-                            final text = sanitizePivxNamesLabel(value.text);
-                            return text == value.text
-                                ? value
-                                : TextEditingValue(
-                                    text: text,
-                                    selection: TextSelection.collapsed(
-                                      offset: text.length,
-                                    ),
-                                  );
-                          }),
-                          LengthLimitingTextInputFormatter(
-                            kPivxNameMaxLength - 1,
-                          ),
-                        ],
-                        style: STextStyles.field(context),
-                        decoration:
-                            standardInputDecoration(
-                              l10n.pivxNamesEnterName,
-                              _focus,
-                              context,
-                            ).copyWith(
-                              suffixIcon: Padding(
-                                padding: const EdgeInsets.all(6),
-                                child: Material(
-                                  color: colors.background,
-                                  borderRadius: BorderRadius.circular(8),
-                                  child: InkWell(
-                                    borderRadius: BorderRadius.circular(8),
-                                    onTap: _pickZone,
-                                    child: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 10,
+                    // "alice" then ".pivx", in Arabic too.
+                    Directionality(
+                      textDirection: TextDirection.ltr,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: TextField(
+                          controller: _label,
+                          focusNode: _focus,
+                          autocorrect: false,
+                          enableSuggestions: false,
+                          textInputAction: TextInputAction.search,
+                          onSubmitted: (_) => _check(),
+                          onChanged: (_) => _edited(),
+                          inputFormatters: [
+                            TextInputFormatter.withFunction((old, value) {
+                              final text = sanitizePivxNamesLabel(value.text);
+                              return text == value.text
+                                  ? value
+                                  : TextEditingValue(
+                                      text: text,
+                                      selection: TextSelection.collapsed(
+                                        offset: text.length,
                                       ),
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Text(
-                                            _zone,
-                                            style: STextStyles.w600_14(context)
-                                                .copyWith(
-                                                  color: colors.accentColorBlue,
-                                                ),
-                                          ),
-                                          Icon(
-                                            Icons.expand_more_rounded,
-                                            size: 18,
-                                            color: colors.accentColorBlue,
-                                          ),
-                                        ],
+                                    );
+                            }),
+                            LengthLimitingTextInputFormatter(
+                              kPivxNameMaxLength - 1,
+                            ),
+                          ],
+                          style: STextStyles.field(context),
+                          decoration:
+                              standardInputDecoration(
+                                l10n.pivxNamesEnterName,
+                                _focus,
+                                context,
+                              ).copyWith(
+                                suffixIcon: Padding(
+                                  padding: const EdgeInsets.all(6),
+                                  child: Material(
+                                    color: colors.background,
+                                    borderRadius: BorderRadius.circular(8),
+                                    child: InkWell(
+                                      borderRadius: BorderRadius.circular(8),
+                                      onTap: _pickZone,
+                                      child: Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 10,
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Text(
+                                              _zone,
+                                              style:
+                                                  STextStyles.w600_14(
+                                                    context,
+                                                  ).copyWith(
+                                                    color:
+                                                        colors.accentColorBlue,
+                                                  ),
+                                            ),
+                                            Icon(
+                                              Icons.expand_more_rounded,
+                                              size: 18,
+                                              color: colors.accentColorBlue,
+                                            ),
+                                          ],
+                                        ),
                                       ),
                                     ),
                                   ),
                                 ),
                               ),
-                            ),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 12),

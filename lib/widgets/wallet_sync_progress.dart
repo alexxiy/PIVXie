@@ -65,7 +65,7 @@ class _WalletSyncProgressState extends State<WalletSyncProgress> {
         const SizedBox(height: 6),
         Text(
           Format.percent((percent * 100).floorToDouble(), decimals: 0),
-          textAlign: TextAlign.right,
+          textAlign: TextAlign.end,
           style: Util.isDesktop
               ? STextStyles.desktopTextExtraExtraSmall(context)
               : STextStyles.label(context),

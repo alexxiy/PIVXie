@@ -23,7 +23,7 @@ class ExitToMyStackButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(right: 24),
+      padding: const EdgeInsetsDirectional.only(end: 24),
       child: SizedBox(
         height: 56,
         child: TextButton(

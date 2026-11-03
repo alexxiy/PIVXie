@@ -7,6 +7,7 @@ import '../../db/isar/main_db.dart';
 import '../../l10n/l10n.dart';
 import '../../models/isar/models/isar_models.dart';
 import '../../providers/global/wallets_provider.dart';
+import '../../services/pivx_name/pivx_name.dart';
 import '../../services/pivx_name/pivx_names_protocol.dart';
 import '../../services/pivx_name/pivx_names_registrar.dart';
 import '../../themes/stack_colors.dart';
@@ -48,6 +49,11 @@ class _PivxNamesMyNamesViewState extends ConsumerState<PivxNamesMyNamesView> {
   String? _error;
   int _request = 0;
 
+  // Filters live with the screen: leaving it resets them.
+  PivxNamesFilter _filter = kPivxNamesNoFilter;
+  bool _filtersOpen = false;
+  List<String> _zones = kPivxNameZones;
+
   PivxWallet get _wallet =>
       ref.read(pWallets).getWallet(widget.walletId) as PivxWallet;
 
@@ -55,6 +61,11 @@ class _PivxNamesMyNamesViewState extends ConsumerState<PivxNamesMyNamesView> {
   void initState() {
     super.initState();
     pivxNamesChanges.addListener(_changed);
+    unawaited(
+      pivxNamesZones(_wallet).then((zones) {
+        if (mounted) setState(() => _zones = zones);
+      }),
+    );
     unawaited(_load());
   }
 
@@ -76,8 +87,27 @@ class _PivxNamesMyNamesViewState extends ConsumerState<PivxNamesMyNamesView> {
       final key = _key ?? await pivxNamesPublicKey(_wallet);
       if (!mounted || request != _request) return;
       setState(() => _key = key);
-      final names = await PivxNamesRegistrar.forCoin(_wallet.cryptoCurrency)!
-          .myNames(pubkey: key, page: _page, search: _search);
+      final registrar = PivxNamesRegistrar.forCoin(_wallet.cryptoCurrency)!;
+      var names = await registrar.myNames(
+        pubkey: key,
+        page: _page,
+        search: _search,
+        filter: _filter,
+      );
+      // Past the end (a name sold or moved meanwhile): the last page.
+      final last = (names.count / kPivxNamesListPageSize).ceil();
+      if (names.items.isEmpty && _page > 1) {
+        if (!mounted || request != _request) return;
+        _page = last < 1 ? 1 : last;
+        if (last >= 1) {
+          names = await registrar.myNames(
+            pubkey: key,
+            page: last,
+            search: _search,
+            filter: _filter,
+          );
+        }
+      }
       if (!mounted || request != _request) return;
       setState(() => _names = names);
     } catch (e) {
@@ -89,6 +119,19 @@ class _PivxNamesMyNamesViewState extends ConsumerState<PivxNamesMyNamesView> {
     } finally {
       if (mounted && request == _request) setState(() => _loading = false);
     }
+  }
+
+  void _setFilter(PivxNamesFilter filter) {
+    setState(() {
+      _filter = filter;
+      _page = 1;
+    });
+    unawaited(_load());
+  }
+
+  void _setPage(int page) {
+    setState(() => _page = page);
+    unawaited(_load());
   }
 
   Future<void> _start(PivxNamesFlow flow) =>
@@ -103,6 +146,7 @@ class _PivxNamesMyNamesViewState extends ConsumerState<PivxNamesMyNamesView> {
     op: op,
     name: d.name,
     returnTo: PivxNamesMyNamesView.routeName,
+    price: d.updatePrice,
     currentAddress: d.address,
     listedPrice: listedPrice,
   );
@@ -414,6 +458,7 @@ class _PivxNamesMyNamesViewState extends ConsumerState<PivxNamesMyNamesView> {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<StackColors>()!;
     final names = _names;
+    final filtered = _filter != kPivxNamesNoFilter;
     return Background(
       child: Scaffold(
         backgroundColor: colors.background,
@@ -435,14 +480,26 @@ class _PivxNamesMyNamesViewState extends ConsumerState<PivxNamesMyNamesView> {
                 const SizedBox(height: 12),
                 _keyCard(),
                 const SizedBox(height: 12),
-                PivxNamesSearchField(
-                  hint: l10n.pivxNamesSearchMine,
-                  onSearch: (term) {
-                    _search = term;
-                    _page = 1;
-                    unawaited(_load());
-                  },
+                PivxNamesSearchBar(
+                  search: PivxNamesSearchField(
+                    hint: l10n.pivxNamesSearchMine,
+                    onSearch: (term) {
+                      _search = term;
+                      _page = 1;
+                      unawaited(_load());
+                    },
+                  ),
+                  filter: _filter,
+                  open: _filtersOpen,
+                  onToggle: () => setState(() => _filtersOpen = !_filtersOpen),
                 ),
+                if (_filtersOpen)
+                  PivxNamesFilterPanel(
+                    filter: _filter,
+                    zones: _zones,
+                    withStatus: true,
+                    onChanged: _setFilter,
+                  ),
                 const SizedBox(height: 12),
                 if (_loading && names == null)
                   const PivxNamesListState(loading: true)
@@ -450,10 +507,21 @@ class _PivxNamesMyNamesViewState extends ConsumerState<PivxNamesMyNamesView> {
                   PivxNamesListState(error: _error, onRetry: _load)
                 else if (names == null || names.items.isEmpty)
                   PivxNamesListState(
-                    empty: _search.isNotEmpty
+                    empty: filtered
+                        ? l10n.pivxNamesNoFilterMatch
+                        : _search.isNotEmpty
                         ? l10n.pivxNamesNoMatch
                         : l10n.pivxNamesNoneYet,
-                    action: _search.isNotEmpty
+                    action: filtered
+                        ? SecondaryButton(
+                            label: l10n.pivxNamesResetFilters,
+                            width: 200,
+                            buttonHeight: Util.isDesktop
+                                ? ButtonHeight.m
+                                : null,
+                            onPressed: () => _setFilter(kPivxNamesNoFilter),
+                          )
+                        : _search.isNotEmpty
                         ? null
                         : PrimaryButton(
                             label: l10n.pivxNamesRegisterFirst,
@@ -470,10 +538,7 @@ class _PivxNamesMyNamesViewState extends ConsumerState<PivxNamesMyNamesView> {
                     page: _page,
                     count: names.count,
                     pageSize: kPivxNamesListPageSize,
-                    onPage: (p) {
-                      _page = p;
-                      unawaited(_load());
-                    },
+                    onPage: _setPage,
                   ),
                 ],
               ],

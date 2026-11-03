@@ -204,7 +204,7 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
                       if (_transaction.pivxAlsoLabel != null) ...[
                         const SizedBox(height: 2),
                         Align(
-                          alignment: Alignment.centerLeft,
+                          alignment: AlignmentDirectional.centerStart,
                           child: Text(
                             "+ ${_transaction.pivxAlsoLabel}",
                             style: STextStyles.label(context),
@@ -267,7 +267,7 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
                                 _transaction.onChainNote!,
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
-                                textAlign: TextAlign.left,
+                                textAlign: TextAlign.start,
                                 style: STextStyles.label(context),
                               ),
                             ),

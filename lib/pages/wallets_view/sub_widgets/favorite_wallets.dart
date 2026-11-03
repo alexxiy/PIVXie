@@ -121,7 +121,9 @@ class _FavoriteWalletsState extends ConsumerState<FavoriteWallets> {
         const SizedBox(height: 20),
         !hasFavorites
             ? Padding(
-                padding: const EdgeInsets.only(left: standardPadding),
+                padding: const EdgeInsetsDirectional.only(
+                  start: standardPadding,
+                ),
                 child: Container(
                   height: cardHeight,
                   width: cardWidth,

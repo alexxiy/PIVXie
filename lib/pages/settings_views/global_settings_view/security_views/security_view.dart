@@ -242,7 +242,7 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                           Text(
                             l10n.pinChange,
                             style: STextStyles.titleBold12(context),
-                            textAlign: TextAlign.left,
+                            textAlign: TextAlign.start,
                           ),
                         ],
                       ),
@@ -271,7 +271,7 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                                 child: Text(
                                   l10n.securityBiometrics,
                                   style: STextStyles.titleBold12(context),
-                                  textAlign: TextAlign.left,
+                                  textAlign: TextAlign.start,
                                 ),
                               ),
                               const SizedBox(width: 12),
@@ -321,7 +321,7 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                                 child: Text(
                                   l10n.securityRandomizePad,
                                   style: STextStyles.titleBold12(context),
-                                  textAlign: TextAlign.left,
+                                  textAlign: TextAlign.start,
                                 ),
                               ),
                               const SizedBox(width: 12),
@@ -472,7 +472,7 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                                   child: Text(
                                     l10n.securityNoScreenshots,
                                     style: STextStyles.titleBold12(context),
-                                    textAlign: TextAlign.left,
+                                    textAlign: TextAlign.start,
                                   ),
                                 ),
                                 const SizedBox(width: 12),
@@ -524,7 +524,7 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                                   child: Text(
                                     l10n.securityDuressPin,
                                     style: STextStyles.titleBold12(context),
-                                    textAlign: TextAlign.left,
+                                    textAlign: TextAlign.start,
                                   ),
                                 ),
                                 const SizedBox(width: 12),
@@ -582,7 +582,7 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                                   child: Text(
                                     l10n.securityBiometricsDuress,
                                     style: STextStyles.titleBold12(context),
-                                    textAlign: TextAlign.left,
+                                    textAlign: TextAlign.start,
                                   ),
                                 ),
                                 const SizedBox(width: 12),
@@ -650,7 +650,7 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                           Text(
                             l10n.autoLockTitle,
                             style: STextStyles.titleBold12(context),
-                            textAlign: TextAlign.left,
+                            textAlign: TextAlign.start,
                           ),
                         ],
                       ),
@@ -681,7 +681,7 @@ class _InfoLabel extends StatelessWidget {
           child: Text(
             label,
             style: STextStyles.titleBold12(context),
-            textAlign: TextAlign.left,
+            textAlign: TextAlign.start,
           ),
         ),
         IconButton(

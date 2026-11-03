@@ -69,74 +69,66 @@ class _SingleFieldEditViewState extends State<SingleFieldEditView> {
   Widget build(BuildContext context) {
     return ConditionalParent(
       condition: !isDesktop,
-      builder:
-          (child) => Background(
-            child: Scaffold(
-              backgroundColor:
-                  Theme.of(context).extension<StackColors>()!.background,
-              appBar: AppBar(
-                backgroundColor:
-                    Theme.of(context).extension<StackColors>()!.background,
-                leading: AppBarBackButton(
-                  onPressed: () async {
-                    if (FocusScope.of(context).hasFocus) {
-                      FocusScope.of(context).unfocus();
-                      await Future<void>.delayed(
-                        const Duration(milliseconds: 75),
-                      );
-                    }
-                    if (mounted) {
-                      Navigator.of(context).pop();
-                    }
-                  },
-                ),
-                title: Text(
-                  widget.title,
-                  style: STextStyles.navBarTitle(context),
-                ),
-              ),
-              body: SafeArea(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  child: LayoutBuilder(
-                    builder: (context, constraints) {
-                      return SingleChildScrollView(
-                        child: ConstrainedBox(
-                          constraints: BoxConstraints(
-                            minHeight: constraints.maxHeight,
-                          ),
-                          child: IntrinsicHeight(child: child),
-                        ),
-                      );
-                    },
-                  ),
-                ),
+      builder: (child) => Background(
+        child: Scaffold(
+          backgroundColor: Theme.of(context)
+              .extension<StackColors>()!
+              .background,
+          appBar: AppBar(
+            backgroundColor: Theme.of(context)
+                .extension<StackColors>()!
+                .background,
+            leading: AppBarBackButton(
+              onPressed: () async {
+                if (FocusScope.of(context).hasFocus) {
+                  FocusScope.of(context).unfocus();
+                  await Future<void>.delayed(const Duration(milliseconds: 75));
+                }
+                if (mounted) {
+                  Navigator.of(context).pop();
+                }
+              },
+            ),
+            title: Text(widget.title, style: STextStyles.navBarTitle(context)),
+          ),
+          body: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return SingleChildScrollView(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: constraints.maxHeight,
+                      ),
+                      child: IntrinsicHeight(child: child),
+                    ),
+                  );
+                },
               ),
             ),
           ),
+        ),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           if (!isDesktop) const SizedBox(height: 10),
           if (isDesktop)
             Padding(
-              padding: const EdgeInsets.only(left: 32, bottom: 12),
+              padding: const EdgeInsetsDirectional.only(start: 32, bottom: 12),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    widget.title,
-                    style: STextStyles.desktopH3(context),
-                  ),
+                  Text(widget.title, style: STextStyles.desktopH3(context)),
                   const DesktopDialogCloseButton(),
                 ],
               ),
             ),
           Padding(
-            padding:
-                isDesktop
-                    ? const EdgeInsets.symmetric(horizontal: 32)
-                    : const EdgeInsets.all(0),
+            padding: isDesktop
+                ? const EdgeInsets.symmetric(horizontal: 32)
+                : const EdgeInsets.all(0),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(
                 Constants.size.circularBorderRadius,
@@ -145,53 +137,50 @@ class _SingleFieldEditViewState extends State<SingleFieldEditView> {
                 autocorrect: Util.isDesktop ? false : true,
                 enableSuggestions: Util.isDesktop ? false : true,
                 controller: _textController,
-                style:
-                    isDesktop
-                        ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                          color:
-                              Theme.of(
-                                context,
-                              ).extension<StackColors>()!.textFieldActiveText,
-                          height: 1.8,
-                        )
-                        : STextStyles.field(context),
+                style: isDesktop
+                    ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textFieldActiveText,
+                        height: 1.8,
+                      )
+                    : STextStyles.field(context),
                 focusNode: _textFocusNode,
-                decoration: standardInputDecoration(
-                  widget.label,
-                  _textFocusNode,
-                  context,
-                  desktopMed: isDesktop,
-                ).copyWith(
-                  contentPadding:
-                      isDesktop
-                          ? const EdgeInsets.only(
-                            left: 16,
-                            top: 11,
-                            bottom: 12,
-                            right: 5,
-                          )
+                decoration:
+                    standardInputDecoration(
+                      widget.label,
+                      _textFocusNode,
+                      context,
+                      desktopMed: isDesktop,
+                    ).copyWith(
+                      contentPadding: isDesktop
+                          ? const EdgeInsetsDirectional.only(
+                              start: 16,
+                              top: 11,
+                              bottom: 12,
+                              end: 5,
+                            )
                           : null,
-                  suffixIcon:
-                      _textController.text.isNotEmpty
+                      suffixIcon: _textController.text.isNotEmpty
                           ? Padding(
-                            padding: const EdgeInsets.only(right: 0),
-                            child: UnconstrainedBox(
-                              child: Row(
-                                children: [
-                                  TextFieldIconButton(
-                                    child: const XIcon(),
-                                    onTap: () async {
-                                      setState(() {
-                                        _textController.text = "";
-                                      });
-                                    },
-                                  ),
-                                ],
+                              padding: const EdgeInsetsDirectional.only(end: 0),
+                              child: UnconstrainedBox(
+                                child: Row(
+                                  children: [
+                                    TextFieldIconButton(
+                                      child: const XIcon(),
+                                      onTap: () async {
+                                        setState(() {
+                                          _textController.text = "";
+                                        });
+                                      },
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                          )
+                            )
                           : null,
-                ),
+                    ),
               ),
             ),
           ),
@@ -200,27 +189,26 @@ class _SingleFieldEditViewState extends State<SingleFieldEditView> {
 
           ConditionalParent(
             condition: isDesktop,
-            builder:
-                (child) => Padding(
-                  padding: const EdgeInsets.all(32),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: SecondaryButton(
-                          label: l10n.commonCancel,
-                          buttonHeight: ButtonHeight.l,
-                          onPressed: () {
-                            if (mounted) {
-                              Navigator.of(context).pop();
-                            }
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(child: child),
-                    ],
+            builder: (child) => Padding(
+              padding: const EdgeInsets.all(32),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: SecondaryButton(
+                      label: l10n.commonCancel,
+                      buttonHeight: ButtonHeight.l,
+                      onPressed: () {
+                        if (mounted) {
+                          Navigator.of(context).pop();
+                        }
+                      },
+                    ),
                   ),
-                ),
+                  const SizedBox(width: 16),
+                  Expanded(child: child),
+                ],
+              ),
+            ),
             child: PrimaryButton(
               label: l10n.commonSave,
               buttonHeight: isDesktop ? ButtonHeight.l : null,

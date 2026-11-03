@@ -277,7 +277,7 @@ class _TransactionV2DetailsViewState
           builder: (child) => SafeArea(child: child),
           child: Padding(
             padding: isDesktop
-                ? const EdgeInsets.only(left: 32)
+                ? const EdgeInsetsDirectional.only(start: 32)
                 : const EdgeInsets.all(12),
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -296,7 +296,7 @@ class _TransactionV2DetailsViewState
                 Flexible(
                   child: Padding(
                     padding: isDesktop
-                        ? const EdgeInsets.only(right: 32, bottom: 32)
+                        ? const EdgeInsetsDirectional.only(end: 32, bottom: 32)
                         : const EdgeInsets.all(0),
                     child: ConditionalParent(
                       condition: isDesktop,

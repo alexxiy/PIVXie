@@ -74,7 +74,7 @@ class DesktopSendFeeForm extends ConsumerWidget {
           l10n.sendNetworkFeeEstimated,
           style: STextStyles.desktopTextExtraSmall(context)
               .copyWith(color: colors.textFieldActiveSearchIconRight),
-          textAlign: TextAlign.left,
+          textAlign: TextAlign.start,
         ),
         const SizedBox(height: 10),
         Padding(

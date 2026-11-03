@@ -134,11 +134,11 @@ class PivxMemoField extends StatelessWidget {
                       desktopMed: isDesktop,
                     ).copyWith(
                       contentPadding: isDesktop
-                          ? const EdgeInsets.only(
-                              left: 16,
+                          ? const EdgeInsetsDirectional.only(
+                              start: 16,
                               top: 11,
                               bottom: 12,
-                              right: 5,
+                              end: 5,
                             )
                           : null,
                       suffixIcon: value.text.isNotEmpty
@@ -157,10 +157,10 @@ class PivxMemoField extends StatelessWidget {
             ),
             if (bytes > 0)
               Padding(
-                padding: const EdgeInsets.only(top: 4, right: 4),
+                padding: const EdgeInsetsDirectional.only(top: 4, end: 4),
                 child: Text(
                   l10n.memoBytes(bytes, maxBytes),
-                  textAlign: TextAlign.right,
+                  textAlign: TextAlign.end,
                   style: STextStyles.label(context).copyWith(
                     color: bytes > maxBytes
                         ? colors.textError

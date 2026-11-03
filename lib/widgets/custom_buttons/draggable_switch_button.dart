@@ -48,9 +48,10 @@ class DraggableSwitchButtonState extends State<DraggableSwitchButton> {
   Color _colorBG(bool isOn, bool enabled, double alpha) {
     if (enabled) {
       return Color.alphaBlend(
-        Theme.of(
-          context,
-        ).extension<StackColors>()!.switchBGOn.withOpacity(alpha),
+        Theme.of(context)
+            .extension<StackColors>()!
+            .switchBGOn
+            .withOpacity(alpha),
         Theme.of(context).extension<StackColors>()!.switchBGOff,
       );
     }
@@ -60,9 +61,10 @@ class DraggableSwitchButtonState extends State<DraggableSwitchButton> {
   Color _colorFG(bool isOn, bool enabled, double alpha) {
     if (enabled) {
       return Color.alphaBlend(
-        Theme.of(
-          context,
-        ).extension<StackColors>()!.switchCircleOn.withOpacity(alpha),
+        Theme.of(context)
+            .extension<StackColors>()!
+            .switchCircleOn
+            .withOpacity(alpha),
         Theme.of(context).extension<StackColors>()!.switchCircleOff,
       );
     }
@@ -125,9 +127,13 @@ class DraggableSwitchButtonState extends State<DraggableSwitchButton> {
                     key: const Key("draggableSwitchButtonSwitch"),
                     onHorizontalDragStart: (_) => _isDragging = true,
                     onHorizontalDragUpdate: (details) {
-                      valueListener.value = (valueListener.value +
-                              details.delta.dx / constraint.maxWidth)
-                          .clamp(0.0, 1.0);
+                      // On, at the end: on the left in right-to-left text.
+                      final dx = Directionality.of(context) == TextDirection.rtl
+                          ? -details.delta.dx
+                          : details.delta.dx;
+                      valueListener.value =
+                          (valueListener.value + dx / constraint.maxWidth)
+                              .clamp(0.0, 1.0);
                     },
                     onHorizontalDragEnd: (details) {
                       final bool oldValue = _isOn;
@@ -171,9 +177,13 @@ class DraggableSwitchButtonState extends State<DraggableSwitchButton> {
                     animation: valueListener,
                     builder: (context, child) {
                       return AnimatedAlign(
-                        duration:
-                            _isDragging ? Duration.zero : tapAnimationDuration,
-                        alignment: Alignment(valueListener.value * 2 - 1, 0.5),
+                        duration: _isDragging
+                            ? Duration.zero
+                            : tapAnimationDuration,
+                        alignment: AlignmentDirectional(
+                          valueListener.value * 2 - 1,
+                          0.5,
+                        ),
                         child: child,
                       );
                     },
@@ -255,7 +265,10 @@ class _DraggableSwitchState extends State<DraggableSwitch> {
     return GestureDetector(
       onTap: _toggle,
       onHorizontalDragUpdate: (details) {
-        _dragOffset += details.primaryDelta!;
+        // On, at the end: on the left in right-to-left text.
+        _dragOffset += Directionality.of(context) == TextDirection.rtl
+            ? -details.primaryDelta!
+            : details.primaryDelta!;
       },
       onHorizontalDragEnd: _handleDragEnd,
       child: LayoutBuilder(
@@ -273,7 +286,9 @@ class _DraggableSwitchState extends State<DraggableSwitch> {
             child: AnimatedAlign(
               duration: _duration,
               curve: Curves.easeInOut,
-              alignment: isOn ? Alignment.centerRight : Alignment.centerLeft,
+              alignment: isOn
+                  ? AlignmentDirectional.centerEnd
+                  : AlignmentDirectional.centerStart,
               child: AnimatedContainer(
                 duration: _duration,
                 height: constraints.maxHeight - 4,

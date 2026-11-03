@@ -377,10 +377,10 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
                           .length >
                       1)
                 Padding(
-                  padding: const EdgeInsets.only(
+                  padding: const EdgeInsetsDirectional.only(
                     top: 10,
                     bottom: 10,
-                    right: 10,
+                    end: 10,
                   ),
                   child: AspectRatio(
                     aspectRatio: 1,
@@ -802,7 +802,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                   suffixIcon:
                       !shouldBeReadOnly && _nameController.text.isNotEmpty
                       ? Padding(
-                          padding: const EdgeInsets.only(right: 0),
+                          padding: const EdgeInsetsDirectional.only(end: 0),
                           child: UnconstrainedBox(
                             child: Row(
                               children: [
@@ -837,6 +837,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
             readOnly: shouldBeReadOnly,
             enabled: enableField(_hostController),
             controller: _hostController,
+            textDirection: TextDirection.ltr,
             focusNode: _hostFocusNode,
             style: STextStyles.field(context),
             decoration:
@@ -848,7 +849,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                   suffixIcon:
                       !shouldBeReadOnly && _hostController.text.isNotEmpty
                       ? Padding(
-                          padding: const EdgeInsets.only(right: 0),
+                          padding: const EdgeInsetsDirectional.only(end: 0),
                           child: UnconstrainedBox(
                             child: Row(
                               children: [
@@ -883,6 +884,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
             readOnly: shouldBeReadOnly,
             enabled: enableField(_portController),
             controller: _portController,
+            textDirection: TextDirection.ltr,
             focusNode: _portFocusNode,
             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
             keyboardType: TextInputType.number,
@@ -896,7 +898,7 @@ class _NodeFormState extends ConsumerState<NodeForm> {
                   suffixIcon:
                       !shouldBeReadOnly && _portController.text.isNotEmpty
                       ? Padding(
-                          padding: const EdgeInsets.only(right: 0),
+                          padding: const EdgeInsetsDirectional.only(end: 0),
                           child: UnconstrainedBox(
                             child: Row(
                               children: [

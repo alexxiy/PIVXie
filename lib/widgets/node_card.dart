@@ -183,6 +183,17 @@ class _NodeCardState extends ConsumerState<NodeCard> {
                           : l10n.commonConnect,
                       enabled: _status == "Disconnected" && !_connecting,
                       onTap: () async {
+                        if (_connecting) return;
+                        if (_status != "Disconnected") {
+                          unawaited(
+                            showFloatingFlushBar(
+                              type: FlushBarType.info,
+                              message: l10n.nodeAlreadyConnected,
+                              context: context,
+                            ),
+                          );
+                          return;
+                        }
                         setState(() => _connecting = true);
                         try {
                           final result = await testNodeOf(

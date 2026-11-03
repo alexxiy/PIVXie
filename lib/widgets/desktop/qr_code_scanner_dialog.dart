@@ -33,8 +33,9 @@ class QrCodeScannerDialog extends StatefulWidget {
 class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
   // Made when the camera starts: loading the plugin library can fail.
   CameraLinux? _cameraLinuxPlugin;
-  final CameraWindows? _cameraWindowsPlugin =
-      Platform.isWindows ? CameraWindows() : null;
+  final CameraWindows? _cameraWindowsPlugin = Platform.isWindows
+      ? CameraWindows()
+      : null;
   bool _noCamera = false;
   Image? _image;
   bool _isScanning = false;
@@ -79,8 +80,8 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
         await camera.initializeCamera();
         Logging.instance.d("Linux Camera initialized");
       } else if (Platform.isWindows && _cameraWindowsPlugin != null) {
-        final List<CameraDescription> cameras =
-            await _cameraWindowsPlugin.availableCameras();
+        final List<CameraDescription> cameras = await _cameraWindowsPlugin
+            .availableCameras();
         if (cameras.isEmpty) {
           throw CameraException('No cameras available', 'No cameras found.');
         }
@@ -97,9 +98,7 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
         await _cameraWindowsPlugin.initializeCamera(_cameraId);
         // await _cameraWindowsPlugin!.onCameraInitialized(_cameraId).first;
         // TODO [prio=low]: Make this work. ^^^
-        Logging.instance.d(
-          "Windows Camera initialized with ID: $_cameraId",
-        );
+        Logging.instance.d("Windows Camera initialized with ID: $_cameraId");
       } else if (Platform.isMacOS) {
         final List<CameraMacOSDevice> videoDevices = await CameraMacOS.instance
             .listDevices(deviceType: CameraMacOSDeviceType.video);
@@ -107,12 +106,11 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
           throw Exception('No cameras available');
         }
         _macOSDeviceId = videoDevices.first.deviceId;
-        await CameraMacOS.instance
-            .initialize(cameraMacOSMode: CameraMacOSMode.photo);
-
-        Logging.instance.d(
-          "macOS Camera initialized with ID: $_macOSDeviceId",
+        await CameraMacOS.instance.initialize(
+          cameraMacOSMode: CameraMacOSMode.photo,
         );
+
+        Logging.instance.d("macOS Camera initialized with ID: $_macOSDeviceId");
       }
 
       return true;
@@ -144,11 +142,7 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
         Logging.instance.d("macOS Camera stopped with ID: $_macOSDeviceId");
       }
     } catch (e, s) {
-      Logging.instance.e(
-        "Failed to stop camera",
-        error: e,
-        stackTrace: s,
-      );
+      Logging.instance.e("Failed to stop camera", error: e, stackTrace: s);
     }
   }
 
@@ -161,8 +155,9 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
         if (linuxCamera != null) {
           base64Image = await linuxCamera.captureImage();
         } else if (Platform.isWindows) {
-          final XFile xfile =
-              await _cameraWindowsPlugin!.takePicture(_cameraId);
+          final XFile xfile = await _cameraWindowsPlugin!.takePicture(
+            _cameraId,
+          );
           final bytes = await xfile.readAsBytes();
           base64Image = base64Encode(bytes);
           // We could use a Uint8List to optimize for Windows and macOS.
@@ -234,8 +229,9 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
             .buffer
             .asInt32List(),
       );
-      final BinaryBitmap bitmap =
-          BinaryBitmap(GlobalHistogramBinarizer(source));
+      final BinaryBitmap bitmap = BinaryBitmap(
+        GlobalHistogramBinarizer(source),
+      );
 
       final QRCodeReader reader = QRCodeReader();
       final qrDecode = reader.decode(bitmap);
@@ -265,7 +261,7 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(left: 32),
+                  padding: const EdgeInsetsDirectional.only(start: 32),
                   child: Text(
                     l10n.qrScanTitle,
                     style: STextStyles.desktopH3(context),
@@ -286,10 +282,7 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
                         ),
                       ),
                     )
-                  : _image ??
-                      const Center(
-                        child: CircularProgressIndicator(),
-                      ),
+                  : _image ?? const Center(child: CircularProgressIndicator()),
             ),
             Padding(
               padding: const EdgeInsets.all(16),
@@ -332,8 +325,9 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
                           }
 
                           try {
-                            final img.Image? image =
-                                img.decodeImage(File(filePath).readAsBytesSync());
+                            final img.Image? image = img.decodeImage(
+                              File(filePath).readAsBytesSync(),
+                            );
                             if (image == null) {
                               await showFloatingFlushBar(
                                 type: FlushBarType.info,
@@ -366,8 +360,7 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
                             if (context.mounted) {
                               await showFloatingFlushBar(
                                 type: FlushBarType.info,
-                                message:
-                                    l10n.qrScanProcessError,
+                                message: l10n.qrScanProcessError,
                                 iconAsset: Assets.svg.file,
                                 context: context,
                               );

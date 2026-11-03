@@ -55,9 +55,7 @@ class _SyncingPreferencesSettings
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.only(
-            right: 30,
-          ),
+          padding: const EdgeInsetsDirectional.only(end: 30),
           child: RoundedWhiteContainer(
             radiusMultiplier: 2,
             child: Column(
@@ -85,17 +83,18 @@ class _SyncingPreferencesSettings
                           child: Text(
                             _currentTypeDescription(
                               ref.watch(
-                                prefsChangeNotifierProvider
-                                    .select((value) => value.syncType),
+                                prefsChangeNotifierProvider.select(
+                                  (value) => value.syncType,
+                                ),
                               ),
                             ),
                             style: STextStyles.desktopTextExtraSmall(context)
                                 .copyWith(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textDark2,
-                            ),
-                            textAlign: TextAlign.left,
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textDark2,
+                                ),
+                            textAlign: TextAlign.start,
                           ),
                         ),
                       ),
@@ -116,8 +115,7 @@ class _SyncingPreferencesSettings
                               style: STextStyles.desktopTextSmall(context),
                             ),
                             TextSpan(
-                              text:
-                                  "\n\n${l10n.syncingText(AppConfig.prefix)}",
+                              text: "\n\n${l10n.syncingText(AppConfig.prefix)}",
                               style: STextStyles.desktopTextExtraExtraSmall(
                                 context,
                               ),
@@ -132,9 +130,7 @@ class _SyncingPreferencesSettings
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Padding(
-                      padding: const EdgeInsets.all(
-                        10,
-                      ),
+                      padding: const EdgeInsets.all(10),
                       child: changePrefs
                           ? SizedBox(
                               width: 512,

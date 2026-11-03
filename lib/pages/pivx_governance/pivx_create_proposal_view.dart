@@ -220,7 +220,11 @@ class _PivxCreateProposalViewState
         ),
         if (note != null || maxLength != null)
           Padding(
-            padding: const EdgeInsets.only(left: 12, right: 4, top: 4),
+            padding: const EdgeInsetsDirectional.only(
+              start: 12,
+              end: 4,
+              top: 4,
+            ),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [

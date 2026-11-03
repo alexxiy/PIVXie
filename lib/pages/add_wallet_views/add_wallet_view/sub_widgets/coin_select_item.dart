@@ -55,7 +55,7 @@ class _CoinSelectItemState extends ConsumerState<CoinSelectItem> {
           "${widget.entity.name}${widget.entity.ticker}",
         ),
         padding: isDesktop
-            ? const EdgeInsets.only(left: 24)
+            ? const EdgeInsetsDirectional.only(start: 24)
             : const EdgeInsets.all(12),
         materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
         shape: RoundedRectangleBorder(
@@ -82,7 +82,7 @@ class _CoinSelectItemState extends ConsumerState<CoinSelectItem> {
               if (isDesktop && selectedEntity == widget.entity) const Spacer(),
               if (isDesktop && selectedEntity == widget.entity)
                 Padding(
-                  padding: const EdgeInsets.only(right: 18),
+                  padding: const EdgeInsetsDirectional.only(end: 18),
                   child: SizedBox(
                     width: 24,
                     height: 24,

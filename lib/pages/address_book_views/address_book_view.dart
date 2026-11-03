@@ -88,7 +88,7 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
     required String icon,
     required VoidCallback onPressed,
   }) => Padding(
-    padding: const EdgeInsets.only(top: 10, bottom: 10, right: 10),
+    padding: const EdgeInsetsDirectional.only(top: 10, bottom: 10, end: 10),
     child: AspectRatio(
       aspectRatio: 1,
       child: AppBarIconButton(
@@ -213,7 +213,9 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
                             ),
                             suffixIcon: _searchController.text.isNotEmpty
                                 ? Padding(
-                                    padding: const EdgeInsets.only(right: 0),
+                                    padding: const EdgeInsetsDirectional.only(
+                                      end: 0,
+                                    ),
                                     child: UnconstrainedBox(
                                       child: Row(
                                         children: [

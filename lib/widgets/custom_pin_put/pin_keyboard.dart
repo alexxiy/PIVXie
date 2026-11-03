@@ -19,11 +19,7 @@ import '../../utilities/assets.dart';
 import '../../utilities/text_styles.dart';
 
 class NumberKey extends StatefulWidget {
-  const NumberKey({
-    super.key,
-    required this.number,
-    required this.onPressed,
-  });
+  const NumberKey({super.key, required this.number, required this.onPressed});
 
   final String number;
   final ValueSetter<String> onPressed;
@@ -84,10 +80,7 @@ class _NumberKeyState extends State<NumberKey> {
           });
         },
         child: Center(
-          child: Text(
-            number,
-            style: STextStyles.numberDefault(context),
-          ),
+          child: Text(number, style: STextStyles.numberDefault(context)),
         ),
       ),
     );
@@ -95,10 +88,7 @@ class _NumberKeyState extends State<NumberKey> {
 }
 
 class BackspaceKey extends StatefulWidget {
-  const BackspaceKey({
-    super.key,
-    required this.onPressed,
-  });
+  const BackspaceKey({super.key, required this.onPressed});
 
   final VoidCallback onPressed;
 
@@ -161,8 +151,9 @@ class _BackspaceKeyState extends State<BackspaceKey> {
               Assets.svg.delete,
               width: 20,
               height: 20,
-              color:
-                  Theme.of(context).extension<StackColors>()!.numpadTextDefault,
+              color: Theme.of(context)
+                  .extension<StackColors>()!
+                  .numpadTextDefault,
             ),
           ),
         ),
@@ -172,10 +163,7 @@ class _BackspaceKeyState extends State<BackspaceKey> {
 }
 
 class SubmitKey extends StatelessWidget {
-  const SubmitKey({
-    super.key,
-    required this.onPressed,
-  });
+  const SubmitKey({super.key, required this.onPressed});
 
   final VoidCallback onPressed;
 
@@ -201,8 +189,9 @@ class SubmitKey extends StatelessWidget {
             Assets.svg.arrowRight,
             width: 20,
             height: 20,
-            color:
-                Theme.of(context).extension<StackColors>()!.numpadTextDefault,
+            color: Theme.of(context)
+                .extension<StackColors>()!
+                .numpadTextDefault,
           ),
         ),
       ),
@@ -297,21 +286,11 @@ class PinKeyboard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final list = [
-      "1",
-      "2",
-      "3",
-      "4",
-      "5",
-      "6",
-      "7",
-      "8",
-      "9",
-      "0",
-    ];
+    final list = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
 
     if (isRandom) list.shuffle();
 
+    // Keypads keep 1 2 3 from left to right in right-to-left languages too.
     return Container(
       width: width,
       height: height,
@@ -319,98 +298,46 @@ class PinKeyboard extends ConsumerWidget {
       child: Column(
         children: [
           Row(
+            textDirection: TextDirection.ltr,
             children: [
-              NumberKey(
-                number: list[0],
-                onPressed: _numberHandler,
-              ),
-              const SizedBox(
-                width: 24,
-              ),
-              NumberKey(
-                number: list[1],
-                onPressed: _numberHandler,
-              ),
-              const SizedBox(
-                width: 24,
-              ),
-              NumberKey(
-                number: list[2],
-                onPressed: _numberHandler,
-              ),
+              NumberKey(number: list[0], onPressed: _numberHandler),
+              const SizedBox(width: 24),
+              NumberKey(number: list[1], onPressed: _numberHandler),
+              const SizedBox(width: 24),
+              NumberKey(number: list[2], onPressed: _numberHandler),
             ],
           ),
-          const SizedBox(
-            height: 24,
-          ),
+          const SizedBox(height: 24),
           Row(
+            textDirection: TextDirection.ltr,
             children: [
-              NumberKey(
-                number: list[3],
-                onPressed: _numberHandler,
-              ),
-              const SizedBox(
-                width: 24,
-              ),
-              NumberKey(
-                number: list[4],
-                onPressed: _numberHandler,
-              ),
-              const SizedBox(
-                width: 24,
-              ),
-              NumberKey(
-                number: list[5],
-                onPressed: _numberHandler,
-              ),
+              NumberKey(number: list[3], onPressed: _numberHandler),
+              const SizedBox(width: 24),
+              NumberKey(number: list[4], onPressed: _numberHandler),
+              const SizedBox(width: 24),
+              NumberKey(number: list[5], onPressed: _numberHandler),
             ],
           ),
-          const SizedBox(
-            height: 24,
-          ),
+          const SizedBox(height: 24),
           Row(
+            textDirection: TextDirection.ltr,
             children: [
-              NumberKey(
-                number: list[6],
-                onPressed: _numberHandler,
-              ),
-              const SizedBox(
-                width: 24,
-              ),
-              NumberKey(
-                number: list[7],
-                onPressed: _numberHandler,
-              ),
-              const SizedBox(
-                width: 24,
-              ),
-              NumberKey(
-                number: list[8],
-                onPressed: _numberHandler,
-              ),
+              NumberKey(number: list[6], onPressed: _numberHandler),
+              const SizedBox(width: 24),
+              NumberKey(number: list[7], onPressed: _numberHandler),
+              const SizedBox(width: 24),
+              NumberKey(number: list[8], onPressed: _numberHandler),
             ],
           ),
-          const SizedBox(
-            height: 24,
-          ),
+          const SizedBox(height: 24),
           Row(
+            textDirection: TextDirection.ltr,
             children: [
-              BackspaceKey(
-                onPressed: _backHandler,
-              ),
-              const SizedBox(
-                width: 24,
-              ),
-              NumberKey(
-                number: list[9],
-                onPressed: _numberHandler,
-              ),
-              const SizedBox(
-                width: 24,
-              ),
-              SubmitKey(
-                onPressed: _submitHandler,
-              ),
+              BackspaceKey(onPressed: _backHandler),
+              const SizedBox(width: 24),
+              NumberKey(number: list[9], onPressed: _numberHandler),
+              const SizedBox(width: 24),
+              SubmitKey(onPressed: _submitHandler),
             ],
           ),
         ],
@@ -454,18 +381,7 @@ class RandomKeyboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final list = [
-      "1",
-      "2",
-      "3",
-      "4",
-      "5",
-      "6",
-      "7",
-      "8",
-      "9",
-      "0",
-    ];
+    final list = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
     list.shuffle();
     return Container(
       width: width,
@@ -474,98 +390,46 @@ class RandomKeyboard extends StatelessWidget {
       child: Column(
         children: [
           Row(
+            textDirection: TextDirection.ltr,
             children: [
-              NumberKey(
-                number: list[0],
-                onPressed: _numberHandler,
-              ),
-              const SizedBox(
-                width: 24,
-              ),
-              NumberKey(
-                number: list[1],
-                onPressed: _numberHandler,
-              ),
-              const SizedBox(
-                width: 24,
-              ),
-              NumberKey(
-                number: list[2],
-                onPressed: _numberHandler,
-              ),
+              NumberKey(number: list[0], onPressed: _numberHandler),
+              const SizedBox(width: 24),
+              NumberKey(number: list[1], onPressed: _numberHandler),
+              const SizedBox(width: 24),
+              NumberKey(number: list[2], onPressed: _numberHandler),
             ],
           ),
-          const SizedBox(
-            height: 24,
-          ),
+          const SizedBox(height: 24),
           Row(
+            textDirection: TextDirection.ltr,
             children: [
-              NumberKey(
-                number: list[3],
-                onPressed: _numberHandler,
-              ),
-              const SizedBox(
-                width: 24,
-              ),
-              NumberKey(
-                number: list[4],
-                onPressed: _numberHandler,
-              ),
-              const SizedBox(
-                width: 24,
-              ),
-              NumberKey(
-                number: list[5],
-                onPressed: _numberHandler,
-              ),
+              NumberKey(number: list[3], onPressed: _numberHandler),
+              const SizedBox(width: 24),
+              NumberKey(number: list[4], onPressed: _numberHandler),
+              const SizedBox(width: 24),
+              NumberKey(number: list[5], onPressed: _numberHandler),
             ],
           ),
-          const SizedBox(
-            height: 24,
-          ),
+          const SizedBox(height: 24),
           Row(
+            textDirection: TextDirection.ltr,
             children: [
-              NumberKey(
-                number: list[6],
-                onPressed: _numberHandler,
-              ),
-              const SizedBox(
-                width: 24,
-              ),
-              NumberKey(
-                number: list[7],
-                onPressed: _numberHandler,
-              ),
-              const SizedBox(
-                width: 24,
-              ),
-              NumberKey(
-                number: list[8],
-                onPressed: _numberHandler,
-              ),
+              NumberKey(number: list[6], onPressed: _numberHandler),
+              const SizedBox(width: 24),
+              NumberKey(number: list[7], onPressed: _numberHandler),
+              const SizedBox(width: 24),
+              NumberKey(number: list[8], onPressed: _numberHandler),
             ],
           ),
-          const SizedBox(
-            height: 24,
-          ),
+          const SizedBox(height: 24),
           Row(
+            textDirection: TextDirection.ltr,
             children: [
-              BackspaceKey(
-                onPressed: _backHandler,
-              ),
-              const SizedBox(
-                width: 24,
-              ),
-              NumberKey(
-                number: list[9],
-                onPressed: _numberHandler,
-              ),
-              const SizedBox(
-                width: 24,
-              ),
-              SubmitKey(
-                onPressed: _submitHandler,
-              ),
+              BackspaceKey(onPressed: _backHandler),
+              const SizedBox(width: 24),
+              NumberKey(number: list[9], onPressed: _numberHandler),
+              const SizedBox(width: 24),
+              SubmitKey(onPressed: _submitHandler),
             ],
           ),
         ],

@@ -78,7 +78,7 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(left: 32),
+                  padding: const EdgeInsetsDirectional.only(start: 32),
                   child: Text(
                     l10n.receiveAddressQr,
                     style: STextStyles.desktopH3(context),
@@ -358,7 +358,7 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                 if (!isDesktop)
                   Text(
                     l10n.receiveTransactions,
-                    textAlign: TextAlign.left,
+                    textAlign: TextAlign.start,
                     style: STextStyles.itemSubtitle(context).copyWith(
                       color: Theme.of(context)
                           .extension<StackColors>()!

@@ -394,6 +394,7 @@ class _RestoreViewOnlyWalletViewState
                           key: const Key("viewOnlyKeyRestoreFieldKey"),
                           label: l10n.restoreWatchKey,
                           controller: viewKeyController,
+                          textDirection: TextDirection.ltr,
                           onChanged: (value) {
                             setState(() {
                               _enableRestoreButton = value.trim().isNotEmpty;

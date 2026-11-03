@@ -9,6 +9,7 @@
  */
 
 import 'package:flutter/material.dart';
+
 import '../../../../../l10n/l10n.dart';
 import '../../../../../themes/stack_colors.dart';
 import '../../../../../utilities/text_styles.dart';
@@ -36,9 +37,7 @@ class ConfirmFullRescanDialog extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(
-                    left: 32,
-                  ),
+                  padding: const EdgeInsetsDirectional.only(start: 32),
                   child: Text(
                     l10n.netRescanBlockchain,
                     style: STextStyles.desktopH3(context),
@@ -61,9 +60,7 @@ class ConfirmFullRescanDialog extends StatelessWidget {
                     l10n.netRescanText,
                     style: STextStyles.desktopTextSmall(context),
                   ),
-                  const SizedBox(
-                    height: 43,
-                  ),
+                  const SizedBox(height: 43),
                   Row(
                     children: [
                       Expanded(
@@ -73,9 +70,7 @@ class ConfirmFullRescanDialog extends StatelessWidget {
                           label: l10n.commonCancel,
                         ),
                       ),
-                      const SizedBox(
-                        width: 16,
-                      ),
+                      const SizedBox(width: 16),
                       Expanded(
                         child: PrimaryButton(
                           buttonHeight: ButtonHeight.l,
@@ -101,8 +96,7 @@ class ConfirmFullRescanDialog extends StatelessWidget {
         },
         child: StackDialog(
           title: l10n.netRescanBlockchain,
-          message:
-              l10n.netRescanText,
+          message: l10n.netRescanText,
           leftButton: TextButton(
             style: Theme.of(context)
                 .extension<StackColors>()!
@@ -119,10 +113,7 @@ class ConfirmFullRescanDialog extends StatelessWidget {
             style: Theme.of(context)
                 .extension<StackColors>()!
                 .getPrimaryEnabledButtonStyle(context),
-            child: Text(
-              l10n.netRescan,
-              style: STextStyles.button(context),
-            ),
+            child: Text(l10n.netRescan, style: STextStyles.button(context)),
             onPressed: () {
               Navigator.of(context).pop();
               onConfirm.call();

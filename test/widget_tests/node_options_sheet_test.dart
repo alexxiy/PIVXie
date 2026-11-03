@@ -98,7 +98,7 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testWidgets('Load Node Options widget with disabled connect state', (
+  testWidgets('Load Node Options widget; Connect says already connected', (
     tester,
   ) async {
     final mockWallets = MockWallets();
@@ -128,12 +128,11 @@ void main() {
     expect(find.byType(SvgPicture), findsNWidgets(2));
     expect(find.text('Details'), findsOneWidget);
     expect(find.text('Connect'), findsOneWidget);
-    expect(
-      tester
-          .widget<TextButton>(find.widgetWithText(TextButton, 'Connect'))
-          .onPressed,
-      isNull,
-    );
+    await tester.tap(find.widgetWithText(TextButton, 'Connect'));
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.text("You're already connected to this node."), findsOneWidget);
+    await tester.pump(const Duration(seconds: 4));
+    await tester.pumpAndSettle();
 
     verify(mockNodeService.getPrimaryNodeFor(currency: pivx)).called(1);
     verify(mockNodeService.getNodeById(id: 'node id')).called(1);

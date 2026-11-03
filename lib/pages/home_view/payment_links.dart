@@ -347,7 +347,7 @@ Future<T?> _chooseOne<T>(
         maxWidth: 450,
         maxHeight: null,
         child: Padding(
-          padding: const EdgeInsets.only(left: 32, bottom: 32),
+          padding: const EdgeInsetsDirectional.only(start: 32, bottom: 32),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -363,7 +363,7 @@ Future<T?> _chooseOne<T>(
               Flexible(
                 child: ListView(
                   shrinkWrap: true,
-                  padding: const EdgeInsets.only(right: 32),
+                  padding: const EdgeInsetsDirectional.only(end: 32),
                   children: [
                     for (final o in options)
                       Padding(

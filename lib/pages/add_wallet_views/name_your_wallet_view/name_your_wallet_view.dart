@@ -269,7 +269,7 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
                 context,
               ).copyWith(
                 suffixIcon: Padding(
-                  padding: EdgeInsets.only(right: isDesktop ? 6 : 0),
+                  padding: EdgeInsetsDirectional.only(end: isDesktop ? 6 : 0),
                   child: UnconstrainedBox(
                     child: Row(
                       children: [

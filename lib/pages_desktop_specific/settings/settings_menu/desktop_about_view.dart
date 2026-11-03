@@ -53,7 +53,10 @@ class DesktopAboutView extends ConsumerWidget {
                 Expanded(
                   child: RoundedWhiteContainer(
                     child: Padding(
-                      padding: const EdgeInsets.only(left: 10, top: 10),
+                      padding: const EdgeInsetsDirectional.only(
+                        start: 10,
+                        top: 10,
+                      ),
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         // mainAxisAlignment: MainAxisAlignment.start,
@@ -82,8 +85,8 @@ class DesktopAboutView extends ConsumerWidget {
                           ),
                           const SizedBox(height: 32),
                           Padding(
-                            padding: const EdgeInsets.only(
-                              right: 10,
+                            padding: const EdgeInsetsDirectional.only(
+                              end: 10,
                               bottom: 10,
                             ),
                             child: Column(

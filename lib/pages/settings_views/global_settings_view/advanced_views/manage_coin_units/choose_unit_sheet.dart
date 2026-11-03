@@ -65,7 +65,7 @@ class _ChooseUnitSheetState extends ConsumerState<ChooseUnitSheet> {
                     Text(
                       l10n.unitsCoinUnits,
                       style: STextStyles.pageTitleH2(context),
-                      textAlign: TextAlign.left,
+                      textAlign: TextAlign.start,
                     ),
                     const SizedBox(height: 16),
                     for (int i = 0; i < values.length; i++)
@@ -106,7 +106,7 @@ class _ChooseUnitSheetState extends ConsumerState<ChooseUnitSheet> {
                                   Text(
                                     values[i].unitForCoin(widget.coin),
                                     style: STextStyles.titleBold12(context),
-                                    textAlign: TextAlign.left,
+                                    textAlign: TextAlign.start,
                                   ),
                                 ],
                               ),

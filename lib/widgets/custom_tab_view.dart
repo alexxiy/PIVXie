@@ -60,38 +60,34 @@ class _CustomTabViewState extends State<CustomTabView> {
                         color: Colors.transparent,
                         child: Column(
                           children: [
-                            const SizedBox(
-                              height: 16,
-                            ),
+                            const SizedBox(height: 16),
                             AnimatedCrossFade(
                               firstChild: Text(
                                 widget.titles[i],
                                 style:
                                     STextStyles.desktopTextExtraSmall(context)
                                         .copyWith(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .accentColorBlue,
-                                ),
+                                          color: Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .accentColorBlue,
+                                        ),
                               ),
                               secondChild: Text(
                                 widget.titles[i],
                                 style:
                                     STextStyles.desktopTextExtraSmall(context)
                                         .copyWith(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textSubtitle1,
-                                ),
+                                          color: Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .textSubtitle1,
+                                        ),
                               ),
                               crossFadeState: _selectedIndex == i
                                   ? CrossFadeState.showFirst
                                   : CrossFadeState.showSecond,
                               duration: const Duration(milliseconds: 250),
                             ),
-                            const SizedBox(
-                              height: 19,
-                            ),
+                            const SizedBox(height: 19),
                           ],
                         ),
                       ),
@@ -111,7 +107,14 @@ class _CustomTabViewState extends State<CustomTabView> {
                 ),
               ),
               AnimatedSlide(
-                offset: Offset(_selectedIndex.toDouble(), 0),
+                // The bar starts at the start side: leftwards in
+                // right-to-left text.
+                offset: Offset(
+                  Directionality.of(context) == TextDirection.rtl
+                      ? -_selectedIndex.toDouble()
+                      : _selectedIndex.toDouble(),
+                  0,
+                ),
                 duration: duration,
                 child: Container(
                   height: 2,
@@ -128,10 +131,7 @@ class _CustomTabViewState extends State<CustomTabView> {
           AnimatedSwitcher(
             duration: duration,
             transitionBuilder: (child, animation) {
-              return FadeTransition(
-                opacity: animation,
-                child: child,
-              );
+              return FadeTransition(opacity: animation, child: child);
             },
             layoutBuilder: (currentChild, prevChildren) {
               return Stack(

@@ -17,6 +17,7 @@
   "languageChinese": "Chinese",
   "languageKorean": "Korean",
   "languageJapanese": "Japanese",
+  "languageArabic": "Arabic",
   "languageTitle": "Language",
   "languageSelect": "Select language",
   "languageChange": "Change language",
@@ -678,6 +679,78 @@
   "pivxNamesManage": "Manage",
   "pivxNamesMyNamesIntro": "Manage where your names point and who owns them.",
   "pivxNamesSearchMine": "Search your names",
+  "pivxNamesFilters": "Filters",
+  "@pivxNamesFilters": {
+    "description": "The filter button next to a Names search field, and the title of its panel."
+  },
+  "pivxNamesFilterStatus": "Status",
+  "@pivxNamesFilterStatus": {
+    "description": "Filter group in My Names: on sale or not."
+  },
+  "pivxNamesFilterAll": "All",
+  "@pivxNamesFilterAll": {
+    "description": "Filter chip: no filtering by this (all statuses or all zones)."
+  },
+  "pivxNamesFilterOnSale": "On sale",
+  "@pivxNamesFilterOnSale": {
+    "description": "Filter chip: names listed on the marketplace."
+  },
+  "pivxNamesSortBy": "Sort by",
+  "@pivxNamesSortBy": {
+    "description": "Filter group: the order of the list."
+  },
+  "pivxNamesSortNameAsc": "Name A–Z",
+  "@pivxNamesSortNameAsc": {
+    "description": "Sort chip: names in alphabetical order (names use Latin letters)."
+  },
+  "pivxNamesSortNameDesc": "Name Z–A",
+  "@pivxNamesSortNameDesc": {
+    "description": "Sort chip: names in reverse alphabetical order."
+  },
+  "pivxNamesSortPriceAsc": "Price: low to high",
+  "@pivxNamesSortPriceAsc": {
+    "description": "Sort chip: cheapest first."
+  },
+  "pivxNamesSortPriceDesc": "Price: high to low",
+  "@pivxNamesSortPriceDesc": {
+    "description": "Sort chip: most expensive first."
+  },
+  "pivxNamesSortNewest": "Newest first",
+  "@pivxNamesSortNewest": {
+    "description": "Sort chip: names changed (own names) or put on sale (marketplace) most recently first."
+  },
+  "pivxNamesSortOldest": "Oldest first",
+  "@pivxNamesSortOldest": {
+    "description": "Sort chip: names changed (own names) or put on sale (marketplace) longest ago first."
+  },
+  "pivxNamesShowMore": "Show more",
+  "@pivxNamesShowMore": {
+    "description": "Button under the marketplace list: loads the next names."
+  },
+  "pivxNamesRegPending": "is being registered",
+  "@pivxNamesRegPending": {
+    "description": "Under a free name whose registration someone already paid for (shown after the name)."
+  },
+  "pivxNamesRegPendingNote": "Someone has already paid to register it, and only the first payment gets the name. If that registration fails, the name is free again.",
+  "@pivxNamesRegPendingNote": {
+    "description": "Explains a name whose registration is already paid for and on its way."
+  },
+  "pivxNamesCheckAgain": "Check again",
+  "@pivxNamesCheckAgain": {
+    "description": "Button: looks the name up again."
+  },
+  "pivxNamesRefundSentTo": "Sent to",
+  "@pivxNamesRefundSentTo": {
+    "description": "Label before the address a withdrawal was sent to."
+  },
+  "pivxNamesNoFilterMatch": "No names match these filters.",
+  "@pivxNamesNoFilterMatch": {
+    "description": "Empty list when the filters hide every name."
+  },
+  "pivxNamesResetFilters": "Reset filters",
+  "@pivxNamesResetFilters": {
+    "description": "Button under an empty filtered list."
+  },
   "pivxNamesNoneYet": "You haven't registered a PIVX name yet.",
   "pivxNamesRegisterFirst": "Register your first name",
   "pivxNamesDoneBuy": "You've bought {name}!",
@@ -3036,6 +3109,10 @@
         "type": "String"
       }
     }
+  },
+  "nodeAlreadyConnected": "You're already connected to this node.",
+  "@nodeAlreadyConnected": {
+    "description": "Shown when the user taps Connect on the node the app is already connected to."
   },
   "nodeAnsweredIn": "The node works. It answered in {time}.",
   "@nodeAnsweredIn": {

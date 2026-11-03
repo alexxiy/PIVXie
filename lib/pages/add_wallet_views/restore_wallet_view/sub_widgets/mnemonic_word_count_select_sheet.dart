@@ -68,7 +68,7 @@ class MnemonicWordCountSelectSheet extends ConsumerWidget {
                     Text(
                       l10n.restorePhraseLength,
                       style: STextStyles.pageTitleH2(context),
-                      textAlign: TextAlign.left,
+                      textAlign: TextAlign.start,
                     ),
                     const SizedBox(height: 16),
                     for (int i = 0; i < lengthOptions.length; i++)
@@ -123,7 +123,7 @@ class MnemonicWordCountSelectSheet extends ConsumerWidget {
                                   Text(
                                     l10n.restoreWords(lengthOptions[i]),
                                     style: STextStyles.titleBold12(context),
-                                    textAlign: TextAlign.left,
+                                    textAlign: TextAlign.start,
                                   ),
                                 ],
                               ),

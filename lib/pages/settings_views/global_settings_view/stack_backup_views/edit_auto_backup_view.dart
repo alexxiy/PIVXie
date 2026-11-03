@@ -286,7 +286,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
               style: STextStyles.desktopTextExtraSmall(context).copyWith(
                 color: Theme.of(context).extension<StackColors>()!.textDark3,
               ),
-              textAlign: TextAlign.left,
+              textAlign: TextAlign.start,
             ),
           const SizedBox(height: 10),
           if (!Platform.isIOS)
@@ -350,7 +350,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
               style: STextStyles.desktopTextExtraSmall(context).copyWith(
                 color: Theme.of(context).extension<StackColors>()!.textDark3,
               ),
-              textAlign: TextAlign.left,
+              textAlign: TextAlign.start,
             ),
           if (!Platform.isIOS) const SizedBox(height: 10),
           ClipRRect(
@@ -642,7 +642,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                             style: STextStyles.itemSubtitle12(context),
                           ),
                           Padding(
-                            padding: const EdgeInsets.only(right: 4.0),
+                            padding: const EdgeInsetsDirectional.only(end: 4.0),
                             child: SvgPicture.asset(
                               Assets.svg.chevronDown,
                               color: Theme.of(context)

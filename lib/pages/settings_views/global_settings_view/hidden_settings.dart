@@ -8,7 +8,6 @@
  *
  */
 
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -43,6 +42,7 @@ class HiddenSettings extends StatelessWidget {
               shadows: const [],
               icon: SvgPicture.asset(
                 Assets.svg.arrowLeft,
+                matchTextDirection: true,
                 width: 18,
                 height: 18,
                 color: Theme.of(context)
@@ -52,7 +52,10 @@ class HiddenSettings extends StatelessWidget {
               onPressed: Navigator.of(context).pop,
             ),
           ),
-          title: Text(l10n.settingsDevOptions, style: STextStyles.navBarTitle(context)),
+          title: Text(
+            l10n.settingsDevOptions,
+            style: STextStyles.navBarTitle(context),
+          ),
         ),
         body: SafeArea(
           child: Padding(

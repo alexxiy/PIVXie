@@ -34,6 +34,9 @@ class _L10nRootState extends State<L10nRoot> {
     // Month names for DateFormat in every language (synchronous for the
     // local data, despite the Future).
     initializeDateFormatting();
+    // Arabic dates in 0-9, the same digits as the amounts and the date
+    // picker's days, rather than Eastern Arabic digits (\u0660-\u0669).
+    DateFormat.useNativeDigitsByDefaultFor("ar", false);
   }
 
   @override

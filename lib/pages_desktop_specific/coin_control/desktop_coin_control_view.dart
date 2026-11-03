@@ -121,6 +121,7 @@ class _DesktopCoinControlViewState
                 shadows: const [],
                 icon: SvgPicture.asset(
                   Assets.svg.arrowLeft,
+                  matchTextDirection: true,
                   width: 18,
                   height: 18,
                   color: Theme.of(context)
@@ -196,7 +197,9 @@ class _DesktopCoinControlViewState
                             ),
                             suffixIcon: _searchController.text.isNotEmpty
                                 ? Padding(
-                                    padding: const EdgeInsets.only(right: 0),
+                                    padding: const EdgeInsetsDirectional.only(
+                                      end: 0,
+                                    ),
                                     child: UnconstrainedBox(
                                       child: Row(
                                         children: [

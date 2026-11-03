@@ -186,7 +186,7 @@ class _NodeOptionsSheetState extends ConsumerState<NodeOptionsSheet> {
                   Text(
                     l10n.nodeOptions,
                     style: STextStyles.pageTitleH2(context),
-                    textAlign: TextAlign.left,
+                    textAlign: TextAlign.start,
                   ),
                   RoundedWhiteContainer(
                     padding: const EdgeInsets.symmetric(vertical: 38),
@@ -289,8 +289,16 @@ class _NodeOptionsSheetState extends ConsumerState<NodeOptionsSheet> {
                               : Theme.of(context)
                                     .extension<StackColors>()!
                                     .getPrimaryEnabledButtonStyle(context),
-                          onPressed: status == "Connected" || _connecting
+                          // Looks disabled when connected, but a tap says
+                          // why nothing happens.
+                          onPressed: _connecting
                               ? null
+                              : status == "Connected"
+                              ? () => showFloatingFlushBar(
+                                  type: FlushBarType.info,
+                                  message: l10n.nodeAlreadyConnected,
+                                  context: context,
+                                )
                               : () => _connect(node),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,

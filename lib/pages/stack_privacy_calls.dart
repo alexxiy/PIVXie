@@ -147,7 +147,7 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
                       child: RoundedWhiteContainer(
                         child: Center(
                           child: RichText(
-                            textAlign: TextAlign.left,
+                            textAlign: TextAlign.start,
                             text: TextSpan(
                               style: isDesktop
                                   ? STextStyles.desktopTextExtraExtraSmall(
@@ -355,9 +355,9 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                     ],
                   ),
                   if (externalCallsEnabled)
-                    Positioned(
+                    PositionedDirectional(
                       top: 4,
-                      right: 4,
+                      end: 4,
                       child: SvgPicture.asset(
                         Assets.svg.checkCircle,
                         width: 20,
@@ -368,9 +368,9 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                       ),
                     ),
                   if (!externalCallsEnabled)
-                    Positioned(
+                    PositionedDirectional(
                       top: 4,
-                      right: 4,
+                      end: 4,
                       child: Container(
                         width: 20,
                         height: 20,
@@ -447,9 +447,9 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                     ],
                   ),
                   if (!externalCallsEnabled)
-                    Positioned(
+                    PositionedDirectional(
                       top: 4,
-                      right: 4,
+                      end: 4,
                       child: SvgPicture.asset(
                         Assets.svg.checkCircle,
                         width: 20,
@@ -460,9 +460,9 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                       ),
                     ),
                   if (externalCallsEnabled)
-                    Positioned(
+                    PositionedDirectional(
                       top: 4,
-                      right: 4,
+                      end: 4,
                       child: Container(
                         width: 20,
                         height: 20,

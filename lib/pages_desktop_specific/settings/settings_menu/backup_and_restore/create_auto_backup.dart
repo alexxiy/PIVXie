@@ -287,14 +287,14 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
           ),
           const SizedBox(height: 30),
           Container(
-            alignment: Alignment.centerLeft,
-            padding: const EdgeInsets.only(left: 32),
+            alignment: AlignmentDirectional.centerStart,
+            padding: const EdgeInsetsDirectional.only(start: 32),
             child: Text(
               l10n.backupChooseLocation,
               style: STextStyles.desktopTextExtraSmall(context).copyWith(
                 color: Theme.of(context).extension<StackColors>()!.textDark3,
               ),
-              textAlign: TextAlign.left,
+              textAlign: TextAlign.start,
             ),
           ),
           const SizedBox(height: 10),
@@ -384,7 +384,7 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                                 .extension<StackColors>()!
                                 .textDark3,
                           ),
-                      textAlign: TextAlign.left,
+                      textAlign: TextAlign.start,
                     ),
                   ),
                 ClipRRect(
@@ -554,14 +554,14 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
           ),
           const SizedBox(height: 24),
           Container(
-            alignment: Alignment.centerLeft,
-            padding: const EdgeInsets.only(left: 32),
+            alignment: AlignmentDirectional.centerStart,
+            padding: const EdgeInsetsDirectional.only(start: 32),
             child: Text(
               l10n.backupAutoFrequency,
               style: STextStyles.desktopTextExtraSmall(context).copyWith(
                 color: Theme.of(context).extension<StackColors>()!.textDark3,
               ),
-              textAlign: TextAlign.left,
+              textAlign: TextAlign.start,
             ),
           ),
           const SizedBox(height: 10),

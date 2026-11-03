@@ -212,10 +212,10 @@ class _NewWalletRecoveryPhraseWarningViewState
               leading: const AppBarBackButton(),
               actions: [
                 Padding(
-                  padding: const EdgeInsets.only(
+                  padding: const EdgeInsetsDirectional.only(
                     top: 10,
                     bottom: 10,
-                    right: 10,
+                    end: 10,
                   ),
                   child: AppBarIconButton(
                     semanticsLabel: l10n.addWalletExplainSemantics,

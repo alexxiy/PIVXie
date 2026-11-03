@@ -38,8 +38,9 @@ class PageAppBar extends StatelessWidget implements PreferredSizeWidget {
   static double? get leadingWidth => Util.isDesktop ? 90 : null;
 
   /// On desktop, actions as high as the back button, and off the edge.
-  static EdgeInsets? get actionsPadding =>
-      Util.isDesktop ? const EdgeInsets.fromLTRB(0, 20, 12, 20) : null;
+  static EdgeInsetsGeometry? get actionsPadding => Util.isDesktop
+      ? const EdgeInsetsDirectional.fromSTEB(0, 20, 12, 20)
+      : null;
 
   static Widget backButton(BuildContext context, {VoidCallback? onPressed}) =>
       AppBarBackButton(

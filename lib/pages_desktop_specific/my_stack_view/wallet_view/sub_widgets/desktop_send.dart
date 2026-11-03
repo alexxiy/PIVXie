@@ -64,6 +64,7 @@ import '../../../../widgets/icon_widgets/addressbook_icon.dart';
 import '../../../../widgets/icon_widgets/clipboard_icon.dart';
 import '../../../../widgets/icon_widgets/qrcode_icon.dart';
 import '../../../../widgets/icon_widgets/x_icon.dart';
+import '../../../../widgets/middle_ellipsis_text.dart';
 import '../../../../widgets/rounded_container.dart';
 import '../../../../widgets/stack_text_field.dart';
 import '../../../../widgets/textfield_icon_button.dart';
@@ -194,11 +195,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     final Amount amount = ref.read(pSendAmount)!;
     final Amount availableBalance = _spendable;
 
-    final coinControlEnabled = ref
-        .read(prefsChangeNotifierProvider)
-        .enableCoinControl;
-
-    if (!coinControlEnabled || ref.read(desktopUseUTXOs).isEmpty) {
+    if (ref.read(desktopUseUTXOs).isEmpty) {
       // confirm send all
       if (amount == availableBalance) {
         final bool? shouldSendAll = await showDialog<bool>(
@@ -210,7 +207,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               maxWidth: 450,
               maxHeight: double.infinity,
               child: Padding(
-                padding: const EdgeInsets.only(left: 32, bottom: 32),
+                padding: const EdgeInsetsDirectional.only(
+                  start: 32,
+                  bottom: 32,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -226,17 +226,17 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                     ),
                     const SizedBox(height: 12),
                     Padding(
-                      padding: const EdgeInsets.only(right: 32),
+                      padding: const EdgeInsetsDirectional.only(end: 32),
                       child: Text(
                         l10n.sendConfirmSendAllText,
-                        textAlign: TextAlign.left,
+                        textAlign: TextAlign.start,
                         style: STextStyles.desktopTextExtraExtraSmall(context)
                             .copyWith(fontSize: 18),
                       ),
                     ),
                     const SizedBox(height: 40),
                     Padding(
-                      padding: const EdgeInsets.only(right: 32),
+                      padding: const EdgeInsetsDirectional.only(end: 32),
                       child: Row(
                         children: [
                           Expanded(
@@ -352,7 +352,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               ? memoController.text
               : null,
           feeRateType: FeeRateType.average,
-          utxos: (coinControlEnabled && ref.read(pDesktopUseUTXOs).isNotEmpty)
+          utxos: ref.read(pDesktopUseUTXOs).isNotEmpty
               ? ref.read(pDesktopUseUTXOs)
               : null,
           otherData: pivxOtherData.isEmpty ? null : jsonEncode(pivxOtherData),
@@ -400,7 +400,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 maxWidth: 450,
                 maxHeight: double.infinity,
                 child: Padding(
-                  padding: const EdgeInsets.only(left: 32, bottom: 32),
+                  padding: const EdgeInsetsDirectional.only(
+                    start: 32,
+                    bottom: 32,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -416,10 +419,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                       ),
                       const SizedBox(height: 12),
                       Padding(
-                        padding: const EdgeInsets.only(right: 32),
+                        padding: const EdgeInsetsDirectional.only(end: 32),
                         child: Text(
                           e.toString(),
-                          textAlign: TextAlign.left,
+                          textAlign: TextAlign.start,
                           style: STextStyles.desktopTextExtraExtraSmall(context)
                               .copyWith(fontSize: 18),
                         ),
@@ -674,8 +677,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     ref.read(pSendAmount.notifier).state = amount;
   }
 
-  String _getSendAllTitle(bool showCoinControl, Set<UTXO> selectedUTXOs) {
-    if (showCoinControl && selectedUTXOs.isNotEmpty) {
+  String _getSendAllTitle(Set<UTXO> selectedUTXOs) {
+    if (selectedUTXOs.isNotEmpty) {
       return l10n.sendAllSelected;
     }
 
@@ -687,7 +690,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     fractionDigits: ref.read(pWalletCoin(walletId)).fractionDigits,
   );
 
-  Future<void> _sendAllTapped(bool showCoinControl) async {
+  Future<void> _sendAllTapped() async {
     // PIVX never takes the fee out of the amount silently: sending
     // everything ticks "Subtract fee from amount" where the user sees it.
     if (coin is Pivx && !_pivxSubtractFee) {
@@ -695,7 +698,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     }
     final Amount amount;
 
-    if (showCoinControl && ref.read(desktopUseUTXOs).isNotEmpty) {
+    if (ref.read(desktopUseUTXOs).isNotEmpty) {
       amount = _selectedUtxosAmount(ref.read(desktopUseUTXOs));
     } else {
       amount = _spendable;
@@ -882,6 +885,120 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     super.dispose();
   }
 
+  /// How a PIVX send is paid, as on phones: which balance, with which
+  /// coins, and where the change goes, in one block.
+  Widget _pivxPayFrom(bool fromShield, bool shieldPossible) {
+    final colors = Theme.of(context).extension<StackColors>()!;
+    final fmt = ref.watch(pAmountFormatter(coin));
+    final coins = ref.watch(desktopUseUTXOs);
+    final change = _pivxChange;
+    final secondary = STextStyles.desktopTextExtraExtraSmall(context)
+        .copyWith(color: colors.textSubtitle1);
+    void choose(BalanceType balance) =>
+        ref.read(publicPrivateBalanceStateProvider.notifier).state = balance;
+    Widget row(String title, Widget value, List<Widget> actions) => Padding(
+      padding: const EdgeInsets.only(top: 16),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: STextStyles.desktopTextExtraExtraSmall(context)
+                      .copyWith(color: colors.textDark),
+                ),
+                const SizedBox(height: 2),
+                value,
+              ],
+            ),
+          ),
+          ...actions,
+        ],
+      ),
+    );
+
+    return RoundedContainer(
+      color: Colors.transparent,
+      borderColor: colors.textFieldDefaultBG,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          // Both as high as the taller one when a label wraps.
+          IntrinsicHeight(
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(
+                  child: _balanceChoice(
+                    title: l10n.balanceTransparent,
+                    balance: ref.watch(pWalletBalance(walletId)),
+                    selected: !fromShield,
+                    onTap: () => choose(BalanceType.public),
+                  ),
+                ),
+                if (shieldPossible) ...[
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _balanceChoice(
+                      title: l10n.balanceShielded,
+                      balance: ref.watch(pWalletBalanceSecondary(walletId)),
+                      selected: fromShield,
+                      onTap: () => choose(BalanceType.private),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          row(
+            fromShield ? l10n.sendNotesToSpend : l10n.sendCoinsToSpend,
+            Text(
+              coins.isEmpty
+                  ? l10n.sendChosenAutomatically
+                  : l10n.sendCoinsSelected(
+                      coins.length,
+                      fmt.format(_selectedUtxosAmount(coins)),
+                    ),
+              style: secondary,
+            ),
+            [
+              if (coins.isNotEmpty) ...[
+                CustomTextButton(
+                  text: l10n.commonReset,
+                  onTap: () => ref.read(desktopUseUTXOs.notifier).state = {},
+                ),
+                const SizedBox(width: 16),
+              ],
+              CustomTextButton(
+                text: l10n.commonChoose,
+                onTap: _showDesktopCoinControl,
+              ),
+            ],
+          ),
+          row(
+            l10n.sendChangeAddress,
+            change == null
+                ? Text(
+                    fromShield
+                        ? l10n.sendAutomaticNewPrivate
+                        : l10n.sendAutomaticNewChangeShort,
+                    style: secondary,
+                  )
+                : MiddleEllipsisText(change, style: secondary),
+            [
+              CustomTextButton(
+                text: l10n.commonChoose,
+                onTap: _pickPivxChangeAddress,
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   /// One of the PIVX balances to send from, with what it can spend.
   Widget _balanceChoice({
     required String title,
@@ -926,10 +1043,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       localeServiceChangeNotifierProvider.select((value) => value.locale),
     );
 
-    final showCoinControl = ref.watch(
-      prefsChangeNotifierProvider.select((value) => value.enableCoinControl),
-    );
-
     // The chosen coins belong to one balance.
     ref.listen(publicPrivateBalanceStateProvider, (_, __) {
       ref.read(desktopUseUTXOs.notifier).state = {};
@@ -947,39 +1060,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (pivxShield) ...[
+        if (coin is Pivx) ...[
           const SizedBox(height: 4),
-          Text(l10n.sendSendFrom, style: labelStyle),
+          Text(l10n.sendPayFrom, style: labelStyle),
           const SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(
-                child: _balanceChoice(
-                  title: l10n.balanceShielded,
-                  balance: ref.watch(pWalletBalanceSecondary(walletId)),
-                  selected: fromShield,
-                  onTap: () =>
-                      ref
-                              .read(publicPrivateBalanceStateProvider.notifier)
-                              .state =
-                          BalanceType.private,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: _balanceChoice(
-                  title: l10n.balanceTransparent,
-                  balance: ref.watch(pWalletBalance(walletId)),
-                  selected: !fromShield,
-                  onTap: () =>
-                      ref
-                              .read(publicPrivateBalanceStateProvider.notifier)
-                              .state =
-                          BalanceType.public,
-                ),
-              ),
-            ],
-          ),
+          _pivxPayFrom(fromShield, pivxShield),
           const SizedBox(height: 20),
         ],
         const SizedBox(height: 4),
@@ -993,14 +1078,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                     .extension<StackColors>()!
                     .textFieldActiveSearchIconRight,
               ),
-              textAlign: TextAlign.left,
+              textAlign: TextAlign.start,
             ),
             CustomTextButton(
-              text: _getSendAllTitle(
-                showCoinControl,
-                ref.watch(desktopUseUTXOs),
-              ),
-              onTap: () => _sendAllTapped(showCoinControl),
+              text: _getSendAllTitle(ref.watch(desktopUseUTXOs)),
+              onTap: _sendAllTapped,
             ),
           ],
         ),
@@ -1020,7 +1102,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                   signed: false,
                   decimal: true,
                 ),
-          textAlign: TextAlign.right,
+          textAlign: TextAlign.end,
           inputFormatters: [
             AmountInputFormatter(
               decimals: coin.fractionDigits,
@@ -1030,9 +1112,9 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
           ],
           onChanged: (newValue) {},
           decoration: InputDecoration(
-            contentPadding: const EdgeInsets.only(
+            contentPadding: const EdgeInsetsDirectional.only(
               top: 22,
-              right: 12,
+              end: 12,
               bottom: 22,
             ),
             hintText: "0",
@@ -1074,15 +1156,15 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                     signed: false,
                     decimal: true,
                   ),
-            textAlign: TextAlign.right,
+            textAlign: TextAlign.end,
             inputFormatters: [
               AmountInputFormatter(decimals: 2, locale: locale),
             ],
             onChanged: fiatTextFieldOnChanged,
             decoration: InputDecoration(
-              contentPadding: const EdgeInsets.only(
+              contentPadding: const EdgeInsetsDirectional.only(
                 top: 22,
-                right: 12,
+                end: 12,
                 bottom: 22,
               ),
               hintText: "0",
@@ -1109,31 +1191,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                   ),
                 ),
               ),
-            ),
-          ),
-        if (showCoinControl) const SizedBox(height: 10),
-        if (showCoinControl)
-          RoundedContainer(
-            color: Colors.transparent,
-            borderColor: Theme.of(context)
-                .extension<StackColors>()!
-                .textFieldDefaultBG,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  l10n.coinControlTitle,
-                  style: STextStyles.desktopTextExtraExtraSmall(context),
-                ),
-                CustomTextButton(
-                  text: ref.watch(desktopUseUTXOs).isEmpty
-                      ? l10n.sendSelectCoins
-                      : l10n.sendSelectedCoins(
-                          ref.watch(desktopUseUTXOs).length,
-                        ),
-                  onTap: _showDesktopCoinControl,
-                ),
-              ],
             ),
           ),
         if (coin is Pivx) ...[
@@ -1163,29 +1220,6 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               ),
             ),
           ),
-          const SizedBox(height: 10),
-          RoundedContainer(
-            color: Colors.transparent,
-            borderColor: Theme.of(context)
-                .extension<StackColors>()!
-                .textFieldDefaultBG,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  l10n.sendChangeAddress,
-                  style: STextStyles.desktopTextExtraExtraSmall(context),
-                ),
-                CustomTextButton(
-                  text: _pivxChange == null
-                      ? l10n.sendAutomatic
-                      : "${_pivxChange!.substring(0, 6)}…"
-                            "${_pivxChange!.substring(_pivxChange!.length - 6)}",
-                  onTap: _pickPivxChangeAddress,
-                ),
-              ],
-            ),
-          ),
         ],
         const SizedBox(height: 20),
         Text(
@@ -1195,7 +1229,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 .extension<StackColors>()!
                 .textFieldActiveSearchIconRight,
           ),
-          textAlign: TextAlign.left,
+          textAlign: TextAlign.start,
         ),
         const SizedBox(height: 10),
         ClipRRect(
@@ -1207,6 +1241,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             maxLines: 5,
             key: const Key("sendViewAddressFieldKey"),
             controller: sendToController,
+            textDirection: TextDirection.ltr,
             readOnly: false,
             autocorrect: false,
             enableSuggestions: false,
@@ -1260,16 +1295,16 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                   context,
                   desktopMed: true,
                 ).copyWith(
-                  contentPadding: const EdgeInsets.only(
-                    left: 16,
+                  contentPadding: const EdgeInsetsDirectional.only(
+                    start: 16,
                     top: 11,
                     bottom: 12,
-                    right: 5,
+                    end: 5,
                   ),
                   suffixIcon: Padding(
                     padding: sendToController.text.isEmpty
-                        ? const EdgeInsets.only(right: 8)
-                        : const EdgeInsets.only(right: 0),
+                        ? const EdgeInsetsDirectional.only(end: 8)
+                        : const EdgeInsetsDirectional.only(end: 0),
                     child: UnconstrainedBox(
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -1302,45 +1337,42 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                             TextFieldIconButton(
                               key: const Key("sendViewAddressBookButtonKey"),
                               onTap: () async {
-                                final entry =
-                                    await showDialog<ContactAddressEntry?>(
-                                      context: context,
-                                      builder: (context) => DesktopDialog(
-                                        maxWidth: 696,
-                                        maxHeight: 600,
-                                        child: Column(
-                                          mainAxisSize: MainAxisSize.min,
+                                final entry = await showDialog<ContactAddressEntry?>(
+                                  context: context,
+                                  builder: (context) => DesktopDialog(
+                                    maxWidth: 696,
+                                    maxHeight: 600,
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
                                           children: [
-                                            Row(
-                                              mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
-                                              children: [
-                                                Padding(
-                                                  padding:
-                                                      const EdgeInsets.only(
-                                                        left: 32,
-                                                      ),
-                                                  child: Text(
-                                                    l10n.addressBookTitle,
-                                                    style:
-                                                        STextStyles.desktopH3(
-                                                          context,
-                                                        ),
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsetsDirectional.only(
+                                                    start: 32,
                                                   ),
+                                              child: Text(
+                                                l10n.addressBookTitle,
+                                                style: STextStyles.desktopH3(
+                                                  context,
                                                 ),
-                                                const DesktopDialogCloseButton(),
-                                              ],
-                                            ),
-                                            Expanded(
-                                              child: AddressBookAddressChooser(
-                                                coin: coin,
                                               ),
                                             ),
+                                            const DesktopDialogCloseButton(),
                                           ],
                                         ),
-                                      ),
-                                    );
+                                        Expanded(
+                                          child: AddressBookAddressChooser(
+                                            coin: coin,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
 
                                 if (entry != null) {
                                   sendToController.text = entry.address;
@@ -1387,12 +1419,15 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
               return Container();
             } else {
               return Align(
-                alignment: Alignment.topLeft,
+                alignment: AlignmentDirectional.topStart,
                 child: Padding(
-                  padding: const EdgeInsets.only(left: 12.0, top: 4.0),
+                  padding: const EdgeInsetsDirectional.only(
+                    start: 12.0,
+                    top: 4.0,
+                  ),
                   child: Text(
                     error,
-                    textAlign: TextAlign.left,
+                    textAlign: TextAlign.start,
                     style: STextStyles.label(context).copyWith(
                       color: Theme.of(context)
                           .extension<StackColors>()!
@@ -1413,7 +1448,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                   .extension<StackColors>()!
                   .textFieldActiveSearchIconRight,
             ),
-            textAlign: TextAlign.left,
+            textAlign: TextAlign.start,
           ),
           const SizedBox(height: 10),
           PivxMemoField(controller: memoController, focusNode: _memoFocus),
@@ -1447,11 +1482,11 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                   context,
                   desktopMed: true,
                 ).copyWith(
-                  contentPadding: const EdgeInsets.only(
-                    left: 16,
+                  contentPadding: const EdgeInsetsDirectional.only(
+                    start: 16,
                     top: 11,
                     bottom: 12,
-                    right: 5,
+                    end: 5,
                   ),
                 ),
           ),

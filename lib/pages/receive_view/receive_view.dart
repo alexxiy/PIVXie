@@ -257,7 +257,11 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
           ),
           actions: [
             Padding(
-              padding: const EdgeInsets.only(top: 10, bottom: 10, right: 10),
+              padding: const EdgeInsetsDirectional.only(
+                top: 10,
+                bottom: 10,
+                end: 10,
+              ),
               child: AspectRatio(
                 aspectRatio: 1,
                 child: AppBarIconButton(
@@ -282,9 +286,9 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                       builder: (_) {
                         return Stack(
                           children: [
-                            Positioned(
+                            PositionedDirectional(
                               top: 9,
-                              right: 10,
+                              end: 10,
                               child: Container(
                                 decoration: BoxDecoration(
                                   color: Theme.of(context)
@@ -405,7 +409,9 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                               isExpanded: true,
                               iconStyleData: IconStyleData(
                                 icon: Padding(
-                                  padding: const EdgeInsets.only(right: 10),
+                                  padding: const EdgeInsetsDirectional.only(
+                                    end: 10,
+                                  ),
                                   child: SvgPicture.asset(
                                     Assets.svg.chevronDown,
                                     width: 12,

@@ -67,7 +67,7 @@ Future<void> askAboutNodeTrouble(BuildContext context, WidgetRef ref) async {
               children: [
                 Flexible(
                   child: Padding(
-                    padding: const EdgeInsets.only(left: 32),
+                    padding: const EdgeInsetsDirectional.only(start: 32),
                     child: Text(title, style: STextStyles.desktopH3(context)),
                   ),
                 ),

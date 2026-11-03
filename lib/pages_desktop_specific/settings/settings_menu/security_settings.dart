@@ -137,7 +137,7 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.only(right: 30),
+            padding: const EdgeInsetsDirectional.only(end: 30),
             child: RoundedWhiteContainer(
               radiusMultiplier: 2,
               child: Column(
@@ -184,7 +184,7 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
                                                 .extension<StackColors>()!
                                                 .textDark3,
                                           ),
-                                      textAlign: TextAlign.left,
+                                      textAlign: TextAlign.start,
                                     ),
                                     const SizedBox(height: 10),
                                     ClipRRect(
@@ -261,7 +261,7 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
                                                 .extension<StackColors>()!
                                                 .textDark3,
                                           ),
-                                      textAlign: TextAlign.left,
+                                      textAlign: TextAlign.start,
                                     ),
                                     const SizedBox(height: 10),
                                     ClipRRect(
@@ -398,7 +398,7 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
                                                 .extension<StackColors>()!
                                                 .textDark3,
                                           ),
-                                      textAlign: TextAlign.left,
+                                      textAlign: TextAlign.start,
                                     ),
                                     const SizedBox(height: 10),
                                     ClipRRect(
@@ -531,7 +531,7 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
           ),
           const SizedBox(height: 20),
           Padding(
-            padding: const EdgeInsets.only(right: 30),
+            padding: const EdgeInsetsDirectional.only(end: 30),
             child: RoundedWhiteContainer(
               radiusMultiplier: 2,
               child: Consumer(

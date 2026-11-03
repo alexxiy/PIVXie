@@ -84,7 +84,7 @@ class AdvancedSettingsView extends ConsumerWidget {
                           Text(
                             l10n.settingsLogging,
                             style: STextStyles.titleBold12(context),
-                            textAlign: TextAlign.left,
+                            textAlign: TextAlign.start,
                           ),
                         ],
                       ),
@@ -113,7 +113,7 @@ class AdvancedSettingsView extends ConsumerWidget {
                                 child: Text(
                                   l10n.advancedShowTestnet,
                                   style: STextStyles.titleBold12(context),
-                                  textAlign: TextAlign.left,
+                                  textAlign: TextAlign.start,
                                 ),
                               ),
                               const SizedBox(width: 12),
@@ -163,7 +163,7 @@ class AdvancedSettingsView extends ConsumerWidget {
                                 child: Text(
                                   l10n.advancedEnableCoinControl,
                                   style: STextStyles.titleBold12(context),
-                                  textAlign: TextAlign.left,
+                                  textAlign: TextAlign.start,
                                 ),
                               ),
                               const SizedBox(width: 12),
@@ -222,7 +222,7 @@ class AdvancedSettingsView extends ConsumerWidget {
                           child: Row(
                             children: [
                               RichText(
-                                textAlign: TextAlign.left,
+                                textAlign: TextAlign.start,
                                 text: TextSpan(
                                   children: [
                                     TextSpan(
@@ -285,7 +285,7 @@ class AdvancedSettingsView extends ConsumerWidget {
                           Text(
                             l10n.explorerChange,
                             style: STextStyles.titleBold12(context),
-                            textAlign: TextAlign.left,
+                            textAlign: TextAlign.start,
                           ),
                         ],
                       ),
@@ -319,7 +319,7 @@ class AdvancedSettingsView extends ConsumerWidget {
                           Text(
                             l10n.unitsTitle,
                             style: STextStyles.titleBold12(context),
-                            textAlign: TextAlign.left,
+                            textAlign: TextAlign.start,
                           ),
                         ],
                       ),

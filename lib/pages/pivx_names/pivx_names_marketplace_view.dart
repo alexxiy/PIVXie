@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../l10n/l10n.dart';
 import '../../providers/global/wallets_provider.dart';
+import '../../services/pivx_name/pivx_name.dart';
 import '../../services/pivx_name/pivx_names_protocol.dart';
 import '../../services/pivx_name/pivx_names_registrar.dart';
 import '../../themes/stack_colors.dart';
@@ -36,20 +37,38 @@ class PivxNamesMarketplaceView extends ConsumerStatefulWidget {
 class _PivxNamesMarketplaceViewState
     extends ConsumerState<PivxNamesMarketplaceView> {
   String? _key;
-  int _page = 1;
   String _search = "";
-  PivxNamesPage<PivxNamesDomain>? _names;
+  List<String> _zones = kPivxNameZones;
+
+  /// The pages shown so far, and where the next one starts (null: no more).
+  List<PivxNamesDomain>? _names;
+  String? _next;
   bool _loading = true;
+  bool _loadingMore = false;
   String? _error;
+  String? _moreError;
   int _request = 0;
+
+  // Filters live with the screen: leaving it resets them.
+  PivxNamesFilter _filter = kPivxNamesNoFilter;
+  bool _filtersOpen = false;
 
   PivxWallet get _wallet =>
       ref.read(pWallets).getWallet(widget.walletId) as PivxWallet;
+
+  PivxNamesRegistrar get _registrar =>
+      PivxNamesRegistrar.forCoin(_wallet.cryptoCurrency)!;
 
   @override
   void initState() {
     super.initState();
     pivxNamesChanges.addListener(_changed);
+    unawaited(_loadKey());
+    unawaited(
+      pivxNamesZones(_wallet).then((zones) {
+        if (mounted) setState(() => _zones = zones);
+      }),
+    );
     unawaited(_load());
   }
 
@@ -61,25 +80,34 @@ class _PivxNamesMarketplaceViewState
 
   void _changed() => unawaited(_load());
 
+  /// The user's key, to tell their own listings apart (the list has each
+  /// owner's).
+  Future<void> _loadKey() async {
+    try {
+      final key = await pivxNamesPublicKey(_wallet);
+      if (mounted) setState(() => _key = key);
+    } catch (_) {}
+  }
+
+  /// The first page again.
   Future<void> _load() async {
     final request = ++_request;
     setState(() {
       _loading = true;
+      _loadingMore = false;
       _error = null;
+      _moreError = null;
     });
     try {
-      // With the key, the user's own listings come marked.
-      String? key = _key;
-      if (key == null) {
-        try {
-          key = await pivxNamesPublicKey(_wallet);
-          if (mounted) setState(() => _key = key);
-        } catch (_) {}
-      }
-      final names = await PivxNamesRegistrar.forCoin(_wallet.cryptoCurrency)!
-          .marketplace(pubkey: key, page: _page, search: _search);
+      final page = await _registrar.marketplace(
+        search: _search,
+        filter: _filter,
+      );
       if (!mounted || request != _request) return;
-      setState(() => _names = names);
+      setState(() {
+        _names = page.items;
+        _next = page.next;
+      });
     } catch (e) {
       if (!mounted || request != _request) return;
       setState(() => _error = l10n.pivxNamesLoadNamesFailed(pivxNamesError(e)));
@@ -88,11 +116,52 @@ class _PivxNamesMarketplaceViewState
     }
   }
 
+  /// The page after those shown.
+  Future<void> _more() async {
+    final after = _next;
+    if (after == null || _loading || _loadingMore) return;
+    final request = _request;
+    setState(() {
+      _loadingMore = true;
+      _moreError = null;
+    });
+    try {
+      final page = await _registrar.marketplace(
+        after: after,
+        search: _search,
+        filter: _filter,
+      );
+      if (!mounted || request != _request) return;
+      setState(() {
+        // A name whose listing changed meanwhile may come again.
+        final shown = {for (final d in _names ?? const []) d.name};
+        _names = [
+          ...?_names,
+          for (final d in page.items)
+            if (!shown.contains(d.name)) d,
+        ];
+        _next = page.next;
+      });
+    } catch (e) {
+      if (!mounted || request != _request) return;
+      setState(
+        () => _moreError = l10n.pivxNamesLoadNamesFailed(pivxNamesError(e)),
+      );
+    } finally {
+      if (mounted && request == _request) setState(() => _loadingMore = false);
+    }
+  }
+
+  void _setFilter(PivxNamesFilter filter) {
+    setState(() => _filter = filter);
+    unawaited(_load());
+  }
+
   PivxNamesFlow _flow(PivxNamesDomain d, PivxNamesOp op) => PivxNamesFlow(
     walletId: widget.walletId,
     op: op,
     name: d.name,
-    price: op == PivxNamesOp.buy ? d.price : null,
+    price: op == PivxNamesOp.buy ? d.price : d.updatePrice,
     listedPrice: op == PivxNamesOp.lst ? d.price : null,
     returnTo: PivxNamesMarketplaceView.routeName,
   );
@@ -197,6 +266,7 @@ class _PivxNamesMarketplaceViewState
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<StackColors>()!;
     final names = _names;
+    final filtered = _filter != kPivxNamesNoFilter;
     return Background(
       child: Scaffold(
         backgroundColor: colors.background,
@@ -216,25 +286,46 @@ class _PivxNamesMarketplaceViewState
                   style: STextStyles.itemSubtitle(context),
                 ),
                 const SizedBox(height: 12),
-                PivxNamesSearchField(
-                  hint: l10n.pivxNamesSearchOnSale,
-                  onSearch: (term) {
-                    _search = term;
-                    _page = 1;
-                    unawaited(_load());
-                  },
+                PivxNamesSearchBar(
+                  search: PivxNamesSearchField(
+                    hint: l10n.pivxNamesSearchOnSale,
+                    onSearch: (term) {
+                      _search = term;
+                      unawaited(_load());
+                    },
+                  ),
+                  filter: _filter,
+                  open: _filtersOpen,
+                  onToggle: () => setState(() => _filtersOpen = !_filtersOpen),
                 ),
+                if (_filtersOpen)
+                  PivxNamesFilterPanel(
+                    filter: _filter,
+                    zones: _zones,
+                    onChanged: _setFilter,
+                  ),
                 const SizedBox(height: 12),
                 if (_loading && names == null)
                   const PivxNamesListState(loading: true)
                 else if (_error != null)
                   PivxNamesListState(error: _error, onRetry: _load)
-                else if (names == null || names.items.isEmpty)
+                else if (names == null || names.isEmpty)
                   PivxNamesListState(
-                    empty: _search.isNotEmpty
+                    empty: filtered
+                        ? l10n.pivxNamesNoFilterMatch
+                        : _search.isNotEmpty
                         ? l10n.pivxNamesNoMatch
                         : l10n.pivxNamesNoneOnSale,
-                    action: _search.isNotEmpty
+                    action: filtered
+                        ? SecondaryButton(
+                            label: l10n.pivxNamesResetFilters,
+                            width: 200,
+                            buttonHeight: Util.isDesktop
+                                ? ButtonHeight.m
+                                : null,
+                            onPressed: () => _setFilter(kPivxNamesNoFilter),
+                          )
+                        : _search.isNotEmpty
                         ? null
                         : SecondaryButton(
                             label: l10n.pivxNamesSellMyNames,
@@ -251,16 +342,22 @@ class _PivxNamesMarketplaceViewState
                   )
                 else ...[
                   if (_loading) const LinearProgressIndicator(minHeight: 2),
-                  for (final d in names.items) _card(d),
-                  PivxNamesPager(
-                    page: _page,
-                    count: names.count,
-                    pageSize: kPivxNamesListPageSize,
-                    onPage: (p) {
-                      _page = p;
-                      unawaited(_load());
-                    },
-                  ),
+                  for (final d in names) _card(d),
+                  if (_moreError != null)
+                    PivxNamesListState(error: _moreError, onRetry: _more)
+                  else if (_next != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Center(
+                        child: SecondaryButton(
+                          label: l10n.pivxNamesShowMore,
+                          width: 200,
+                          enabled: !_loadingMore && !_loading,
+                          buttonHeight: Util.isDesktop ? ButtonHeight.m : null,
+                          onPressed: _more,
+                        ),
+                      ),
+                    ),
                 ],
               ],
             ),

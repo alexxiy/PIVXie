@@ -34,21 +34,21 @@ InputDecoration standardInputDecoration(
         : Theme.of(context).extension<StackColors>()!.textFieldDefaultBG,
     labelStyle: isDesktop
         ? desktopMed
-            ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .textFieldDefaultText,
-              )
-            : STextStyles.desktopTextFieldLabel(context)
+              ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textFieldDefaultText,
+                )
+              : STextStyles.desktopTextFieldLabel(context)
         : STextStyles.fieldLabel(context),
     hintStyle: isDesktop
         ? desktopMed
-            ? STextStyles.desktopTextExtraSmall(context).copyWith(
-                color: Theme.of(context)
-                    .extension<StackColors>()!
-                    .textFieldDefaultText,
-              )
-            : STextStyles.desktopTextFieldLabel(context)
+              ? STextStyles.desktopTextExtraSmall(context).copyWith(
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .textFieldDefaultText,
+                )
+              : STextStyles.desktopTextFieldLabel(context)
         : STextStyles.fieldLabel(context),
     enabledBorder: InputBorder.none,
     focusedBorder: InputBorder.none,
@@ -65,9 +65,13 @@ class FullTextField extends StatefulWidget {
     this.focusNode,
     required this.label,
     this.onChanged,
+    this.textDirection,
   });
 
   final String label;
+
+  /// Left to right for Latin-only text (keys) in Arabic too.
+  final TextDirection? textDirection;
 
   final TextEditingController? controller;
   final FocusNode? focusNode;
@@ -102,11 +106,10 @@ class _FullTextFieldState extends State<FullTextField> {
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
-      borderRadius: BorderRadius.circular(
-        Constants.size.circularBorderRadius,
-      ),
+      borderRadius: BorderRadius.circular(Constants.size.circularBorderRadius),
       child: TextField(
         controller: controller,
+        textDirection: widget.textDirection,
         autocorrect: false,
         enableSuggestions: false,
         onChanged: (newValue) {
@@ -114,55 +117,55 @@ class _FullTextFieldState extends State<FullTextField> {
         },
         focusNode: focusNode,
         style: STextStyles.field(context),
-        decoration: standardInputDecoration(
-          widget.label,
-          focusNode,
-          context,
-        ).copyWith(
-          contentPadding: const EdgeInsets.only(
-            left: 16,
-            top: 6,
-            bottom: 8,
-            right: 5,
-          ),
-          suffixIcon: Padding(
-            padding: controller.text.isEmpty
-                ? const EdgeInsets.only(right: 8)
-                : const EdgeInsets.only(right: 0),
-            child: UnconstrainedBox(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  TextFieldIconButton(
-                    onTap: () async {
-                      if (_hasValue) {
-                        controller.text = "";
+        decoration: standardInputDecoration(widget.label, focusNode, context)
+            .copyWith(
+              contentPadding: const EdgeInsetsDirectional.only(
+                start: 16,
+                top: 6,
+                bottom: 8,
+                end: 5,
+              ),
+              suffixIcon: Padding(
+                padding: controller.text.isEmpty
+                    ? const EdgeInsetsDirectional.only(end: 8)
+                    : const EdgeInsetsDirectional.only(end: 0),
+                child: UnconstrainedBox(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      TextFieldIconButton(
+                        onTap: () async {
+                          if (_hasValue) {
+                            controller.text = "";
 
-                        setState(() {
-                          _hasValue = false;
-                        });
-                      } else {
-                        final data =
-                            await Clipboard.getData(Clipboard.kTextPlain);
-                        if (data?.text != null && data!.text!.isNotEmpty) {
-                          final content = data.text!.trim();
+                            setState(() {
+                              _hasValue = false;
+                            });
+                          } else {
+                            final data = await Clipboard.getData(
+                              Clipboard.kTextPlain,
+                            );
+                            if (data?.text != null && data!.text!.isNotEmpty) {
+                              final content = data.text!.trim();
 
-                          controller.text = content;
-                          setState(() {
-                            _hasValue = content.isNotEmpty;
-                          });
-                        }
-                      }
+                              controller.text = content;
+                              setState(() {
+                                _hasValue = content.isNotEmpty;
+                              });
+                            }
+                          }
 
-                      widget.onChanged?.call(controller.text);
-                    },
-                    child: _hasValue ? const XIcon() : const ClipboardIcon(),
+                          widget.onChanged?.call(controller.text);
+                        },
+                        child: _hasValue
+                            ? const XIcon()
+                            : const ClipboardIcon(),
+                      ),
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
-          ),
-        ),
       ),
     );
   }

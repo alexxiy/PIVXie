@@ -216,6 +216,7 @@ class _PivxDelegateViewState extends ConsumerState<PivxDelegateView> {
     List<TextInputFormatter>? formatters,
     Widget? suffix,
     bool enabled = true,
+    TextDirection? textDirection,
   }) {
     final colors = Theme.of(context).extension<StackColors>()!;
     final error = _touched.contains(controller) ? _errors[controller] : null;
@@ -233,6 +234,7 @@ class _PivxDelegateViewState extends ConsumerState<PivxDelegateView> {
           borderRadius: BorderRadius.circular(8),
           child: TextField(
             controller: controller,
+            textDirection: textDirection,
             focusNode: focus,
             enabled: enabled,
             autocorrect: false,
@@ -249,7 +251,11 @@ class _PivxDelegateViewState extends ConsumerState<PivxDelegateView> {
         ),
         if (note != null)
           Padding(
-            padding: const EdgeInsets.only(left: 12, right: 4, top: 4),
+            padding: const EdgeInsetsDirectional.only(
+              start: 12,
+              end: 4,
+              top: 4,
+            ),
             child: Text(
               note,
               style: STextStyles.label(context).copyWith(
@@ -293,7 +299,7 @@ class _PivxDelegateViewState extends ConsumerState<PivxDelegateView> {
     final colors = Theme.of(context).extension<StackColors>()!;
     return Container(
       margin: const EdgeInsets.only(top: 6, bottom: 10),
-      padding: const EdgeInsets.fromLTRB(12, 8, 4, 8),
+      padding: const EdgeInsetsDirectional.fromSTEB(12, 8, 4, 8),
       decoration: BoxDecoration(
         color: colors.textFieldDefaultBG,
         borderRadius: BorderRadius.circular(8),
@@ -481,6 +487,7 @@ class _PivxDelegateViewState extends ConsumerState<PivxDelegateView> {
                     const SizedBox(height: 8),
                     _field(
                       controller: _staker,
+                      textDirection: TextDirection.ltr,
                       focus: _stakerFocus,
                       hint: l10n.csStartsWith(wallet.stakingAddressLetter),
                       suffix: Row(
@@ -511,7 +518,10 @@ class _PivxDelegateViewState extends ConsumerState<PivxDelegateView> {
                       onChanged: (a) => setState(() => _owner = a),
                     ),
                     Padding(
-                      padding: const EdgeInsets.only(left: 12, top: 4),
+                      padding: const EdgeInsetsDirectional.only(
+                        start: 12,
+                        top: 4,
+                      ),
                       child: Text(
                         _owners.isNotEmpty && !_owners.contains(_owner)
                             ? l10n.csDifferentOwner

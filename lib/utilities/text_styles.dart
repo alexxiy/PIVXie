@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import '../themes/stack_colors.dart';
 
 /// Inter without its contextual alternates (`calt`). They draw an x next to
@@ -39,6 +40,19 @@ const kTextThemeFontFeatures = TextTheme(
 
 const _featuresOnly = TextStyle(fontFeatures: kTextFontFeatures);
 
+/// Inter has no Arabic letters. They come from IBM Plex Sans Arabic (bundled,
+/// see `fonts:` in the pubspec), so Arabic looks the same on every platform
+/// instead of using whatever font the system has. Latin letters and digits
+/// stay in Inter.
+const kArabicFontFamily = "IBM Plex Sans Arabic";
+
+/// [style] (a GoogleFonts style) with [kArabicFontFamily] as a fallback.
+/// GoogleFonts styles bring their own fallback list, which replaces the
+/// theme's one.
+TextStyle withArabicFallback(TextStyle style) => style.copyWith(
+  fontFamilyFallback: [...?style.fontFamilyFallback, kArabicFontFamily],
+);
+
 class STextStyles {
   static StackColors _theme(BuildContext context) =>
       Theme.of(context).extension<StackColors>()!;
@@ -48,12 +62,14 @@ class STextStyles {
     FontWeight? fontWeight,
     double? fontSize,
     double? height,
-  }) => GoogleFonts.inter(
-    color: color,
-    fontWeight: fontWeight,
-    fontSize: fontSize,
-    height: height,
-    fontFeatures: kTextFontFeatures,
+  }) => withArabicFallback(
+    GoogleFonts.inter(
+      color: color,
+      fontWeight: fontWeight,
+      fontSize: fontSize,
+      height: height,
+      fontFeatures: kTextFontFeatures,
+    ),
   );
 
   static TextStyle pageTitleH1(BuildContext context) {
@@ -457,7 +473,7 @@ class STextStyles {
     }
   }
 
-// Desktop
+  // Desktop
 
   static TextStyle desktopH1(BuildContext context) {
     switch (_theme(context).themeId) {

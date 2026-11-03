@@ -56,7 +56,7 @@ class ManageCoinUnitsView extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(left: 32),
+                  padding: const EdgeInsetsDirectional.only(start: 32),
                   child: Text(
                     l10n.unitsTitle,
                     style: STextStyles.desktopH3(context),
@@ -139,6 +139,7 @@ class ManageCoinUnitsView extends ConsumerWidget {
                     const SizedBox(width: 12),
                     SvgPicture.asset(
                       Assets.svg.chevronRight,
+                      matchTextDirection: true,
                       width: Util.isDesktop ? 20 : 14,
                       height: Util.isDesktop ? 20 : 14,
                     ),

@@ -138,6 +138,7 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                 shadows: const [],
                 icon: SvgPicture.asset(
                   Assets.svg.arrowLeft,
+                  matchTextDirection: true,
                   width: 18,
                   height: 18,
                   color: Theme.of(context)

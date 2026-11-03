@@ -317,10 +317,10 @@ class _WalletNetworkSettingsViewState
               ),
               actions: [
                 Padding(
-                  padding: const EdgeInsets.only(
+                  padding: const EdgeInsetsDirectional.only(
                     top: 10,
                     bottom: 10,
-                    right: 10,
+                    end: 10,
                   ),
                   child: AspectRatio(
                     aspectRatio: 1,
@@ -349,9 +349,9 @@ class _WalletNetworkSettingsViewState
                           builder: (_) {
                             return Stack(
                               children: [
-                                Positioned(
+                                PositionedDirectional(
                                   top: 9,
-                                  right: 10,
+                                  end: 10,
                                   child: Container(
                                     decoration: BoxDecoration(
                                       color: Theme.of(context)
@@ -433,7 +433,7 @@ class _WalletNetworkSettingsViewState
             children: [
               Text(
                 l10n.netBlockchainStatus,
-                textAlign: TextAlign.left,
+                textAlign: TextAlign.start,
                 style: isDesktop
                     ? STextStyles.desktopTextExtraExtraSmall(context)
                     : STextStyles.smallMed12(context),
@@ -698,7 +698,7 @@ class _WalletNetworkSettingsViewState
               children: [
                 Text(
                   l10n.netCurrentHeight,
-                  textAlign: TextAlign.left,
+                  textAlign: TextAlign.start,
                   style: isDesktop
                       ? STextStyles.desktopTextExtraExtraSmall(context)
                       : STextStyles.smallMed12(context),
@@ -718,7 +718,7 @@ class _WalletNetworkSettingsViewState
               children: [
                 Text(
                   l10n.torStatus,
-                  textAlign: TextAlign.left,
+                  textAlign: TextAlign.start,
                   style: isDesktop
                       ? STextStyles.desktopTextExtraExtraSmall(context)
                       : STextStyles.smallMed12(context),
@@ -853,7 +853,7 @@ class _WalletNetworkSettingsViewState
                 l10n.nodesOfCoin(
                   ref.watch(pWalletCoin(widget.walletId)).prettyName,
                 ),
-                textAlign: TextAlign.left,
+                textAlign: TextAlign.start,
                 style: isDesktop
                     ? STextStyles.desktopTextExtraExtraSmall(context)
                     : STextStyles.smallMed12(context),
@@ -888,7 +888,7 @@ class _WalletNetworkSettingsViewState
                 children: [
                   Text(
                     l10n.commonAdvanced,
-                    textAlign: TextAlign.left,
+                    textAlign: TextAlign.start,
                     style: STextStyles.desktopTextExtraExtraSmall(context),
                   ),
                 ],
@@ -973,8 +973,8 @@ class _WalletNetworkSettingsViewState
                 body: Row(
                   children: [
                     Padding(
-                      padding: const EdgeInsets.only(
-                        left: 50,
+                      padding: const EdgeInsetsDirectional.only(
+                        start: 50,
                         top: 16,
                         bottom: 6,
                       ),

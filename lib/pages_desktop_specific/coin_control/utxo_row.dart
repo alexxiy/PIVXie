@@ -153,7 +153,7 @@ class _UtxoRowState extends ConsumerState<UtxoRow> {
                           fractionDigits: coin.fractionDigits,
                         ),
                       ),
-                  textAlign: TextAlign.right,
+                  textAlign: TextAlign.end,
                   style: STextStyles.w600_14(context),
                 ),
               if (!widget.compact) const SizedBox(width: 10),
@@ -174,7 +174,7 @@ class _UtxoRowState extends ConsumerState<UtxoRow> {
                                   fractionDigits: coin.fractionDigits,
                                 ),
                               ),
-                          textAlign: TextAlign.right,
+                          textAlign: TextAlign.end,
                           style: STextStyles.w600_14(context),
                         ),
                         const SizedBox(height: 2),
@@ -187,7 +187,7 @@ class _UtxoRowState extends ConsumerState<UtxoRow> {
                         ? utxo.name
                         : utxo.address ?? utxo.txid,
                     textAlign: widget.compact
-                        ? TextAlign.left
+                        ? TextAlign.start
                         : TextAlign.center,
                     style: STextStyles.w500_12(context).copyWith(
                       color: Theme.of(context)

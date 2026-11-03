@@ -116,7 +116,7 @@ class _TransactionSearchViewState
         maxHeight: null,
         child: SingleChildScrollView(
           child: Padding(
-            padding: const EdgeInsets.only(left: 32, bottom: 32),
+            padding: const EdgeInsetsDirectional.only(start: 32, bottom: 32),
             child: _buildContent(context),
           ),
         ),
@@ -297,7 +297,7 @@ class _TransactionSearchViewState
         SizedBox(height: isDesktop ? 14 : 10),
         if (!isDesktop)
           Align(
-            alignment: Alignment.centerLeft,
+            alignment: AlignmentDirectional.centerStart,
             child: FittedBox(
               child: Text(
                 l10n.receiveTransactions,
@@ -345,7 +345,7 @@ class _TransactionSearchViewState
                             ),
                             const SizedBox(width: 14),
                             Align(
-                              alignment: Alignment.centerLeft,
+                              alignment: AlignmentDirectional.centerStart,
                               child: FittedBox(
                                 child: Column(
                                   children: [
@@ -401,7 +401,7 @@ class _TransactionSearchViewState
                             ),
                             const SizedBox(width: 14),
                             Align(
-                              alignment: Alignment.centerLeft,
+                              alignment: AlignmentDirectional.centerStart,
                               child: FittedBox(
                                 child: Column(
                                   children: [
@@ -429,7 +429,7 @@ class _TransactionSearchViewState
           ),
         SizedBox(height: isDesktop ? 32 : 24),
         Align(
-          alignment: Alignment.centerLeft,
+          alignment: AlignmentDirectional.centerStart,
           child: FittedBox(
             child: Text(
               l10n.txDate,
@@ -455,7 +455,7 @@ class _TransactionSearchViewState
         ),
         SizedBox(height: isDesktop ? 32 : 24),
         Align(
-          alignment: Alignment.centerLeft,
+          alignment: AlignmentDirectional.centerStart,
           child: FittedBox(
             child: Text(
               l10n.commonAmount,
@@ -467,7 +467,7 @@ class _TransactionSearchViewState
         ),
         SizedBox(height: isDesktop ? 10 : 8),
         Padding(
-          padding: EdgeInsets.only(right: isDesktop ? 32 : 0),
+          padding: EdgeInsetsDirectional.only(end: isDesktop ? 32 : 0),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(
               Constants.size.circularBorderRadius,
@@ -519,7 +519,7 @@ class _TransactionSearchViewState
                         : null,
                     suffixIcon: _amountTextEditingController.text.isNotEmpty
                         ? Padding(
-                            padding: const EdgeInsets.only(right: 0),
+                            padding: const EdgeInsetsDirectional.only(end: 0),
                             child: UnconstrainedBox(
                               child: Row(
                                 children: [
@@ -542,7 +542,7 @@ class _TransactionSearchViewState
         ),
         SizedBox(height: isDesktop ? 32 : 24),
         Align(
-          alignment: Alignment.centerLeft,
+          alignment: AlignmentDirectional.centerStart,
           child: FittedBox(
             child: Text(
               l10n.txKeyword,
@@ -554,7 +554,7 @@ class _TransactionSearchViewState
         ),
         SizedBox(height: isDesktop ? 10 : 8),
         Padding(
-          padding: EdgeInsets.only(right: isDesktop ? 32 : 0),
+          padding: EdgeInsetsDirectional.only(end: isDesktop ? 32 : 0),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(
               Constants.size.circularBorderRadius,
@@ -589,7 +589,7 @@ class _TransactionSearchViewState
                         : null,
                     suffixIcon: _keywordTextEditingController.text.isNotEmpty
                         ? Padding(
-                            padding: const EdgeInsets.only(right: 0),
+                            padding: const EdgeInsetsDirectional.only(end: 0),
                             child: UnconstrainedBox(
                               child: Row(
                                 children: [

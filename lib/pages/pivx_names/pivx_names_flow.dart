@@ -43,7 +43,7 @@ class PivxNamesFlow {
     required this.op,
     required this.name,
     required this.returnTo,
-    this.price,
+    required this.price,
     this.currentAddress,
     this.listedPrice,
   });
@@ -55,9 +55,9 @@ class PivxNamesFlow {
   /// The screen to come back to once paid (its route name).
   final String returnTo;
 
-  /// What a registration or a purchase costs. Other commands cost an
-  /// update, looked up when needed.
-  final BigInt? price;
+  /// What the command costs, as the registrar said: the price of a
+  /// registration or a purchase, an update's for the others.
+  final BigInt price;
 
   /// Where the name points now (a change of destination).
   final String? currentAddress;
@@ -148,7 +148,6 @@ Future<PivxNamesPayment?> _sign(
     whileFutureAlt: () async {
       final registrar = PivxNamesRegistrar.forCoin(wallet.cryptoCurrency)!;
       final info = await registrar.paymentInfo();
-      final amount = flow.price ?? await registrar.updatePriceFor(flow.name);
       final identity = await wallet.namesIdentity();
       final command = pivxNamesCommand(
         marker: registrar.service.marker,
@@ -166,7 +165,7 @@ Future<PivxNamesPayment?> _sign(
       return PivxNamesPayment(
         flow: flow,
         address: info.address,
-        amount: amount,
+        amount: flow.price,
         memo: "$command:${await identity.sign(command)}",
       );
     },
@@ -219,8 +218,6 @@ class _PivxNamesTargetViewState extends ConsumerState<PivxNamesTargetView> {
   /// the wallet's.
   bool _custom = false;
   String? _ownKey;
-  BigInt? _cost;
-  String? _costError;
   bool _touched = false;
 
   PivxNamesFlow get _flow => widget.flow;
@@ -256,24 +253,6 @@ class _PivxNamesTargetViewState extends ConsumerState<PivxNamesTargetView> {
         final key = await pivxNamesPublicKey(wallet);
         if (mounted) setState(() => _ownKey = key);
       } catch (_) {}
-    }
-    await _loadCost();
-  }
-
-  Future<void> _loadCost() async {
-    if (!mounted) return;
-    final price = _flow.price;
-    if (price != null) {
-      setState(() => _cost = price);
-      return;
-    }
-    setState(() => _costError = null);
-    try {
-      final registrar = PivxNamesRegistrar.forCoin(_wallet.cryptoCurrency)!;
-      final cost = await registrar.updatePriceFor(_flow.name);
-      if (mounted) setState(() => _cost = cost);
-    } catch (e) {
-      if (mounted) setState(() => _costError = pivxNamesError(e));
     }
   }
 
@@ -403,6 +382,7 @@ class _PivxNamesTargetViewState extends ConsumerState<PivxNamesTargetView> {
             borderRadius: BorderRadius.circular(8),
             child: TextField(
               controller: _text,
+              textDirection: TextDirection.ltr,
               focusNode: _focus,
               autocorrect: false,
               enableSuggestions: false,
@@ -432,7 +412,11 @@ class _PivxNamesTargetViewState extends ConsumerState<PivxNamesTargetView> {
         ),
         if (error != null && error.isNotEmpty)
           Padding(
-            padding: const EdgeInsets.only(left: 12, right: 4, top: 4),
+            padding: const EdgeInsetsDirectional.only(
+              start: 12,
+              end: 4,
+              top: 4,
+            ),
             child: Text(
               error,
               style: STextStyles.label(context)
@@ -449,7 +433,7 @@ class _PivxNamesTargetViewState extends ConsumerState<PivxNamesTargetView> {
     final wallet = _wallet;
     final secondary = STextStyles.itemSubtitle(context);
     final op = _flow.op;
-    final cost = _cost;
+    final cost = _flow.price;
     final error = _error;
     final listedPrice = _flow.listedPrice;
     final listed = listedPrice == null
@@ -481,7 +465,6 @@ class _PivxNamesTargetViewState extends ConsumerState<PivxNamesTargetView> {
     };
 
     final costLine = switch (op) {
-      _ when cost == null => null,
       PivxNamesOp.reg => l10n.pivxNamesCostRegistration(
         pivxNamesAmount(cost, ref, wallet),
       ),
@@ -575,7 +558,10 @@ class _PivxNamesTargetViewState extends ConsumerState<PivxNamesTargetView> {
                       ),
                       if (_touched && targetError != null)
                         Padding(
-                          padding: const EdgeInsets.only(left: 12, top: 4),
+                          padding: const EdgeInsetsDirectional.only(
+                            start: 12,
+                            top: 4,
+                          ),
                           child: Text(
                             targetError,
                             style: STextStyles.label(context)
@@ -606,7 +592,10 @@ class _PivxNamesTargetViewState extends ConsumerState<PivxNamesTargetView> {
                         hint: l10n.pivxNamesPrice,
                         input: _Input.price,
                         suffix: Padding(
-                          padding: const EdgeInsets.only(right: 14, top: 14),
+                          padding: const EdgeInsetsDirectional.only(
+                            end: 14,
+                            top: 14,
+                          ),
                           child: Text(
                             _unit.unitForCoin(wallet.cryptoCurrency),
                             style: STextStyles.w600_14(context)
@@ -616,7 +605,10 @@ class _PivxNamesTargetViewState extends ConsumerState<PivxNamesTargetView> {
                       ),
                       if (listed != null)
                         Padding(
-                          padding: const EdgeInsets.only(left: 12, top: 4),
+                          padding: const EdgeInsetsDirectional.only(
+                            start: 12,
+                            top: 4,
+                          ),
                           child: Text(
                             l10n.pivxNamesListedNow(listed),
                             style: STextStyles.label(context)
@@ -625,28 +617,11 @@ class _PivxNamesTargetViewState extends ConsumerState<PivxNamesTargetView> {
                         ),
                     ],
                     const SizedBox(height: 16),
-                    if (costLine != null)
-                      Text(
-                        costLine,
-                        style: STextStyles.w500_12(context)
-                            .copyWith(color: colors.textSubtitle1),
-                      )
-                    else if (_costError != null)
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              _costError!,
-                              style: STextStyles.w500_12(context)
-                                  .copyWith(color: colors.textError),
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: _loadCost,
-                            child: Text(l10n.commonTryAgain),
-                          ),
-                        ],
-                      ),
+                    Text(
+                      costLine,
+                      style: STextStyles.w500_12(context)
+                          .copyWith(color: colors.textSubtitle1),
+                    ),
                   ],
                 ),
               ),
@@ -654,7 +629,7 @@ class _PivxNamesTargetViewState extends ConsumerState<PivxNamesTargetView> {
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                 child: PrimaryButton(
                   label: l10n.commonNext,
-                  enabled: error == null && cost != null,
+                  enabled: error == null,
                   onPressed: _next,
                 ),
               ),

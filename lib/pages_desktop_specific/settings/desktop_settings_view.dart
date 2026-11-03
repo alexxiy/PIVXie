@@ -94,7 +94,7 @@ class _DesktopSettingsViewState extends ConsumerState<DesktopSettingsView> {
           const Padding(
             padding: EdgeInsets.all(15.0),
             child: Align(
-              alignment: Alignment.topLeft,
+              alignment: AlignmentDirectional.topStart,
               child: SingleChildScrollView(child: SettingsMenu()),
             ),
           ),

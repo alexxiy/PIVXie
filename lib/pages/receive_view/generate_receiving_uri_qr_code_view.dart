@@ -354,7 +354,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                           .textFieldActiveSearchIconRight,
                     )
                   : STextStyles.smallMed12(context),
-              textAlign: TextAlign.left,
+              textAlign: TextAlign.start,
             ),
             SizedBox(height: isDesktop ? 10 : 8),
             ClipRRect(
@@ -385,16 +385,16 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                       context,
                     ).copyWith(
                       contentPadding: isDesktop
-                          ? const EdgeInsets.only(
-                              left: 16,
+                          ? const EdgeInsetsDirectional.only(
+                              start: 16,
                               top: 11,
                               bottom: 12,
-                              right: 5,
+                              end: 5,
                             )
                           : null,
                       suffixIcon: amountController.text.isNotEmpty
                           ? Padding(
-                              padding: const EdgeInsets.only(right: 0),
+                              padding: const EdgeInsetsDirectional.only(end: 0),
                               child: UnconstrainedBox(
                                 child: Row(
                                   children: [
@@ -427,7 +427,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                             .textFieldActiveSearchIconRight,
                       )
                     : STextStyles.smallMed12(context),
-                textAlign: TextAlign.left,
+                textAlign: TextAlign.start,
               ),
               SizedBox(height: isDesktop ? 10 : 8),
               if (_pivxShield)
@@ -467,16 +467,18 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
                           context,
                         ).copyWith(
                           contentPadding: isDesktop
-                              ? const EdgeInsets.only(
-                                  left: 16,
+                              ? const EdgeInsetsDirectional.only(
+                                  start: 16,
                                   top: 11,
                                   bottom: 12,
-                                  right: 5,
+                                  end: 5,
                                 )
                               : null,
                           suffixIcon: noteController.text.isNotEmpty
                               ? Padding(
-                                  padding: const EdgeInsets.only(right: 0),
+                                  padding: const EdgeInsetsDirectional.only(
+                                    end: 0,
+                                  ),
                                   child: UnconstrainedBox(
                                     child: Row(
                                       children: [

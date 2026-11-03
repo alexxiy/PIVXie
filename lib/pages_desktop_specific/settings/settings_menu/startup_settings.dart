@@ -59,7 +59,7 @@ class StartupSettings extends ConsumerWidget {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Padding(
-          padding: const EdgeInsets.only(right: 30),
+          padding: const EdgeInsetsDirectional.only(end: 30),
           child: RoundedWhiteContainer(
             radiusMultiplier: 2,
             child: Column(

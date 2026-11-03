@@ -140,46 +140,48 @@ class _LanguageViewState extends ConsumerState<LanguageSettingsView> {
                               setState(() => filter = newString);
                             },
                             style: STextStyles.field(context),
-                            decoration: standardInputDecoration(
-                              l10n.commonSearch,
-                              _searchFocusNode,
-                              context,
-                            ).copyWith(
-                              prefixIcon: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 16,
-                                ),
-                                child: SvgPicture.asset(
-                                  Assets.svg.search,
-                                  width: 16,
-                                  height: 16,
-                                ),
-                              ),
-                              suffixIcon:
-                                  _searchController.text.isNotEmpty
+                            decoration:
+                                standardInputDecoration(
+                                  l10n.commonSearch,
+                                  _searchFocusNode,
+                                  context,
+                                ).copyWith(
+                                  prefixIcon: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 16,
+                                    ),
+                                    child: SvgPicture.asset(
+                                      Assets.svg.search,
+                                      width: 16,
+                                      height: 16,
+                                    ),
+                                  ),
+                                  suffixIcon: _searchController.text.isNotEmpty
                                       ? Padding(
-                                        padding: const EdgeInsets.only(
-                                          right: 0,
-                                        ),
-                                        child: UnconstrainedBox(
-                                          child: Row(
-                                            children: [
-                                              TextFieldIconButton(
-                                                child: const XIcon(),
-                                                onTap: () async {
-                                                  setState(() {
-                                                    _searchController.text = "";
-                                                    filter = "";
-                                                  });
-                                                },
+                                          padding:
+                                              const EdgeInsetsDirectional.only(
+                                                end: 0,
                                               ),
-                                            ],
+                                          child: UnconstrainedBox(
+                                            child: Row(
+                                              children: [
+                                                TextFieldIconButton(
+                                                  child: const XIcon(),
+                                                  onTap: () async {
+                                                    setState(() {
+                                                      _searchController.text =
+                                                          "";
+                                                      filter = "";
+                                                    });
+                                                  },
+                                                ),
+                                              ],
+                                            ),
                                           ),
-                                        ),
-                                      )
+                                        )
                                       : null,
-                            ),
+                                ),
                           ),
                         ),
                       ),
@@ -202,15 +204,14 @@ class _LanguageViewState extends ConsumerState<LanguageSettingsView> {
                           final selected = language == current;
                           final title = languageTitle(language);
                           final subtitle = languageSubtitle(language);
-                          void select() => ref
-                              .read(prefsChangeNotifierProvider)
-                              .language = language?.code ?? "";
+                          void select() =>
+                              ref.read(prefsChangeNotifierProvider).language =
+                                  language?.code ?? "";
                           return Container(
                             decoration: BoxDecoration(
-                              color:
-                                  Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.popupBG,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .popupBG,
                               borderRadius: _borderRadius(index),
                             ),
                             child: Padding(
@@ -220,14 +221,13 @@ class _LanguageViewState extends ConsumerState<LanguageSettingsView> {
                               ),
                               child: RoundedContainer(
                                 padding: const EdgeInsets.all(0),
-                                color:
-                                    selected
-                                        ? Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .currencyListItemBG
-                                        : Theme.of(
-                                          context,
-                                        ).extension<StackColors>()!.popupBG,
+                                color: selected
+                                    ? Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .currencyListItemBG
+                                    : Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .popupBG,
                                 child: RawMaterialButton(
                                   onPressed: select,
                                   shape: RoundedRectangleBorder(
@@ -245,10 +245,9 @@ class _LanguageViewState extends ConsumerState<LanguageSettingsView> {
                                           width: 20,
                                           height: 20,
                                           child: Radio(
-                                            activeColor:
-                                                Theme.of(context)
-                                                    .extension<StackColors>()!
-                                                    .radioButtonIconEnabled,
+                                            activeColor: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .radioButtonIconEnabled,
                                             value: true,
                                             groupValue: selected,
                                             onChanged: (_) => select(),

@@ -193,7 +193,9 @@ class _NetworkInfoButtonState extends ConsumerState<NetworkInfoButton> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Padding(
-                            padding: const EdgeInsets.only(left: 32),
+                            padding: const EdgeInsetsDirectional.only(
+                              start: 32,
+                            ),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [

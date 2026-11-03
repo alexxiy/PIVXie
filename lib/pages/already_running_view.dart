@@ -63,6 +63,7 @@ class _AlreadyRunningAppState extends ConsumerState<AlreadyRunningApp> {
       theme: ThemeData(
         extensions: [colorScheme],
         fontFamily: GoogleFonts.inter().fontFamily,
+        fontFamilyFallback: const [kArabicFontFamily],
         splashColor: Colors.transparent,
       ),
       // No prefs here: the system language.

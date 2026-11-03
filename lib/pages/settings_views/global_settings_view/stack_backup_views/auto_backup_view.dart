@@ -262,7 +262,7 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
                             child: Text(
                               l10n.backupAuto,
                               style: STextStyles.titleBold12(context),
-                              textAlign: TextAlign.left,
+                              textAlign: TextAlign.start,
                             ),
                           ),
                           const SizedBox(width: 12),
@@ -293,7 +293,7 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
                 if (!isEnabledAutoBackup)
                   RoundedWhiteContainer(
                     child: RichText(
-                      textAlign: TextAlign.left,
+                      textAlign: TextAlign.start,
                       text: TextSpan(
                         style: STextStyles.label(context),
                         children: [

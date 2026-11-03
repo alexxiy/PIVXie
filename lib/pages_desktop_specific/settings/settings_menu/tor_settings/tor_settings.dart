@@ -46,7 +46,7 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
 
   /// Subscription to the TorConnectionStatusChangedEvent.
   late StreamSubscription<TorConnectionStatusChangedEvent>
-      _torConnectionStatusSubscription;
+  _torConnectionStatusSubscription;
 
   /// The current status of the Tor connection.
   late TorConnectionStatus _torConnectionStatus;
@@ -70,7 +70,11 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
               // Toggle the useTor preference on success.
               ref.read(prefsChangeNotifierProvider).useTor = true;
             } catch (e, s) {
-              Logging.instance.e("Error starting tor: ", error: e, stackTrace: s);
+              Logging.instance.e(
+                "Error starting tor: ",
+                error: e,
+                stackTrace: s,
+              );
               // TODO: show dialog with error message
             }
           },
@@ -97,7 +101,11 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
               // Toggle the useTor preference on success.
               ref.read(prefsChangeNotifierProvider).useTor = false;
             } catch (e, s) {
-              Logging.instance.e("Error stopping tor: ", error: e, stackTrace: s);
+              Logging.instance.e(
+                "Error stopping tor: ",
+                error: e,
+                stackTrace: s,
+              );
             }
           },
         );
@@ -113,15 +121,14 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
     _torConnectionStatus = ref.read(pTorService).status;
 
     // Subscribe to the TorConnectionStatusChangedEvent.
-    _torConnectionStatusSubscription =
-        eventBus.on<TorConnectionStatusChangedEvent>().listen(
-      (event) async {
-        // Rebuild the widget.
-        setState(() {
-          _torConnectionStatus = event.newStatus;
+    _torConnectionStatusSubscription = eventBus
+        .on<TorConnectionStatusChangedEvent>()
+        .listen((event) async {
+          // Rebuild the widget.
+          setState(() {
+            _torConnectionStatus = event.newStatus;
+          });
         });
-      },
-    );
 
     super.initState();
   }
@@ -140,9 +147,7 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
     return Column(
       children: [
         Padding(
-          padding: const EdgeInsets.only(
-            right: 30,
-          ),
+          padding: const EdgeInsetsDirectional.only(end: 30),
           child: RoundedWhiteContainer(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -164,9 +169,9 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
                         _torConnectionStatus == TorConnectionStatus.connected
                             ? Assets.svg.connectedButton
                             : _torConnectionStatus ==
-                                    TorConnectionStatus.connecting
-                                ? Assets.svg.connectingButton
-                                : Assets.svg.disconnectedButton,
+                                  TorConnectionStatus.connecting
+                            ? Assets.svg.connectingButton
+                            : Assets.svg.disconnectedButton,
                         width: 48,
                         height: 48,
                       ),
@@ -187,17 +192,15 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
                         text: TextSpan(
                           children: [
                             TextSpan(
-                              text:
-                                  "\n${l10n.torOneClick}",
+                              text: "\n${l10n.torOneClick}",
                               style: STextStyles.desktopTextExtraExtraSmall(
                                 context,
                               ),
                             ),
                             TextSpan(
                               text: "\t${l10n.torWhatIs}",
-                              style: STextStyles.richLink(context).copyWith(
-                                fontSize: 14,
-                              ),
+                              style: STextStyles.richLink(context)
+                                  .copyWith(fontSize: 14),
                               recognizer: TapGestureRecognizer()
                                 ..onTap = () {
                                   showDialog<dynamic>(
@@ -209,12 +212,13 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
                                         maxWidth: 580,
                                         maxHeight: double.infinity,
                                         child: Padding(
-                                          padding: const EdgeInsets.only(
-                                            top: 10,
-                                            left: 20,
-                                            bottom: 20,
-                                            right: 10,
-                                          ),
+                                          padding:
+                                              const EdgeInsetsDirectional.only(
+                                                top: 10,
+                                                start: 20,
+                                                bottom: 20,
+                                                end: 10,
+                                              ),
                                           child: Column(
                                             children: [
                                               Row(
@@ -226,8 +230,8 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
                                                     l10n.torWhatIs,
                                                     style:
                                                         STextStyles.desktopH2(
-                                                      context,
-                                                    ),
+                                                          context,
+                                                        ),
                                                   ),
                                                   DesktopDialogCloseButton(
                                                     onPressedOverride: () =>
@@ -236,19 +240,19 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
                                                   ),
                                                 ],
                                               ),
-                                              const SizedBox(
-                                                height: 16,
-                                              ),
+                                              const SizedBox(height: 16),
                                               Text(
                                                 l10n.torWhatIsText,
-                                                style: STextStyles
-                                                    .desktopTextMedium(
-                                                  context,
-                                                ).copyWith(
-                                                  color: Theme.of(context)
-                                                      .extension<StackColors>()!
-                                                      .textDark3,
-                                                ),
+                                                style:
+                                                    STextStyles.desktopTextMedium(
+                                                      context,
+                                                    ).copyWith(
+                                                      color: Theme.of(context)
+                                                          .extension<
+                                                            StackColors
+                                                          >()!
+                                                          .textDark3,
+                                                    ),
                                               ),
                                             ],
                                           ),
@@ -264,16 +268,12 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
                     ],
                   ),
                 ),
-                const SizedBox(
-                  height: 10,
-                ),
+                const SizedBox(height: 10),
                 Padding(
                   padding: const EdgeInsets.all(10.0),
                   child: _buildConnectButton(_torConnectionStatus),
                 ),
-                const SizedBox(
-                  height: 30,
-                ),
+                const SizedBox(height: 30),
                 Padding(
                   padding: const EdgeInsets.all(10.0),
                   child: Text(

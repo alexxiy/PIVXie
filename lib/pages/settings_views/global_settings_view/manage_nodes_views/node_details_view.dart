@@ -152,7 +152,11 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
             actions: [
               // if (!nodeId.startsWith(DefaultNodes.defaultNodeIdPrefix))
               Padding(
-                padding: const EdgeInsets.only(top: 10, bottom: 10, right: 10),
+                padding: const EdgeInsetsDirectional.only(
+                  top: 10,
+                  bottom: 10,
+                  end: 10,
+                ),
                 child: AspectRatio(
                   aspectRatio: 1,
                   child: AppBarIconButton(

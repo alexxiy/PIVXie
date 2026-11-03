@@ -38,7 +38,6 @@ import '../../../../widgets/rounded_container.dart';
 import '../../../../widgets/rounded_white_container.dart';
 import '../../../../widgets/stack_dialog.dart';
 
-
 class BackupRestoreSettings extends ConsumerStatefulWidget {
   const BackupRestoreSettings({super.key});
 
@@ -118,7 +117,7 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(left: 32),
+                  padding: const EdgeInsetsDirectional.only(start: 32),
                   child: Text(
                     l10n.backupEditAuto,
                     style: STextStyles.desktopH3(context),
@@ -192,7 +191,7 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Padding(
-                          padding: const EdgeInsets.only(left: 32),
+                          padding: const EdgeInsetsDirectional.only(start: 32),
                           child: Text(
                             l10n.backupDisableAuto,
                             style: STextStyles.desktopH3(context),
@@ -324,7 +323,7 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
               child: Column(
                 children: [
                   Padding(
-                    padding: const EdgeInsets.only(right: 30),
+                    padding: const EdgeInsetsDirectional.only(end: 30),
                     child: RoundedWhiteContainer(
                       radiusMultiplier: 2,
                       child: Column(
@@ -471,7 +470,7 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                   ),
                   const SizedBox(height: 25),
                   Padding(
-                    padding: const EdgeInsets.only(right: 30),
+                    padding: const EdgeInsetsDirectional.only(end: 30),
                     child: RoundedWhiteContainer(
                       radiusMultiplier: 2,
                       child: Column(
@@ -483,7 +482,7 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                               Assets.svg.backupAdd,
                               width: 48,
                               height: 48,
-                              alignment: Alignment.topLeft,
+                              alignment: AlignmentDirectional.topStart,
                             ),
                           ),
                           Center(
@@ -547,7 +546,10 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                   ),
                   const SizedBox(height: 25),
                   Padding(
-                    padding: const EdgeInsets.only(right: 30, bottom: 40),
+                    padding: const EdgeInsetsDirectional.only(
+                      end: 30,
+                      bottom: 40,
+                    ),
                     child: RoundedWhiteContainer(
                       radiusMultiplier: 2,
                       child: Column(
@@ -559,7 +561,7 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                               Assets.svg.backupRestore,
                               width: 48,
                               height: 48,
-                              alignment: Alignment.topLeft,
+                              alignment: AlignmentDirectional.topStart,
                             ),
                           ),
                           Center(

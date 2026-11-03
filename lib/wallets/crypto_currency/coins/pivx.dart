@@ -281,6 +281,7 @@ class Pivx extends Bip39HDCurrency {
         return [
           _bridge("https://eu-bridge.pivxie.me", 443, "EU"),
           _bridge("https://us-bridge.pivxie.me", 443, "US", region: "us"),
+          _bridge("https://sg-bridge.pivxie.me", 443, "SG", region: "sg"),
         ];
       case CryptoCurrencyNetwork.test:
         return [_bridge("http://192.168.1.101:3000", 3000, "Default")];

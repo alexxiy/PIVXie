@@ -72,7 +72,10 @@ class _RenameWalletViewState extends ConsumerState<RenameWalletView> {
               Navigator.of(context).pop();
             },
           ),
-          title: Text(l10n.walletRename, style: STextStyles.navBarTitle(context)),
+          title: Text(
+            l10n.walletRename,
+            style: STextStyles.navBarTitle(context),
+          ),
         ),
         body: SafeArea(
           child: Padding(
@@ -91,32 +94,34 @@ class _RenameWalletViewState extends ConsumerState<RenameWalletView> {
                     focusNode: _focusNode,
                     style: STextStyles.field(context),
                     onChanged: (_) => setState(() {}),
-                    decoration: standardInputDecoration(
-                      l10n.walletName,
-                      _focusNode,
-                      context,
-                    ).copyWith(
-                      suffixIcon:
-                          _controller.text.isNotEmpty
+                    decoration:
+                        standardInputDecoration(
+                          l10n.walletName,
+                          _focusNode,
+                          context,
+                        ).copyWith(
+                          suffixIcon: _controller.text.isNotEmpty
                               ? Padding(
-                                padding: const EdgeInsets.only(right: 0),
-                                child: UnconstrainedBox(
-                                  child: Row(
-                                    children: [
-                                      TextFieldIconButton(
-                                        child: const XIcon(),
-                                        onTap: () async {
-                                          setState(() {
-                                            _controller.text = "";
-                                          });
-                                        },
-                                      ),
-                                    ],
+                                  padding: const EdgeInsetsDirectional.only(
+                                    end: 0,
                                   ),
-                                ),
-                              )
+                                  child: UnconstrainedBox(
+                                    child: Row(
+                                      children: [
+                                        TextFieldIconButton(
+                                          child: const XIcon(),
+                                          onTap: () async {
+                                            setState(() {
+                                              _controller.text = "";
+                                            });
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                )
                               : null,
-                    ),
+                        ),
                   ),
                 ),
                 const Spacer(),
@@ -166,7 +171,10 @@ class _RenameWalletViewState extends ConsumerState<RenameWalletView> {
                       }
                     }
                   },
-                  child: Text(l10n.commonSave, style: STextStyles.button(context)),
+                  child: Text(
+                    l10n.commonSave,
+                    style: STextStyles.button(context),
+                  ),
                 ),
               ],
             ),

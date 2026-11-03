@@ -530,9 +530,10 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
                                           ),
                                         ),
                                         Padding(
-                                          padding: const EdgeInsets.only(
-                                            right: 4.0,
-                                          ),
+                                          padding:
+                                              const EdgeInsetsDirectional.only(
+                                                end: 4.0,
+                                              ),
                                           child: SvgPicture.asset(
                                             Assets.svg.chevronDown,
                                             color: Theme.of(context)

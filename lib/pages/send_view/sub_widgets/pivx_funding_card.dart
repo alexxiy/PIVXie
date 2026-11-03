@@ -34,6 +34,7 @@ class PivxFundingCard extends ConsumerWidget {
     required this.funding,
     required this.onChanged,
     this.amount,
+    this.coinsTarget,
     this.subtractFee = false,
     this.allowShield = true,
     this.toShield = false,
@@ -45,6 +46,10 @@ class PivxFundingCard extends ConsumerWidget {
 
   /// What is being paid, for the coin control summary.
   final Amount? amount;
+
+  /// What chosen coins must cover, when it isn't [amount] (a send with the
+  /// fee on top).
+  final Amount? coinsTarget;
   final bool subtractFee;
 
   /// Whether the private balance can pay this transaction.
@@ -59,7 +64,7 @@ class PivxFundingCard extends ConsumerWidget {
       arguments: Tuple5(
         walletId,
         CoinControlViewType.use,
-        amount,
+        coinsTarget ?? amount,
         funding.coins,
         (
           shieldNotes: funding.fromShield,

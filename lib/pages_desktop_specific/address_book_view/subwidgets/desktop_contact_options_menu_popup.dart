@@ -78,7 +78,7 @@ class _DesktopContactOptionsMenuPopupState
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(left: 32),
+                  padding: const EdgeInsetsDirectional.only(start: 32),
                   child: Text(
                     l10n.contactDeleteTitle(contact.name),
                     style: STextStyles.desktopH3(context),
@@ -144,9 +144,9 @@ class _DesktopContactOptionsMenuPopupState
   Widget build(BuildContext context) {
     return Stack(
       children: [
-        Positioned(
+        PositionedDirectional(
           top: 210,
-          left: MediaQuery.of(context).size.width - 280,
+          start: MediaQuery.of(context).size.width - 280,
           child: Container(
             width: 270,
             decoration: BoxDecoration(

@@ -224,6 +224,19 @@ flutter:
     # default themes_testing
     - assets/default_themes/
 
+  # Arabic letters (Inter has none), see kArabicFontFamily in
+  # lib/utilities/text_styles.dart. The license is next to the files.
+  fonts:
+    - family: IBM Plex Sans Arabic
+      fonts:
+        - asset: google_fonts/IBMPlexSansArabic-Regular.ttf
+        - asset: google_fonts/IBMPlexSansArabic-Medium.ttf
+          weight: 500
+        - asset: google_fonts/IBMPlexSansArabic-SemiBold.ttf
+          weight: 600
+        - asset: google_fonts/IBMPlexSansArabic-Bold.ttf
+          weight: 700
+
 
 import_sorter:
   comments: false # Optional, defaults to true

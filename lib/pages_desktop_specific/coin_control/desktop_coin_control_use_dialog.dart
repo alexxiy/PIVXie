@@ -226,9 +226,10 @@ class _DesktopCoinControlUseDialogState
                                   ),
                                   suffixIcon: _searchController.text.isNotEmpty
                                       ? Padding(
-                                          padding: const EdgeInsets.only(
-                                            right: 0,
-                                          ),
+                                          padding:
+                                              const EdgeInsetsDirectional.only(
+                                                end: 0,
+                                              ),
                                           child: UnconstrainedBox(
                                             child: Row(
                                               children: [

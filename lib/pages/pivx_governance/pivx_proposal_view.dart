@@ -443,7 +443,8 @@ class _PivxProposalViewState extends ConsumerState<PivxProposalView> {
                                         ),
                                       if (more)
                                         Align(
-                                          alignment: Alignment.centerLeft,
+                                          alignment:
+                                              AlignmentDirectional.centerStart,
                                           child: Padding(
                                             padding: const EdgeInsets.only(
                                               top: 6,

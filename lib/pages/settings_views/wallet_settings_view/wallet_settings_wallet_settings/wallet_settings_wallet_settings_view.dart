@@ -243,7 +243,7 @@ class _WalletSettingsWalletSettingsViewState
                                 child: Text(
                                   l10n.walletReuseAddress,
                                   style: STextStyles.titleBold12(context),
-                                  textAlign: TextAlign.left,
+                                  textAlign: TextAlign.start,
                                 ),
                               ),
                               const SizedBox(width: 12),
@@ -294,7 +294,7 @@ class _WalletSettingsWalletSettingsViewState
                                 child: Text(
                                   l10n.walletShowInDuress,
                                   style: STextStyles.titleBold12(context),
-                                  textAlign: TextAlign.left,
+                                  textAlign: TextAlign.start,
                                 ),
                               ),
                               const SizedBox(width: 12),

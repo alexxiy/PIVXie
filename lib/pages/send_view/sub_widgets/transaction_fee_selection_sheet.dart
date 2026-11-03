@@ -175,7 +175,7 @@ class _TransactionFeeSelectionSheetState
                     Text(
                       l10n.feeRate,
                       style: STextStyles.pageTitleH2(context),
-                      textAlign: TextAlign.left,
+                      textAlign: TextAlign.start,
                     ),
                     const SizedBox(height: 16),
                     GestureDetector(
@@ -240,7 +240,7 @@ class _TransactionFeeSelectionSheetState
                                       Text(
                                         FeeRateType.fast.prettyName,
                                         style: STextStyles.titleBold12(context),
-                                        textAlign: TextAlign.left,
+                                        textAlign: TextAlign.start,
                                       ),
                                       const SizedBox(width: 2),
                                       if (feeObject == null)
@@ -273,7 +273,7 @@ class _TransactionFeeSelectionSheetState
                                                         STextStyles.itemSubtitle(
                                                           context,
                                                         ),
-                                                    textAlign: TextAlign.left,
+                                                    textAlign: TextAlign.start,
                                                   );
                                                 } else {
                                                   return AnimatedText(
@@ -303,7 +303,7 @@ class _TransactionFeeSelectionSheetState
                                         feeObject!.numberOfBlocksFast,
                                       ),
                                       style: STextStyles.itemSubtitle(context),
-                                      textAlign: TextAlign.left,
+                                      textAlign: TextAlign.start,
                                     ),
                                 ],
                               ),
@@ -373,7 +373,7 @@ class _TransactionFeeSelectionSheetState
                                       Text(
                                         FeeRateType.average.prettyName,
                                         style: STextStyles.titleBold12(context),
-                                        textAlign: TextAlign.left,
+                                        textAlign: TextAlign.start,
                                       ),
                                       const SizedBox(width: 2),
                                       if (feeObject == null)
@@ -406,7 +406,7 @@ class _TransactionFeeSelectionSheetState
                                                         STextStyles.itemSubtitle(
                                                           context,
                                                         ),
-                                                    textAlign: TextAlign.left,
+                                                    textAlign: TextAlign.start,
                                                   );
                                                 } else {
                                                   return AnimatedText(
@@ -436,7 +436,7 @@ class _TransactionFeeSelectionSheetState
                                         feeObject!.numberOfBlocksAverage,
                                       ),
                                       style: STextStyles.itemSubtitle(context),
-                                      textAlign: TextAlign.left,
+                                      textAlign: TextAlign.start,
                                     ),
                                 ],
                               ),
@@ -503,7 +503,7 @@ class _TransactionFeeSelectionSheetState
                                       Text(
                                         FeeRateType.slow.prettyName,
                                         style: STextStyles.titleBold12(context),
-                                        textAlign: TextAlign.left,
+                                        textAlign: TextAlign.start,
                                       ),
                                       const SizedBox(width: 2),
                                       if (feeObject == null)
@@ -536,7 +536,7 @@ class _TransactionFeeSelectionSheetState
                                                         STextStyles.itemSubtitle(
                                                           context,
                                                         ),
-                                                    textAlign: TextAlign.left,
+                                                    textAlign: TextAlign.start,
                                                   );
                                                 } else {
                                                   return AnimatedText(
@@ -566,7 +566,7 @@ class _TransactionFeeSelectionSheetState
                                         feeObject!.numberOfBlocksSlow,
                                       ),
                                       style: STextStyles.itemSubtitle(context),
-                                      textAlign: TextAlign.left,
+                                      textAlign: TextAlign.start,
                                     ),
                                 ],
                               ),

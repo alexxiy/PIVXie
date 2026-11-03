@@ -82,7 +82,7 @@ class StackBackupView extends StatelessWidget {
                           Text(
                             l10n.backupAuto,
                             style: STextStyles.titleBold12(context),
-                            textAlign: TextAlign.left,
+                            textAlign: TextAlign.start,
                           ),
                         ],
                       ),
@@ -101,9 +101,8 @@ class StackBackupView extends StatelessWidget {
                       ),
                     ),
                     onPressed: () {
-                      Navigator.of(
-                        context,
-                      ).pushNamed(CreateBackupView.routeName);
+                      Navigator.of(context)
+                          .pushNamed(CreateBackupView.routeName);
                     },
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
@@ -121,7 +120,7 @@ class StackBackupView extends StatelessWidget {
                           Text(
                             l10n.backupCreateManual,
                             style: STextStyles.titleBold12(context),
-                            textAlign: TextAlign.left,
+                            textAlign: TextAlign.start,
                           ),
                         ],
                       ),
@@ -140,9 +139,8 @@ class StackBackupView extends StatelessWidget {
                       ),
                     ),
                     onPressed: () {
-                      Navigator.of(
-                        context,
-                      ).pushNamed(RestoreFromFileView.routeName);
+                      Navigator.of(context)
+                          .pushNamed(RestoreFromFileView.routeName);
                     },
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
@@ -160,7 +158,7 @@ class StackBackupView extends StatelessWidget {
                           Text(
                             l10n.backupRestore,
                             style: STextStyles.titleBold12(context),
-                            textAlign: TextAlign.left,
+                            textAlign: TextAlign.start,
                           ),
                         ],
                       ),

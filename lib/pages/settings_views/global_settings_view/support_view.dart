@@ -189,7 +189,7 @@ class AboutItem extends StatelessWidget {
                   Text(
                     label,
                     style: STextStyles.titleBold12(context),
-                    textAlign: TextAlign.left,
+                    textAlign: TextAlign.start,
                   ),
                 ],
               ),

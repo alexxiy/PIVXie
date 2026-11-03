@@ -52,20 +52,14 @@ class _LanguageDialog extends ConsumerState<LanguageDialog> {
 
   BorderRadius? _borderRadius(int index) {
     if (index == 0 && _shown.length == 1) {
-      return BorderRadius.circular(
-        Constants.size.circularBorderRadius,
-      );
+      return BorderRadius.circular(Constants.size.circularBorderRadius);
     } else if (index == 0) {
       return BorderRadius.vertical(
-        top: Radius.circular(
-          Constants.size.circularBorderRadius,
-        ),
+        top: Radius.circular(Constants.size.circularBorderRadius),
       );
     } else if (index == _shown.length - 1) {
       return BorderRadius.vertical(
-        bottom: Radius.circular(
-          Constants.size.circularBorderRadius,
-        ),
+        bottom: Radius.circular(Constants.size.circularBorderRadius),
       );
     }
     return null;
@@ -138,7 +132,9 @@ class _LanguageDialog extends ConsumerState<LanguageDialog> {
                     sliver: SliverToBoxAdapter(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
-                            vertical: 16, horizontal: 32),
+                          vertical: 16,
+                          horizontal: 32,
+                        ),
                         child: Column(
                           children: [
                             Padding(
@@ -153,50 +149,54 @@ class _LanguageDialog extends ConsumerState<LanguageDialog> {
                                   controller: searchLanguageController,
                                   focusNode: searchLanguageFocusNode,
                                   style: STextStyles.desktopTextMedium(context)
-                                      .copyWith(
-                                    height: 2,
-                                  ),
-                                  textAlign: TextAlign.left,
-                                  decoration: standardInputDecoration(
-                                    l10n.commonSearch,
-                                    searchLanguageFocusNode,
-                                    context,
-                                  ).copyWith(
-                                    prefixIcon: Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 10,
-                                        vertical: 16,
-                                      ),
-                                      child: SvgPicture.asset(
-                                        Assets.svg.search,
-                                        width: 16,
-                                        height: 16,
-                                      ),
-                                    ),
-                                    suffixIcon: searchLanguageController
-                                            .text.isNotEmpty
-                                        ? Padding(
-                                            padding:
-                                                const EdgeInsets.only(right: 0),
-                                            child: UnconstrainedBox(
-                                              child: Row(
-                                                children: [
-                                                  TextFieldIconButton(
-                                                    child: const XIcon(),
-                                                    onTap: () async {
-                                                      setState(() {
-                                                        searchLanguageController
-                                                            .text = "";
-                                                        filter = "";
-                                                      });
-                                                    },
+                                      .copyWith(height: 2),
+                                  textAlign: TextAlign.start,
+                                  decoration:
+                                      standardInputDecoration(
+                                        l10n.commonSearch,
+                                        searchLanguageFocusNode,
+                                        context,
+                                      ).copyWith(
+                                        prefixIcon: Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 10,
+                                            vertical: 16,
+                                          ),
+                                          child: SvgPicture.asset(
+                                            Assets.svg.search,
+                                            width: 16,
+                                            height: 16,
+                                          ),
+                                        ),
+                                        suffixIcon:
+                                            searchLanguageController
+                                                .text
+                                                .isNotEmpty
+                                            ? Padding(
+                                                padding:
+                                                    const EdgeInsetsDirectional.only(
+                                                      end: 0,
+                                                    ),
+                                                child: UnconstrainedBox(
+                                                  child: Row(
+                                                    children: [
+                                                      TextFieldIconButton(
+                                                        child: const XIcon(),
+                                                        onTap: () async {
+                                                          setState(() {
+                                                            searchLanguageController
+                                                                    .text =
+                                                                "";
+                                                            filter = "";
+                                                          });
+                                                        },
+                                                      ),
+                                                    ],
                                                   ),
-                                                ],
-                                              ),
-                                            ),
-                                          )
-                                        : null,
-                                  ),
+                                                ),
+                                              )
+                                            : null,
+                                      ),
                                 ),
                               ),
                             ),
@@ -217,104 +217,97 @@ class _LanguageDialog extends ConsumerState<LanguageDialog> {
                         ),
                       ),
                       SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (context, index) {
-                            final language = _shown[index];
-                            final selected = language == _picked;
-                            final title = languageTitle(language);
-                            final subtitle = languageSubtitle(language);
-                            void select() => setState(() => _picked = language);
-                            return Container(
-                              decoration: BoxDecoration(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .popupBG,
-                                borderRadius: _borderRadius(index),
+                        delegate: SliverChildBuilderDelegate((context, index) {
+                          final language = _shown[index];
+                          final selected = language == _picked;
+                          final title = languageTitle(language);
+                          final subtitle = languageSubtitle(language);
+                          void select() => setState(() => _picked = language);
+                          return Container(
+                            decoration: BoxDecoration(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .popupBG,
+                              borderRadius: _borderRadius(index),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(4),
+                              key: Key(
+                                "desktopSelectLanguage_${language?.code ?? "system"}",
                               ),
                               child: Padding(
-                                padding: const EdgeInsets.all(4),
-                                key: Key(
-                                  "desktopSelectLanguage_${language?.code ?? "system"}",
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 32,
                                 ),
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 32,
-                                  ),
-                                  child: RoundedContainer(
-                                    padding: const EdgeInsets.all(0),
-                                    color: selected
-                                        ? Theme.of(context)
+                                child: RoundedContainer(
+                                  padding: const EdgeInsets.all(0),
+                                  color: selected
+                                      ? Theme.of(context)
                                             .extension<StackColors>()!
                                             .currencyListItemBG
-                                        : Theme.of(context)
+                                      : Theme.of(context)
                                             .extension<StackColors>()!
                                             .popupBG,
-                                    child: RawMaterialButton(
-                                      onPressed: select,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(
-                                          Constants.size.circularBorderRadius,
-                                        ),
+                                  child: RawMaterialButton(
+                                    onPressed: select,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(
+                                        Constants.size.circularBorderRadius,
                                       ),
-                                      child: Padding(
-                                        padding: const EdgeInsets.all(12.0),
-                                        child: Row(
-                                          crossAxisAlignment:
-                                              CrossAxisAlignment.start,
-                                          children: [
-                                            SizedBox(
-                                              width: 20,
-                                              height: 20,
-                                              child: Radio(
-                                                activeColor: Theme.of(context)
-                                                    .extension<StackColors>()!
-                                                    .radioButtonIconEnabled,
-                                                value: true,
-                                                groupValue: selected,
-                                                onChanged: (_) => select(),
-                                              ),
+                                    ),
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(12.0),
+                                      child: Row(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          SizedBox(
+                                            width: 20,
+                                            height: 20,
+                                            child: Radio(
+                                              activeColor: Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .radioButtonIconEnabled,
+                                              value: true,
+                                              groupValue: selected,
+                                              onChanged: (_) => select(),
                                             ),
-                                            const SizedBox(
-                                              width: 12,
-                                            ),
-                                            Expanded(
-                                              child: Column(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
-                                                children: [
-                                                  Text(
-                                                    title,
-                                                    style: STextStyles
-                                                        .largeMedium14(
-                                                      context,
-                                                    ),
-                                                  ),
-                                                  if (subtitle != title) ...[
-                                                    const SizedBox(
-                                                      height: 2,
-                                                    ),
-                                                    Text(
-                                                      subtitle,
-                                                      style: STextStyles
-                                                          .itemSubtitle(
+                                          ),
+                                          const SizedBox(width: 12),
+                                          Expanded(
+                                            child: Column(
+                                              crossAxisAlignment:
+                                                  CrossAxisAlignment.start,
+                                              children: [
+                                                Text(
+                                                  title,
+                                                  style:
+                                                      STextStyles.largeMedium14(
                                                         context,
                                                       ),
-                                                    ),
-                                                  ],
+                                                ),
+                                                if (subtitle != title) ...[
+                                                  const SizedBox(height: 2),
+                                                  Text(
+                                                    subtitle,
+                                                    style:
+                                                        STextStyles.itemSubtitle(
+                                                          context,
+                                                        ),
+                                                  ),
                                                 ],
-                                              ),
+                                              ],
                                             ),
-                                          ],
-                                        ),
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   ),
                                 ),
                               ),
-                            );
-                          },
-                          childCount: _shown.length,
-                        ),
+                            ),
+                          );
+                        }, childCount: _shown.length),
                       ),
                     ],
                   );
@@ -335,9 +328,7 @@ class _LanguageDialog extends ConsumerState<LanguageDialog> {
                     },
                   ),
                 ),
-                const SizedBox(
-                  width: 16,
-                ),
+                const SizedBox(width: 16),
                 Expanded(
                   child: PrimaryButton(
                     label: l10n.commonSaveChanges,

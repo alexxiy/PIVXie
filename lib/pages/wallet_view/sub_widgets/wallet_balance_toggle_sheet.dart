@@ -95,13 +95,13 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
                   ),
                 if (!isDesktop) const SizedBox(height: 36),
                 Padding(
-                  padding: const EdgeInsets.only(left: 8.0),
+                  padding: const EdgeInsetsDirectional.only(start: 8.0),
                   child: Text(
                     l10n.walletBalance,
                     style: isDesktop
                         ? STextStyles.desktopH3(context)
                         : STextStyles.pageTitleH2(context),
-                    textAlign: TextAlign.left,
+                    textAlign: TextAlign.start,
                   ),
                 ),
                 const SizedBox(height: 24),

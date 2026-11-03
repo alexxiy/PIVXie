@@ -149,7 +149,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
         maxWidth: 450,
         maxHeight: double.infinity,
         child: Padding(
-          padding: const EdgeInsets.only(left: 32, bottom: 32),
+          padding: const EdgeInsetsDirectional.only(start: 32, bottom: 32),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -165,7 +165,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
               ),
               const SizedBox(height: 12),
               Padding(
-                padding: const EdgeInsets.only(right: 32),
+                padding: const EdgeInsetsDirectional.only(end: 32),
                 child: Text(
                   l10n.walletPrivatizeConfirm,
                   style: STextStyles.desktopTextExtraExtraSmall(context)
@@ -174,7 +174,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
               ),
               const SizedBox(height: 40),
               Padding(
-                padding: const EdgeInsets.only(right: 32),
+                padding: const EdgeInsetsDirectional.only(end: 32),
                 child: Row(
                   children: [
                     Expanded(
@@ -299,7 +299,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
       forcedOverflow: moreOptions.isNotEmpty || extraOptions.isNotEmpty,
       overflowBuilder: (count) {
         final button = Padding(
-          padding: const EdgeInsets.only(left: 16),
+          padding: const EdgeInsetsDirectional.only(start: 16),
           child: SecondaryButton(
             label: l10n.commonMore,
             padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -324,7 +324,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
           clipBehavior: Clip.none,
           children: [
             button,
-            const Positioned(top: -2, right: -2, child: NewItemDot()),
+            const PositionedDirectional(top: -2, end: -2, child: NewItemDot()),
           ],
         );
       },
@@ -332,7 +332,7 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
       children: options
           .map(
             (option) => Padding(
-              padding: const EdgeInsets.only(left: 16),
+              padding: const EdgeInsetsDirectional.only(start: 16),
               child: SecondaryButton(
                 label: option.$1.label,
                 padding: const EdgeInsets.symmetric(horizontal: 16),

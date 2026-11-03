@@ -396,7 +396,7 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Padding(
-                  padding: const EdgeInsets.only(right: 16.0),
+                  padding: const EdgeInsetsDirectional.only(end: 16.0),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [

@@ -150,7 +150,7 @@ class _DesktopWalletSummaryRowState
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Padding(
-                      padding: const EdgeInsets.only(left: 32),
+                      padding: const EdgeInsetsDirectional.only(start: 32),
                       child: Text(
                         l10n.walletsOfCoin(
                           widget.coin.prettyName,

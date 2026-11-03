@@ -194,7 +194,7 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                   child: Text(
                     text,
                     style: value,
-                    textAlign: TextAlign.right,
+                    textAlign: TextAlign.end,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),

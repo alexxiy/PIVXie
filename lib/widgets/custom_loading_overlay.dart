@@ -13,6 +13,7 @@ import 'dart:async';
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../themes/stack_colors.dart';
 import '../utilities/format.dart';
 import '../utilities/text_styles.dart';
@@ -78,25 +79,18 @@ class _CustomLoadingOverlayState extends ConsumerState<CustomLoadingOverlay> {
                 children: [
                   Padding(
                     padding: const EdgeInsets.all(16),
-                    child: SizedBox(
-                      width: 100,
-                      child: widget.actionButton!,
-                    ),
+                    child: SizedBox(width: 100, child: widget.actionButton!),
                   ),
                 ],
               ),
             if (!isDesktop)
-              Positioned(
+              PositionedDirectional(
                 bottom: 1,
-                left: 0,
-                right: 1,
+                start: 0,
+                end: 1,
                 child: Padding(
                   padding: const EdgeInsets.all(16),
-                  child: Row(
-                    children: [
-                      Expanded(child: widget.actionButton!),
-                    ],
-                  ),
+                  child: Row(children: [Expanded(child: widget.actionButton!)]),
                 ),
               ),
           ],
@@ -109,50 +103,41 @@ class _CustomLoadingOverlayState extends ConsumerState<CustomLoadingOverlay> {
               widget.message,
               textAlign: TextAlign.center,
               style: STextStyles.pageTitleH2(context).copyWith(
-                color: widget.textColor ??
+                color:
+                    widget.textColor ??
                     Theme.of(context)
                         .extension<StackColors>()!
                         .loadingOverlayTextColor,
               ),
             ),
-            if (widget.eventBus != null)
-              const SizedBox(
-                height: 10,
-              ),
+            if (widget.eventBus != null) const SizedBox(height: 10),
             if (widget.eventBus != null)
               Text(
                 Format.percent(_percent * 100),
                 style: STextStyles.pageTitleH2(context).copyWith(
-                  color: widget.textColor ??
+                  color:
+                      widget.textColor ??
                       Theme.of(context)
                           .extension<StackColors>()!
                           .loadingOverlayTextColor,
                 ),
               ),
-            if (widget.subMessage != null)
-              const SizedBox(
-                height: 10,
-              ),
+            if (widget.subMessage != null) const SizedBox(height: 10),
             if (widget.subMessage != null)
               Text(
                 widget.subMessage!,
                 textAlign: TextAlign.center,
                 style: STextStyles.pageTitleH2(context).copyWith(
                   fontSize: 14,
-                  color: widget.textColor ??
+                  color:
+                      widget.textColor ??
                       Theme.of(context)
                           .extension<StackColors>()!
                           .loadingOverlayTextColor,
                 ),
               ),
-            const SizedBox(
-              height: 64,
-            ),
-            const Center(
-              child: LoadingIndicator(
-                width: 100,
-              ),
-            ),
+            const SizedBox(height: 64),
+            const Center(child: LoadingIndicator(width: 100)),
           ],
         ),
       ),

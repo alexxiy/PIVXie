@@ -335,6 +335,7 @@ class _PivxCreateMasternodeViewState
     required String? error,
     bool plain = false,
     TextInputType? keyboardType,
+    TextDirection? textDirection,
   }) {
     final colors = Theme.of(context).extension<StackColors>()!;
     final border = error == null
@@ -350,6 +351,7 @@ class _PivxCreateMasternodeViewState
           borderRadius: BorderRadius.circular(8),
           child: TextField(
             controller: controller,
+            textDirection: textDirection,
             focusNode: focus,
             autocorrect: !plain,
             enableSuggestions: !plain,
@@ -365,7 +367,7 @@ class _PivxCreateMasternodeViewState
         ),
         if (error != null)
           Padding(
-            padding: const EdgeInsets.only(left: 12, top: 4),
+            padding: const EdgeInsetsDirectional.only(start: 12, top: 4),
             child: Text(
               error,
               style: STextStyles.label(context)
@@ -493,6 +495,7 @@ class _PivxCreateMasternodeViewState
                 const SizedBox(height: 8),
                 _field(
                   controller: _serviceController,
+                  textDirection: TextDirection.ltr,
                   focus: _serviceFocus,
                   hint: l10n.mnServerIpHint(wallet.masternodePort),
                   error: serviceError,
@@ -596,6 +599,7 @@ class _PivxCreateMasternodeViewState
               if (_pasteKey)
                 _field(
                   controller: _keyController,
+                  textDirection: TextDirection.ltr,
                   focus: _keyFocus,
                   hint: l10n.mnPasteKey,
                   error: keyError,

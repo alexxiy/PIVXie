@@ -124,8 +124,8 @@ class _AddressBookCardState extends ConsumerState<AddressBookCard> {
                   coinsString,
                   style: STextStyles.label(context),
                   textAlign: isDesktop && !desktopSendFrom
-                      ? TextAlign.right
-                      : TextAlign.left,
+                      ? TextAlign.end
+                      : TextAlign.start,
                 ),
               ],
             ),

@@ -94,6 +94,7 @@ class DesktopManageBlockExplorersDialog extends ConsumerWidget {
                         const SizedBox(width: 12),
                         SvgPicture.asset(
                           Assets.svg.chevronRight,
+                          matchTextDirection: true,
                           width: 20,
                           height: 20,
                         ),

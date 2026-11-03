@@ -84,58 +84,57 @@ class _AutoLockTimeoutSettingsViewState
   Widget build(BuildContext context) {
     return ConditionalParent(
       condition: !isDesktop,
-      builder:
-          (child) => Background(
-            child: Scaffold(
-              backgroundColor:
-                  Theme.of(context).extension<StackColors>()!.background,
-              appBar: AppBar(
-                leading: AppBarBackButton(
-                  onPressed: () async {
-                    if (FocusScope.of(context).hasFocus) {
-                      FocusScope.of(context).unfocus();
-                      await Future<void>.delayed(
-                        const Duration(milliseconds: 70),
-                      );
-                    }
-                    if (context.mounted) {
-                      Navigator.of(context).pop();
-                    }
-                  },
-                ),
-                title: Text(
-                  l10n.autoLockTitle,
-                  style: STextStyles.navBarTitle(context),
-                ),
-              ),
-              body: SafeArea(
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    return SingleChildScrollView(
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(
-                          minHeight: constraints.maxHeight,
-                        ),
-                        child: IntrinsicHeight(
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: child,
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
+      builder: (child) => Background(
+        child: Scaffold(
+          backgroundColor: Theme.of(context)
+              .extension<StackColors>()!
+              .background,
+          appBar: AppBar(
+            leading: AppBarBackButton(
+              onPressed: () async {
+                if (FocusScope.of(context).hasFocus) {
+                  FocusScope.of(context).unfocus();
+                  await Future<void>.delayed(const Duration(milliseconds: 70));
+                }
+                if (context.mounted) {
+                  Navigator.of(context).pop();
+                }
+              },
+            ),
+            title: Text(
+              l10n.autoLockTitle,
+              style: STextStyles.navBarTitle(context),
             ),
           ),
+          body: SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
+                    ),
+                    child: IntrinsicHeight(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: child,
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        ),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           RoundedWhiteContainer(
             child: RawMaterialButton(
-              splashColor:
-                  Theme.of(context).extension<StackColors>()!.highlight,
+              splashColor: Theme.of(context)
+                  .extension<StackColors>()!
+                  .highlight,
               materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(
@@ -152,7 +151,7 @@ class _AutoLockTimeoutSettingsViewState
                       child: Text(
                         l10n.autoLockEnable,
                         style: STextStyles.titleBold12(context),
-                        textAlign: TextAlign.left,
+                        textAlign: TextAlign.start,
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -176,7 +175,10 @@ class _AutoLockTimeoutSettingsViewState
             padding: const EdgeInsets.symmetric(horizontal: 12),
             child: Row(
               children: [
-                Text(l10n.autoLockMinutes, style: STextStyles.titleBold12(context)),
+                Text(
+                  l10n.autoLockMinutes,
+                  style: STextStyles.titleBold12(context),
+                ),
                 const SizedBox(width: 16),
                 Flexible(
                   child: TextField(
@@ -188,8 +190,8 @@ class _AutoLockTimeoutSettingsViewState
                       TextInputFormatter.withFunction(
                         (oldValue, newValue) =>
                             RegExp(r'^([0-9]*)$').hasMatch(newValue.text)
-                                ? newValue
-                                : oldValue,
+                            ? newValue
+                            : oldValue,
                       ),
                     ],
                     onChanged: (value) {
@@ -218,11 +220,10 @@ class _AutoLockTimeoutSettingsViewState
           if (!isDesktop) const Spacer(),
           ConditionalParent(
             condition: isDesktop,
-            builder:
-                (child) => Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [child],
-                ),
+            builder: (child) => Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [child],
+            ),
             child: PrimaryButton(
               buttonHeight: isDesktop ? ButtonHeight.l : null,
               width: isDesktop ? 200 : null,

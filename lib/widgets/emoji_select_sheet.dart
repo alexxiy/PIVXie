@@ -127,7 +127,7 @@ class _EmojiSelectSheetState extends ConsumerState<EmojiSelectSheet> {
             style: isDesktop
                 ? STextStyles.desktopH3(context)
                 : STextStyles.pageTitleH2(context),
-            textAlign: TextAlign.left,
+            textAlign: TextAlign.start,
           ),
           SizedBox(height: isDesktop ? 16 : 12),
           Material(
@@ -164,7 +164,7 @@ class _EmojiSelectSheetState extends ConsumerState<EmojiSelectSheet> {
                       ),
                       suffixIcon: _searchController.text.isNotEmpty
                           ? Padding(
-                              padding: const EdgeInsets.only(right: 0),
+                              padding: const EdgeInsetsDirectional.only(end: 0),
                               child: UnconstrainedBox(
                                 child: Row(
                                   children: [

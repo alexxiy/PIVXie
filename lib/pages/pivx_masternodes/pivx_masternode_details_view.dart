@@ -408,6 +408,7 @@ class _PivxMasternodeDetailsViewState
                                     borderRadius: BorderRadius.circular(8),
                                     child: TextField(
                                       controller: _serviceController,
+                                      textDirection: TextDirection.ltr,
                                       focusNode: _serviceFocus,
                                       autocorrect: false,
                                       enableSuggestions: false,
@@ -427,8 +428,8 @@ class _PivxMasternodeDetailsViewState
                                   ),
                                   if (serviceError != null)
                                     Padding(
-                                      padding: const EdgeInsets.only(
-                                        left: 12,
+                                      padding: const EdgeInsetsDirectional.only(
+                                        start: 12,
                                         top: 4,
                                       ),
                                       child: Text(

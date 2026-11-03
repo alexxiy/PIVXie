@@ -109,6 +109,7 @@ class AppBarBackButton extends StatelessWidget {
         shadows: const [],
         icon: SvgPicture.asset(
           Assets.svg.arrowLeft,
+          matchTextDirection: true,
           width: iconSize ?? (isCompact ? 18 : 24),
           height: iconSize ?? (isCompact ? 18 : 24),
           color: Theme.of(context).extension<StackColors>()!.topNavIconPrimary,

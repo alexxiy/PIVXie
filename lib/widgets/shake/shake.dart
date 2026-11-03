@@ -96,11 +96,11 @@ class _ShakeState extends State<Shake> with SingleTickerProviderStateMixin {
     return AnimatedPadding(
       duration: widget.animationDuration ~/ ((nShakes * 2) + 1),
       curve: Curves.easeInOut,
-      padding: EdgeInsets.only(
+      padding: EdgeInsetsDirectional.only(
         top: 0,
         bottom: 0,
-        left: _left,
-        right: _right,
+        start: _left,
+        end: _right,
       ),
       child: widget.child,
     );

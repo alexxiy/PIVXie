@@ -89,9 +89,9 @@ class WalletNavigationBarItem extends ConsumerWidget {
                       children: [
                         Center(child: data.icon),
                         if (data.isNew)
-                          const Positioned(
+                          const PositionedDirectional(
                             top: -1,
-                            right: -3,
+                            end: -3,
                             child: NewItemDot(),
                           ),
                       ],

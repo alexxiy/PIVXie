@@ -102,7 +102,7 @@ class _CoinNodesViewState extends ConsumerState<CoinNodesView> {
                           .extension<StackColors>()!
                           .textDark3,
                     ),
-                    textAlign: TextAlign.left,
+                    textAlign: TextAlign.start,
                   ),
                   CustomTextButton(
                     text: l10n.nodeAddNew,
@@ -154,7 +154,11 @@ class _CoinNodesViewState extends ConsumerState<CoinNodesView> {
             ),
             actions: [
               Padding(
-                padding: const EdgeInsets.only(top: 10, bottom: 10, right: 10),
+                padding: const EdgeInsetsDirectional.only(
+                  top: 10,
+                  bottom: 10,
+                  end: 10,
+                ),
                 child: AspectRatio(
                   aspectRatio: 1,
                   child: AppBarIconButton(

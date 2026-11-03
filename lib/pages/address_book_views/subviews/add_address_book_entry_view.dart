@@ -179,10 +179,10 @@ class _AddAddressBookEntryViewState
               ),
               actions: [
                 Padding(
-                  padding: const EdgeInsets.only(
+                  padding: const EdgeInsetsDirectional.only(
                     top: 10,
                     bottom: 10,
-                    right: 10,
+                    end: 10,
                   ),
                   child: AspectRatio(
                     aspectRatio: 1,
@@ -305,12 +305,13 @@ class _AddAddressBookEntryViewState
                                                 maxHeight: 700,
                                                 maxWidth: 600,
                                                 child: Padding(
-                                                  padding: EdgeInsets.only(
-                                                    left: 32,
-                                                    right: 20,
-                                                    top: 32,
-                                                    bottom: 32,
-                                                  ),
+                                                  padding:
+                                                      EdgeInsetsDirectional.only(
+                                                        start: 32,
+                                                        end: 20,
+                                                        top: 32,
+                                                        bottom: 32,
+                                                      ),
                                                   child: EmojiSelectSheet(),
                                                 ),
                                               );
@@ -352,7 +353,8 @@ class _AddAddressBookEntryViewState
                                               ),
                                             ),
                                             Align(
-                                              alignment: Alignment.bottomRight,
+                                              alignment: AlignmentDirectional
+                                                  .bottomEnd,
                                               child: Container(
                                                 height: 14,
                                                 width: 14,
@@ -428,8 +430,8 @@ class _AddAddressBookEntryViewState
                                                   )
                                                   ? Padding(
                                                       padding:
-                                                          const EdgeInsets.only(
-                                                            right: 0,
+                                                          const EdgeInsetsDirectional.only(
+                                                            end: 0,
                                                           ),
                                                       child: UnconstrainedBox(
                                                         child: Row(
@@ -526,7 +528,8 @@ class _AddAddressBookEntryViewState
                                             ),
                                           ),
                                           Align(
-                                            alignment: Alignment.bottomRight,
+                                            alignment:
+                                                AlignmentDirectional.bottomEnd,
                                             child: Container(
                                               height: 14,
                                               width: 14,
@@ -593,8 +596,8 @@ class _AddAddressBookEntryViewState
                                                 )
                                                 ? Padding(
                                                     padding:
-                                                        const EdgeInsets.only(
-                                                          right: 0,
+                                                        const EdgeInsetsDirectional.only(
+                                                          end: 0,
                                                         ),
                                                     child: UnconstrainedBox(
                                                       child: Row(

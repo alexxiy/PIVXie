@@ -45,7 +45,7 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
       child: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.only(right: 30),
+            padding: const EdgeInsetsDirectional.only(end: 30),
             child: RoundedWhiteContainer(
               radiusMultiplier: 2,
               child: Column(
@@ -99,7 +99,7 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                                         .extension<StackColors>()!
                                         .textDark,
                                   ),
-                              textAlign: TextAlign.left,
+                              textAlign: TextAlign.start,
                             ),
                             SizedBox(
                               height: 20,
@@ -138,7 +138,7 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                                         .extension<StackColors>()!
                                         .textDark,
                                   ),
-                              textAlign: TextAlign.left,
+                              textAlign: TextAlign.start,
                             ),
                             SizedBox(
                               height: 20,
@@ -191,7 +191,7 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                                                 .extension<StackColors>()!
                                                 .textDark,
                                           ),
-                                      textAlign: TextAlign.left,
+                                      textAlign: TextAlign.start,
                                     ),
                                     Text(
                                       externalCalls
@@ -243,7 +243,7 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                                     .extension<StackColors>()!
                                     .textDark,
                               ),
-                          textAlign: TextAlign.left,
+                          textAlign: TextAlign.start,
                         ),
                         PrimaryButton(
                           buttonHeight: ButtonHeight.xs,
@@ -289,7 +289,7 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                                     .extension<StackColors>()!
                                     .textDark,
                               ),
-                          textAlign: TextAlign.left,
+                          textAlign: TextAlign.start,
                         ),
                         PrimaryButton(
                           buttonHeight: ButtonHeight.xs,
@@ -333,7 +333,7 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                                     .extension<StackColors>()!
                                     .textDark,
                               ),
-                          textAlign: TextAlign.left,
+                          textAlign: TextAlign.start,
                         ),
                         PrimaryButton(
                           buttonHeight: ButtonHeight.xs,
