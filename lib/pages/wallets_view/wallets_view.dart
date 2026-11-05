@@ -17,6 +17,7 @@ import 'sub_widgets/empty_wallets.dart';
 import 'sub_widgets/favorite_wallets.dart';
 import '../../providers/providers.dart';
 import '../../themes/theme_providers.dart';
+import '../../widgets/adaptive_page.dart';
 import '../../wallets/isar/providers/all_wallets_info_provider.dart';
 
 class WalletsView extends ConsumerWidget {
@@ -34,6 +35,9 @@ class WalletsView extends ConsumerWidget {
       prefsChangeNotifierProvider.select((value) => value.showFavoriteWallets),
     );
 
+    // Favorites beside the list when there's no height to have them above it.
+    final side = showFavorites && ScreenFit.sideBySide(context);
+
     return SafeArea(
       child: hasWallets
           ? Padding(
@@ -42,12 +46,21 @@ class WalletsView extends ConsumerWidget {
                     ? 6
                     : 20,
               ),
-              child: Column(
+              child: Flex(
+                direction: side ? Axis.horizontal : Axis.vertical,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  if (showFavorites) const FavoriteWallets(),
-                  if (showFavorites) const SizedBox(height: 20),
+                  if (showFavorites)
+                    Flexible(
+                      flex: side ? 4 : 0,
+                      fit: side ? FlexFit.tight : FlexFit.loose,
+                      child: const SingleChildScrollView(
+                        child: FavoriteWallets(),
+                      ),
+                    ),
+                  if (showFavorites) SizedBox(height: side ? 0 : 20),
                   const Expanded(
+                    flex: 5,
                     child: Padding(
                       padding: EdgeInsets.symmetric(horizontal: 16),
                       child: AllWallets(),

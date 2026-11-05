@@ -26,6 +26,7 @@ import '../../utilities/idle_monitor.dart';
 import '../../utilities/prefs.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
+import '../../widgets/adaptive_page.dart';
 import '../../widgets/animated_widgets/rotate_icon.dart';
 import '../../widgets/app_icon.dart';
 import '../../widgets/background.dart';
@@ -310,9 +311,12 @@ class _HomeViewState extends ConsumerState<HomeView> {
         if (await _onWillPop()) await SystemNavigator.pop();
       },
       child: Background(
-        child: Scaffold(
+        child: AppScaffold(
           backgroundColor: Colors.transparent,
-          key: _key,
+          scaffoldKey: _key,
+          maxBodyWidth: ScreenFit.sideBySide(context)
+              ? 1000
+              : ScreenFit.columnWidth,
           appBar: AppBar(
             automaticallyImplyLeading: false,
             backgroundColor: Theme.of(context)

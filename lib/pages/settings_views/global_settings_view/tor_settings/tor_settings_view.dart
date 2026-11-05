@@ -9,6 +9,7 @@
  */
 
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -24,6 +25,7 @@ import '../../../../utilities/assets.dart';
 import '../../../../utilities/logger.dart';
 import '../../../../utilities/stack_file_system.dart';
 import '../../../../utilities/text_styles.dart';
+import '../../../../widgets/adaptive_page.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/conditional_parent.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -45,19 +47,22 @@ class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
   @override
   Widget build(BuildContext context) {
     return Background(
-      child: Scaffold(
+      child: AppScaffold(
         backgroundColor: Colors.transparent,
         appBar: AppBar(
           automaticallyImplyLeading: false,
-          backgroundColor: Theme.of(
-            context,
-          ).extension<StackColors>()!.backgroundAppBar,
+          backgroundColor: Theme.of(context)
+              .extension<StackColors>()!
+              .backgroundAppBar,
           leading: AppBarBackButton(
             onPressed: () {
               Navigator.of(context).pop();
             },
           ),
-          title: Text(l10n.settingsTor, style: STextStyles.navBarTitle(context)),
+          title: Text(
+            l10n.settingsTor,
+            style: STextStyles.navBarTitle(context),
+          ),
           actions: [
             AspectRatio(
               aspectRatio: 1,
@@ -71,8 +76,7 @@ class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
                     builder: (context) {
                       return StackDialog(
                         title: l10n.torWhatIs,
-                        message:
-                            l10n.torWhatIsText,
+                        message: l10n.torWhatIsText,
                         rightButton: SecondaryButton(
                           label: l10n.commonClose,
                           onPressed: Navigator.of(context).pop,
@@ -86,30 +90,29 @@ class _TorSettingsViewState extends ConsumerState<TorSettingsView> {
           ],
         ),
         body: SafeArea(
-          child: Padding(
+          child: SingleChildScrollView(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: Column(
+            child: SideBySide(
               crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Padding(
-                      padding: EdgeInsets.all(10.0),
-                      child: _TorAnimatedButton(),
+              portraitCrossAxisAlignment: CrossAxisAlignment.center,
+              gap: ScreenFit.sideBySide(context) ? 16 : 30,
+              start: const Padding(
+                padding: EdgeInsets.all(10.0),
+                child: Center(child: _TorAnimatedButton()),
+              ),
+              end: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const _TorButton(),
+                  const SizedBox(height: 8),
+                  RoundedWhiteContainer(
+                    child: Text(
+                      l10n.torOnlyText,
+                      style: STextStyles.itemSubtitle(context),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 30),
-                const _TorButton(),
-                const SizedBox(height: 8),
-                RoundedWhiteContainer(
-                  child: Text(
-                    l10n.torOnlyText,
-                    style: STextStyles.itemSubtitle(context),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -243,7 +246,10 @@ class _TorAnimatedButtonState extends ConsumerState<_TorAnimatedButton>
 
   @override
   Widget build(BuildContext context) {
-    final width = MediaQuery.of(context).size.width / 1.5;
+    final size = MediaQuery.sizeOf(context);
+    final width = ScreenFit.sideBySide(context)
+        ? min(size.height - 170, 320.0)
+        : min(size.width, ScreenFit.columnWidth) / 1.5;
 
     return TorSubscription(
       onTorStatusChanged: (status) async {

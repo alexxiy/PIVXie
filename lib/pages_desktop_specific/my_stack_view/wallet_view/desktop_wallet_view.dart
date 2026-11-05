@@ -10,6 +10,7 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/foundation.dart';
@@ -40,6 +41,7 @@ import '../../../utilities/text_styles.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../wallets/wallet/wallet.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
+import '../../../widgets/adaptive_page.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/custom_buttons/blue_text_button.dart';
 import '../../../widgets/desktop/desktop_app_bar.dart';
@@ -123,7 +125,12 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
             wallet.isViewOnly &&
             wallet.viewOnlyType == ViewOnlyWalletType.addressOnly);
 
+    final wide = MediaQuery.sizeOf(context).width >= DesktopFit.foldMenuWidth;
+    final gap = DesktopFit.short(context) ? 12.0 : 24.0;
+
     return DesktopScaffold(
+      // Both panes scroll by themselves.
+      minBodyHeight: 340,
       appBar: DesktopAppBar(
         background: Theme.of(context).extension<StackColors>()!.popupBG,
         leading: Expanded(
@@ -154,25 +161,35 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                 height: 32,
               ),
               const SizedBox(width: 12),
-              ConstrainedBox(
-                constraints: const BoxConstraints(minWidth: 48),
-                child: IntrinsicWidth(
-                  child: DesktopWalletNameField(walletId: widget.walletId),
+              Expanded(
+                child: Row(
+                  children: [
+                    Flexible(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(minWidth: 48),
+                        child: IntrinsicWidth(
+                          child: DesktopWalletNameField(
+                            walletId: widget.walletId,
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (ref.watch(pWalletInfo(widget.walletId)).isViewOnly)
+                      const SizedBox(width: 20),
+                    if (ref.watch(pWalletInfo(widget.walletId)).isViewOnly)
+                      Text(
+                        l10n.walletViewOnly,
+                        style: STextStyles.desktopTextExtraSmall(context)
+                            .copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textFieldActiveSearchIconLeft,
+                            ),
+                      ),
+                  ],
                 ),
               ),
-              if (ref.watch(pWalletInfo(widget.walletId)).isViewOnly)
-                const SizedBox(width: 20),
-              if (ref.watch(pWalletInfo(widget.walletId)).isViewOnly)
-                Text(
-                  l10n.walletViewOnly,
-                  style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .textFieldActiveSearchIconLeft,
-                  ),
-                ),
-              if (kDebugMode) const Spacer(),
-              if (kDebugMode)
+              if (kDebugMode && wide)
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -206,7 +223,7 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                     ),
                   ],
                 ),
-              const Spacer(),
+              if (kDebugMode && wide) const SizedBox(width: 16),
               Row(
                 children: [
                   NetworkInfoButton(
@@ -230,31 +247,24 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
         isCompactHeight: true,
       ),
       body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            DesktopWalletHeaderRow(wallet),
-            const SizedBox(height: 24),
-            Row(
+        padding: EdgeInsets.all(gap),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            // The rest goes to the transactions, which need some room too.
+            final sendReceiveWidth = min(
+              sendReceiveColumnWidth,
+              (constraints.maxWidth - 16) * 0.6,
+            );
+            return Column(
               children: [
-                SizedBox(
-                  width: sendReceiveColumnWidth,
-                  child: Text(
-                    l10n.desktopMyWallet,
-                    style: STextStyles.desktopTextExtraSmall(context).copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .textFieldActiveSearchIconLeft,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        l10n.walletRecentActivity,
+                DesktopWalletHeaderRow(wallet),
+                SizedBox(height: gap),
+                Row(
+                  children: [
+                    SizedBox(
+                      width: sendReceiveWidth,
+                      child: Text(
+                        l10n.desktopMyWallet,
                         style: STextStyles.desktopTextExtraSmall(context)
                             .copyWith(
                               color: Theme.of(context)
@@ -262,37 +272,58 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                                   .textFieldActiveSearchIconLeft,
                             ),
                       ),
-                      CustomTextButton(
-                        text: l10n.walletSeeAll,
-                        onTap: () async {
-                          await Navigator.of(context).pushNamed(
-                            AllTransactionsV2View.routeName,
-                            arguments: widget.walletId,
-                          );
-                        },
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Flexible(
+                            child: Text(
+                              l10n.walletRecentActivity,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: STextStyles.desktopTextExtraSmall(context)
+                                  .copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textFieldActiveSearchIconLeft,
+                                  ),
+                            ),
+                          ),
+                          CustomTextButton(
+                            text: l10n.walletSeeAll,
+                            onTap: () async {
+                              await Navigator.of(context).pushNamed(
+                                AllTransactionsV2View.routeName,
+                                arguments: widget.walletId,
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                Expanded(
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        width: sendReceiveWidth,
+                        child: MyWallet(walletId: widget.walletId),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: TransactionsV2List(walletId: widget.walletId),
                       ),
                     ],
                   ),
                 ),
               ],
-            ),
-            const SizedBox(height: 14),
-            Expanded(
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(
-                    width: sendReceiveColumnWidth,
-                    child: MyWallet(walletId: widget.walletId),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: TransactionsV2List(walletId: widget.walletId),
-                  ),
-                ],
-              ),
-            ),
-          ],
+            );
+          },
         ),
       ),
     );
@@ -307,7 +338,7 @@ class DesktopWalletHeaderRow extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return RoundedWhiteContainer(
-      padding: const EdgeInsets.all(20),
+      padding: EdgeInsets.all(DesktopFit.short(context) ? 12 : 20),
       child: Row(
         children: [
           SvgPicture.file(

@@ -42,6 +42,7 @@ import '../../utilities/text_styles.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
+import '../../widgets/adaptive_page.dart';
 import '../address_book_views/address_book_view.dart';
 import '../pivx_cold_staking/pivx_cold_staking_view.dart';
 import '../pivx_donation/pivx_donation.dart';
@@ -82,6 +83,10 @@ class WalletView extends ConsumerStatefulWidget {
 
   static const String routeName = "/wallet";
   static const double navBarHeight = 65.0;
+
+  /// In landscape: the summary and the navigation bar's share of the width,
+  /// of 11. The transactions get the rest.
+  static const int sidePaneFlex = 5;
 
   final String walletId;
   final EventBus? eventBus;
@@ -313,12 +318,15 @@ class _WalletViewState extends ConsumerState<WalletView> {
 
     final viewOnly = wallet is ViewOnlyOptionInterface && wallet.isViewOnly;
 
+    final side = ScreenFit.sideBySide(context);
+
     return WillPopScope(
       onWillPop: _onWillPop,
       child: Background(
         child: Stack(
           children: [
-            Scaffold(
+            AppScaffold(
+              maxBodyWidth: side ? double.infinity : ScreenFit.columnWidth,
               backgroundColor: Theme.of(context)
                   .extension<StackColors>()!
                   .background,
@@ -466,164 +474,213 @@ class _WalletViewState extends ConsumerState<WalletView> {
               body: SafeArea(
                 child: Container(
                   color: Theme.of(context).extension<StackColors>()!.background,
-                  child: Column(
+                  child: Flex(
+                    direction: side ? Axis.horizontal : Axis.vertical,
+                    crossAxisAlignment: side
+                        ? CrossAxisAlignment.start
+                        : CrossAxisAlignment.center,
                     children: [
-                      const SizedBox(height: 10),
-                      Center(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: WalletSummary(
-                            walletId: walletId,
-                            aspectRatio: 1.75,
-                            initialSyncStatus:
-                                ref
-                                    .watch(pWallets)
-                                    .getWallet(walletId)
-                                    .refreshMutex
-                                    .isLocked
-                                ? WalletSyncStatus.syncing
-                                : WalletSyncStatus.synced,
-                          ),
-                        ),
-                      ),
-                      if (isPivxShield && !viewOnly) const SizedBox(height: 10),
-                      if (isPivxShield && !viewOnly)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: TextButton(
-                                  style: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .getSecondaryEnabledButtonStyle(context),
-                                  onPressed: () async {
-                                    await showDialog<void>(
-                                      context: context,
-                                      builder: (context) => StackDialog(
-                                        title: l10n.walletAttention,
-                                        message: l10n.walletPrivatizeConfirm,
-                                        leftButton: TextButton(
-                                          onPressed: () {
-                                            Navigator.of(context).pop();
-                                          },
-                                          child: Text(
-                                            l10n.commonCancel,
-                                            style: STextStyles.button(context)
-                                                .copyWith(
-                                                  color: Theme.of(context)
-                                                      .extension<StackColors>()!
-                                                      .accentColorDark,
-                                                ),
-                                          ),
-                                        ),
-                                        rightButton: TextButton(
-                                          onPressed: () async {
-                                            Navigator.of(context).pop();
-
-                                            unawaited(attemptAnonymize());
-                                          },
-                                          style: Theme.of(context)
-                                              .extension<StackColors>()!
-                                              .getPrimaryEnabledButtonStyle(
-                                                context,
-                                              ),
-                                          child: Text(
-                                            l10n.commonContinue,
-                                            style: STextStyles.button(context),
-                                          ),
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                  child: Text(
-                                    l10n.walletPrivatizeFunds,
-                                    style: STextStyles.button(context).copyWith(
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .buttonTextSecondary,
-                                    ),
-                                  ),
+                      Flexible(
+                        flex: side ? WalletView.sidePaneFlex : 0,
+                        fit: side ? FlexFit.tight : FlexFit.loose,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const SizedBox(height: 10),
+                            Center(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                ),
+                                child: WalletSummary(
+                                  walletId: walletId,
+                                  aspectRatio: 1.75,
+                                  // In the pane above the navigation bar.
+                                  heightCap: side
+                                      ? ScreenFit.bodyHeight(context) -
+                                            WalletView.navBarHeight -
+                                            34 -
+                                            (isPivxShield && !viewOnly ? 58 : 0)
+                                      : null,
+                                  initialSyncStatus:
+                                      ref
+                                          .watch(pWallets)
+                                          .getWallet(walletId)
+                                          .refreshMutex
+                                          .isLocked
+                                      ? WalletSyncStatus.syncing
+                                      : WalletSyncStatus.synced,
                                 ),
                               ),
-                            ],
-                          ),
-                        ),
-                      const SizedBox(height: 20),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              l10n.receiveTransactions,
-                              style: STextStyles.itemSubtitle(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textDark3,
+                            ),
+                            if (isPivxShield && !viewOnly)
+                              const SizedBox(height: 10),
+                            if (isPivxShield && !viewOnly)
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                ),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: TextButton(
+                                        style: Theme.of(context)
+                                            .extension<StackColors>()!
+                                            .getSecondaryEnabledButtonStyle(
+                                              context,
+                                            ),
+                                        onPressed: () async {
+                                          await showDialog<void>(
+                                            context: context,
+                                            builder: (context) => StackDialog(
+                                              title: l10n.walletAttention,
+                                              message:
+                                                  l10n.walletPrivatizeConfirm,
+                                              leftButton: TextButton(
+                                                onPressed: () {
+                                                  Navigator.of(context).pop();
+                                                },
+                                                child: Text(
+                                                  l10n.commonCancel,
+                                                  style:
+                                                      STextStyles.button(
+                                                        context,
+                                                      ).copyWith(
+                                                        color: Theme.of(context)
+                                                            .extension<
+                                                              StackColors
+                                                            >()!
+                                                            .accentColorDark,
+                                                      ),
+                                                ),
+                                              ),
+                                              rightButton: TextButton(
+                                                onPressed: () async {
+                                                  Navigator.of(context).pop();
+
+                                                  unawaited(attemptAnonymize());
+                                                },
+                                                style: Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .getPrimaryEnabledButtonStyle(
+                                                      context,
+                                                    ),
+                                                child: Text(
+                                                  l10n.commonContinue,
+                                                  style: STextStyles.button(
+                                                    context,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                        child: Text(
+                                          l10n.walletPrivatizeFunds,
+                                          style: STextStyles.button(context)
+                                              .copyWith(
+                                                color: Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .buttonTextSecondary,
+                                              ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
-                            ),
-                            CustomTextButton(
-                              text: l10n.walletSeeAll,
-                              onTap: () {
-                                Navigator.of(context).pushNamed(
-                                  AllTransactionsV2View.routeName,
-                                  arguments: walletId,
-                                );
-                              },
-                            ),
                           ],
                         ),
                       ),
-                      const SizedBox(height: 12),
-                      Expanded(
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.vertical(
-                              top: Radius.circular(
-                                Constants.size.circularBorderRadius,
+                      Flexible(
+                        flex: side ? 11 - WalletView.sidePaneFlex : 1,
+                        fit: FlexFit.tight,
+                        child: Column(
+                          children: [
+                            SizedBox(height: side ? 10 : 20),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
                               ),
-                              bottom: Radius.circular(
-                                // WalletView.navBarHeight / 2.0,
-                                Constants.size.circularBorderRadius,
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Text(
+                                    l10n.receiveTransactions,
+                                    style: STextStyles.itemSubtitle(context)
+                                        .copyWith(
+                                          color: Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .textDark3,
+                                        ),
+                                  ),
+                                  CustomTextButton(
+                                    text: l10n.walletSeeAll,
+                                    onTap: () {
+                                      Navigator.of(context).pushNamed(
+                                        AllTransactionsV2View.routeName,
+                                        arguments: walletId,
+                                      );
+                                    },
+                                  ),
+                                ],
                               ),
                             ),
-                            child: ShaderMask(
-                              blendMode: BlendMode.dstOut,
-                              shaderCallback: (Rect bounds) {
-                                return const LinearGradient(
-                                  begin: Alignment.topCenter,
-                                  end: Alignment.bottomCenter,
-                                  colors: [
-                                    Colors.transparent,
-                                    Colors.transparent,
-                                    Colors.white,
-                                  ],
-                                  stops: [0.0, 0.8, 1.0],
-                                ).createShader(bounds);
-                              },
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.transparent,
-                                  borderRadius: BorderRadius.circular(
-                                    Constants.size.circularBorderRadius,
-                                  ),
+                            const SizedBox(height: 12),
+                            Expanded(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
                                 ),
-                                child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
-                                  children: [
-                                    Expanded(
-                                      child: TransactionsV2List(
-                                        walletId: widget.walletId,
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.vertical(
+                                    top: Radius.circular(
+                                      Constants.size.circularBorderRadius,
+                                    ),
+                                    bottom: Radius.circular(
+                                      // WalletView.navBarHeight / 2.0,
+                                      Constants.size.circularBorderRadius,
+                                    ),
+                                  ),
+                                  child: ShaderMask(
+                                    blendMode: BlendMode.dstOut,
+                                    shaderCallback: (Rect bounds) {
+                                      return const LinearGradient(
+                                        begin: Alignment.topCenter,
+                                        end: Alignment.bottomCenter,
+                                        colors: [
+                                          Colors.transparent,
+                                          Colors.transparent,
+                                          Colors.white,
+                                        ],
+                                        stops: [0.0, 0.8, 1.0],
+                                      ).createShader(bounds);
+                                    },
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: Colors.transparent,
+                                        borderRadius: BorderRadius.circular(
+                                          Constants.size.circularBorderRadius,
+                                        ),
+                                      ),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.stretch,
+                                        children: [
+                                          Expanded(
+                                            child: TransactionsV2List(
+                                              walletId: widget.walletId,
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
-                                  ],
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
+                          ],
                         ),
                       ),
                     ],
@@ -633,6 +690,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
             ),
             SafeArea(
               child: WalletNavigationBar(
+                paneShare: side ? WalletView.sidePaneFlex / 11 : 1,
                 items: [
                   if (!viewOnly)
                     WalletNavigationBarItemData(

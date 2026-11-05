@@ -12,6 +12,7 @@ import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../../widgets/adaptive_page.dart';
 import '../../../../widgets/conditional_parent.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/desktop/primary_button.dart';
@@ -114,7 +115,7 @@ class _DeleteViewOnlyWalletKeysViewState
   Widget build(BuildContext context) {
     return ConditionalParent(
       condition: !Util.isDesktop,
-      builder: (child) => Scaffold(
+      builder: (child) => AppScaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         appBar: AppBar(
           leading: AppBarBackButton(

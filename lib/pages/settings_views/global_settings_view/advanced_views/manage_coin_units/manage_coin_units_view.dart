@@ -13,6 +13,7 @@ import '../../../../../utilities/shown_coins.dart';
 import '../../../../../utilities/text_styles.dart';
 import '../../../../../utilities/util.dart';
 import '../../../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../../../widgets/adaptive_page.dart';
 import '../../../../../widgets/background.dart';
 import '../../../../../widgets/conditional_parent.dart';
 import '../../../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -49,6 +50,7 @@ class ManageCoinUnitsView extends ConsumerWidget {
       condition: Util.isDesktop,
       builder: (child) => DesktopDialog(
         maxHeight: 850,
+        fitsWindow: true,
         maxWidth: 600,
         child: Column(
           children: [
@@ -77,7 +79,7 @@ class ManageCoinUnitsView extends ConsumerWidget {
       child: ConditionalParent(
         condition: !Util.isDesktop,
         builder: (child) => Background(
-          child: Scaffold(
+          child: AppScaffold(
             backgroundColor: Theme.of(context)
                 .extension<StackColors>()!
                 .background,

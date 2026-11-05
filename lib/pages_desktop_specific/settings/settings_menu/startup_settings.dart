@@ -37,95 +37,102 @@ class StartupSettings extends ConsumerWidget {
       required String? value,
       required String title,
       String? subtitle,
-    }) => RadioListTile<String?>(
-      value: value,
-      dense: true,
-      contentPadding: EdgeInsets.zero,
-      activeColor: colors.radioButtonIconEnabled,
-      title: Text(
-        title,
-        style: STextStyles.desktopTextExtraSmall(context)
-            .copyWith(color: colors.textDark),
+    }) => Material(
+      type: MaterialType.transparency,
+      child: RadioListTile<String?>(
+        value: value,
+        dense: true,
+        contentPadding: EdgeInsets.zero,
+        activeColor: colors.radioButtonIconEnabled,
+        title: Text(
+          title,
+          style: STextStyles.desktopTextExtraSmall(context)
+              .copyWith(color: colors.textDark),
+        ),
+        subtitle: subtitle == null
+            ? null
+            : Text(
+                subtitle,
+                style: STextStyles.desktopTextExtraExtraSmall(context),
+              ),
       ),
-      subtitle: subtitle == null
-          ? null
-          : Text(
-              subtitle,
-              style: STextStyles.desktopTextExtraExtraSmall(context),
-            ),
     );
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: const EdgeInsetsDirectional.only(end: 30),
-          child: RoundedWhiteContainer(
-            radiusMultiplier: 2,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(8),
-                  child: Container(
-                    width: 48,
-                    height: 48,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFFE0E3E3),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.power_settings_new_rounded,
-                      size: 26,
-                      color: Color(0xFF232323),
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsetsDirectional.only(end: 30),
+            child: RoundedWhiteContainer(
+              radiusMultiplier: 2,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: Container(
+                      width: 48,
+                      height: 48,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFE0E3E3),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.power_settings_new_rounded,
+                        size: 26,
+                        color: Color(0xFF232323),
+                      ),
                     ),
                   ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(10),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        l10n.settingsStartup,
-                        style: STextStyles.desktopTextSmall(context),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        l10n.startupChooseText(AppConfig.appName),
-                        style: STextStyles.desktopTextExtraExtraSmall(context),
-                      ),
-                      const SizedBox(height: 12),
-                      SizedBox(
-                        width: 512,
-                        child: RadioGroup<String?>(
-                          groupValue: gotoWallet ? startupWalletId : null,
-                          onChanged: openWallet,
-                          child: Column(
-                            children: [
-                              option(
-                                value: null,
-                                title: l10n.desktopMyWallets,
-                                subtitle: l10n.startupMyWalletsText,
-                              ),
-                              for (final w in wallets)
-                                option(
-                                  value: w.walletId,
-                                  title: w.info.name,
-                                  subtitle: l10n.startupOpenWallet,
-                                ),
-                            ],
+                  Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          l10n.settingsStartup,
+                          style: STextStyles.desktopTextSmall(context),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          l10n.startupChooseText(AppConfig.appName),
+                          style: STextStyles.desktopTextExtraExtraSmall(
+                            context,
                           ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 12),
+                        SizedBox(
+                          width: 512,
+                          child: RadioGroup<String?>(
+                            groupValue: gotoWallet ? startupWalletId : null,
+                            onChanged: openWallet,
+                            child: Column(
+                              children: [
+                                option(
+                                  value: null,
+                                  title: l10n.desktopMyWallets,
+                                  subtitle: l10n.startupMyWalletsText,
+                                ),
+                                for (final w in wallets)
+                                  option(
+                                    value: w.walletId,
+                                    title: w.info.name,
+                                    subtitle: l10n.startupOpenWallet,
+                                  ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

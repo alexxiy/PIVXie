@@ -24,6 +24,7 @@ import '../../../../utilities/constants.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../../widgets/adaptive_page.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/conditional_parent.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -44,7 +45,7 @@ class WalletSyncingOptionsView extends ConsumerWidget {
       condition: !isDesktop,
       builder: (child) {
         return Background(
-          child: Scaffold(
+          child: AppScaffold(
             backgroundColor:
                 Theme.of(context).extension<StackColors>()!.background,
             appBar: AppBar(

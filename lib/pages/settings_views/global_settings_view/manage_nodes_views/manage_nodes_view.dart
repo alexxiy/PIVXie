@@ -21,6 +21,7 @@ import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/shown_coins.dart';
 import '../../../../utilities/text_styles.dart';
+import '../../../../widgets/adaptive_page.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/rounded_white_container.dart';
@@ -44,7 +45,7 @@ class _ManageNodesViewState extends ConsumerState<ManageNodesView> {
     final coins = shownCoins(ref, withWalletCoins: true);
 
     return Background(
-      child: Scaffold(
+      child: AppScaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         appBar: AppBar(
           leading: AppBarBackButton(

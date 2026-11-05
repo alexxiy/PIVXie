@@ -11,6 +11,7 @@ import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/flutter_secure_storage_interface.dart';
 import '../../../../utilities/text_styles.dart';
+import '../../../../widgets/adaptive_page.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/center_or_scroll.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -76,7 +77,7 @@ class _CreateDuressPinViewState extends ConsumerState<CreateDuressPinView> {
   @override
   Widget build(BuildContext context) {
     return Background(
-      child: Scaffold(
+      child: AppScaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         appBar: AppBar(
           leading: AppBarBackButton(
@@ -101,14 +102,12 @@ class _CreateDuressPinViewState extends ConsumerState<CreateDuressPinView> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Center(
-                      child: Text(
+                    CustomPinPut(
+                      header: Text(
                         l10n.duressCreate,
+                        textAlign: TextAlign.center,
                         style: STextStyles.pageTitleH1(context),
                       ),
-                    ),
-                    const SizedBox(height: 52),
-                    CustomPinPut(
                       fieldsCount: pinCount,
                       eachFieldHeight: 12,
                       eachFieldWidth: 12,
@@ -171,14 +170,12 @@ class _CreateDuressPinViewState extends ConsumerState<CreateDuressPinView> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Center(
-                      child: Text(
+                    CustomPinPut(
+                      header: Text(
                         l10n.duressConfirm,
+                        textAlign: TextAlign.center,
                         style: STextStyles.pageTitleH1(context),
                       ),
-                    ),
-                    const SizedBox(height: 52),
-                    CustomPinPut(
                       fieldsCount: pinCount,
                       eachFieldHeight: 12,
                       eachFieldWidth: 12,

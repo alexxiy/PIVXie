@@ -31,6 +31,7 @@ import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../wallets/wallet/impl/pivx_wallet.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import '../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
+import '../../../widgets/adaptive_page.dart';
 import '../../../widgets/background.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/rounded_white_container.dart';
@@ -214,7 +215,7 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
     }
 
     return Background(
-      child: Scaffold(
+      child: AppScaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         appBar: AppBar(
           leading: AppBarBackButton(

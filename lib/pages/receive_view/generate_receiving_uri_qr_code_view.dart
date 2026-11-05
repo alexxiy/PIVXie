@@ -10,6 +10,7 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
@@ -32,6 +33,7 @@ import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
+import '../../widgets/adaptive_page.dart';
 import '../../widgets/background.dart';
 import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -197,7 +199,8 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
       useSafeArea: false,
       barrierDismissible: true,
       builder: (_) {
-        final width = MediaQuery.of(context).size.width / 2;
+        final size = MediaQuery.sizeOf(context);
+        final width = min(size.width / 2, size.height - 220);
         return StackDialogBase(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -280,7 +283,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) => Background(
-        child: Scaffold(
+        child: AppScaffold(
           backgroundColor: Theme.of(context)
               .extension<StackColors>()!
               .background,

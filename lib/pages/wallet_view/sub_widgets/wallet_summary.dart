@@ -11,6 +11,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+
 import 'wallet_summary_info.dart';
 import '../../../services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import '../../../widgets/coin_card.dart';
@@ -21,8 +22,9 @@ class WalletSummary extends StatelessWidget {
     required this.walletId,
     required this.initialSyncStatus,
     this.aspectRatio = 2.0,
-    this.minHeight = 100.0,
+    this.minHeight = 136.0,
     this.maxHeight = 250.0,
+    this.heightCap,
   });
 
   final String walletId;
@@ -32,13 +34,16 @@ class WalletSummary extends StatelessWidget {
   final double minHeight;
   final double maxHeight;
 
+  /// Instead of the share of the screen: a pane with its own height.
+  final double? heightCap;
+
   @override
   Widget build(BuildContext context) {
     // The height follows the width only up to maxHeight, and up to 30% of
     // the screen. Otherwise on a tablet, and in landscape above all, the
     // card fills the screen and pushes the transactions out of sight.
     final screenHeight = MediaQuery.sizeOf(context).height;
-    final cap = max(minHeight, min(maxHeight, screenHeight * 0.3));
+    final cap = max(minHeight, min(maxHeight, heightCap ?? screenHeight * 0.3));
     return LayoutBuilder(
       builder: (_, constraints) {
         final width = constraints.maxWidth;

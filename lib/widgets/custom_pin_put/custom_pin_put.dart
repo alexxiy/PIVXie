@@ -20,6 +20,8 @@ class CustomPinPut extends StatefulWidget {
     required this.isRandom,
     this.height,
     this.width,
+    this.header,
+    this.headerGap = 52,
     this.onSubmit,
     this.onSaved,
     this.onChanged,
@@ -70,6 +72,13 @@ class CustomPinPut extends StatefulWidget {
 
   final double? width;
   final double? height;
+
+  /// The title of the screen: above the dots, or with the dots beside the
+  /// pad on a screen too short to have them above it.
+  final Widget? header;
+
+  /// Between [header] and the dots.
+  final double headerGap;
 
   final CustomKey? customKey;
 

@@ -9,6 +9,9 @@
  */
 
 import 'package:flutter/gestures.dart';
+
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -21,6 +24,7 @@ import '../utilities/assets.dart';
 import '../utilities/prefs.dart';
 import '../utilities/text_styles.dart';
 import '../utilities/util.dart';
+import '../widgets/adaptive_page.dart';
 import '../widgets/background.dart';
 import '../widgets/desktop/secondary_button.dart';
 import 'stack_privacy_calls.dart';
@@ -47,11 +51,40 @@ class _IntroViewState extends ConsumerState<IntroView> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType ");
     return Background(
-      child: Scaffold(
+      child: AppScaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
+        maxBodyWidth: ScreenFit.panesOrColumn(context),
         body: SafeArea(
           child: Center(
-            child: !isDesktop
+            child: ScreenFit.sideBySide(context)
+                ? Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: SplitPane(
+                      start: Image.asset(
+                        Assets.persona.welcome,
+                        width: 266,
+                        height: min(
+                          266,
+                          MediaQuery.sizeOf(context).height - 64,
+                        ),
+                        fit: BoxFit.contain,
+                      ),
+                      end: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          AppNameText(isDesktop: isDesktop),
+                          const SizedBox(height: 8),
+                          IntroAboutText(isDesktop: isDesktop),
+                          const SizedBox(height: 24),
+                          PrivacyAndTOSText(isDesktop: isDesktop),
+                          const SizedBox(height: 16),
+                          GetStartedButton(isDesktop: isDesktop),
+                        ],
+                      ),
+                    ),
+                  )
+                : !isDesktop
                 ? LayoutBuilder(
                     // Scrolls when the screen is too short for it: a tablet
                     // in landscape, a split screen window.
@@ -113,40 +146,44 @@ class _IntroViewState extends ConsumerState<IntroView> {
                       ),
                     ),
                   )
-                : SizedBox(
-                    width: 350,
-                    height: 620,
-                    child: Column(
-                      children: [
-                        const Spacer(flex: 2),
-                        Image.asset(
-                          Assets.persona.welcome,
-                          width: 200,
-                          height: 200,
-                          fit: BoxFit.contain,
-                        ),
-                        const Spacer(flex: 42),
-                        AppNameText(isDesktop: isDesktop),
-                        const Spacer(flex: 24),
-                        IntroAboutText(isDesktop: isDesktop),
-                        const Spacer(flex: 42),
-                        GetStartedButton(isDesktop: isDesktop),
-                        if (isDesktop) const SizedBox(height: 20),
-                        if (isDesktop)
-                          SecondaryButton(
-                            label: l10n.introRestoreBackup(AppConfig.prefix),
-                            onPressed: () {
-                              // Stored now; the backup may bring its own.
-                              Prefs.instance.externalCalls = true;
-                              Navigator.of(context).pushNamed(
-                                CreatePasswordView.routeName,
-                                arguments: true,
-                              );
-                            },
+                : SingleChildScrollView(
+                    primary: false,
+                    child: SizedBox(
+                      width: 350,
+                      height: 620,
+                      child: Column(
+                        children: [
+                          const Spacer(flex: 2),
+                          Image.asset(
+                            Assets.persona.welcome,
+                            width: 200,
+                            height: 200,
+                            fit: BoxFit.contain,
                           ),
-                        const Spacer(flex: 65),
-                        PrivacyAndTOSText(isDesktop: isDesktop),
-                      ],
+                          const Spacer(flex: 42),
+                          AppNameText(isDesktop: isDesktop),
+                          const Spacer(flex: 24),
+                          IntroAboutText(isDesktop: isDesktop),
+                          const Spacer(flex: 42),
+                          GetStartedButton(isDesktop: isDesktop),
+                          if (isDesktop) const SizedBox(height: 20),
+                          if (isDesktop)
+                            SecondaryButton(
+                              width: double.infinity,
+                              label: l10n.introRestoreBackup(AppConfig.prefix),
+                              onPressed: () {
+                                // Stored now; the backup may bring its own.
+                                Prefs.instance.externalCalls = true;
+                                Navigator.of(context).pushNamed(
+                                  CreatePasswordView.routeName,
+                                  arguments: true,
+                                );
+                              },
+                            ),
+                          const Spacer(flex: 65),
+                          PrivacyAndTOSText(isDesktop: isDesktop),
+                        ],
+                      ),
                     ),
                   ),
           ),

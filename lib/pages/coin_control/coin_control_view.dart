@@ -32,6 +32,7 @@ import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
 import '../../wallets/wallet/wallet.dart';
 import '../../wallets/wallet/wallet_mixin_interfaces/coin_control_interface.dart';
+import '../../widgets/adaptive_page.dart';
 import '../../widgets/animated_widgets/rotate_icon.dart';
 import '../../widgets/app_bar_field.dart';
 import '../../widgets/background.dart';
@@ -317,14 +318,15 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
         return false;
       },
       child: Background(
-        child: Scaffold(
+        child: AppScaffold(
+          maxBodyWidth: ScreenFit.panesOrColumn(context),
           backgroundColor: Theme.of(context)
               .extension<StackColors>()!
               .background,
           appBar: AppBar(
             automaticallyImplyLeading: false,
             // Also opened in the desktop window: sized like PageAppBar.
-            toolbarHeight: PageAppBar.height,
+            toolbarHeight: Util.isDesktop ? PageAppBar.height : null,
             leadingWidth: PageAppBar.leadingWidth,
             actionsPadding: PageAppBar.actionsPadding,
             leading: _isSearching
@@ -459,91 +461,150 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                   ],
           ),
           body: SafeArea(
-            child: Column(
-              children: [
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Column(
-                      children: [
-                        const SizedBox(height: 10),
-                        if (!_isSearching && _canSwitchKind) ...[
-                          SizedBox(
-                            height: 48,
-                            child: Toggle(
-                              key: UniqueKey(),
-                              onColor: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .popupBG,
-                              onText: l10n.coinControlTransparent,
-                              offColor: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textFieldDefaultBG,
-                              offText: l10n.coinControlShield,
-                              isOn: _shieldNotes == true,
-                              onValueChanged: (value) {
-                                setState(() {
-                                  _shieldNotes = value;
-                                  _selectedAvailable.clear();
-                                  _selectedBlocked.clear();
-                                });
-                              },
-                              decoration: BoxDecoration(
-                                color: Colors.transparent,
-                                borderRadius: BorderRadius.circular(
-                                  Constants.size.circularBorderRadius,
-                                ),
-                              ),
-                            ),
+            child: Builder(
+              builder: (context) {
+                final header = <Widget>[
+                  const SizedBox(height: 10),
+                  if (!_isSearching && _canSwitchKind) ...[
+                    SizedBox(
+                      height: 48,
+                      child: Toggle(
+                        key: UniqueKey(),
+                        onColor: Theme.of(context)
+                            .extension<StackColors>()!
+                            .popupBG,
+                        onText: l10n.coinControlTransparent,
+                        offColor: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textFieldDefaultBG,
+                        offText: l10n.coinControlShield,
+                        isOn: _shieldNotes == true,
+                        onValueChanged: (value) {
+                          setState(() {
+                            _shieldNotes = value;
+                            _selectedAvailable.clear();
+                            _selectedBlocked.clear();
+                          });
+                        },
+                        decoration: BoxDecoration(
+                          color: Colors.transparent,
+                          borderRadius: BorderRadius.circular(
+                            Constants.size.circularBorderRadius,
                           ),
-                          const SizedBox(height: 10),
-                        ],
-                        if (!_isSearching)
-                          RoundedWhiteContainer(
-                            child: Text(
-                              _shieldNotes == true
-                                  ? l10n.coinControlExplainNotes
-                                  : l10n.coinControlExplainOutputs,
-                              style: STextStyles.w500_14(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textSubtitle1,
-                              ),
-                            ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                  ],
+                  if (!_isSearching)
+                    RoundedWhiteContainer(
+                      child: Text(
+                        _shieldNotes == true
+                            ? l10n.coinControlExplainNotes
+                            : l10n.coinControlExplainOutputs,
+                        style: STextStyles.w500_14(context).copyWith(
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .textSubtitle1,
+                        ),
+                      ),
+                    ),
+                  if (!_isSearching) const SizedBox(height: 10),
+                  if (!(_isSearching || _map != null))
+                    SizedBox(
+                      height: 48,
+                      child: Toggle(
+                        key: UniqueKey(),
+                        onColor: Theme.of(context)
+                            .extension<StackColors>()!
+                            .popupBG,
+                        onText: l10n.coinControlAvailableOutputs,
+                        offColor: Theme.of(context)
+                            .extension<StackColors>()!
+                            .textFieldDefaultBG,
+                        offText: l10n.coinControlFrozenOutputs,
+                        isOn: _showBlocked,
+                        onValueChanged: (value) {
+                          setState(() {
+                            _showBlocked = value;
+                          });
+                        },
+                        decoration: BoxDecoration(
+                          color: Colors.transparent,
+                          borderRadius: BorderRadius.circular(
+                            Constants.size.circularBorderRadius,
                           ),
-                        if (!_isSearching) const SizedBox(height: 10),
-                        if (!(_isSearching || _map != null))
-                          SizedBox(
-                            height: 48,
-                            child: Toggle(
-                              key: UniqueKey(),
-                              onColor: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .popupBG,
-                              onText: l10n.coinControlAvailableOutputs,
-                              offColor: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textFieldDefaultBG,
-                              offText: l10n.coinControlFrozenOutputs,
-                              isOn: _showBlocked,
-                              onValueChanged: (value) {
-                                setState(() {
-                                  _showBlocked = value;
-                                });
-                              },
-                              decoration: BoxDecoration(
-                                color: Colors.transparent,
-                                borderRadius: BorderRadius.circular(
-                                  Constants.size.circularBorderRadius,
-                                ),
-                              ),
-                            ),
-                          ),
-                        if (!_isSearching) const SizedBox(height: 10),
-                        if (!_isSearching) _selectAllRow(currentHeight),
-                        if (!_isSearching) const SizedBox(height: 6),
-                        if (_isSearching)
-                          Expanded(
+                        ),
+                      ),
+                    ),
+                  if (!_isSearching) const SizedBox(height: 10),
+                  if (!_isSearching) _selectAllRow(currentHeight),
+                  if (!_isSearching) const SizedBox(height: 6),
+                ];
+                final list = <Widget>[
+                  if (_isSearching)
+                    Expanded(
+                      child: ListView.separated(
+                        itemCount: _list!.length,
+                        separatorBuilder: (context, _) =>
+                            const SizedBox(height: 10),
+                        itemBuilder: (context, index) {
+                          final utxo = MainDB.instance.isar.utxos
+                              .where()
+                              .idEqualTo(_list![index])
+                              .findFirstSync()!;
+
+                          final isSelected =
+                              _selectedBlocked.contains(utxo) ||
+                              _selectedAvailable.contains(utxo);
+
+                          return UtxoCard(
+                            key: Key("${utxo.walletId}_${utxo.id}_$isSelected"),
+                            walletId: widget.walletId,
+                            utxo: utxo,
+                            canSelect:
+                                widget.type == CoinControlViewType.manage ||
+                                (widget.type == CoinControlViewType.use &&
+                                    !utxo.isBlocked &&
+                                    _isConfirmed(
+                                      utxo,
+                                      currentHeight,
+                                      ref.watch(
+                                        pWallets.select(
+                                          (s) => s.getWallet(widget.walletId),
+                                        ),
+                                      ),
+                                    )),
+                            initialSelectedState: isSelected,
+                            onSelectedChanged: (value) {
+                              if (value) {
+                                utxo.isBlocked
+                                    ? _selectedBlocked.add(utxo)
+                                    : _selectedAvailable.add(utxo);
+                              } else {
+                                utxo.isBlocked
+                                    ? _selectedBlocked.remove(utxo)
+                                    : _selectedAvailable.remove(utxo);
+                              }
+                              setState(() {});
+                            },
+                            onPressed: () async {
+                              final result = await Navigator.of(context)
+                                  .pushNamed(
+                                    UtxoDetailsView.routeName,
+                                    arguments: Tuple2(utxo.id, widget.walletId),
+                                  );
+                              if (mounted && result == "refresh") {
+                                setState(() {});
+                              }
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                  if (!_isSearching)
+                    _list != null
+                        ? Expanded(
                             child: ListView.separated(
                               itemCount: _list!.length,
                               separatorBuilder: (context, _) =>
@@ -554,9 +615,9 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                     .idEqualTo(_list![index])
                                     .findFirstSync()!;
 
-                                final isSelected =
-                                    _selectedBlocked.contains(utxo) ||
-                                    _selectedAvailable.contains(utxo);
+                                final isSelected = _showBlocked
+                                    ? _selectedBlocked.contains(utxo)
+                                    : _selectedAvailable.contains(utxo);
 
                                 return UtxoCard(
                                   key: Key(
@@ -568,7 +629,7 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                       widget.type ==
                                           CoinControlViewType.manage ||
                                       (widget.type == CoinControlViewType.use &&
-                                          !utxo.isBlocked &&
+                                          !_showBlocked &&
                                           _isConfirmed(
                                             utxo,
                                             currentHeight,
@@ -583,11 +644,11 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                   initialSelectedState: isSelected,
                                   onSelectedChanged: (value) {
                                     if (value) {
-                                      utxo.isBlocked
+                                      _showBlocked
                                           ? _selectedBlocked.add(utxo)
                                           : _selectedAvailable.add(utxo);
                                     } else {
-                                      utxo.isBlocked
+                                      _showBlocked
                                           ? _selectedBlocked.remove(utxo)
                                           : _selectedAvailable.remove(utxo);
                                     }
@@ -609,417 +670,237 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                 );
                               },
                             ),
-                          ),
-                        if (!_isSearching)
-                          _list != null
-                              ? Expanded(
-                                  child: ListView.separated(
-                                    itemCount: _list!.length,
-                                    separatorBuilder: (context, _) =>
-                                        const SizedBox(height: 10),
-                                    itemBuilder: (context, index) {
-                                      final utxo = MainDB.instance.isar.utxos
-                                          .where()
-                                          .idEqualTo(_list![index])
-                                          .findFirstSync()!;
+                          )
+                        : Expanded(
+                            child: ListView.separated(
+                              itemCount: _map!.entries.length,
+                              separatorBuilder: (context, _) =>
+                                  const SizedBox(height: 10),
+                              itemBuilder: (context, index) {
+                                final entry = _map!.entries.elementAt(index);
+                                final _controller = RotateIconController();
 
-                                      final isSelected = _showBlocked
-                                          ? _selectedBlocked.contains(utxo)
-                                          : _selectedAvailable.contains(utxo);
-
-                                      return UtxoCard(
-                                        key: Key(
-                                          "${utxo.walletId}_${utxo.id}_$isSelected",
-                                        ),
-                                        walletId: widget.walletId,
-                                        utxo: utxo,
-                                        canSelect:
-                                            widget.type ==
-                                                CoinControlViewType.manage ||
-                                            (widget.type ==
-                                                    CoinControlViewType.use &&
-                                                !_showBlocked &&
-                                                _isConfirmed(
-                                                  utxo,
-                                                  currentHeight,
-                                                  ref.watch(
-                                                    pWallets.select(
-                                                      (s) => s.getWallet(
-                                                        widget.walletId,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                )),
-                                        initialSelectedState: isSelected,
-                                        onSelectedChanged: (value) {
-                                          if (value) {
-                                            _showBlocked
-                                                ? _selectedBlocked.add(utxo)
-                                                : _selectedAvailable.add(utxo);
-                                          } else {
-                                            _showBlocked
-                                                ? _selectedBlocked.remove(utxo)
-                                                : _selectedAvailable.remove(
-                                                    utxo,
-                                                  );
-                                          }
-                                          setState(() {});
-                                        },
-                                        onPressed: () async {
-                                          final result =
-                                              await Navigator.of(context)
-                                                  .pushNamed(
-                                                    UtxoDetailsView.routeName,
-                                                    arguments: Tuple2(
-                                                      utxo.id,
-                                                      widget.walletId,
-                                                    ),
-                                                  );
-                                          if (mounted && result == "refresh") {
-                                            setState(() {});
-                                          }
-                                        },
-                                      );
-                                    },
-                                  ),
-                                )
-                              : Expanded(
-                                  child: ListView.separated(
-                                    itemCount: _map!.entries.length,
-                                    separatorBuilder: (context, _) =>
-                                        const SizedBox(height: 10),
-                                    itemBuilder: (context, index) {
-                                      final entry = _map!.entries.elementAt(
-                                        index,
-                                      );
-                                      final _controller =
-                                          RotateIconController();
-
-                                      return Expandable2(
-                                        border: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .backgroundAppBar,
-                                        background: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .popupBG,
-                                        animationDurationMultiplier:
-                                            0.2 * entry.value.length,
-                                        onExpandWillChange: (state) {
-                                          if (state ==
-                                              Expandable2State.expanded) {
-                                            _controller.forward?.call();
-                                          } else {
-                                            _controller.reverse?.call();
-                                          }
-                                        },
-                                        header: RoundedContainer(
-                                          padding: const EdgeInsets.all(14),
-                                          color: Colors.transparent,
-                                          child: Row(
+                                return Expandable2(
+                                  border: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .backgroundAppBar,
+                                  background: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .popupBG,
+                                  animationDurationMultiplier:
+                                      0.2 * entry.value.length,
+                                  onExpandWillChange: (state) {
+                                    if (state == Expandable2State.expanded) {
+                                      _controller.forward?.call();
+                                    } else {
+                                      _controller.reverse?.call();
+                                    }
+                                  },
+                                  header: RoundedContainer(
+                                    padding: const EdgeInsets.all(14),
+                                    color: Colors.transparent,
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
                                             children: [
-                                              Expanded(
-                                                child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      entry.key,
-                                                      style:
-                                                          STextStyles.w600_14(
-                                                            context,
-                                                          ),
-                                                    ),
-                                                    const SizedBox(height: 2),
-                                                    Text(
-                                                      l10n.coinControlOutputs(
-                                                        entry.value.length,
-                                                      ),
-                                                      style:
-                                                          STextStyles.w500_12(
-                                                            context,
-                                                          ).copyWith(
-                                                            color: Theme.of(context)
-                                                                .extension<
-                                                                  StackColors
-                                                                >()!
-                                                                .textSubtitle1,
-                                                          ),
-                                                    ),
-                                                  ],
+                                              Text(
+                                                entry.key,
+                                                style: STextStyles.w600_14(
+                                                  context,
                                                 ),
                                               ),
-                                              RotateIcon(
-                                                animationDurationMultiplier:
-                                                    0.2 * entry.value.length,
-                                                icon: SvgPicture.asset(
-                                                  Assets.svg.chevronDown,
-                                                  width: 14,
-                                                  color: Theme.of(context)
-                                                      .extension<StackColors>()!
-                                                      .textSubtitle1,
+                                              const SizedBox(height: 2),
+                                              Text(
+                                                l10n.coinControlOutputs(
+                                                  entry.value.length,
                                                 ),
-                                                curve: Curves.easeInOut,
-                                                controller: _controller,
+                                                style:
+                                                    STextStyles.w500_12(
+                                                      context,
+                                                    ).copyWith(
+                                                      color: Theme.of(context)
+                                                          .extension<
+                                                            StackColors
+                                                          >()!
+                                                          .textSubtitle1,
+                                                    ),
                                               ),
                                             ],
                                           ),
                                         ),
-                                        children: entry.value.map((id) {
-                                          final utxo = MainDB
-                                              .instance
-                                              .isar
-                                              .utxos
-                                              .where()
-                                              .idEqualTo(id)
-                                              .findFirstSync()!;
+                                        RotateIcon(
+                                          animationDurationMultiplier:
+                                              0.2 * entry.value.length,
+                                          icon: SvgPicture.asset(
+                                            Assets.svg.chevronDown,
+                                            width: 14,
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .textSubtitle1,
+                                          ),
+                                          curve: Curves.easeInOut,
+                                          controller: _controller,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  children: entry.value.map((id) {
+                                    final utxo = MainDB.instance.isar.utxos
+                                        .where()
+                                        .idEqualTo(id)
+                                        .findFirstSync()!;
 
-                                          final isSelected =
-                                              _selectedBlocked.contains(utxo) ||
-                                              _selectedAvailable.contains(utxo);
+                                    final isSelected =
+                                        _selectedBlocked.contains(utxo) ||
+                                        _selectedAvailable.contains(utxo);
 
-                                          return UtxoCard(
-                                            key: Key(
-                                              "${utxo.walletId}_${utxo.id}_$isSelected",
-                                            ),
-                                            walletId: widget.walletId,
-                                            utxo: utxo,
-                                            canSelect:
-                                                widget.type ==
-                                                    CoinControlViewType
-                                                        .manage ||
-                                                (widget.type ==
-                                                        CoinControlViewType
-                                                            .use &&
-                                                    !utxo.isBlocked &&
-                                                    _isConfirmed(
-                                                      utxo,
-                                                      currentHeight,
-                                                      ref.watch(
-                                                        pWallets.select(
-                                                          (s) => s.getWallet(
-                                                            widget.walletId,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    )),
-                                            initialSelectedState: isSelected,
-                                            onSelectedChanged: (value) {
-                                              if (value) {
-                                                utxo.isBlocked
-                                                    ? _selectedBlocked.add(utxo)
-                                                    : _selectedAvailable.add(
-                                                        utxo,
-                                                      );
-                                              } else {
-                                                utxo.isBlocked
-                                                    ? _selectedBlocked.remove(
-                                                        utxo,
-                                                      )
-                                                    : _selectedAvailable.remove(
-                                                        utxo,
-                                                      );
-                                              }
-                                              setState(() {});
-                                            },
-                                            onPressed: () async {
-                                              final result =
-                                                  await Navigator.of(
-                                                    context,
-                                                  ).pushNamed(
-                                                    UtxoDetailsView.routeName,
-                                                    arguments: Tuple2(
-                                                      utxo.id,
+                                    return UtxoCard(
+                                      key: Key(
+                                        "${utxo.walletId}_${utxo.id}_$isSelected",
+                                      ),
+                                      walletId: widget.walletId,
+                                      utxo: utxo,
+                                      canSelect:
+                                          widget.type ==
+                                              CoinControlViewType.manage ||
+                                          (widget.type ==
+                                                  CoinControlViewType.use &&
+                                              !utxo.isBlocked &&
+                                              _isConfirmed(
+                                                utxo,
+                                                currentHeight,
+                                                ref.watch(
+                                                  pWallets.select(
+                                                    (s) => s.getWallet(
                                                       widget.walletId,
                                                     ),
-                                                  );
-                                              if (mounted &&
-                                                  result == "refresh") {
-                                                setState(() {});
-                                              }
-                                            },
-                                          );
-                                        }).toList(),
-                                      );
-                                    },
-                                  ),
-                                ),
-                      ],
-                    ),
-                  ),
-                ),
-                if (((_showBlocked && _selectedBlocked.isNotEmpty) ||
-                        (!_showBlocked && _selectedAvailable.isNotEmpty)) &&
-                    widget.type == CoinControlViewType.manage)
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .backgroundAppBar,
-                      boxShadow: [
-                        Theme.of(context)
+                                                  ),
+                                                ),
+                                              )),
+                                      initialSelectedState: isSelected,
+                                      onSelectedChanged: (value) {
+                                        if (value) {
+                                          utxo.isBlocked
+                                              ? _selectedBlocked.add(utxo)
+                                              : _selectedAvailable.add(utxo);
+                                        } else {
+                                          utxo.isBlocked
+                                              ? _selectedBlocked.remove(utxo)
+                                              : _selectedAvailable.remove(utxo);
+                                        }
+                                        setState(() {});
+                                      },
+                                      onPressed: () async {
+                                        final result =
+                                            await Navigator.of(context)
+                                                .pushNamed(
+                                                  UtxoDetailsView.routeName,
+                                                  arguments: Tuple2(
+                                                    utxo.id,
+                                                    widget.walletId,
+                                                  ),
+                                                );
+                                        if (mounted && result == "refresh") {
+                                          setState(() {});
+                                        }
+                                      },
+                                    );
+                                  }).toList(),
+                                );
+                              },
+                            ),
+                          ),
+                ];
+                final footer = <Widget>[
+                  if (((_showBlocked && _selectedBlocked.isNotEmpty) ||
+                          (!_showBlocked && _selectedAvailable.isNotEmpty)) &&
+                      widget.type == CoinControlViewType.manage)
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Theme.of(context)
                             .extension<StackColors>()!
-                            .standardBoxShadow,
-                      ],
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Builder(
-                            builder: (context) {
-                              final sel = _showBlocked
-                                  ? _selectedBlocked
-                                  : _selectedAvailable;
-                              final sum = sel
-                                  .fold<int>(0, (p, u) => p + u.value)
-                                  .toAmountAsRaw(
-                                    fractionDigits: coin.fractionDigits,
-                                  );
-                              return Text(
-                                "${l10n.coinControlSelected(sel.length)} · "
-                                "${ref.watch(pAmountFormatter(coin)).format(sum)}",
-                                style: STextStyles.w600_14(context),
-                              );
-                            },
-                          ),
-                          const SizedBox(height: 12),
-                          SecondaryButton(
-                            label: _showBlocked
-                                ? l10n.coinControlUnfreeze
-                                : l10n.coinControlFreeze,
-                            onPressed: () async {
-                              if (_showBlocked) {
-                                await MainDB.instance.putUTXOs(
-                                  _selectedBlocked
-                                      .map((e) => e.copyWith(isBlocked: false))
-                                      .toList(),
-                                );
-                                _selectedBlocked.clear();
-                              } else {
-                                await MainDB.instance.putUTXOs(
-                                  _selectedAvailable
-                                      .map((e) => e.copyWith(isBlocked: true))
-                                      .toList(),
-                                );
-                                _selectedAvailable.clear();
-                              }
-                              setState(() {});
-                            },
-                          ),
+                            .backgroundAppBar,
+                        boxShadow: [
+                          Theme.of(context)
+                              .extension<StackColors>()!
+                              .standardBoxShadow,
                         ],
                       ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Builder(
+                              builder: (context) {
+                                final sel = _showBlocked
+                                    ? _selectedBlocked
+                                    : _selectedAvailable;
+                                final sum = sel
+                                    .fold<int>(0, (p, u) => p + u.value)
+                                    .toAmountAsRaw(
+                                      fractionDigits: coin.fractionDigits,
+                                    );
+                                return Text(
+                                  "${l10n.coinControlSelected(sel.length)} · "
+                                  "${ref.watch(pAmountFormatter(coin)).format(sum)}",
+                                  style: STextStyles.w600_14(context),
+                                );
+                              },
+                            ),
+                            const SizedBox(height: 12),
+                            SecondaryButton(
+                              label: _showBlocked
+                                  ? l10n.coinControlUnfreeze
+                                  : l10n.coinControlFreeze,
+                              onPressed: () async {
+                                if (_showBlocked) {
+                                  await MainDB.instance.putUTXOs(
+                                    _selectedBlocked
+                                        .map(
+                                          (e) => e.copyWith(isBlocked: false),
+                                        )
+                                        .toList(),
+                                  );
+                                  _selectedBlocked.clear();
+                                } else {
+                                  await MainDB.instance.putUTXOs(
+                                    _selectedAvailable
+                                        .map((e) => e.copyWith(isBlocked: true))
+                                        .toList(),
+                                  );
+                                  _selectedAvailable.clear();
+                                }
+                                setState(() {});
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
-                if (!_showBlocked && widget.type == CoinControlViewType.use)
-                  Container(
-                    decoration: BoxDecoration(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .backgroundAppBar,
-                      boxShadow: [
-                        Theme.of(context)
+                  if (!_showBlocked && widget.type == CoinControlViewType.use)
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Theme.of(context)
                             .extension<StackColors>()!
-                            .standardBoxShadow,
-                      ],
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
-                        children: [
-                          RoundedWhiteContainer(
-                            padding: const EdgeInsets.all(0),
-                            child: Column(
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.all(12),
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Text(
-                                        l10n.coinControlSelectedAmount,
-                                        style: STextStyles.w600_14(context),
-                                      ),
-                                      Builder(
-                                        builder: (context) {
-                                          final int selectedSumInt =
-                                              _selectedAvailable.isEmpty
-                                              ? 0
-                                              : _selectedAvailable
-                                                    .map((e) => e.value)
-                                                    .reduce(
-                                                      (value, element) =>
-                                                          value += element,
-                                                    );
-                                          final selectedSum = selectedSumInt
-                                              .toAmountAsRaw(
-                                                fractionDigits:
-                                                    coin.fractionDigits,
-                                              );
-                                          return Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              SelectableText(
-                                                ref
-                                                    .watch(
-                                                      pAmountFormatter(coin),
-                                                    )
-                                                    .format(selectedSum),
-                                                style:
-                                                    widget.requestedTotal ==
-                                                        null
-                                                    ? STextStyles.w600_14(
-                                                        context,
-                                                      )
-                                                    : STextStyles.w600_14(
-                                                        context,
-                                                      ).copyWith(
-                                                        color:
-                                                            selectedSum >=
-                                                                widget
-                                                                    .requestedTotal!
-                                                            ? Theme.of(context)
-                                                                  .extension<
-                                                                    StackColors
-                                                                  >()!
-                                                                  .accentColorGreen
-                                                            : Theme.of(context)
-                                                                  .extension<
-                                                                    StackColors
-                                                                  >()!
-                                                                  .accentColorRed,
-                                                      ),
-                                              ),
-                                              const SizedBox(width: 8),
-                                              IconCopyButton(
-                                                data: ref
-                                                    .watch(
-                                                      pAmountFormatter(coin),
-                                                    )
-                                                    .format(
-                                                      selectedSum,
-                                                      withUnitName: false,
-                                                      indicatePrecisionLoss:
-                                                          false,
-                                                    ),
-                                              ),
-                                            ],
-                                          );
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                if (widget.requestedTotal != null)
-                                  Container(
-                                    width: double.infinity,
-                                    height: 1.5,
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .backgroundAppBar,
-                                  ),
-                                if (widget.requestedTotal != null)
+                            .backgroundAppBar,
+                        boxShadow: [
+                          Theme.of(context)
+                              .extension<StackColors>()!
+                              .standardBoxShadow,
+                        ],
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          children: [
+                            RoundedWhiteContainer(
+                              padding: const EdgeInsets.all(0),
+                              child: Column(
+                                children: [
                                   Padding(
                                     padding: const EdgeInsets.all(12),
                                     child: Row(
@@ -1027,57 +908,192 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                                           MainAxisAlignment.spaceBetween,
                                       children: [
                                         Text(
-                                          l10n.coinControlAmountToSend,
+                                          l10n.coinControlSelectedAmount,
                                           style: STextStyles.w600_14(context),
                                         ),
-                                        SelectableText(
-                                          ref
-                                              .watch(pAmountFormatter(coin))
-                                              .format(widget.requestedTotal!),
-                                          style: STextStyles.w600_14(context),
+                                        Builder(
+                                          builder: (context) {
+                                            final int selectedSumInt =
+                                                _selectedAvailable.isEmpty
+                                                ? 0
+                                                : _selectedAvailable
+                                                      .map((e) => e.value)
+                                                      .reduce(
+                                                        (value, element) =>
+                                                            value += element,
+                                                      );
+                                            final selectedSum = selectedSumInt
+                                                .toAmountAsRaw(
+                                                  fractionDigits:
+                                                      coin.fractionDigits,
+                                                );
+                                            return Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                SelectableText(
+                                                  ref
+                                                      .watch(
+                                                        pAmountFormatter(coin),
+                                                      )
+                                                      .format(selectedSum),
+                                                  style:
+                                                      widget.requestedTotal ==
+                                                          null
+                                                      ? STextStyles.w600_14(
+                                                          context,
+                                                        )
+                                                      : STextStyles.w600_14(
+                                                          context,
+                                                        ).copyWith(
+                                                          color:
+                                                              selectedSum >=
+                                                                  widget
+                                                                      .requestedTotal!
+                                                              ? Theme.of(
+                                                                      context,
+                                                                    )
+                                                                    .extension<
+                                                                      StackColors
+                                                                    >()!
+                                                                    .accentColorGreen
+                                                              : Theme.of(
+                                                                      context,
+                                                                    )
+                                                                    .extension<
+                                                                      StackColors
+                                                                    >()!
+                                                                    .accentColorRed,
+                                                        ),
+                                                ),
+                                                const SizedBox(width: 8),
+                                                IconCopyButton(
+                                                  data: ref
+                                                      .watch(
+                                                        pAmountFormatter(coin),
+                                                      )
+                                                      .format(
+                                                        selectedSum,
+                                                        withUnitName: false,
+                                                        indicatePrecisionLoss:
+                                                            false,
+                                                      ),
+                                                ),
+                                              ],
+                                            );
+                                          },
                                         ),
                                       ],
                                     ),
                                   ),
-                                if (_selectedAvailable.isNotEmpty &&
-                                    ref
-                                            .watch(pWallets)
-                                            .getWallet(widget.walletId)
-                                        is PivxWallet) ...[
-                                  Container(
-                                    width: double.infinity,
-                                    height: 1.5,
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .backgroundAppBar,
-                                  ),
-                                  _pivxSummary(
-                                    ref
-                                            .watch(pWallets)
-                                            .getWallet(widget.walletId)
-                                        as PivxWallet,
-                                    coin,
-                                  ),
+                                  if (widget.requestedTotal != null)
+                                    Container(
+                                      width: double.infinity,
+                                      height: 1.5,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .backgroundAppBar,
+                                    ),
+                                  if (widget.requestedTotal != null)
+                                    Padding(
+                                      padding: const EdgeInsets.all(12),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            l10n.coinControlAmountToSend,
+                                            style: STextStyles.w600_14(context),
+                                          ),
+                                          SelectableText(
+                                            ref
+                                                .watch(pAmountFormatter(coin))
+                                                .format(widget.requestedTotal!),
+                                            style: STextStyles.w600_14(context),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  if (_selectedAvailable.isNotEmpty &&
+                                      ref
+                                              .watch(pWallets)
+                                              .getWallet(widget.walletId)
+                                          is PivxWallet) ...[
+                                    Container(
+                                      width: double.infinity,
+                                      height: 1.5,
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .backgroundAppBar,
+                                    ),
+                                    _pivxSummary(
+                                      ref
+                                              .watch(pWallets)
+                                              .getWallet(widget.walletId)
+                                          as PivxWallet,
+                                      coin,
+                                    ),
+                                  ],
                                 ],
-                              ],
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 12),
-                          PrimaryButton(
-                            label: l10n.coinControlUseCoins,
-                            enabled: _selectedAvailable.isNotEmpty,
-                            onPressed: () async {
-                              if (searchFocus.hasFocus) {
-                                searchFocus.unfocus();
-                              }
-                              Navigator.of(context).pop(_selectedAvailable);
-                            },
-                          ),
-                        ],
+                            const SizedBox(height: 12),
+                            PrimaryButton(
+                              label: l10n.coinControlUseCoins,
+                              enabled: _selectedAvailable.isNotEmpty,
+                              onPressed: () async {
+                                if (searchFocus.hasFocus) {
+                                  searchFocus.unfocus();
+                                }
+                                Navigator.of(context).pop(_selectedAvailable);
+                              },
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-              ],
+                ];
+                if (ScreenFit.sideBySide(context) && !_isSearching) {
+                  return Row(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Expanded(
+                        flex: 5,
+                        child: SingleChildScrollView(
+                          child: Column(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16,
+                                ),
+                                child: Column(children: header),
+                              ),
+                              ...footer,
+                            ],
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 6,
+                        child: Padding(
+                          padding: const EdgeInsets.only(top: 10, right: 16),
+                          child: Column(children: list),
+                        ),
+                      ),
+                    ],
+                  );
+                }
+                return Column(
+                  children: [
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: Column(children: [...header, ...list]),
+                      ),
+                    ),
+                    ...footer,
+                  ],
+                );
+              },
             ),
           ),
         ),

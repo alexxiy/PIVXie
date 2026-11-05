@@ -30,6 +30,7 @@ import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../wallets/isar/models/wallet_info.dart';
 import '../../wallets/isar/providers/all_wallets_info_provider.dart';
 import '../../wallets/wallet/wallet.dart';
+import '../../widgets/adaptive_page.dart';
 import '../../widgets/background.dart';
 import '../../widgets/conditional_parent.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -177,7 +178,7 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
     return ConditionalParent(
       condition: !isDesktop && !_embedded,
       builder: (child) => Background(
-        child: Scaffold(
+        child: AppScaffold(
           backgroundColor: Theme.of(context)
               .extension<StackColors>()!
               .background,

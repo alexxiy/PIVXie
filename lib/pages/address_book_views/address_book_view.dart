@@ -21,6 +21,7 @@ import '../../utilities/constants.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
+import '../../widgets/adaptive_page.dart';
 import '../../widgets/address_book_card.dart';
 import '../../widgets/background.dart';
 import '../../widgets/conditional_parent.dart';
@@ -121,7 +122,7 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
       condition: !isDesktop,
       builder: (child) {
         return Background(
-          child: Scaffold(
+          child: AppScaffold(
             backgroundColor: Theme.of(context)
                 .extension<StackColors>()!
                 .background,

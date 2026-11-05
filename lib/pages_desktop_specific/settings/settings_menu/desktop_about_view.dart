@@ -74,12 +74,14 @@ class DesktopAboutView extends ConsumerWidget {
                           const SizedBox(height: 16),
                           Row(
                             children: [
-                              PrivacyAndTOSText(
-                                isDesktop: true,
-                                fontSize: 14,
-                                textColor: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textDark3,
+                              Flexible(
+                                child: PrivacyAndTOSText(
+                                  isDesktop: true,
+                                  fontSize: 14,
+                                  textColor: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textDark3,
+                                ),
                               ),
                             ],
                           ),
@@ -115,7 +117,9 @@ class DesktopAboutView extends ConsumerWidget {
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        Row(
+                                        Wrap(
+                                          spacing: 16,
+                                          runSpacing: 16,
                                           children: [
                                             Column(
                                               mainAxisSize: MainAxisSize.min,
@@ -145,7 +149,6 @@ class DesktopAboutView extends ConsumerWidget {
                                                 ),
                                               ],
                                             ),
-                                            const SizedBox(width: 16),
                                             Column(
                                               mainAxisSize: MainAxisSize.min,
                                               crossAxisAlignment:
@@ -174,7 +177,6 @@ class DesktopAboutView extends ConsumerWidget {
                                                 ),
                                               ],
                                             ),
-                                            const SizedBox(width: 16),
                                             Column(
                                               mainAxisSize: MainAxisSize.min,
                                               crossAxisAlignment:

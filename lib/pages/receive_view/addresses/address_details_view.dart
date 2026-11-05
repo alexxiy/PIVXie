@@ -24,6 +24,7 @@ import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../wallets/wallet/intermediate/bip39_hd_wallet.dart';
+import '../../../widgets/adaptive_page.dart';
 import '../../../widgets/address_private_key.dart';
 import '../../../widgets/background.dart';
 import '../../../widgets/conditional_parent.dart';
@@ -146,13 +147,15 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
   Widget build(BuildContext context) {
     final coin = ref.watch(pWalletCoin(widget.walletId));
     final wallet = ref.watch(pWallets).getWallet(widget.walletId);
+    final side = ScreenFit.sideBySide(context);
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) => Background(
-        child: Scaffold(
+        child: AppScaffold(
           backgroundColor: Theme.of(context)
               .extension<StackColors>()!
               .background,
+          maxBodyWidth: side ? 900 : ScreenFit.columnWidth,
           appBar: AppBar(
             backgroundColor: Theme.of(context)
                 .extension<StackColors>()!
@@ -266,8 +269,11 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                 ],
               );
             },
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
+            child: Flex(
+              direction: side ? Axis.horizontal : Axis.vertical,
+              crossAxisAlignment: side
+                  ? CrossAxisAlignment.start
+                  : CrossAxisAlignment.stretch,
               children: [
                 if (!isDesktop)
                   Center(
@@ -283,94 +289,106 @@ class _AddressDetailsViewState extends ConsumerState<AddressDetailsView> {
                       ),
                     ),
                   ),
-                if (!isDesktop) const SizedBox(height: 16),
-                DetailItem(
-                  title: l10n.commonAddress,
-                  detail: address.value,
-                  button: isDesktop
-                      ? IconCopyButton(data: address.value)
-                      : SimpleCopyButton(data: address.value),
-                ),
-                const _Div(height: 12),
-                DetailItem(
-                  title: l10n.receiveLabel,
-                  detail: label!.value,
-                  button: SimpleEditButton(
-                    editValue: label!.value,
-                    editTitle: l10n.receiveEditLabel,
-                    editLabel: l10n.receiveLabel,
-                    onValueChanged: (value) {
-                      MainDB.instance.putAddressLabel(
-                        label!.copyWith(label: value),
-                      );
-                    },
-                  ),
-                ),
-                const _Div(height: 12),
-                _Tags(tags: label!.tags),
-                if (address.derivationPath != null) const _Div(height: 12),
-                if (address.derivationPath != null)
-                  DetailItem(
-                    title: l10n.receiveDerivationPath,
-                    detail: address.derivationPath!.value,
-                    button: Container(),
-                  ),
-                if (address.type == AddressType.spark) const _Div(height: 12),
-                if (address.type == AddressType.spark)
-                  DetailItem(
-                    title: l10n.receiveDiversifier,
-                    detail: address.derivationIndex.toString(),
-                    button: Container(),
-                  ),
-                if (address.type == AddressType.mweb) const _Div(height: 12),
-                if (address.type == AddressType.mweb)
-                  DetailItem(
-                    title: l10n.receiveIndex,
-                    detail: address.derivationIndex.toString(),
-                    button: Container(),
-                  ),
-                const _Div(height: 12),
-                DetailItem(
-                  title: l10n.receiveType,
-                  detail: address.type.readableName,
-                  button: Container(),
-                ),
-                const _Div(height: 12),
-                DetailItem(
-                  title: l10n.receiveSubType,
-                  detail: address.subType.prettyName,
-                  button: Container(),
-                ),
-                // Shield addresses have a spending key for the whole
-                // shield balance, not one per address.
-                if (wallet is Bip39HDWallet &&
-                    !wallet.isViewOnly &&
-                    address.type != AddressType.pivxShield)
-                  const _Div(height: 12),
-                if (wallet is Bip39HDWallet &&
-                    !wallet.isViewOnly &&
-                    address.type != AddressType.pivxShield)
-                  AddressPrivateKey(
-                    walletId: widget.walletId,
-                    address: address,
-                  ),
-                if (!isDesktop) const SizedBox(height: 20),
                 if (!isDesktop)
-                  Text(
-                    l10n.receiveTransactions,
-                    textAlign: TextAlign.start,
-                    style: STextStyles.itemSubtitle(context).copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .textDark3,
-                    ),
+                  SizedBox(width: side ? 24 : 0, height: side ? 0 : 16),
+                Flexible(
+                  flex: side ? 1 : 0,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      DetailItem(
+                        title: l10n.commonAddress,
+                        detail: address.value,
+                        button: isDesktop
+                            ? IconCopyButton(data: address.value)
+                            : SimpleCopyButton(data: address.value),
+                      ),
+                      const _Div(height: 12),
+                      DetailItem(
+                        title: l10n.receiveLabel,
+                        detail: label!.value,
+                        button: SimpleEditButton(
+                          editValue: label!.value,
+                          editTitle: l10n.receiveEditLabel,
+                          editLabel: l10n.receiveLabel,
+                          onValueChanged: (value) {
+                            MainDB.instance.putAddressLabel(
+                              label!.copyWith(label: value),
+                            );
+                          },
+                        ),
+                      ),
+                      const _Div(height: 12),
+                      _Tags(tags: label!.tags),
+                      if (address.derivationPath != null)
+                        const _Div(height: 12),
+                      if (address.derivationPath != null)
+                        DetailItem(
+                          title: l10n.receiveDerivationPath,
+                          detail: address.derivationPath!.value,
+                          button: Container(),
+                        ),
+                      if (address.type == AddressType.spark)
+                        const _Div(height: 12),
+                      if (address.type == AddressType.spark)
+                        DetailItem(
+                          title: l10n.receiveDiversifier,
+                          detail: address.derivationIndex.toString(),
+                          button: Container(),
+                        ),
+                      if (address.type == AddressType.mweb)
+                        const _Div(height: 12),
+                      if (address.type == AddressType.mweb)
+                        DetailItem(
+                          title: l10n.receiveIndex,
+                          detail: address.derivationIndex.toString(),
+                          button: Container(),
+                        ),
+                      const _Div(height: 12),
+                      DetailItem(
+                        title: l10n.receiveType,
+                        detail: address.type.readableName,
+                        button: Container(),
+                      ),
+                      const _Div(height: 12),
+                      DetailItem(
+                        title: l10n.receiveSubType,
+                        detail: address.subType.prettyName,
+                        button: Container(),
+                      ),
+                      // Shield addresses have a spending key for the whole
+                      // shield balance, not one per address.
+                      if (wallet is Bip39HDWallet &&
+                          !wallet.isViewOnly &&
+                          address.type != AddressType.pivxShield)
+                        const _Div(height: 12),
+                      if (wallet is Bip39HDWallet &&
+                          !wallet.isViewOnly &&
+                          address.type != AddressType.pivxShield)
+                        AddressPrivateKey(
+                          walletId: widget.walletId,
+                          address: address,
+                        ),
+                      if (!isDesktop) const SizedBox(height: 20),
+                      if (!isDesktop)
+                        Text(
+                          l10n.receiveTransactions,
+                          textAlign: TextAlign.start,
+                          style: STextStyles.itemSubtitle(context).copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark3,
+                          ),
+                        ),
+                      if (!isDesktop) const SizedBox(height: 12),
+                      if (!isDesktop)
+                        _AddressDetailsTxV2List(
+                          walletId: widget.walletId,
+                          address: address,
+                        ),
+                    ],
                   ),
-                if (!isDesktop) const SizedBox(height: 12),
-                if (!isDesktop)
-                  _AddressDetailsTxV2List(
-                    walletId: widget.walletId,
-                    address: address,
-                  ),
+                ),
               ],
             ),
           );

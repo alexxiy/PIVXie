@@ -23,6 +23,7 @@ import '../../../../utilities/constants.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../wallets/wallet/impl/pivx_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
+import '../../../../widgets/adaptive_page.dart';
 import '../../../addresses/desktop_wallet_addresses_view.dart';
 import '../../../../pages/pivx_accounts/pivx_accounts.dart';
 import '../../../../pages/settings_views/wallet_settings_view/sign_message_view.dart';
@@ -57,28 +58,37 @@ class AddressListButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final tight = DesktopFit.tight(context);
     return RawMaterialButton(
+      constraints: const BoxConstraints(minHeight: 36, minWidth: 36),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(1000)),
       onPressed: () => Navigator.of(context)
           .pushNamed(DesktopWalletAddressesView.routeName, arguments: walletId),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 19, horizontal: 32),
-        child: Row(
-          children: [
-            SvgPicture.asset(
-              Assets.svg.list,
-              width: 20,
-              height: 20,
-              color: Theme.of(context)
-                  .extension<StackColors>()!
-                  .buttonTextSecondary,
-            ),
-            const SizedBox(width: 6),
-            Text(
-              l10n.receiveAddressList,
-              style: STextStyles.desktopMenuItemSelected(context),
-            ),
-          ],
+      child: Tooltip(
+        message: tight ? l10n.receiveAddressList : "",
+        child: Padding(
+          padding: EdgeInsets.symmetric(
+            vertical: 19,
+            horizontal: tight ? 8 : 32,
+          ),
+          child: Row(
+            children: [
+              SvgPicture.asset(
+                Assets.svg.list,
+                width: 20,
+                height: 20,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .buttonTextSecondary,
+              ),
+              if (!tight) const SizedBox(width: 6),
+              if (!tight)
+                Text(
+                  l10n.receiveAddressList,
+                  style: STextStyles.desktopMenuItemSelected(context),
+                ),
+            ],
+          ),
         ),
       ),
     );

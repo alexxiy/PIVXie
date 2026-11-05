@@ -8,6 +8,8 @@
  *
  */
 
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_riverpod/legacy.dart';
@@ -116,36 +118,44 @@ class _DesktopWalletAddressesViewState
         child: Column(
           children: [
             Expanded(
-              child: Row(
-                children: [
-                  SizedBox(
-                    width: _columnWidth0,
-                    child: DesktopAddressList(
-                      searchHeight: _headerHeight,
-                      walletId: widget.walletId,
+              child: LayoutBuilder(
+                builder: (context, constraints) => Row(
+                  children: [
+                    SizedBox(
+                      // Half the page at most, for the details next to it.
+                      width: min(
+                        _columnWidth0,
+                        (constraints.maxWidth - 16) / 2,
+                      ),
+                      child: DesktopAddressList(
+                        searchHeight: _headerHeight,
+                        walletId: widget.walletId,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      children: [
-                        const SizedBox(height: _headerHeight),
-                        if (ref.watch(desktopSelectedAddressId) != null)
-                          Expanded(
-                            child: SingleChildScrollView(
-                              child: AddressDetailsView(
-                                key: Key(
-                                  "currentDesktopAddressDetails_key_${ref.watch(desktopSelectedAddressId)}",
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        children: [
+                          const SizedBox(height: _headerHeight),
+                          if (ref.watch(desktopSelectedAddressId) != null)
+                            Expanded(
+                              child: SingleChildScrollView(
+                                child: AddressDetailsView(
+                                  key: Key(
+                                    "currentDesktopAddressDetails_key_${ref.watch(desktopSelectedAddressId)}",
+                                  ),
+                                  walletId: widget.walletId,
+                                  addressId: ref.watch(
+                                    desktopSelectedAddressId,
+                                  )!,
                                 ),
-                                walletId: widget.walletId,
-                                addressId: ref.watch(desktopSelectedAddressId)!,
                               ),
                             ),
-                          ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ],

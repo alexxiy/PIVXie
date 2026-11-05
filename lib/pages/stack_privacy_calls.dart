@@ -23,6 +23,7 @@ import '../utilities/assets.dart';
 import '../utilities/constants.dart';
 import '../utilities/text_styles.dart';
 import '../utilities/util.dart';
+import '../widgets/adaptive_page.dart';
 import '../widgets/conditional_parent.dart';
 import '../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../widgets/desktop/desktop_app_bar.dart';
@@ -89,7 +90,16 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
             ),
           ),
           child: Padding(
-            padding: EdgeInsets.fromLTRB(0, isDesktop ? 0 : 40, 0, 0),
+            padding: EdgeInsets.fromLTRB(
+              0,
+              isDesktop
+                  ? 0
+                  : ScreenFit.short(context)
+                  ? 8
+                  : 40,
+              0,
+              0,
+            ),
             child: ConstrainedBox(
               constraints: BoxConstraints(
                 maxWidth: isDesktop ? 480 : double.infinity,
@@ -124,7 +134,13 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
                         ],
                       ),
                     ),
-                    SizedBox(height: isDesktop ? 32 : 36),
+                    SizedBox(
+                      height: isDesktop
+                          ? 32
+                          : ScreenFit.short(context)
+                          ? 12
+                          : 36,
+                    ),
                     Padding(
                       padding: EdgeInsets.symmetric(
                         horizontal: isDesktop ? 0 : 16,
@@ -139,7 +155,13 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
                         },
                       ),
                     ),
-                    SizedBox(height: isDesktop ? 16 : 36),
+                    SizedBox(
+                      height: isDesktop
+                          ? 16
+                          : ScreenFit.short(context)
+                          ? 12
+                          : 36,
+                    ),
                     Padding(
                       padding: isDesktop
                           ? const EdgeInsets.all(0)
@@ -331,8 +353,8 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                       if (isDesktop) const SizedBox(height: 10),
                       Image.asset(
                         Assets.persona.public,
-                        width: 140,
-                        height: 140,
+                        width: ScreenFit.short(context) ? 96 : 140,
+                        height: ScreenFit.short(context) ? 96 : 140,
                       ),
                       if (isDesktop) const SizedBox(height: 12),
                       Center(
@@ -423,8 +445,8 @@ class _PrivacyToggleState extends ConsumerState<PrivacyToggle> {
                       if (isDesktop) const SizedBox(height: 10),
                       Image.asset(
                         Assets.persona.private,
-                        width: 140,
-                        height: 140,
+                        width: ScreenFit.short(context) ? 96 : 140,
+                        height: ScreenFit.short(context) ? 96 : 140,
                       ),
                       if (isDesktop) const SizedBox(height: 12),
                       Center(

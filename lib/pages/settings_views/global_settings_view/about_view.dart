@@ -15,6 +15,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../app_config.dart';
 import '../../../l10n/l10n.dart';
+import '../../../widgets/adaptive_page.dart';
 import '../../intro_view.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/git_status.dart';
@@ -32,7 +33,7 @@ class AboutView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Background(
-      child: Scaffold(
+      child: AppScaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         appBar: AppBar(
           leading: AppBarBackButton(

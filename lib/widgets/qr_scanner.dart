@@ -4,6 +4,7 @@ import 'package:mobile_scanner/mobile_scanner.dart';
 import '../l10n/l10n.dart';
 import '../themes/stack_colors.dart';
 import '../utilities/text_styles.dart';
+import 'adaptive_page.dart';
 import 'background.dart';
 import 'custom_buttons/app_bar_icon_button.dart';
 
@@ -47,8 +48,10 @@ class _QrScannerState extends State<QrScanner> {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<StackColors>()!;
     return Background(
-      child: Scaffold(
+      child: AppScaffold(
         backgroundColor: colors.background,
+        // The camera takes the whole screen, also in landscape.
+        maxBodyWidth: double.infinity,
         appBar: AppBar(
           backgroundColor: colors.backgroundAppBar,
           leading: const AppBarBackButton(),

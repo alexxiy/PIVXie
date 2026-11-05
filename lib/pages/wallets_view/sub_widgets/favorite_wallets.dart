@@ -173,60 +173,69 @@ class _FavoriteWalletsState extends ConsumerState<FavoriteWallets> {
                   ),
                 ),
               )
-            : SizedBox(
-                height: cardHeight,
-                width: screenWidth,
-                child: cpv.CustomPageView.builder(
-                  padEnds: false,
-                  pageSnapping: true,
-                  itemCount: favorites.length + remaining,
-                  controller: _pageController,
-                  viewportFractionalPadding:
-                      standardPadding / MediaQuery.of(context).size.width,
-                  onPageChanged: (int index) => setState(() {
-                    _focusedIndex = index;
-                  }),
-                  itemBuilder: (_, index) {
-                    String? walletId;
+            // As wide as on a phone in portrait, also in a narrower pane.
+            : ClipRect(
+                child: SizedBox(
+                  height: cardHeight,
+                  width: screenWidth,
+                  child: OverflowBox(
+                    alignment: AlignmentDirectional.centerStart,
+                    minWidth: screenWidth,
+                    maxWidth: screenWidth,
+                    child: cpv.CustomPageView.builder(
+                      padEnds: false,
+                      pageSnapping: true,
+                      itemCount: favorites.length + remaining,
+                      controller: _pageController,
+                      viewportFractionalPadding: standardPadding / screenWidth,
+                      onPageChanged: (int index) => setState(() {
+                        _focusedIndex = index;
+                      }),
+                      itemBuilder: (_, index) {
+                        String? walletId;
 
-                    if (index < favorites.length) {
-                      walletId = favorites[index].walletId;
-                    }
+                        if (index < favorites.length) {
+                          walletId = favorites[index].walletId;
+                        }
 
-                    const double scaleDown = 0.95;
-                    const int milliseconds = 333;
+                        const double scaleDown = 0.95;
+                        const int milliseconds = 333;
 
-                    return AnimatedScale(
-                      scale: index == _focusedIndex ? 1.0 : scaleDown,
-                      duration: const Duration(milliseconds: milliseconds),
-                      curve: Curves.decelerate,
-                      child: AnimatedOpacity(
-                        opacity: index == _focusedIndex ? 1 : 0.45,
-                        duration: const Duration(milliseconds: milliseconds),
-                        curve: Curves.decelerate,
-                        child: index < favorites.length
-                            ? index == _focusedIndex
-                                  ? Padding(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 4,
-                                      ),
-                                      child: FavoriteCard(
-                                        key: Key("favCard_$walletId"),
-                                        walletId: walletId!,
-                                        width: cardWidth,
-                                        height: cardHeight,
-                                      ),
-                                    )
-                                  : FavoriteCard(
-                                      key: Key("favCard_$walletId"),
-                                      walletId: walletId!,
-                                      width: cardWidth,
-                                      height: cardHeight,
-                                    )
-                            : Container(),
-                      ),
-                    );
-                  },
+                        return AnimatedScale(
+                          scale: index == _focusedIndex ? 1.0 : scaleDown,
+                          duration: const Duration(milliseconds: milliseconds),
+                          curve: Curves.decelerate,
+                          child: AnimatedOpacity(
+                            opacity: index == _focusedIndex ? 1 : 0.45,
+                            duration: const Duration(
+                              milliseconds: milliseconds,
+                            ),
+                            curve: Curves.decelerate,
+                            child: index < favorites.length
+                                ? index == _focusedIndex
+                                      ? Padding(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 4,
+                                          ),
+                                          child: FavoriteCard(
+                                            key: Key("favCard_$walletId"),
+                                            walletId: walletId!,
+                                            width: cardWidth,
+                                            height: cardHeight,
+                                          ),
+                                        )
+                                      : FavoriteCard(
+                                          key: Key("favCard_$walletId"),
+                                          walletId: walletId!,
+                                          width: cardWidth,
+                                          height: cardHeight,
+                                        )
+                                : Container(),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
                 ),
               ),
       ],

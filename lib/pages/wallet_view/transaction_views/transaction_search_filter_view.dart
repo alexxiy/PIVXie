@@ -25,6 +25,7 @@ import '../../../utilities/constants.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../widgets/adaptive_page.dart';
 import '../../../widgets/background.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/date_picker/date_picker.dart';
@@ -123,7 +124,7 @@ class _TransactionSearchViewState
       );
     } else {
       return Background(
-        child: Scaffold(
+        child: AppScaffold(
           backgroundColor: Theme.of(context)
               .extension<StackColors>()!
               .background,

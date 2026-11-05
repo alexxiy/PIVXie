@@ -19,6 +19,7 @@ import '../../../themes/stack_colors.dart';
 import '../../../utilities/constants.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
+import '../../../widgets/adaptive_page.dart';
 import '../../../widgets/background.dart';
 import '../../../widgets/conditional_parent.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -72,7 +73,7 @@ class _EditAddressLabelViewState extends ConsumerState<EditAddressLabelView> {
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) => Background(child: child),
-      child: Scaffold(
+      child: AppScaffold(
         backgroundColor: isDesktop
             ? Colors.transparent
             : Theme.of(context).extension<StackColors>()!.background,

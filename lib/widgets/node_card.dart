@@ -35,6 +35,7 @@ import 'expandable.dart';
 import 'node_options_sheet.dart';
 import 'node_signal_icon.dart';
 import 'rounded_white_container.dart';
+import 'adaptive_page.dart';
 
 class NodeCard extends ConsumerStatefulWidget {
   const NodeCard({
@@ -140,7 +141,7 @@ class _NodeCardState extends ConsumerState<NodeCard> {
             ),
             onPressed: () async {
               // True: the user switched to this node.
-              final connected = await showModalBottomSheet<bool>(
+              final connected = await showAppSheet<bool>(
                 backgroundColor: Colors.transparent,
                 context: context,
                 builder: (_) => NodeOptionsSheet(

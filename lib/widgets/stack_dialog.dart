@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import '../themes/stack_colors.dart';
 import '../utilities/text_styles.dart';
 import '../utilities/util.dart';
+import 'adaptive_page.dart';
 
 class StackDialogBase extends StatelessWidget {
   const StackDialogBase({
@@ -40,14 +41,20 @@ class StackDialogBase extends StatelessWidget {
           bottom: 16 + keyboardPaddingAmount,
         ),
         child: Column(
-          mainAxisAlignment: !Util.isDesktop
-              ? MainAxisAlignment.end
-              : MainAxisAlignment.center,
+          mainAxisAlignment: Util.isDesktop || ScreenFit.wide(context)
+              ? MainAxisAlignment.center
+              : MainAxisAlignment.end,
           children: [
             Flexible(
               child: SizedBox(
                 // Phone dialogs shown on desktop: not across the window.
-                width: width ?? (Util.isDesktop ? 580 : null),
+                width:
+                    width ??
+                    (Util.isDesktop
+                        ? 580
+                        : ScreenFit.wide(context)
+                        ? ScreenFit.dialogWidth
+                        : null),
                 child: SingleChildScrollView(
                   child: Material(
                     borderRadius: BorderRadius.circular(20),

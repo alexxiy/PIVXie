@@ -9,6 +9,8 @@
  */
 
 import 'package:flutter/material.dart';
+
+import '../../../../widgets/adaptive_page.dart';
 import 'mnemonic_table_item.dart';
 
 class MnemonicTable extends StatelessWidget {
@@ -26,7 +28,12 @@ class MnemonicTable extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
-    final wordsPerRow = isDesktop ? 4 : 3;
+    final wordsPerRow =
+        isDesktop ||
+            (ScreenFit.sideBySide(context) &&
+                MediaQuery.sizeOf(context).width >= 800)
+        ? 4
+        : 3;
 
     final int rows = words.length ~/ wordsPerRow;
 

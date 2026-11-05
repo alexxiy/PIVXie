@@ -7,6 +7,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/global/prefs_provider.dart';
 import '../utilities/assets.dart';
 import '../utilities/logger.dart';
+import 'adaptive_page.dart';
 
 /// The PIVXie send animation, looping with rounded corners, shown while a
 /// transaction is generated and sent. With "Sound effects" on its sound
@@ -60,17 +61,22 @@ class _TxSendAnimationState extends ConsumerState<TxSendAnimation> {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      width: widget.width,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: AspectRatio(
-          aspectRatio: 16 / 9,
-          child: Image.asset(
-            Assets.persona.txSend,
-            fit: BoxFit.cover,
-            gaplessPlayback: true,
-            filterQuality: FilterQuality.medium,
+    // On a phone on its side the text and buttons below stay in sight.
+    final short = ScreenFit.short(context);
+    return Center(
+      widthFactor: short ? null : 1,
+      child: SizedBox(
+        width: short ? MediaQuery.sizeOf(context).height * 0.7 : widget.width,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: AspectRatio(
+            aspectRatio: 16 / 9,
+            child: Image.asset(
+              Assets.persona.txSend,
+              fit: BoxFit.cover,
+              gaplessPlayback: true,
+              filterQuality: FilterQuality.medium,
+            ),
           ),
         ),
       ),

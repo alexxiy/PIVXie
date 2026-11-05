@@ -16,6 +16,7 @@ import '../../widgets/stack_dialog.dart';
 import '../../widgets/stack_text_field.dart';
 import '../../widgets/textfield_icon_button.dart';
 import '../pivx_masternodes/pivx_masternodes_view.dart';
+import '../../widgets/adaptive_page.dart';
 
 /// Readable on light themes too (deepens light accents such as yellow).
 Color _readable(Color color, StackColors colors) {
@@ -480,7 +481,7 @@ class _PivxMasternodeSearchFieldState extends State<PivxMasternodeSearchField> {
 /// A bottom sheet about the wallet's masternodes, laid out with
 /// [PivxSheetLayout].
 Future<T?> showPivxSheet<T>(BuildContext context, WidgetBuilder builder) =>
-    showModalBottomSheet<T>(
+    showAppSheet<T>(
       context: context,
       isScrollControlled: true,
       useSafeArea: true,

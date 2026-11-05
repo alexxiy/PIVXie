@@ -42,19 +42,23 @@ class PageAppBar extends StatelessWidget implements PreferredSizeWidget {
       ? const EdgeInsetsDirectional.fromSTEB(0, 20, 12, 20)
       : null;
 
-  static Widget backButton(BuildContext context, {VoidCallback? onPressed}) =>
-      AppBarBackButton(
-        isCompact: Util.isDesktop,
-        onPressed: onPressed ?? () => Navigator.of(context).pop(),
-      );
+  static Widget backButton(BuildContext context, {VoidCallback? onPressed}) {
+    final button = AppBarBackButton(
+      isCompact: Util.isDesktop,
+      onPressed: onPressed ?? () => Navigator.of(context).pop(),
+    );
+    return Util.isDesktop ? Center(child: button) : button;
+  }
 
+  /// On mobile, what a regular app bar reports: the app bar theme decides.
   @override
-  Size get preferredSize => Size.fromHeight(height);
+  Size get preferredSize =>
+      Util.isDesktop ? Size.fromHeight(height) : AppBar().preferredSize;
 
   @override
   Widget build(BuildContext context) {
     return AppBar(
-      toolbarHeight: height,
+      toolbarHeight: Util.isDesktop ? height : null,
       leadingWidth: leadingWidth,
       automaticallyImplyLeading: false,
       leading: leading ?? backButton(context, onPressed: onBack),

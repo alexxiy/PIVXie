@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
 
 import '../../../../../l10n/l10n.dart';
+import '../../../../../widgets/adaptive_page.dart';
 import 'choose_unit_sheet.dart';
 import '../../../../../providers/global/prefs_provider.dart';
 import '../../../../../themes/stack_colors.dart';
@@ -61,7 +62,8 @@ class _EditCoinUnitsViewState extends ConsumerState<EditCoinUnitsView> {
   }
 
   Future<void> chooseUnit() async {
-    final chosenUnit = await showModalBottomSheet<AmountUnit?>(
+    final chosenUnit = await showAppSheet<AmountUnit?>(
+      scrollable: true,
       backgroundColor: Colors.transparent,
       context: context,
       shape: const RoundedRectangleBorder(
@@ -129,7 +131,7 @@ class _EditCoinUnitsViewState extends ConsumerState<EditCoinUnitsView> {
       child: ConditionalParent(
         condition: !Util.isDesktop,
         builder: (child) => Background(
-          child: Scaffold(
+          child: AppScaffold(
             backgroundColor: Theme.of(context)
                 .extension<StackColors>()!
                 .background,
@@ -145,7 +147,10 @@ class _EditCoinUnitsViewState extends ConsumerState<EditCoinUnitsView> {
               ),
             ),
             body: SafeArea(
-              child: Padding(padding: const EdgeInsets.all(16), child: child),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: FillOrScroll(child: child),
+              ),
             ),
           ),
         ),

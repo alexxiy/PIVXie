@@ -22,6 +22,7 @@ import '../../../utilities/assets.dart';
 import '../../../utilities/clipboard_interface.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
+import '../../../widgets/adaptive_page.dart';
 import '../../../widgets/background.dart';
 import '../../../widgets/conditional_parent.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -76,7 +77,7 @@ class _AddNewContactAddressViewState
       condition: !isDesktop,
       builder:
           (child) => Background(
-            child: Scaffold(
+            child: AppScaffold(
               backgroundColor:
                   Theme.of(context).extension<StackColors>()!.background,
               appBar: AppBar(

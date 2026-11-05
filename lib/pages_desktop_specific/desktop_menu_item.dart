@@ -8,7 +8,6 @@
  *
  */
 
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/svg.dart';
@@ -17,6 +16,7 @@ import '../providers/desktop/current_desktop_menu_item.dart';
 import '../themes/stack_colors.dart';
 import '../utilities/assets.dart';
 import '../utilities/text_styles.dart';
+import '../widgets/adaptive_page.dart';
 import 'desktop_menu.dart';
 
 class DMIController {
@@ -156,7 +156,7 @@ class DesktopMenuItem<T> extends ConsumerStatefulWidget {
     required this.value,
     required this.onChanged,
     required this.duration,
-    this.labelLength = 125,
+    this.labelLength = 148,
     this.controller,
     required this.isExpandedInitially,
   });
@@ -177,17 +177,18 @@ class DesktopMenuItem<T> extends ConsumerStatefulWidget {
 class _DesktopMenuItemState<T> extends ConsumerState<DesktopMenuItem<T>>
     with SingleTickerProviderStateMixin {
   late final Widget icon;
-  late final String label;
   late final T value;
   late final void Function(T) onChanged;
   late final Duration duration;
-  late final double labelLength;
 
   late final DMIController? controller;
 
   late final AnimationController animationController;
 
   bool _iconOnly = false;
+
+  // Keeps the button's animations when the tooltip comes and goes around it.
+  final _buttonKey = GlobalKey();
 
   void toggle() {
     setState(() {
@@ -203,11 +204,9 @@ class _DesktopMenuItemState<T> extends ConsumerState<DesktopMenuItem<T>>
   @override
   void initState() {
     icon = widget.icon;
-    label = widget.label;
     value = widget.value;
     onChanged = widget.onChanged;
     duration = widget.duration;
-    labelLength = widget.labelLength;
     controller = widget.controller;
 
     _iconOnly = !widget.isExpandedInitially;
@@ -233,7 +232,8 @@ class _DesktopMenuItemState<T> extends ConsumerState<DesktopMenuItem<T>>
   Widget build(BuildContext context) {
     final group = ref.watch(currentDesktopMenuItemProvider);
 
-    return TextButton(
+    final button = TextButton(
+      key: _buttonKey,
       style: value == group
           ? Theme.of(context)
                 .extension<StackColors>()!
@@ -245,7 +245,9 @@ class _DesktopMenuItemState<T> extends ConsumerState<DesktopMenuItem<T>>
         onChanged(value);
       },
       child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 16),
+        padding: EdgeInsets.symmetric(
+          vertical: DesktopFit.short(context) ? 10 : 16,
+        ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -259,15 +261,23 @@ class _DesktopMenuItemState<T> extends ConsumerState<DesktopMenuItem<T>>
                 axis: Axis.horizontal,
                 axisAlignment: -1,
                 child: SizedBox(
-                  width: labelLength,
+                  width: widget.labelLength,
                   child: Row(
                     children: [
                       const SizedBox(width: 12),
-                      Text(
-                        label,
-                        style: value == group
-                            ? STextStyles.desktopMenuItemSelected(context)
-                            : STextStyles.desktopMenuItem(context),
+                      // Some languages' labels are longer than the menu.
+                      Flexible(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          alignment: AlignmentDirectional.centerStart,
+                          child: Text(
+                            widget.label,
+                            maxLines: 1,
+                            style: value == group
+                                ? STextStyles.desktopMenuItemSelected(context)
+                                : STextStyles.desktopMenuItem(context),
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -278,5 +288,7 @@ class _DesktopMenuItemState<T> extends ConsumerState<DesktopMenuItem<T>>
         ),
       ),
     );
+
+    return _iconOnly ? Tooltip(message: widget.label, child: button) : button;
   }
 }

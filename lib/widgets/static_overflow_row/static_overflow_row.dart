@@ -32,38 +32,43 @@ class _StaticOverflowRowState extends State<StaticOverflowRow> {
 
         // Still measuring
         if (_itemSizes.length < childCount || _overflowSize == null) {
-          return Row(
-            mainAxisAlignment: widget.mainAxisAlignment,
-            children: [
-              ...List.generate(childCount, (i) {
-                return MeasureSize(
+          // Unconstrained, so that items wider than the room measure as well.
+          return UnconstrainedBox(
+            constrainedAxis: Axis.vertical,
+            clipBehavior: Clip.hardEdge,
+            child: Row(
+              mainAxisAlignment: widget.mainAxisAlignment,
+              children: [
+                ...List.generate(childCount, (i) {
+                  return MeasureSize(
+                    onChange: (size) {
+                      if (_itemSizes[i] != size) {
+                        setState(() {
+                          _itemSizes[i] = size;
+                        });
+                      }
+                    },
+                    child: KeyedSubtree(
+                      key: ValueKey("item-$i"),
+                      child: widget.children[i],
+                    ),
+                  );
+                }),
+                MeasureSize(
                   onChange: (size) {
-                    if (_itemSizes[i] != size) {
+                    if (_overflowSize != size) {
                       setState(() {
-                        _itemSizes[i] = size;
+                        _overflowSize = size;
                       });
                     }
                   },
                   child: KeyedSubtree(
-                    key: ValueKey("item-$i"),
-                    child: widget.children[i],
+                    key: const ValueKey("overflow"),
+                    child: widget.overflowBuilder(0),
                   ),
-                );
-              }),
-              MeasureSize(
-                onChange: (size) {
-                  if (_overflowSize != size) {
-                    setState(() {
-                      _overflowSize = size;
-                    });
-                  }
-                },
-                child: KeyedSubtree(
-                  key: const ValueKey("overflow"),
-                  child: widget.overflowBuilder(0),
                 ),
-              ),
-            ],
+              ],
+            ),
           );
         }
 

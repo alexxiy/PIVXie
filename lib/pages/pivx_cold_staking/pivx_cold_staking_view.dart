@@ -15,6 +15,7 @@ import '../../utilities/text_styles.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/models/tx_data.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
+import '../../widgets/adaptive_page.dart';
 import '../../widgets/background.dart';
 import '../../widgets/block_explorer_link.dart';
 import '../../widgets/custom_buttons/blue_text_button.dart';
@@ -173,7 +174,7 @@ class _PivxColdStakingViewState extends ConsumerState<PivxColdStakingView> {
     return l10n.csStaking;
   }
 
-  Future<void> _showInfo() => showModalBottomSheet<void>(
+  Future<void> _showInfo() => showAppSheet<void>(
     context: context,
     backgroundColor: Colors.transparent,
     isScrollControlled: true,
@@ -195,7 +196,7 @@ class _PivxColdStakingViewState extends ConsumerState<PivxColdStakingView> {
   Future<void> _showDelegation(PivxDelegation d) {
     final wallet = _wallet;
     final coin = wallet.cryptoCurrency;
-    return showModalBottomSheet<void>(
+    return showAppSheet<void>(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
@@ -283,7 +284,8 @@ class _PivxColdStakingViewState extends ConsumerState<PivxColdStakingView> {
         .copyWith(color: colors.textSubtitle1);
 
     return Background(
-      child: Scaffold(
+      child: AppScaffold(
+        maxBodyWidth: ScreenFit.panesOrColumn(context),
         backgroundColor: colors.background,
         appBar: PageAppBar(
           title: Text(l10n.csTitle, style: STextStyles.navBarTitle(context)),
@@ -308,119 +310,144 @@ class _PivxColdStakingViewState extends ConsumerState<PivxColdStakingView> {
                     onStart: wallet.isViewOnly ? null : _delegate,
                     onInfo: _showInfo,
                   )
-                : Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Expanded(
-                        child: ListView(
+                : Builder(
+                    builder: (context) {
+                      final summary = RoundedWhiteContainer(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            RoundedWhiteContainer(
-                              padding: const EdgeInsets.all(16),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  Text(l10n.csDelegated, style: secondary),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    fmt.format(total),
-                                    style: STextStyles.pageTitleH2(context),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  FutureBuilder<
-                                    Map<String, ({BigInt amount, int stakes})>
-                                  >(
-                                    future: _rewards,
-                                    builder: (context, snap) => Text(
-                                      snap.hasData
-                                          ? _rewardsSoFar(
-                                              snap.data!.values,
-                                              fmt,
-                                            )
-                                          : " ",
-                                      style: STextStyles.w500_12(context)
-                                          .copyWith(
-                                            color: colors.accentColorGreen,
-                                          ),
-                                    ),
-                                  ),
-                                ],
+                            Text(l10n.csDelegated, style: secondary),
+                            const SizedBox(height: 4),
+                            Text(
+                              fmt.format(total),
+                              style: STextStyles.pageTitleH2(context),
+                            ),
+                            const SizedBox(height: 4),
+                            FutureBuilder<
+                              Map<String, ({BigInt amount, int stakes})>
+                            >(
+                              future: _rewards,
+                              builder: (context, snap) => Text(
+                                snap.hasData
+                                    ? _rewardsSoFar(snap.data!.values, fmt)
+                                    : " ",
+                                style: STextStyles.w500_12(context)
+                                    .copyWith(color: colors.accentColorGreen),
                               ),
                             ),
-                            const SizedBox(height: 16),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Text(
-                                    l10n.csDelegatedOutputs,
-                                    style: STextStyles.smallMed12(context),
-                                  ),
-                                ),
-                                if (withdrawable.length > 1 &&
-                                    !wallet.isViewOnly)
-                                  CustomTextButton(
-                                    text: l10n.csWithdrawAll,
-                                    onTap: () => _withdraw(withdrawable),
-                                  ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            for (final owner in {
-                              for (final d in delegations) d.owner,
-                            }) ...[
-                              FutureBuilder<
-                                Map<String, ({BigInt amount, int stakes})>
-                              >(
-                                future: _rewards,
-                                builder: (context, snap) => _OwnerHeader(
-                                  walletId: widget.walletId,
-                                  owner: owner,
-                                  delegated: fmt.format(
-                                    Amount(
-                                      rawValue: delegations
-                                          .where((d) => d.owner == owner)
-                                          .fold(
-                                            BigInt.zero,
-                                            (p, d) =>
-                                                p + BigInt.from(d.utxo.value),
-                                          ),
-                                      fractionDigits: coin.fractionDigits,
-                                    ),
-                                  ),
-                                  rewards: snap.data?[owner] == null
-                                      ? null
-                                      : _rewardsFrom(snap.data![owner]!, fmt),
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              for (final d in delegations.where(
-                                (d) => d.owner == owner,
-                              )) ...[
-                                _DelegationRow(
-                                  delegation: d,
-                                  amount: fmt.format(
-                                    Amount(
-                                      rawValue: BigInt.from(d.utxo.value),
-                                      fractionDigits: coin.fractionDigits,
-                                    ),
-                                  ),
-                                  reward: _rewardText(d, fmt),
-                                  status: _status(d, height),
-                                  onTap: () => _showDelegation(d),
-                                ),
-                                const SizedBox(height: 8),
-                              ],
-                              const SizedBox(height: 8),
-                            ],
                           ],
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      PrimaryButton(
+                      );
+                      final outputs = <Widget>[
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                l10n.csDelegatedOutputs,
+                                style: STextStyles.smallMed12(context),
+                              ),
+                            ),
+                            if (withdrawable.length > 1 && !wallet.isViewOnly)
+                              CustomTextButton(
+                                text: l10n.csWithdrawAll,
+                                onTap: () => _withdraw(withdrawable),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        for (final owner in {
+                          for (final d in delegations) d.owner,
+                        }) ...[
+                          FutureBuilder<
+                            Map<String, ({BigInt amount, int stakes})>
+                          >(
+                            future: _rewards,
+                            builder: (context, snap) => _OwnerHeader(
+                              walletId: widget.walletId,
+                              owner: owner,
+                              delegated: fmt.format(
+                                Amount(
+                                  rawValue: delegations
+                                      .where((d) => d.owner == owner)
+                                      .fold(
+                                        BigInt.zero,
+                                        (p, d) => p + BigInt.from(d.utxo.value),
+                                      ),
+                                  fractionDigits: coin.fractionDigits,
+                                ),
+                              ),
+                              rewards: snap.data?[owner] == null
+                                  ? null
+                                  : _rewardsFrom(snap.data![owner]!, fmt),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          for (final d in delegations.where(
+                            (d) => d.owner == owner,
+                          )) ...[
+                            _DelegationRow(
+                              delegation: d,
+                              amount: fmt.format(
+                                Amount(
+                                  rawValue: BigInt.from(d.utxo.value),
+                                  fractionDigits: coin.fractionDigits,
+                                ),
+                              ),
+                              reward: _rewardText(d, fmt),
+                              status: _status(d, height),
+                              onTap: () => _showDelegation(d),
+                            ),
+                            const SizedBox(height: 8),
+                          ],
+                          const SizedBox(height: 8),
+                        ],
+                      ];
+                      final delegateMore = PrimaryButton(
                         label: l10n.csDelegateMore,
                         enabled: !wallet.isViewOnly,
                         onPressed: _delegate,
-                      ),
-                    ],
+                      );
+                      if (ScreenFit.sideBySide(context)) {
+                        return Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Expanded(
+                              flex: 5,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  summary,
+                                  const Spacer(),
+                                  delegateMore,
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              flex: 6,
+                              child: ListView(children: outputs),
+                            ),
+                          ],
+                        );
+                      }
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Expanded(
+                            child: ListView(
+                              children: [
+                                summary,
+                                const SizedBox(height: 16),
+                                ...outputs,
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          delegateMore,
+                        ],
+                      );
+                    },
                   ),
           ),
         ),

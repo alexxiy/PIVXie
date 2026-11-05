@@ -144,148 +144,153 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
   @override
   Widget build(BuildContext context) {
     /// todo: redo the padding
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsetsDirectional.only(end: 30),
-          child: RoundedWhiteContainer(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: SvgPicture.asset(
-                        Assets.svg.circleTor,
-                        width: 48,
-                        height: 48,
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: SvgPicture.asset(
-                        _torConnectionStatus == TorConnectionStatus.connected
-                            ? Assets.svg.connectedButton
-                            : _torConnectionStatus ==
-                                  TorConnectionStatus.connecting
-                            ? Assets.svg.connectingButton
-                            : Assets.svg.disconnectedButton,
-                        width: 48,
-                        height: 48,
-                      ),
-                    ),
-                  ],
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(10),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsetsDirectional.only(end: 30),
+            child: RoundedWhiteContainer(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        l10n.settingsTor,
-                        style: STextStyles.desktopTextSmall(context),
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: SvgPicture.asset(
+                          Assets.svg.circleTor,
+                          width: 48,
+                          height: 48,
+                        ),
                       ),
-                      RichText(
-                        textAlign: TextAlign.start,
-                        text: TextSpan(
-                          children: [
-                            TextSpan(
-                              text: "\n${l10n.torOneClick}",
-                              style: STextStyles.desktopTextExtraExtraSmall(
-                                context,
-                              ),
-                            ),
-                            TextSpan(
-                              text: "\t${l10n.torWhatIs}",
-                              style: STextStyles.richLink(context)
-                                  .copyWith(fontSize: 14),
-                              recognizer: TapGestureRecognizer()
-                                ..onTap = () {
-                                  showDialog<dynamic>(
-                                    context: context,
-                                    useSafeArea: false,
-                                    barrierDismissible: true,
-                                    builder: (context) {
-                                      return DesktopDialog(
-                                        maxWidth: 580,
-                                        maxHeight: double.infinity,
-                                        child: Padding(
-                                          padding:
-                                              const EdgeInsetsDirectional.only(
-                                                top: 10,
-                                                start: 20,
-                                                bottom: 20,
-                                                end: 10,
-                                              ),
-                                          child: Column(
-                                            children: [
-                                              Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceBetween,
-                                                children: [
-                                                  Text(
-                                                    l10n.torWhatIs,
-                                                    style:
-                                                        STextStyles.desktopH2(
-                                                          context,
-                                                        ),
-                                                  ),
-                                                  DesktopDialogCloseButton(
-                                                    onPressedOverride: () =>
-                                                        Navigator.of(context)
-                                                            .pop(true),
-                                                  ),
-                                                ],
-                                              ),
-                                              const SizedBox(height: 16),
-                                              Text(
-                                                l10n.torWhatIsText,
-                                                style:
-                                                    STextStyles.desktopTextMedium(
-                                                      context,
-                                                    ).copyWith(
-                                                      color: Theme.of(context)
-                                                          .extension<
-                                                            StackColors
-                                                          >()!
-                                                          .textDark3,
-                                                    ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      );
-                                    },
-                                  );
-                                },
-                            ),
-                          ],
+                      Flexible(
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: SvgPicture.asset(
+                            _torConnectionStatus ==
+                                    TorConnectionStatus.connected
+                                ? Assets.svg.connectedButton
+                                : _torConnectionStatus ==
+                                      TorConnectionStatus.connecting
+                                ? Assets.svg.connectingButton
+                                : Assets.svg.disconnectedButton,
+                            width: 48,
+                            height: 48,
+                          ),
                         ),
                       ),
                     ],
                   ),
-                ),
-                const SizedBox(height: 10),
-                Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: _buildConnectButton(_torConnectionStatus),
-                ),
-                const SizedBox(height: 30),
-                Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: Text(
-                    l10n.torOnlyText,
-                    style: STextStyles.desktopTextExtraExtraSmall(context),
+                  Padding(
+                    padding: const EdgeInsets.all(10),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          l10n.settingsTor,
+                          style: STextStyles.desktopTextSmall(context),
+                        ),
+                        RichText(
+                          textAlign: TextAlign.start,
+                          text: TextSpan(
+                            children: [
+                              TextSpan(
+                                text: "\n${l10n.torOneClick}",
+                                style: STextStyles.desktopTextExtraExtraSmall(
+                                  context,
+                                ),
+                              ),
+                              TextSpan(
+                                text: "\t${l10n.torWhatIs}",
+                                style: STextStyles.richLink(context)
+                                    .copyWith(fontSize: 14),
+                                recognizer: TapGestureRecognizer()
+                                  ..onTap = () {
+                                    showDialog<dynamic>(
+                                      context: context,
+                                      useSafeArea: false,
+                                      barrierDismissible: true,
+                                      builder: (context) {
+                                        return DesktopDialog(
+                                          maxWidth: 580,
+                                          maxHeight: double.infinity,
+                                          child: Padding(
+                                            padding:
+                                                const EdgeInsetsDirectional.only(
+                                                  top: 10,
+                                                  start: 20,
+                                                  bottom: 20,
+                                                  end: 10,
+                                                ),
+                                            child: Column(
+                                              children: [
+                                                Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceBetween,
+                                                  children: [
+                                                    Text(
+                                                      l10n.torWhatIs,
+                                                      style:
+                                                          STextStyles.desktopH2(
+                                                            context,
+                                                          ),
+                                                    ),
+                                                    DesktopDialogCloseButton(
+                                                      onPressedOverride: () =>
+                                                          Navigator.of(context)
+                                                              .pop(true),
+                                                    ),
+                                                  ],
+                                                ),
+                                                const SizedBox(height: 16),
+                                                Text(
+                                                  l10n.torWhatIsText,
+                                                  style:
+                                                      STextStyles.desktopTextMedium(
+                                                        context,
+                                                      ).copyWith(
+                                                        color: Theme.of(context)
+                                                            .extension<
+                                                              StackColors
+                                                            >()!
+                                                            .textDark3,
+                                                      ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                    );
+                                  },
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 10),
+                  Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: _buildConnectButton(_torConnectionStatus),
+                  ),
+                  const SizedBox(height: 30),
+                  Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Text(
+                      l10n.torOnlyText,
+                      style: STextStyles.desktopTextExtraExtraSmall(context),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

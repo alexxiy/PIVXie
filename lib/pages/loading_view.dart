@@ -18,6 +18,7 @@ import 'package:lottie/lottie.dart';
 import '../themes/stack_colors.dart';
 import '../themes/theme_providers.dart';
 import '../utilities/assets.dart';
+import '../widgets/adaptive_page.dart';
 import '../widgets/background.dart';
 import '../widgets/conditional_parent.dart';
 import '../widgets/rounded_container.dart';
@@ -35,7 +36,7 @@ class LoadingView extends ConsumerWidget {
     );
 
     return Background(
-      child: Scaffold(
+      child: AppScaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         body: SafeArea(
           child: Container(

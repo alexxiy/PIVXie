@@ -24,9 +24,7 @@ import '../../widgets/desktop/secondary_button.dart';
 import 'delete_password_warning_view.dart';
 
 class ForgotPasswordDesktopView extends ConsumerStatefulWidget {
-  const ForgotPasswordDesktopView({
-    super.key,
-  });
+  const ForgotPasswordDesktopView({super.key});
 
   static const String routeName = "/forgotPasswordDesktop";
 
@@ -40,6 +38,7 @@ class _ForgotPasswordDesktopViewState
   @override
   Widget build(BuildContext context) {
     return DesktopScaffold(
+      bodyGrows: true,
       appBar: DesktopAppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -59,23 +58,17 @@ class _ForgotPasswordDesktopViewState
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const AppIcon(
-                  width: 100,
-                ),
-                const SizedBox(
-                  height: 42,
-                ),
-                Text(
-                  AppConfig.appName,
-                  style: STextStyles.desktopH1(context),
-                ),
-                const SizedBox(
-                  height: 24,
-                ),
+                const AppIcon(width: 100),
+                const SizedBox(height: 42),
+                Text(AppConfig.appName, style: STextStyles.desktopH1(context)),
+                const SizedBox(height: 24),
                 SizedBox(
                   width: 400,
                   child: Text(
-                    l10n.passwordForgotText(AppConfig.appName, AppConfig.prefix),
+                    l10n.passwordForgotText(
+                      AppConfig.appName,
+                      AppConfig.prefix,
+                    ),
                     textAlign: TextAlign.center,
                     style: STextStyles.desktopTextSmall(context).copyWith(
                       color: Theme.of(context)
@@ -84,10 +77,9 @@ class _ForgotPasswordDesktopViewState
                     ),
                   ),
                 ),
-                const SizedBox(
-                  height: 48,
-                ),
+                const SizedBox(height: 48),
                 PrimaryButton(
+                  width: double.infinity,
                   label: l10n.introCreateNew(AppConfig.prefix),
                   onPressed: () {
                     const shouldCreateNew = true;
@@ -97,10 +89,9 @@ class _ForgotPasswordDesktopViewState
                     );
                   },
                 ),
-                const SizedBox(
-                  height: 24,
-                ),
+                const SizedBox(height: 24),
                 SecondaryButton(
+                  width: double.infinity,
                   label: l10n.introRestoreBackup(AppConfig.prefix),
                   onPressed: () {
                     const shouldCreateNew = false;
@@ -110,9 +101,7 @@ class _ForgotPasswordDesktopViewState
                     );
                   },
                 ),
-                const SizedBox(
-                  height: kDesktopAppBarHeight,
-                ),
+                const SizedBox(height: kDesktopAppBarHeight),
               ],
             ),
           ),

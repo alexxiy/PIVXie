@@ -32,6 +32,7 @@ class _DesktopSupportView extends ConsumerState<DesktopSupportView> {
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
     return DesktopScaffold(
+      bodyGrows: true,
       background: Theme.of(context).extension<StackColors>()!.background,
       appBar: DesktopAppBar(
         isCompactHeight: true,
@@ -47,7 +48,11 @@ class _DesktopSupportView extends ConsumerState<DesktopSupportView> {
         children: [
           Padding(
             padding: EdgeInsetsDirectional.fromSTEB(24, 10, 0, 0),
-            child: Row(children: [SizedBox(width: 576, child: SupportView())]),
+            child: Row(
+              children: [
+                Flexible(child: SizedBox(width: 576, child: SupportView())),
+              ],
+            ),
           ),
         ],
       ),

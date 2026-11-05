@@ -11,6 +11,7 @@ import '../../utilities/constants.dart';
 import '../../utilities/format.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
+import '../adaptive_page.dart';
 import '../conditional_parent.dart';
 import '../desktop/primary_button.dart';
 import '../desktop/secondary_button.dart';
@@ -26,23 +27,12 @@ Future<List<DateTime?>?> showSWDatePicker(
   List<DateTime?> value = const [],
   bool range = false,
 }) async {
-  final Size size;
-  if (Util.isDesktop) {
-    size = const Size(450, 450);
-  } else {
-    final _size = MediaQuery.of(context).size;
-    size = Size(
-      _size.width - 32,
-      _size.height >= 550 ? 450 : _size.height - 32,
-    );
-  }
-
+  final size = _pickerSize(context);
   final now = DateTime.now();
 
   final dates = await _showDatePickerDialog(
     context: context,
     value: value,
-    dialogSize: size,
     config: CalendarDatePicker2WithActionButtonsConfig(
       firstDate: firstDate ?? DateTime(2007),
       lastDate: lastDate ?? now,
@@ -64,6 +54,23 @@ Future<List<DateTime?>?> showSWDatePicker(
   );
 
   return dates;
+}
+
+Size _pickerSize(BuildContext context) {
+  if (Util.isDesktop) return const Size(450, 450);
+  final room = MediaQuery.sizeOf(context);
+  final padding = MediaQuery.paddingOf(context);
+  // The buttons go beside the calendar: under it there's no room.
+  if (ScreenFit.short(context)) {
+    return Size(
+      min(room.width - padding.horizontal - 32, 560),
+      room.height - padding.vertical - 32,
+    );
+  }
+  return Size(
+    min(room.width - 32, 450),
+    room.height >= 550 ? 450 : room.height - 32,
+  );
 }
 
 /// Long month names ("November", "September") next to the year can be wider
@@ -113,7 +120,6 @@ ModePickerTextHandler _monthLabelThatFits(
 Future<List<DateTime?>?> _showDatePickerDialog({
   required BuildContext context,
   required CalendarDatePicker2WithActionButtonsConfig config,
-  required Size dialogSize,
   List<DateTime?> value = const [],
   bool useRootNavigator = true,
   bool barrierDismissible = true,
@@ -123,31 +129,36 @@ Future<List<DateTime?>?> _showDatePickerDialog({
   String? barrierLabel,
   TransitionBuilder? builder,
 }) {
-  final dialog = Dialog(
-    insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-    backgroundColor: Theme.of(context).extension<StackColors>()!.popupBG,
-    surfaceTintColor: Colors.transparent,
-    shadowColor: Colors.transparent,
-    elevation: 0,
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(
-        Constants.size.circularBorderRadius * 2,
-      ),
-    ),
-    clipBehavior: Clip.antiAlias,
-    child: SizedBox(
-      width: dialogSize.width,
-      height: max(dialogSize.height, 410),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          _SWDatePicker(
-            value: value,
-            config: config.copyWith(openedFromDialog: true),
+  // Sized on every build: the phone can rotate under an open picker.
+  final dialog = Builder(
+    builder: (context) {
+      final size = _pickerSize(context);
+      final picker = _SWDatePicker(
+        value: value,
+        config: config.copyWith(openedFromDialog: true),
+      );
+      return Dialog(
+        insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        backgroundColor: Theme.of(context).extension<StackColors>()!.popupBG,
+        surfaceTintColor: Colors.transparent,
+        shadowColor: Colors.transparent,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(
+            Constants.size.circularBorderRadius * 2,
           ),
-        ],
-      ),
-    ),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: SizedBox(
+          width: size.width,
+          height: size.height,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [Flexible(child: picker)],
+          ),
+        ),
+      );
+    },
   );
 
   return showDialog<List<DateTime?>>(

@@ -20,6 +20,7 @@ import '../providers/desktop/current_desktop_menu_item.dart';
 import '../themes/stack_colors.dart';
 import '../utilities/assets.dart';
 import '../utilities/text_styles.dart';
+import '../widgets/adaptive_page.dart';
 import '../widgets/desktop/desktop_tor_status_button.dart';
 import '../widgets/desktop/living_stack_icon.dart';
 import 'desktop_menu_item.dart';
@@ -42,7 +43,7 @@ class DesktopMenu extends ConsumerStatefulWidget {
 }
 
 class _DesktopMenuState extends ConsumerState<DesktopMenu> {
-  static const expandedWidth = 225.0;
+  static const expandedWidth = 240.0;
   static const minimizedWidth = 72.0;
 
   final Duration duration = const Duration(milliseconds: 250);
@@ -51,6 +52,11 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
 
   double _width = expandedWidth;
   bool get _isMinimized => _width < expandedWidth;
+
+  /// Whether the window is narrow enough to fold the menu. Set on the first
+  /// build. After that the menu follows the window only when it crosses the
+  /// line, so that the button keeps working at any size.
+  bool? _narrowWindow;
 
   void updateSelectedMenuItem(DesktopMenuItemId idKey) {
     widget.onSelectionWillChange?.call(idKey);
@@ -91,6 +97,22 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final narrow = MediaQuery.sizeOf(context).width < DesktopFit.foldMenuWidth;
+    if (narrow == _narrowWindow) return;
+    final firstBuild = _narrowWindow == null;
+    _narrowWindow = narrow;
+    if (firstBuild) {
+      _width = narrow ? minimizedWidth : expandedWidth;
+    } else if (narrow != _isMinimized) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted && _narrowWindow != _isMinimized) toggleMinimize();
+      });
+    }
+  }
+
+  @override
   void dispose() {
     for (final e in controllers) {
       e.dispose();
@@ -102,6 +124,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
 
   @override
   Widget build(BuildContext context) {
+    final short = DesktopFit.short(context);
     return Material(
       color: Theme.of(context).extension<StackColors>()!.popupBG,
       child: AnimatedContainer(
@@ -110,18 +133,18 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const SizedBox(height: 25),
+            SizedBox(height: short ? 12 : 25),
             AnimatedContainer(
               duration: duration,
-              width: _width == expandedWidth ? 70 : 32,
+              width: _width == expandedWidth ? (short ? 44 : 70) : 32,
               child: LivingStackIcon(onPressed: toggleMinimize),
             ),
-            const SizedBox(height: 10),
+            SizedBox(height: short ? 2 : 10),
             AnimatedOpacity(
               duration: duration,
-              opacity: _width == expandedWidth ? 1 : 0,
+              opacity: _width == expandedWidth && !short ? 1 : 0,
               child: SizedBox(
-                height: 28,
+                height: short ? 0 : 28,
                 child: Text(
                   AppConfig.appName,
                   style: STextStyles.desktopH2(context)
@@ -140,6 +163,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                 child: DesktopTorStatusButton(
                   transitionDuration: duration,
                   controller: torButtonController,
+                  isExpandedInitially: !_isMinimized,
                   onPressed: () {
                     ref.read(currentDesktopMenuItemProvider.notifier).state =
                         DesktopMenuItemId.settings;
@@ -151,7 +175,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                   },
                 ),
               ),
-            const SizedBox(height: 40),
+            SizedBox(height: short ? 12 : 40),
             Expanded(
               child: AnimatedContainer(
                 duration: duration,
@@ -230,7 +254,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                       DesktopMenuItem(
                         key: const ValueKey('exit'),
                         duration: duration,
-                        labelLength: 123,
+                        labelLength: 146,
                         icon: const DesktopExitIcon(),
                         label: l10n.desktopExit,
                         value: 7,

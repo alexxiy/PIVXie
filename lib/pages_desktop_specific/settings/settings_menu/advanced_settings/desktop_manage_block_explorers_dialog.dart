@@ -43,6 +43,7 @@ class DesktopManageBlockExplorersDialog extends ConsumerWidget {
 
     return DesktopDialog(
       maxHeight: 850,
+      fitsWindow: true,
       maxWidth: 600,
       child: Column(
         children: [

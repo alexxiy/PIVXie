@@ -1024,10 +1024,16 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                 style: STextStyles.desktopTextExtraExtraSmall(context),
               ),
               const SizedBox(height: 4),
-              Text(
-                ref.watch(pAmountFormatter(coin)).format(balance.spendable),
-                style: STextStyles.desktopTextExtraSmall(context)
-                    .copyWith(color: colors.textDark),
+              // An amount stays on one line, however narrow the window.
+              FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: AlignmentDirectional.centerStart,
+                child: Text(
+                  ref.watch(pAmountFormatter(coin)).format(balance.spendable),
+                  maxLines: 1,
+                  style: STextStyles.desktopTextExtraSmall(context)
+                      .copyWith(color: colors.textDark),
+                ),
               ),
             ],
           ),
@@ -1342,6 +1348,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                                   builder: (context) => DesktopDialog(
                                     maxWidth: 696,
                                     maxHeight: 600,
+                                    fitsWindow: true,
                                     child: Column(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
@@ -1501,6 +1508,7 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         ),
         const SizedBox(height: 36),
         PrimaryButton(
+          width: double.infinity,
           buttonHeight: ButtonHeight.l,
           label: l10n.sendPreviewSend,
           enabled: ref.watch(pPreviewTxButtonEnabled(coin)),

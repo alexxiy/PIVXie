@@ -20,6 +20,7 @@ import '../../../utilities/constants.dart';
 import '../../../utilities/enums/languages_enum.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
+import '../../../widgets/adaptive_page.dart';
 import '../../../widgets/background.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/icon_widgets/x_icon.dart';
@@ -94,7 +95,7 @@ class _LanguageViewState extends ConsumerState<LanguageSettingsView> {
     );
     _shown = _filtered();
     return Background(
-      child: Scaffold(
+      child: AppScaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         appBar: AppBar(
           leading: AppBarBackButton(

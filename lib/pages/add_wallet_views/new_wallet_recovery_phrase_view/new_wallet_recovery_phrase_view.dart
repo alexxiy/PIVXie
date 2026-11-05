@@ -31,6 +31,7 @@ import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../wallets/wallet/wallet.dart';
+import '../../../widgets/adaptive_page.dart';
 import '../../../widgets/conditional_parent.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/desktop/desktop_app_bar.dart';
@@ -103,6 +104,62 @@ class _NewWalletRecoveryPhraseViewState
     );
   }
 
+  Widget _writeDownNote(BuildContext context) => Container(
+    decoration: BoxDecoration(
+      color: isDesktop
+          ? Theme.of(context).extension<StackColors>()!.background
+          : Theme.of(context).extension<StackColors>()!.popupBG,
+      borderRadius: BorderRadius.circular(Constants.size.circularBorderRadius),
+    ),
+    child: Padding(
+      padding: isDesktop ? const EdgeInsets.all(0) : const EdgeInsets.all(12),
+      child: Text(
+        l10n.addWalletWriteDown,
+        textAlign: TextAlign.center,
+        style: isDesktop
+            ? STextStyles.desktopSubtitleH2(context)
+            : STextStyles.label(context).copyWith(
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .accentColorDark,
+              ),
+      ),
+    ),
+  );
+
+  Widget _savedButton(BuildContext context) => ConstrainedBox(
+    constraints: BoxConstraints(minHeight: isDesktop ? 70 : 0),
+    child: TextButton(
+      onPressed: () async {
+        final int next = Random().nextInt(_mnemonic.length);
+        ref
+            .read(verifyMnemonicWordIndexStateProvider.notifier)
+            .update((state) => next);
+
+        ref
+            .read(verifyMnemonicCorrectWordStateProvider.notifier)
+            .update((state) => _mnemonic[next]);
+
+        unawaited(
+          Navigator.of(context).pushNamed(
+            VerifyRecoveryPhraseView.routeName,
+            arguments: Tuple2(_wallet, _mnemonic),
+          ),
+        );
+      },
+      style: Theme.of(context)
+          .extension<StackColors>()!
+          .getPrimaryEnabledButtonStyle(context),
+      child: Text(
+        l10n.addWalletSavedPhrase,
+        textAlign: TextAlign.center,
+        style: isDesktop
+            ? STextStyles.desktopButtonEnabled(context)
+            : STextStyles.button(context),
+      ),
+    ),
+  );
+
   @override
   Widget build(BuildContext context) =>
       SecretScreen(child: Builder(builder: _buildScreen));
@@ -112,6 +169,7 @@ class _NewWalletRecoveryPhraseViewState
     return WillPopScope(
       onWillPop: onWillPop,
       child: MasterScaffold(
+        maxBodyWidth: ScreenFit.panesOrColumn(context),
         isDesktop: isDesktop,
         appBar: isDesktop
             ? DesktopAppBar(
@@ -188,148 +246,119 @@ class _NewWalletRecoveryPhraseViewState
             padding: isDesktop
                 ? const EdgeInsets.all(0)
                 : const EdgeInsets.all(16),
-            child: ConditionalParent(
-              condition: Util.isDesktop,
-              builder: (child) => LayoutBuilder(
-                builder: (context, constraints) {
-                  return SingleChildScrollView(
-                    child: ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minHeight: constraints.maxHeight,
-                      ),
-                      child: IntrinsicHeight(child: child),
-                    ),
-                  );
-                },
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  if (isDesktop) const Spacer(flex: 10),
-                  if (!isDesktop) const SizedBox(height: 4),
-                  if (!isDesktop)
-                    Text(
-                      ref.watch(pWalletName(_wallet.walletId)),
-                      textAlign: TextAlign.center,
-                      style: STextStyles.label(context).copyWith(fontSize: 12),
-                    ),
-                  SizedBox(height: isDesktop ? 24 : 4),
-                  Text(
-                    l10n.addWalletRecoveryPhraseTitle,
-                    textAlign: TextAlign.center,
-                    style: isDesktop
-                        ? STextStyles.desktopH2(context)
-                        : STextStyles.pageTitleH1(context),
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    decoration: BoxDecoration(
-                      color: isDesktop
-                          ? Theme.of(context)
-                                .extension<StackColors>()!
-                                .background
-                          : Theme.of(context).extension<StackColors>()!.popupBG,
-                      borderRadius: BorderRadius.circular(
-                        Constants.size.circularBorderRadius,
-                      ),
-                    ),
-                    child: Padding(
-                      padding: isDesktop
-                          ? const EdgeInsets.all(0)
-                          : const EdgeInsets.all(12),
-                      child: Text(
-                        l10n.addWalletWriteDown,
-                        textAlign: TextAlign.center,
-                        style: isDesktop
-                            ? STextStyles.desktopSubtitleH2(context)
-                            : STextStyles.label(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .accentColorDark,
-                              ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(height: isDesktop ? 21 : 8),
-                  if (!isDesktop)
-                    Expanded(
-                      child: SingleChildScrollView(
-                        child: MnemonicTable(
-                          words: _mnemonic,
-                          isDesktop: isDesktop,
+            child: !isDesktop && ScreenFit.sideBySide(context)
+                ? SplitPane(
+                    startFlex: 2,
+                    endFlex: 3,
+                    start: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          ref.watch(pWalletName(_wallet.walletId)),
+                          textAlign: TextAlign.center,
+                          style: STextStyles.label(context)
+                              .copyWith(fontSize: 12),
                         ),
-                      ),
-                    ),
-                  if (isDesktop)
-                    MnemonicTable(words: _mnemonic, isDesktop: isDesktop),
-                  SizedBox(height: isDesktop ? 24 : 16),
-                  if (isDesktop)
-                    SizedBox(
-                      height: 70,
-                      child: TextButton(
-                        onPressed: () async {
-                          await _copy();
-                        },
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            SvgPicture.asset(
-                              Assets.svg.copy,
-                              width: 20,
-                              height: 20,
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .buttonTextSecondary,
-                            ),
-                            const SizedBox(width: 10),
-                            Text(
-                              l10n.commonCopyToClipboard,
-                              style: STextStyles.desktopButtonSecondaryEnabled(
-                                context,
-                              ),
-                            ),
-                          ],
+                        const SizedBox(height: 4),
+                        Text(
+                          l10n.addWalletRecoveryPhraseTitle,
+                          textAlign: TextAlign.center,
+                          style: STextStyles.pageTitleH1(context),
                         ),
-                      ),
+                        const SizedBox(height: 16),
+                        _writeDownNote(context),
+                        const SizedBox(height: 16),
+                        _savedButton(context),
+                      ],
                     ),
-                  if (isDesktop) const SizedBox(height: 16),
-                  ConstrainedBox(
-                    constraints: BoxConstraints(minHeight: isDesktop ? 70 : 0),
-                    child: TextButton(
-                      onPressed: () async {
-                        final int next = Random().nextInt(_mnemonic.length);
-                        ref
-                            .read(verifyMnemonicWordIndexStateProvider.notifier)
-                            .update((state) => next);
-
-                        ref
-                            .read(
-                              verifyMnemonicCorrectWordStateProvider.notifier,
-                            )
-                            .update((state) => _mnemonic[next]);
-
-                        unawaited(
-                          Navigator.of(context).pushNamed(
-                            VerifyRecoveryPhraseView.routeName,
-                            arguments: Tuple2(_wallet, _mnemonic),
+                    end: MnemonicTable(words: _mnemonic, isDesktop: false),
+                  )
+                : ConditionalParent(
+                    condition: Util.isDesktop,
+                    builder: (child) => LayoutBuilder(
+                      builder: (context, constraints) {
+                        return SingleChildScrollView(
+                          child: ConstrainedBox(
+                            constraints: BoxConstraints(
+                              minHeight: constraints.maxHeight,
+                            ),
+                            child: IntrinsicHeight(child: child),
                           ),
                         );
                       },
-                      style: Theme.of(context)
-                          .extension<StackColors>()!
-                          .getPrimaryEnabledButtonStyle(context),
-                      child: Text(
-                        l10n.addWalletSavedPhrase,
-                        style: isDesktop
-                            ? STextStyles.desktopButtonEnabled(context)
-                            : STextStyles.button(context),
-                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        if (isDesktop) const Spacer(flex: 10),
+                        if (!isDesktop) const SizedBox(height: 4),
+                        if (!isDesktop)
+                          Text(
+                            ref.watch(pWalletName(_wallet.walletId)),
+                            textAlign: TextAlign.center,
+                            style: STextStyles.label(context)
+                                .copyWith(fontSize: 12),
+                          ),
+                        SizedBox(height: isDesktop ? 24 : 4),
+                        Text(
+                          l10n.addWalletRecoveryPhraseTitle,
+                          textAlign: TextAlign.center,
+                          style: isDesktop
+                              ? STextStyles.desktopH2(context)
+                              : STextStyles.pageTitleH1(context),
+                        ),
+                        const SizedBox(height: 16),
+                        _writeDownNote(context),
+                        SizedBox(height: isDesktop ? 21 : 8),
+                        if (!isDesktop)
+                          Expanded(
+                            child: SingleChildScrollView(
+                              child: MnemonicTable(
+                                words: _mnemonic,
+                                isDesktop: isDesktop,
+                              ),
+                            ),
+                          ),
+                        if (isDesktop)
+                          MnemonicTable(words: _mnemonic, isDesktop: isDesktop),
+                        SizedBox(height: isDesktop ? 24 : 16),
+                        if (isDesktop)
+                          SizedBox(
+                            height: 70,
+                            child: TextButton(
+                              onPressed: () async {
+                                await _copy();
+                              },
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  SvgPicture.asset(
+                                    Assets.svg.copy,
+                                    width: 20,
+                                    height: 20,
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .buttonTextSecondary,
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Text(
+                                    l10n.commonCopyToClipboard,
+                                    style:
+                                        STextStyles.desktopButtonSecondaryEnabled(
+                                          context,
+                                        ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        if (isDesktop) const SizedBox(height: 16),
+                        _savedButton(context),
+                        if (isDesktop) const Spacer(flex: 15),
+                      ],
                     ),
                   ),
-                  if (isDesktop) const Spacer(flex: 15),
-                ],
-              ),
-            ),
           ),
         ),
       ),

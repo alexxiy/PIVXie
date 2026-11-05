@@ -13,6 +13,7 @@ import '../../themes/stack_colors.dart';
 import '../../utilities/show_loading.dart';
 import '../../utilities/text_styles.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
+import '../../widgets/adaptive_page.dart';
 import '../../widgets/background.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/rounded_white_container.dart';
@@ -202,7 +203,7 @@ class _PivxNamesBalanceViewState extends ConsumerState<PivxNamesBalanceView> {
     final secondary = STextStyles.w500_12(context)
         .copyWith(color: colors.textSubtitle1);
     return Background(
-      child: Scaffold(
+      child: AppScaffold(
         backgroundColor: colors.background,
         appBar: PivxNamesAppBar(
           walletId: widget.walletId,
@@ -328,6 +329,7 @@ class _PivxNamesBalanceViewState extends ConsumerState<PivxNamesBalanceView> {
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                 child: PrimaryButton(
+                  width: double.infinity,
                   label: l10n.pivxNamesWithdraw,
                   enabled: canWithdraw && _address != null && !_loading,
                   onPressed: _withdraw,

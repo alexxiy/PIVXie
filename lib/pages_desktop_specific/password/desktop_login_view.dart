@@ -35,11 +35,7 @@ import '../desktop_home_view.dart';
 import 'forgot_password_desktop_view.dart';
 
 class DesktopLoginView extends ConsumerStatefulWidget {
-  const DesktopLoginView({
-    super.key,
-    this.startupWalletId,
-    this.load,
-  });
+  const DesktopLoginView({super.key, this.startupWalletId, this.load});
 
   static const String routeName = "/desktopLogin";
 
@@ -73,12 +69,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
           builder: (context) => const Column(
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              LoadingIndicator(
-                width: 200,
-                height: 200,
-              ),
-            ],
+            children: [LoadingIndicator(width: 200, height: 200)],
           ),
         ),
       );
@@ -153,6 +144,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
   @override
   Widget build(BuildContext context) {
     return DesktopScaffold(
+      bodyGrows: true,
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -162,19 +154,10 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const AppIcon(
-                  width: 100,
-                ),
-                const SizedBox(
-                  height: 42,
-                ),
-                Text(
-                  AppConfig.appName,
-                  style: STextStyles.desktopH1(context),
-                ),
-                const SizedBox(
-                  height: 24,
-                ),
+                const AppIcon(width: 100),
+                const SizedBox(height: 42),
+                Text(AppConfig.appName, style: STextStyles.desktopH1(context)),
+                const SizedBox(height: 24),
                 SizedBox(
                   width: 480,
                   child: Text(
@@ -183,9 +166,7 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                     style: STextStyles.desktopSubtitleH1(context),
                   ),
                 ),
-                const SizedBox(
-                  height: 24,
-                ),
+                const SizedBox(height: 24),
                 RoundedContainer(
                   padding: EdgeInsets.zero,
                   height: 74,
@@ -213,74 +194,71 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                             login();
                           }
                         },
-                        decoration: standardInputDecoration(
-                          l10n.commonEnterPassword,
-                          passwordFocusNode,
-                          context,
-                        ).copyWith(
-                          isDense: true,
-                          fillColor: Colors.transparent,
-                          focusColor: Colors.transparent,
-                          hoverColor: Colors.transparent,
-                          enabledBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                              color: Colors.transparent,
-                              width: 1,
-                            ),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          focusedBorder: OutlineInputBorder(
-                            borderSide: const BorderSide(
-                              color: Colors.transparent,
-                              width: 1,
-                            ),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          contentPadding: const EdgeInsets.only(
-                            top: 0,
-                            left: 16,
-                            right: 16,
-                            bottom: 0,
-                          ),
-                          suffixIcon: UnconstrainedBox(
-                            child: SizedBox(
-                              height: 40,
-                              child: Row(
-                                children: [
-                                  const SizedBox(
-                                    width: 20,
-                                  ),
-                                  GestureDetector(
-                                    key: const Key(
-                                      "restoreFromFilePasswordFieldShowPasswordButtonKey",
-                                    ),
-                                    onTap: () async {
-                                      setState(() {
-                                        hidePassword = !hidePassword;
-                                      });
-                                    },
-                                    child: MouseRegion(
-                                      cursor: SystemMouseCursors.click,
-                                      child: SvgPicture.asset(
-                                        hidePassword
-                                            ? Assets.svg.eye
-                                            : Assets.svg.eyeSlash,
-                                        color: Theme.of(context)
-                                            .extension<StackColors>()!
-                                            .textDark3,
-                                        width: 20,
-                                        height: 20,
+                        decoration:
+                            standardInputDecoration(
+                              l10n.commonEnterPassword,
+                              passwordFocusNode,
+                              context,
+                            ).copyWith(
+                              isDense: true,
+                              fillColor: Colors.transparent,
+                              focusColor: Colors.transparent,
+                              hoverColor: Colors.transparent,
+                              enabledBorder: OutlineInputBorder(
+                                borderSide: const BorderSide(
+                                  color: Colors.transparent,
+                                  width: 1,
+                                ),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderSide: const BorderSide(
+                                  color: Colors.transparent,
+                                  width: 1,
+                                ),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              contentPadding: const EdgeInsets.only(
+                                top: 0,
+                                left: 16,
+                                right: 16,
+                                bottom: 0,
+                              ),
+                              suffixIcon: UnconstrainedBox(
+                                child: SizedBox(
+                                  height: 40,
+                                  child: Row(
+                                    children: [
+                                      const SizedBox(width: 20),
+                                      GestureDetector(
+                                        key: const Key(
+                                          "restoreFromFilePasswordFieldShowPasswordButtonKey",
+                                        ),
+                                        onTap: () async {
+                                          setState(() {
+                                            hidePassword = !hidePassword;
+                                          });
+                                        },
+                                        child: MouseRegion(
+                                          cursor: SystemMouseCursors.click,
+                                          child: SvgPicture.asset(
+                                            hidePassword
+                                                ? Assets.svg.eye
+                                                : Assets.svg.eyeSlash,
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .textDark3,
+                                            width: 20,
+                                            height: 20,
+                                          ),
+                                        ),
                                       ),
-                                    ),
+                                      const SizedBox(width: 12),
+                                    ],
                                   ),
-                                  const SizedBox(
-                                    width: 12,
-                                  ),
-                                ],
+                                ),
                               ),
                             ),
-                          ),
-                        ),
                         onChanged: (newValue) {
                           setState(() {
                             _continueEnabled =
@@ -291,24 +269,20 @@ class _DesktopLoginViewState extends ConsumerState<DesktopLoginView> {
                     ),
                   ),
                 ),
-                const SizedBox(
-                  height: 24,
-                ),
+                const SizedBox(height: 24),
                 PrimaryButton(
+                  width: double.infinity,
                   label: l10n.commonContinue,
                   enabled: _continueEnabled,
                   onPressed: login,
                 ),
-                const SizedBox(
-                  height: 60,
-                ),
+                const SizedBox(height: 60),
                 CustomTextButton(
                   text: l10n.passwordForgot,
                   textSize: 20,
                   onTap: () {
-                    Navigator.of(context).pushNamed(
-                      ForgotPasswordDesktopView.routeName,
-                    );
+                    Navigator.of(context)
+                        .pushNamed(ForgotPasswordDesktopView.routeName);
                   },
                 ),
               ],

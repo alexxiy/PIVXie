@@ -40,6 +40,7 @@ import '../sub_widgets/mnemonic_word_count_select_sheet.dart';
 import 'sub_widgets/mobile_mnemonic_length_selector.dart';
 import 'sub_widgets/restore_options_next_button.dart';
 import 'sub_widgets/restore_options_platform_layout.dart';
+import '../../../../widgets/adaptive_page.dart';
 
 class RestoreOptionsView extends ConsumerStatefulWidget {
   const RestoreOptionsView({
@@ -132,7 +133,8 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
   }
 
   Future<void> chooseMnemonicLength() async {
-    await showModalBottomSheet<dynamic>(
+    await showAppSheet<dynamic>(
+      scrollable: true,
       backgroundColor: Colors.transparent,
       context: context,
       shape: const RoundedRectangleBorder(

@@ -7,6 +7,7 @@ import '../../../../themes/stack_colors.dart';
 import '../../../../themes/theme_providers.dart';
 import '../../../../themes/theme_service.dart';
 import '../../../../utilities/text_styles.dart';
+import '../../../../widgets/adaptive_page.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/rounded_white_container.dart';
@@ -110,7 +111,7 @@ class ThemeModeView extends ConsumerWidget {
     );
 
     return Background(
-      child: Scaffold(
+      child: AppScaffold(
         backgroundColor: colors.background,
         appBar: AppBar(
           leading: AppBarBackButton(
@@ -122,10 +123,14 @@ class ThemeModeView extends ConsumerWidget {
           ),
         ),
         body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              children: [for (final mode in AppThemeMode.values) option(mode)],
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                children: [
+                  for (final mode in AppThemeMode.values) option(mode),
+                ],
+              ),
             ),
           ),
         ),

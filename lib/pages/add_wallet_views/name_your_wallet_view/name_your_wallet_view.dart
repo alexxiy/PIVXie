@@ -28,6 +28,7 @@ import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../wallets/crypto_currency/interfaces/view_only_option_currency_interface.dart';
 import '../../../wallets/isar/models/wallet_info.dart';
+import '../../../widgets/adaptive_page.dart';
 import '../../../widgets/background.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/desktop/desktop_app_bar.dart';
@@ -164,7 +165,7 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
       );
     } else {
       return Background(
-        child: Scaffold(
+        child: AppScaffold(
           backgroundColor: Theme.of(context)
               .extension<StackColors>()!
               .background,
@@ -215,8 +216,10 @@ class _NameYourWalletViewState extends ConsumerState<NameYourWalletView> {
     children: [
       if (isDesktop) const Spacer(flex: 10),
       if (!isDesktop) const Spacer(flex: 1),
-      if (!isDesktop) CoinImage(coin: coin, height: 100, width: 100),
-      SizedBox(height: isDesktop ? 0 : 16),
+      // On a phone on its side the button stays in sight.
+      if (!isDesktop && !ScreenFit.short(context))
+        CoinImage(coin: coin, height: 100, width: 100),
+      SizedBox(height: isDesktop || ScreenFit.short(context) ? 0 : 16),
       Text(
         l10n.addWalletNameYour(coin.prettyName),
         textAlign: TextAlign.center,

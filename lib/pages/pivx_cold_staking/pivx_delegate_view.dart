@@ -16,6 +16,7 @@ import '../../utilities/amount/amount_formatter.dart';
 import '../../utilities/text_styles.dart';
 import '../../wallets/models/tx_data.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
+import '../../widgets/adaptive_page.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/blue_text_button.dart';
 import '../../widgets/desktop/primary_button.dart';
@@ -449,7 +450,7 @@ class _PivxDelegateViewState extends ConsumerState<PivxDelegateView> {
     );
 
     return Background(
-      child: Scaffold(
+      child: AppScaffold(
         backgroundColor: colors.background,
         appBar: PageAppBar(
           title: Text(
@@ -599,6 +600,7 @@ class _PivxDelegateViewState extends ConsumerState<PivxDelegateView> {
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                 child: PrimaryButton(
+                  width: double.infinity,
                   label: l10n.csDelegate,
                   enabled: _owner != null,
                   onPressed: _delegate,

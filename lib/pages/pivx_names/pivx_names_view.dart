@@ -13,6 +13,7 @@ import '../../themes/stack_colors.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
+import '../../widgets/adaptive_page.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/blue_text_button.dart';
 import '../../widgets/desktop/primary_button.dart';
@@ -40,6 +41,7 @@ class PivxNamesView extends ConsumerStatefulWidget {
 class _PivxNamesViewState extends ConsumerState<PivxNamesView> {
   final _label = TextEditingController();
   final _focus = FocusNode();
+  final _formKey = GlobalKey();
   List<String> _zones = kPivxNameZones;
   String _zone = ".${kPivxNameZones.first}";
 
@@ -194,7 +196,8 @@ class _PivxNamesViewState extends ConsumerState<PivxNamesView> {
 
   Future<void> _pickZone() async {
     final colors = Theme.of(context).extension<StackColors>()!;
-    final picked = await showModalBottomSheet<String>(
+    final picked = await showAppSheet<String>(
+      scrollable: true,
       context: context,
       backgroundColor: colors.popupBG,
       shape: const RoundedRectangleBorder(
@@ -368,175 +371,189 @@ class _PivxNamesViewState extends ConsumerState<PivxNamesView> {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<StackColors>()!;
-    return Background(
-      child: Scaffold(
-        backgroundColor: colors.background,
-        appBar: PivxNamesAppBar(walletId: widget.walletId),
-        body: SafeArea(
-          child: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+    final side = ScreenFit.sideBySide(context);
+    final intro = Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const SizedBox(height: 8),
+        Center(
+          child: Container(
+            width: 64,
+            height: 64,
+            decoration: BoxDecoration(
+              color: colors.accentColorBlue.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(
+                color: colors.accentColorBlue.withValues(alpha: 0.3),
+              ),
+            ),
+            child: Center(
+              child: PivxNamesIcon(
+                PivxNamesIcons.code,
+                size: 32,
+                strokeWidth: 1.5,
+                color: colors.accentColorBlue,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Text.rich(
+          TextSpan(
             children: [
-              const SizedBox(height: 8),
-              Center(
-                child: Container(
-                  width: 64,
-                  height: 64,
-                  decoration: BoxDecoration(
-                    color: colors.accentColorBlue.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(
-                      color: colors.accentColorBlue.withValues(alpha: 0.3),
-                    ),
-                  ),
-                  child: Center(
-                    child: PivxNamesIcon(
-                      PivxNamesIcons.code,
-                      size: 32,
-                      strokeWidth: 1.5,
-                      color: colors.accentColorBlue,
-                    ),
-                  ),
+              ...l10nSpans(
+                l10n.pivxNamesGetYourName,
+                style: const TextStyle(),
+                bold: TextStyle(color: colors.accentColorBlue),
+              ),
+            ],
+          ),
+          textAlign: TextAlign.center,
+          style: STextStyles.pageTitleH1(context),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          l10n.pivxNamesIntro,
+          textAlign: TextAlign.center,
+          style: STextStyles.itemSubtitle(context),
+        ),
+        const SizedBox(height: 10),
+        Center(
+          child: CustomTextButton(
+            text: l10n.pivxNamesHowDoesItWork,
+            onTap: () => showPivxNamesInfo(context),
+          ),
+        ),
+      ],
+    );
+    // Keeps the name field and its focus when the phone rotates.
+    final form = KeyedSubtree(
+      key: _formKey,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          RoundedWhiteContainer(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  l10n.pivxNamesRegisterYourName,
+                  style: STextStyles.w600_16(context),
                 ),
-              ),
-              const SizedBox(height: 16),
-              Text.rich(
-                TextSpan(
-                  children: [
-                    ...l10nSpans(
-                      l10n.pivxNamesGetYourName,
-                      style: const TextStyle(),
-                      bold: TextStyle(color: colors.accentColorBlue),
-                    ),
-                  ],
-                ),
-                textAlign: TextAlign.center,
-                style: STextStyles.pageTitleH1(context),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                l10n.pivxNamesIntro,
-                textAlign: TextAlign.center,
-                style: STextStyles.itemSubtitle(context),
-              ),
-              const SizedBox(height: 10),
-              Center(
-                child: CustomTextButton(
-                  text: l10n.pivxNamesHowDoesItWork,
-                  onTap: () => showPivxNamesInfo(context),
-                ),
-              ),
-              const SizedBox(height: 20),
-              RoundedWhiteContainer(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      l10n.pivxNamesRegisterYourName,
-                      style: STextStyles.w600_16(context),
-                    ),
-                    const SizedBox(height: 12),
-                    // "alice" then ".pivx", in Arabic too.
-                    Directionality(
-                      textDirection: TextDirection.ltr,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: TextField(
-                          controller: _label,
-                          focusNode: _focus,
-                          autocorrect: false,
-                          enableSuggestions: false,
-                          textInputAction: TextInputAction.search,
-                          onSubmitted: (_) => _check(),
-                          onChanged: (_) => _edited(),
-                          inputFormatters: [
-                            TextInputFormatter.withFunction((old, value) {
-                              final text = sanitizePivxNamesLabel(value.text);
-                              return text == value.text
-                                  ? value
-                                  : TextEditingValue(
-                                      text: text,
-                                      selection: TextSelection.collapsed(
-                                        offset: text.length,
-                                      ),
-                                    );
-                            }),
-                            LengthLimitingTextInputFormatter(
-                              kPivxNameMaxLength - 1,
-                            ),
-                          ],
-                          style: STextStyles.field(context),
-                          decoration:
-                              standardInputDecoration(
-                                l10n.pivxNamesEnterName,
-                                _focus,
-                                context,
-                              ).copyWith(
-                                suffixIcon: Padding(
-                                  padding: const EdgeInsets.all(6),
-                                  child: Material(
-                                    color: colors.background,
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: InkWell(
-                                      borderRadius: BorderRadius.circular(8),
-                                      onTap: _pickZone,
-                                      child: Padding(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 10,
+                const SizedBox(height: 12),
+                // "alice" then ".pivx", in Arabic too.
+                Directionality(
+                  textDirection: TextDirection.ltr,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: TextField(
+                      controller: _label,
+                      focusNode: _focus,
+                      autocorrect: false,
+                      enableSuggestions: false,
+                      textInputAction: TextInputAction.search,
+                      onSubmitted: (_) => _check(),
+                      onChanged: (_) => _edited(),
+                      inputFormatters: [
+                        TextInputFormatter.withFunction((old, value) {
+                          final text = sanitizePivxNamesLabel(value.text);
+                          return text == value.text
+                              ? value
+                              : TextEditingValue(
+                                  text: text,
+                                  selection: TextSelection.collapsed(
+                                    offset: text.length,
+                                  ),
+                                );
+                        }),
+                        LengthLimitingTextInputFormatter(
+                          kPivxNameMaxLength - 1,
+                        ),
+                      ],
+                      style: STextStyles.field(context),
+                      decoration:
+                          standardInputDecoration(
+                            l10n.pivxNamesEnterName,
+                            _focus,
+                            context,
+                          ).copyWith(
+                            suffixIcon: Padding(
+                              padding: const EdgeInsets.all(6),
+                              child: Material(
+                                color: colors.background,
+                                borderRadius: BorderRadius.circular(8),
+                                child: InkWell(
+                                  borderRadius: BorderRadius.circular(8),
+                                  onTap: _pickZone,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(
+                                          _zone,
+                                          style: STextStyles.w600_14(context)
+                                              .copyWith(
+                                                color: colors.accentColorBlue,
+                                              ),
                                         ),
-                                        child: Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Text(
-                                              _zone,
-                                              style:
-                                                  STextStyles.w600_14(
-                                                    context,
-                                                  ).copyWith(
-                                                    color:
-                                                        colors.accentColorBlue,
-                                                  ),
-                                            ),
-                                            Icon(
-                                              Icons.expand_more_rounded,
-                                              size: 18,
-                                              color: colors.accentColorBlue,
-                                            ),
-                                          ],
+                                        Icon(
+                                          Icons.expand_more_rounded,
+                                          size: 18,
+                                          color: colors.accentColorBlue,
                                         ),
-                                      ),
+                                      ],
                                     ),
                                   ),
                                 ),
                               ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    _checking
-                        ? SecondaryButton(
-                            label: l10n.pivxNamesChecking,
-                            enabled: false,
-                            buttonHeight: Util.isDesktop
-                                ? ButtonHeight.l
-                                : null,
-                          )
-                        : PrimaryButton(
-                            label: l10n.pivxNamesCheck,
-                            enabled: _label.text.isNotEmpty,
-                            buttonHeight: Util.isDesktop
-                                ? ButtonHeight.l
-                                : null,
-                            onPressed: _check,
+                            ),
                           ),
-                    _resultBox(),
-                  ],
+                    ),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 24),
-              const PivxNamesSteps(step: PivxNamesStep.check),
-            ],
+                const SizedBox(height: 12),
+                _checking
+                    ? SecondaryButton(
+                        label: l10n.pivxNamesChecking,
+                        enabled: false,
+                        buttonHeight: Util.isDesktop ? ButtonHeight.l : null,
+                      )
+                    : PrimaryButton(
+                        label: l10n.pivxNamesCheck,
+                        enabled: _label.text.isNotEmpty,
+                        buttonHeight: Util.isDesktop ? ButtonHeight.l : null,
+                        onPressed: _check,
+                      ),
+                _resultBox(),
+              ],
+            ),
           ),
+          const SizedBox(height: 24),
+          const PivxNamesSteps(step: PivxNamesStep.check),
+        ],
+      ),
+    );
+    return Background(
+      child: AppScaffold(
+        maxBodyWidth: ScreenFit.panesOrColumn(context),
+        backgroundColor: colors.background,
+        appBar: PivxNamesAppBar(walletId: widget.walletId),
+        body: SafeArea(
+          child: side
+              ? Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+                  child: SplitPane(start: intro, end: form),
+                )
+              : ListView(
+                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                  children: [intro, const SizedBox(height: 20), form],
+                ),
         ),
       ),
     );

@@ -21,6 +21,7 @@ import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/models/tx_data.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
+import '../../widgets/adaptive_page.dart';
 import '../../widgets/background.dart';
 import '../../widgets/desktop/desktop_page_column.dart';
 import '../../widgets/desktop/primary_button.dart';
@@ -475,7 +476,7 @@ class _PivxNamesTargetViewState extends ConsumerState<PivxNamesTargetView> {
     };
 
     return Background(
-      child: Scaffold(
+      child: AppScaffold(
         backgroundColor: colors.background,
         appBar: pivxNamesFlowAppBar(context, _flow.title),
         body: SafeArea(
@@ -628,6 +629,7 @@ class _PivxNamesTargetViewState extends ConsumerState<PivxNamesTargetView> {
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                 child: PrimaryButton(
+                  width: double.infinity,
                   label: l10n.commonNext,
                   enabled: error == null,
                   onPressed: _next,
@@ -803,7 +805,7 @@ class _PivxNamesPaymentViewState extends ConsumerState<PivxNamesPaymentView> {
     final wallet = ref.watch(pWallets).getWallet(_flow.walletId) as PivxWallet;
     final amount = _amount(wallet);
     return Background(
-      child: Scaffold(
+      child: AppScaffold(
         backgroundColor: colors.background,
         appBar: pivxNamesFlowAppBar(context, _flow.title),
         body: SafeArea(
@@ -879,6 +881,7 @@ class _PivxNamesPaymentViewState extends ConsumerState<PivxNamesPaymentView> {
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                 child: PrimaryButton(
+                  width: double.infinity,
                   label: l10n.pivxNamesCreateTransaction,
                   onPressed: _create,
                 ),

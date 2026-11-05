@@ -472,7 +472,12 @@ class _AllTransactionsV2ViewState extends ConsumerState<AllTransactionsV2View> {
                 children: [
                   ConditionalParent(
                     condition: isDesktop,
-                    builder: (child) => SizedBox(width: 570, child: child),
+                    builder: (child) => Flexible(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 570),
+                        child: child,
+                      ),
+                    ),
                     child: ConditionalParent(
                       condition: !isDesktop,
                       builder: (child) => Expanded(child: child),

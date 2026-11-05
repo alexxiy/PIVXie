@@ -28,6 +28,7 @@ import '../../../utilities/constants.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/wallet/wallet.dart';
+import '../../../widgets/adaptive_page.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/desktop/desktop_app_bar.dart';
 import '../../../widgets/desktop/desktop_scaffold.dart';
@@ -61,6 +62,18 @@ class _VerifyRecoveryPhraseViewState
 {
   late List<String> _mnemonic;
   late final bool isDesktop;
+
+  // Picked once per word number, so that rotating doesn't reshuffle them.
+  int? _shownIndex;
+  List<String> _shownWords = const [];
+
+  List<String> _wordsFor(int index) {
+    if (_shownIndex != index) {
+      _shownIndex = index;
+      _shownWords = randomize(_mnemonic, index, 9).item1;
+    }
+    return _shownWords;
+  }
 
   @override
   void initState() {
@@ -132,6 +145,7 @@ class _VerifyRecoveryPhraseViewState
         ),
       );
 
+      _shownIndex = null;
       final int next = Random().nextInt(_mnemonic.length);
       ref
           .read(verifyMnemonicWordIndexStateProvider.notifier)
@@ -202,11 +216,101 @@ class _VerifyRecoveryPhraseViewState
   Widget _buildScreen(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
     final correctIndex = ref.watch(verifyMnemonicWordIndexStateProvider);
+    final side = ScreenFit.sideBySide(context);
+
+    final prompt = <Widget>[
+      SizedBox(height: isDesktop ? 24 : 4),
+      Text(
+        l10n.verifyTitle,
+        textAlign: TextAlign.center,
+        style: isDesktop
+            ? STextStyles.desktopH2(context)
+            : STextStyles.label(context).copyWith(fontSize: 12),
+      ),
+      SizedBox(height: isDesktop ? 16 : 4),
+      Text(
+        isDesktop ? l10n.verifySelectWord : l10n.verifyTapWord,
+        textAlign: TextAlign.center,
+        style: isDesktop
+            ? STextStyles.desktopSubtitleH1(context)
+            : STextStyles.pageTitleH1(context),
+      ),
+      SizedBox(height: isDesktop ? 16 : 12),
+      Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).extension<StackColors>()!.textFieldDefaultBG,
+          borderRadius: BorderRadius.circular(
+            Constants.size.circularBorderRadius,
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+          child: Text(
+            "${correctIndex + 1}",
+            textAlign: TextAlign.center,
+            style: STextStyles.subtitle600(context)
+                .copyWith(fontSize: 32, letterSpacing: 0.25),
+          ),
+        ),
+      ),
+    ];
+
+    final table = WordTable(
+      words: _wordsFor(correctIndex),
+      isDesktop: isDesktop,
+    );
+
+    final button = Row(
+      children: [
+        Expanded(
+          child: Consumer(
+            builder: (_, ref, __) {
+              final selectedWord = ref.watch(
+                verifyMnemonicSelectedWordStateProvider,
+              );
+              final correctWord = ref.watch(
+                verifyMnemonicCorrectWordStateProvider,
+              );
+
+              return ConstrainedBox(
+                constraints: BoxConstraints(minHeight: isDesktop ? 70 : 0),
+                child: TextButton(
+                  onPressed: selectedWord.isNotEmpty
+                      ? () async {
+                          await _continue(correctWord == selectedWord);
+                        }
+                      : null,
+                  style: selectedWord.isNotEmpty
+                      ? Theme.of(context)
+                            .extension<StackColors>()!
+                            .getPrimaryEnabledButtonStyle(context)
+                      : Theme.of(context)
+                            .extension<StackColors>()!
+                            .getPrimaryDisabledButtonStyle(context),
+                  child: isDesktop
+                      ? Text(
+                          l10n.verifyAction,
+                          style: selectedWord.isNotEmpty
+                              ? STextStyles.desktopButtonEnabled(context)
+                              : STextStyles.desktopButtonDisabled(context),
+                        )
+                      : Text(
+                          l10n.commonContinue,
+                          style: STextStyles.button(context),
+                        ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
 
     return WillPopScope(
       onWillPop: onWillPop,
       child: MasterScaffold(
         isDesktop: isDesktop,
+        maxBodyWidth: ScreenFit.panesOrColumn(context),
         appBar: isDesktop
             ? DesktopAppBar(
                 isCompactHeight: false,
@@ -247,112 +351,29 @@ class _VerifyRecoveryPhraseViewState
             padding: isDesktop
                 ? const EdgeInsets.all(0)
                 : const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                if (isDesktop) const Spacer(flex: 10),
-                SizedBox(height: isDesktop ? 24 : 4),
-                Text(
-                  l10n.verifyTitle,
-                  textAlign: TextAlign.center,
-                  style: isDesktop
-                      ? STextStyles.desktopH2(context)
-                      : STextStyles.label(context).copyWith(fontSize: 12),
-                ),
-                SizedBox(height: isDesktop ? 16 : 4),
-                Text(
-                  isDesktop ? l10n.verifySelectWord : l10n.verifyTapWord,
-                  textAlign: TextAlign.center,
-                  style: isDesktop
-                      ? STextStyles.desktopSubtitleH1(context)
-                      : STextStyles.pageTitleH1(context),
-                ),
-                SizedBox(height: isDesktop ? 16 : 12),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .textFieldDefaultBG,
-                    borderRadius: BorderRadius.circular(
-                      Constants.size.circularBorderRadius,
+            child: side
+                ? SplitPane(
+                    start: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [...prompt, const SizedBox(height: 16), button],
+                    ),
+                    end: table,
+                  )
+                : FillOrScroll(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        if (isDesktop) const Spacer(flex: 10),
+                        ...prompt,
+                        if (isDesktop) const SizedBox(height: 40),
+                        table,
+                        if (!isDesktop) const Spacer(),
+                        if (isDesktop) const SizedBox(height: 40),
+                        button,
+                        if (isDesktop) const Spacer(flex: 15),
+                      ],
                     ),
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 8,
-                      horizontal: 12,
-                    ),
-                    child: Text(
-                      "${correctIndex + 1}",
-                      textAlign: TextAlign.center,
-                      style: STextStyles.subtitle600(context)
-                          .copyWith(fontSize: 32, letterSpacing: 0.25),
-                    ),
-                  ),
-                ),
-                if (isDesktop) const SizedBox(height: 40),
-                WordTable(
-                  words: randomize(_mnemonic, correctIndex, 9).item1,
-                  isDesktop: isDesktop,
-                ),
-                if (!isDesktop) const Spacer(),
-                if (isDesktop) const SizedBox(height: 40),
-                Row(
-                  children: [
-                    Expanded(
-                      child: Consumer(
-                        builder: (_, ref, __) {
-                          final selectedWord = ref.watch(
-                            verifyMnemonicSelectedWordStateProvider,
-                          );
-                          final correctWord = ref.watch(
-                            verifyMnemonicCorrectWordStateProvider,
-                          );
-
-                          return ConstrainedBox(
-                            constraints: BoxConstraints(
-                              minHeight: isDesktop ? 70 : 0,
-                            ),
-                            child: TextButton(
-                              onPressed: selectedWord.isNotEmpty
-                                  ? () async {
-                                      await _continue(
-                                        correctWord == selectedWord,
-                                      );
-                                    }
-                                  : null,
-                              style: selectedWord.isNotEmpty
-                                  ? Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .getPrimaryEnabledButtonStyle(context)
-                                  : Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .getPrimaryDisabledButtonStyle(context),
-                              child: isDesktop
-                                  ? Text(
-                                      l10n.verifyAction,
-                                      style: selectedWord.isNotEmpty
-                                          ? STextStyles.desktopButtonEnabled(
-                                              context,
-                                            )
-                                          : STextStyles.desktopButtonDisabled(
-                                              context,
-                                            ),
-                                    )
-                                  : Text(
-                                      l10n.commonContinue,
-                                      style: STextStyles.button(context),
-                                    ),
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-                if (isDesktop) const Spacer(flex: 15),
-              ],
-            ),
           ),
         ),
       ),

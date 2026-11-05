@@ -20,6 +20,7 @@ import '../../utilities/constants.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
+import '../../widgets/adaptive_page.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
@@ -237,7 +238,9 @@ class PivxNamesAppBar extends StatelessWidget implements PreferredSizeWidget {
   final PivxNamesSection? section;
 
   @override
-  Size get preferredSize => Size.fromHeight(PageAppBar.height);
+  Size get preferredSize => Util.isDesktop
+      ? Size.fromHeight(PageAppBar.height)
+      : AppBar().preferredSize;
 
   Future<void> _menu(BuildContext button) async {
     final colors = Theme.of(button).extension<StackColors>()!;
@@ -307,7 +310,7 @@ class PivxNamesAppBar extends StatelessWidget implements PreferredSizeWidget {
       child: AspectRatio(aspectRatio: 1, child: child),
     );
     return AppBar(
-      toolbarHeight: PageAppBar.height,
+      toolbarHeight: Util.isDesktop ? PageAppBar.height : null,
       leadingWidth: PageAppBar.leadingWidth,
       leading: PageAppBar.backButton(context),
       titleSpacing: 0,
@@ -537,14 +540,17 @@ class _InfoDialogState extends State<_InfoDialog> {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<StackColors>()!;
     final last = _slide == _slides.length - 1;
+    final short = ScreenFit.short(context);
     return Dialog(
       backgroundColor: colors.popupBG,
-      insetPadding: const EdgeInsets.all(20),
+      insetPadding: EdgeInsets.all(short ? 12 : 20),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 480),
+        constraints: BoxConstraints(
+          maxWidth: short ? ScreenFit.columnWidth : 480,
+        ),
         child: Padding(
-          padding: const EdgeInsets.all(20),
+          padding: EdgeInsets.all(short ? 16 : 20),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -562,20 +568,24 @@ class _InfoDialogState extends State<_InfoDialog> {
                   ),
                 ],
               ),
-              const SizedBox(height: 18),
+              SizedBox(height: short ? 8 : 18),
               // Every slide takes the tallest one's room, so the buttons
               // stay under the finger while paging.
-              Stack(
-                children: [
-                  for (var i = 0; i < _slides.length; i++)
-                    Visibility(
-                      visible: i == _slide,
-                      maintainSize: true,
-                      maintainAnimation: true,
-                      maintainState: true,
-                      child: _slideBody(i),
-                    ),
-                ],
+              Flexible(
+                child: SingleChildScrollView(
+                  child: Stack(
+                    children: [
+                      for (var i = 0; i < _slides.length; i++)
+                        Visibility(
+                          visible: i == _slide,
+                          maintainSize: true,
+                          maintainAnimation: true,
+                          maintainState: true,
+                          child: _slideBody(i),
+                        ),
+                    ],
+                  ),
+                ),
               ),
               const SizedBox(height: 8),
               Row(
@@ -596,7 +606,7 @@ class _InfoDialogState extends State<_InfoDialog> {
                     ),
                 ],
               ),
-              const SizedBox(height: 16),
+              SizedBox(height: short ? 10 : 16),
               if (last)
                 PrimaryButton(
                   label: l10n.commonFinish,

@@ -18,6 +18,7 @@ import '../../../providers/providers.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/shown_coins.dart';
 import '../../../utilities/util.dart';
+import '../../../widgets/adaptive_page.dart';
 import '../../../widgets/background.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/desktop/desktop_app_bar.dart';
@@ -96,7 +97,7 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
       );
     } else {
       return Background(
-        child: Scaffold(
+        child: AppScaffold(
           backgroundColor: Theme.of(context)
               .extension<StackColors>()!
               .background,

@@ -21,6 +21,7 @@ import '../utilities/constants.dart';
 import '../utilities/text_styles.dart';
 import '../utilities/shown_coins.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
+import 'adaptive_page.dart';
 import 'background.dart';
 import 'custom_buttons/app_bar_icon_button.dart';
 import 'rounded_white_container.dart';
@@ -65,7 +66,7 @@ class _ChooseCoinViewState extends ConsumerState<ChooseCoinView> {
     final coins = shownCoins(ref, withWalletCoins: true);
 
     return Background(
-      child: Scaffold(
+      child: AppScaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         appBar: AppBar(
           leading: AppBarBackButton(

@@ -64,10 +64,38 @@ import 'utilities/stack_file_system.dart';
 import 'utilities/text_styles.dart';
 import 'utilities/util.dart';
 import 'wallets/isar/providers/all_wallets_info_provider.dart';
+import 'widgets/adaptive_page.dart';
 
 final openedFromSWBFileStringStateProvider = StateProvider<String?>(
   (ref) => null,
 );
+
+/// Opens the window at a size that fits the screen. Windows counts these in
+/// physical pixels, Linux and macOS in logical ones.
+Future<void> _setUpDesktopWindow() async {
+  final screen = await getCurrentScreen();
+  final scale = Platform.isWindows ? (screen?.scaleFactor ?? 1.0) : 1.0;
+
+  setWindowTitle(AppConfig.appName);
+  // Fits a 1024x600 netbook, with its panels and title bar.
+  setWindowMinSize(const Size(800, 480) * scale);
+  setWindowMaxSize(Size.infinite);
+
+  if (screen == null) return;
+  final room = screen.visibleFrame;
+  // 3/4 of the screen height, between 640 and 900 where the screen has that.
+  final height = min(
+    (room.height * 0.75).clamp(640 * scale, 900 * scale),
+    room.height,
+  );
+  setWindowFrame(
+    Rect.fromCenter(
+      center: room.center,
+      width: min(1220 * scale, room.width),
+      height: height,
+    ),
+  );
+}
 
 // main() is the entry point to the app. It initializes Hive (local database),
 // runs the MyApp widget and checks for new users, caching the value in the
@@ -91,21 +119,8 @@ void main(List<String> args) async {
   if (Platform.isIOS) {
     Util.libraryPath = await getLibraryDirectory();
   }
-  if (!Util.isDesktop) {
-    // The mobile layouts are designed for portrait only.
-    await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-  }
   if (Util.isDesktop && !Platform.isIOS) {
-    setWindowTitle(AppConfig.appName);
-    setWindowMinSize(const Size(1220, 100));
-    setWindowMaxSize(Size.infinite);
-
-    final screenHeight = (await getCurrentScreen())?.frame.height;
-    if (screenHeight != null) {
-      // starting to height be 3/4 screen height or 900, whichever is smaller
-      final height = min<double>(screenHeight * 0.75, 900);
-      setWindowFrame(Rect.fromLTWH(0, 0, 1220, height));
-    }
+    await _setUpDesktopWindow();
   }
 
   DB.instance.hive.registerAdapter(NodeModelAdapter());
@@ -150,7 +165,8 @@ void main(List<String> args) async {
           supportedLocales: AppLocalizations.supportedLocales,
           localeListResolutionCallback: Language.resolveLocale,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
-          builder: (context, child) => L10nRoot(child: child!),
+          builder: (context, child) =>
+              L10nRoot(child: ScreenFitTheme(child: child!)),
           home: Scaffold(
             body: Center(
               child: Column(
@@ -646,7 +662,8 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       supportedLocales: AppLocalizations.supportedLocales,
       localeListResolutionCallback: Language.resolveLocale,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
-      builder: (context, child) => L10nRoot(child: child!),
+      builder: (context, child) =>
+          L10nRoot(child: ScreenFitTheme(child: child!)),
       theme: ThemeData(
         extensions: [colorScheme],
         highlightColor: colorScheme.highlight,

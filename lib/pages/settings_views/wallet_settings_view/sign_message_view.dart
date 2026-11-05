@@ -12,6 +12,7 @@ import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/intermediate/bip39_hd_currency.dart';
 import '../../../wallets/wallet/impl/pivx_wallet.dart';
+import '../../../widgets/adaptive_page.dart';
 import '../../../widgets/background.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/desktop/desktop_dialog.dart';
@@ -43,7 +44,7 @@ class SignMessageView extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<StackColors>()!;
     return Background(
-      child: Scaffold(
+      child: AppScaffold(
         backgroundColor: colors.background,
         appBar: AppBar(
           leading: AppBarBackButton(

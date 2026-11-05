@@ -46,6 +46,7 @@ import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/models/tx_data.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
+import '../../widgets/adaptive_page.dart';
 import '../../widgets/animated_text.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -904,9 +905,12 @@ class _SendViewState extends ConsumerState<SendView> {
       );
     }
 
+    final side = ScreenFit.sideBySide(context);
+
     return Background(
-      child: Scaffold(
+      child: AppScaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
+        maxBodyWidth: ScreenFit.panesOrColumn(context),
         appBar: AppBar(
           leading: AppBarBackButton(
             onPressed: () => Navigator.of(context).pop(),
@@ -930,621 +934,724 @@ class _SendViewState extends ConsumerState<SendView> {
                     child: IntrinsicHeight(
                       child: Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 4),
-                        child: Column(
+                        child: Flex(
+                          direction: side ? Axis.horizontal : Axis.vertical,
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            Container(
-                              decoration: BoxDecoration(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .popupBG,
-                                borderRadius: BorderRadius.circular(
-                                  Constants.size.circularBorderRadius,
-                                ),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.all(12.0),
-                                child: Row(
-                                  children: [
-                                    SvgPicture.file(
-                                      File(ref.watch(coinIconProvider(coin))),
-                                      width: 22,
-                                      height: 22,
+                            Flexible(
+                              flex: side ? 1 : 0,
+                              fit: FlexFit.tight,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Container(
+                                    decoration: BoxDecoration(
+                                      color: Theme.of(context)
+                                          .extension<StackColors>()!
+                                          .popupBG,
+                                      borderRadius: BorderRadius.circular(
+                                        Constants.size.circularBorderRadius,
+                                      ),
                                     ),
-                                    const SizedBox(width: 6),
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          ref.watch(pWalletName(walletId)),
-                                          style: STextStyles.titleBold12(
-                                            context,
-                                          ).copyWith(fontSize: 14),
-                                          overflow: TextOverflow.ellipsis,
-                                          maxLines: 1,
-                                        ),
-                                        Text(
-                                          balType == BalanceType.private
-                                              ? l10n.balanceShielded
-                                              : l10n.balanceTransparent,
-                                          style: STextStyles.label(context)
-                                              .copyWith(fontSize: 10),
-                                        ),
-                                        Text(
-                                          l10n.balanceAvailable,
-                                          style: STextStyles.label(context)
-                                              .copyWith(fontSize: 10),
-                                        ),
-                                      ],
-                                    ),
-                                    const Spacer(),
-                                    Builder(
-                                      builder: (context) {
-                                        final Amount amount = ref
-                                            .read(
-                                              balType == BalanceType.private
-                                                  ? pWalletBalanceSecondary(
-                                                      walletId,
-                                                    )
-                                                  : pWalletBalance(walletId),
-                                            )
-                                            .spendable;
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(12.0),
+                                      child: Row(
+                                        children: [
+                                          SvgPicture.file(
+                                            File(
+                                              ref.watch(coinIconProvider(coin)),
+                                            ),
+                                            width: 22,
+                                            height: 22,
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                ref.watch(
+                                                  pWalletName(walletId),
+                                                ),
+                                                style: STextStyles.titleBold12(
+                                                  context,
+                                                ).copyWith(fontSize: 14),
+                                                overflow: TextOverflow.ellipsis,
+                                                maxLines: 1,
+                                              ),
+                                              Text(
+                                                balType == BalanceType.private
+                                                    ? l10n.balanceShielded
+                                                    : l10n.balanceTransparent,
+                                                style: STextStyles.label(
+                                                  context,
+                                                ).copyWith(fontSize: 10),
+                                              ),
+                                              Text(
+                                                l10n.balanceAvailable,
+                                                style: STextStyles.label(
+                                                  context,
+                                                ).copyWith(fontSize: 10),
+                                              ),
+                                            ],
+                                          ),
+                                          const Spacer(),
+                                          Builder(
+                                            builder: (context) {
+                                              final Amount amount = ref
+                                                  .read(
+                                                    balType ==
+                                                            BalanceType.private
+                                                        ? pWalletBalanceSecondary(
+                                                            walletId,
+                                                          )
+                                                        : pWalletBalance(
+                                                            walletId,
+                                                          ),
+                                                  )
+                                                  .spendable;
 
-                                        return GestureDetector(
-                                          onTap: () {
-                                            cryptoAmountController.text = ref
-                                                .read(pAmountFormatter(coin))
-                                                .format(
-                                                  amount,
-                                                  withUnitName: false,
-                                                );
-                                          },
-                                          child: Container(
-                                            color: Colors.transparent,
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.end,
-                                              children: [
-                                                Text(
-                                                  ref
-                                                      .watch(
+                                              return GestureDetector(
+                                                onTap: () {
+                                                  cryptoAmountController
+                                                      .text = ref
+                                                      .read(
                                                         pAmountFormatter(coin),
                                                       )
-                                                      .format(amount),
-                                                  style:
-                                                      STextStyles.titleBold12(
-                                                        context,
-                                                      ).copyWith(fontSize: 10),
-                                                  textAlign: TextAlign.end,
-                                                ),
-                                                if (price != null)
-                                                  Text(
-                                                    "${(amount.decimal * price).toAmount(fractionDigits: 2).fiatString(locale: locale)} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
-                                                    style: STextStyles.subtitle(
-                                                      context,
-                                                    ).copyWith(fontSize: 8),
-                                                    textAlign: TextAlign.end,
+                                                      .format(
+                                                        amount,
+                                                        withUnitName: false,
+                                                      );
+                                                },
+                                                child: Container(
+                                                  color: Colors.transparent,
+                                                  child: Column(
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment.end,
+                                                    children: [
+                                                      Text(
+                                                        ref
+                                                            .watch(
+                                                              pAmountFormatter(
+                                                                coin,
+                                                              ),
+                                                            )
+                                                            .format(amount),
+                                                        style:
+                                                            STextStyles.titleBold12(
+                                                              context,
+                                                            ).copyWith(
+                                                              fontSize: 10,
+                                                            ),
+                                                        textAlign:
+                                                            TextAlign.end,
+                                                      ),
+                                                      if (price != null)
+                                                        Text(
+                                                          "${(amount.decimal * price).toAmount(fractionDigits: 2).fiatString(locale: locale)} ${ref.watch(prefsChangeNotifierProvider.select((value) => value.currency))}",
+                                                          style:
+                                                              STextStyles.subtitle(
+                                                                context,
+                                                              ).copyWith(
+                                                                fontSize: 8,
+                                                              ),
+                                                          textAlign:
+                                                              TextAlign.end,
+                                                        ),
+                                                    ],
                                                   ),
-                                              ],
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        l10n.sendSendTo,
+                                        style: STextStyles.smallMed12(context),
+                                        textAlign: TextAlign.start,
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(
+                                      Constants.size.circularBorderRadius,
+                                    ),
+                                    child: TextField(
+                                      key: const Key("sendViewAddressFieldKey"),
+                                      controller: sendToController,
+                                      textDirection: TextDirection.ltr,
+                                      readOnly: false,
+                                      autocorrect: false,
+                                      enableSuggestions: false,
+                                      // inputFormatters: <TextInputFormatter>[
+                                      //   FilteringTextInputFormatter.allow(
+                                      //       RegExp("[a-zA-Z0-9]{34}")),
+                                      // ],
+                                      toolbarOptions: const ToolbarOptions(
+                                        copy: false,
+                                        cut: false,
+                                        paste: true,
+                                        selectAll: false,
+                                      ),
+                                      onChanged: (newValue) async {
+                                        final trimmed = newValue.trim();
+
+                                        if ((trimmed.length -
+                                                        (_address?.length ?? 0))
+                                                    .abs() >
+                                                1 ||
+                                            trimmed.contains(':')) {
+                                          final parsed =
+                                              AddressUtils.parsePaymentUri(
+                                                trimmed,
+                                                logging: Logging.instance,
+                                              );
+                                          // Only a payment link for this coin (as when scanned).
+                                          if (parsed != null &&
+                                              parsed.coin?.uriScheme ==
+                                                  coin.uriScheme) {
+                                            _applyUri(parsed);
+                                          } else {
+                                            _setAddress(newValue);
+                                          }
+                                        } else {
+                                          _setAddress(
+                                            newValue,
+                                            setController: false,
+                                          );
+                                        }
+
+                                        _setValidAddressProviders(_address);
+
+                                        setState(() {
+                                          _addressToggleFlag =
+                                              newValue.isNotEmpty;
+                                        });
+                                      },
+                                      focusNode: _addressFocusNode,
+                                      style: STextStyles.field(context),
+                                      decoration:
+                                          standardInputDecoration(
+                                            recipientHint(coin),
+                                            _addressFocusNode,
+                                            context,
+                                          ).copyWith(
+                                            contentPadding:
+                                                const EdgeInsetsDirectional.only(
+                                                  start: 16,
+                                                  top: 6,
+                                                  bottom: 8,
+                                                  end: 5,
+                                                ),
+                                            suffixIcon: Padding(
+                                              padding:
+                                                  sendToController.text.isEmpty
+                                                  ? const EdgeInsetsDirectional.only(
+                                                      end: 8,
+                                                    )
+                                                  : const EdgeInsetsDirectional.only(
+                                                      end: 0,
+                                                    ),
+                                              child: UnconstrainedBox(
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceAround,
+                                                  children: [
+                                                    _addressToggleFlag
+                                                        ? TextFieldIconButton(
+                                                            semanticsLabel: l10n
+                                                                .sendClearAddressSemantics,
+                                                            key: const Key(
+                                                              "sendViewClearAddressFieldButtonKey",
+                                                            ),
+                                                            onTap: () {
+                                                              sendToController
+                                                                      .text =
+                                                                  "";
+                                                              _address = "";
+                                                              _setValidAddressProviders(
+                                                                _address,
+                                                              );
+                                                              setState(() {
+                                                                _addressToggleFlag =
+                                                                    false;
+                                                              });
+                                                            },
+                                                            child:
+                                                                const XIcon(),
+                                                          )
+                                                        : TextFieldIconButton(
+                                                            semanticsLabel: l10n
+                                                                .sendPasteAddressSemantics,
+                                                            key: const Key(
+                                                              "sendViewPasteAddressFieldButtonKey",
+                                                            ),
+                                                            onTap:
+                                                                _pasteAddress,
+                                                            child:
+                                                                sendToController
+                                                                    .text
+                                                                    .isEmpty
+                                                                ? const ClipboardIcon()
+                                                                : const XIcon(),
+                                                          ),
+                                                    if (sendToController
+                                                        .text
+                                                        .isEmpty)
+                                                      TextFieldIconButton(
+                                                        semanticsLabel: l10n
+                                                            .sendAddressBookSemantics,
+                                                        key: const Key(
+                                                          "sendViewAddressBookButtonKey",
+                                                        ),
+                                                        onTap: () {
+                                                          Navigator.of(context)
+                                                              .pushNamed(
+                                                                AddressBookView
+                                                                    .routeName,
+                                                                arguments:
+                                                                    widget.coin,
+                                                              );
+                                                        },
+                                                        child:
+                                                            const AddressBookIcon(),
+                                                      ),
+                                                    if (sendToController
+                                                        .text
+                                                        .isEmpty)
+                                                      TextFieldIconButton(
+                                                        semanticsLabel: l10n
+                                                            .sendScanQrSemantics,
+                                                        key: const Key(
+                                                          "sendViewScanQrButtonKey",
+                                                        ),
+                                                        onTap: _scanQr,
+                                                        child:
+                                                            const QrCodeIcon(),
+                                                      ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 10),
+                                  Builder(
+                                    builder: (_) {
+                                      final String? error;
+
+                                      if (_address == null ||
+                                          _address!.isEmpty ||
+                                          (_data != null &&
+                                              _data.contactLabel == _address) ||
+                                          ref.watch(pValidSendToAddress)) {
+                                        error = null;
+                                      } else {
+                                        error = recipientInputError(
+                                          coin,
+                                          _address!,
+                                        );
+                                      }
+
+                                      if (error == null || error.isEmpty) {
+                                        return Container();
+                                      } else {
+                                        return Align(
+                                          alignment:
+                                              AlignmentDirectional.topStart,
+                                          child: Padding(
+                                            padding:
+                                                const EdgeInsetsDirectional.only(
+                                                  start: 12.0,
+                                                  top: 4.0,
+                                                ),
+                                            child: Text(
+                                              error,
+                                              textAlign: TextAlign.start,
+                                              style: STextStyles.label(context)
+                                                  .copyWith(
+                                                    color: Theme.of(context)
+                                                        .extension<
+                                                          StackColors
+                                                        >()!
+                                                        .textError,
+                                                  ),
                                             ),
                                           ),
                                         );
-                                      },
+                                      }
+                                    },
+                                  ),
+                                  const SizedBox(height: 12),
+                                  PivxFundingCard(
+                                    walletId: walletId,
+                                    funding: (
+                                      fromShield:
+                                          balType == BalanceType.private,
+                                      coins: selectedUTXOs
+                                          .map((e) => e.utxo)
+                                          .toSet(),
+                                      changeAddress: _pivxChange(balType),
                                     ),
-                                  ],
-                                ),
+                                    amount: ref.watch(pSendAmount),
+                                    coinsTarget: _pivxCoinsTarget(),
+                                    subtractFee: _pivxSubtractFee,
+                                    toShield: _sendsToShield,
+                                    onChanged: _setPivxFunding,
+                                  ),
+                                ],
                               ),
                             ),
-                            const SizedBox(height: 16),
-
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  l10n.sendSendTo,
-                                  style: STextStyles.smallMed12(context),
-                                  textAlign: TextAlign.start,
-                                ),
-                              ],
+                            SizedBox(
+                              width: side ? 16 : 0,
+                              height: side ? 0 : 12,
                             ),
-                            const SizedBox(height: 8),
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(
-                                Constants.size.circularBorderRadius,
-                              ),
-                              child: TextField(
-                                key: const Key("sendViewAddressFieldKey"),
-                                controller: sendToController,
-                                textDirection: TextDirection.ltr,
-                                readOnly: false,
-                                autocorrect: false,
-                                enableSuggestions: false,
-                                // inputFormatters: <TextInputFormatter>[
-                                //   FilteringTextInputFormatter.allow(
-                                //       RegExp("[a-zA-Z0-9]{34}")),
-                                // ],
-                                toolbarOptions: const ToolbarOptions(
-                                  copy: false,
-                                  cut: false,
-                                  paste: true,
-                                  selectAll: false,
-                                ),
-                                onChanged: (newValue) async {
-                                  final trimmed = newValue.trim();
-
-                                  if ((trimmed.length - (_address?.length ?? 0))
-                                              .abs() >
-                                          1 ||
-                                      trimmed.contains(':')) {
-                                    final parsed = AddressUtils.parsePaymentUri(
-                                      trimmed,
-                                      logging: Logging.instance,
-                                    );
-                                    // Only a payment link for this coin (as when scanned).
-                                    if (parsed != null &&
-                                        parsed.coin?.uriScheme ==
-                                            coin.uriScheme) {
-                                      _applyUri(parsed);
-                                    } else {
-                                      _setAddress(newValue);
-                                    }
-                                  } else {
-                                    _setAddress(newValue, setController: false);
-                                  }
-
-                                  _setValidAddressProviders(_address);
-
-                                  setState(() {
-                                    _addressToggleFlag = newValue.isNotEmpty;
-                                  });
-                                },
-                                focusNode: _addressFocusNode,
-                                style: STextStyles.field(context),
-                                decoration:
-                                    standardInputDecoration(
-                                      recipientHint(coin),
-                                      _addressFocusNode,
-                                      context,
-                                    ).copyWith(
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        l10n.commonAmount,
+                                        style: STextStyles.smallMed12(context),
+                                        textAlign: TextAlign.start,
+                                      ),
+                                      CustomTextButton(
+                                        text: _getSendAllTitle(selectedUTXOs),
+                                        onTap: _sendAllTapped,
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  TextField(
+                                    autocorrect: Util.isDesktop ? false : true,
+                                    enableSuggestions: Util.isDesktop
+                                        ? false
+                                        : true,
+                                    style: STextStyles.smallMed14(context)
+                                        .copyWith(
+                                          color: Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .textDark,
+                                        ),
+                                    key: const Key(
+                                      "amountInputFieldCryptoTextFieldKey",
+                                    ),
+                                    controller: cryptoAmountController,
+                                    focusNode: _cryptoFocus,
+                                    keyboardType: Util.isDesktop
+                                        ? null
+                                        : const TextInputType.numberWithOptions(
+                                            signed: false,
+                                            decimal: true,
+                                          ),
+                                    textAlign: TextAlign.end,
+                                    inputFormatters: [
+                                      AmountInputFormatter(
+                                        decimals: coin.fractionDigits,
+                                        unit: ref.watch(pAmountUnit(coin)),
+                                        locale: locale,
+                                      ),
+                                    ],
+                                    decoration: InputDecoration(
                                       contentPadding:
                                           const EdgeInsetsDirectional.only(
-                                            start: 16,
-                                            top: 6,
-                                            bottom: 8,
-                                            end: 5,
+                                            top: 12,
+                                            end: 12,
                                           ),
-                                      suffixIcon: Padding(
-                                        padding: sendToController.text.isEmpty
-                                            ? const EdgeInsetsDirectional.only(
-                                                end: 8,
-                                              )
-                                            : const EdgeInsetsDirectional.only(
-                                                end: 0,
-                                              ),
-                                        child: UnconstrainedBox(
-                                          child: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceAround,
-                                            children: [
-                                              _addressToggleFlag
-                                                  ? TextFieldIconButton(
-                                                      semanticsLabel: l10n
-                                                          .sendClearAddressSemantics,
-                                                      key: const Key(
-                                                        "sendViewClearAddressFieldButtonKey",
-                                                      ),
-                                                      onTap: () {
-                                                        sendToController.text =
-                                                            "";
-                                                        _address = "";
-                                                        _setValidAddressProviders(
-                                                          _address,
-                                                        );
-                                                        setState(() {
-                                                          _addressToggleFlag =
-                                                              false;
-                                                        });
-                                                      },
-                                                      child: const XIcon(),
-                                                    )
-                                                  : TextFieldIconButton(
-                                                      semanticsLabel: l10n
-                                                          .sendPasteAddressSemantics,
-                                                      key: const Key(
-                                                        "sendViewPasteAddressFieldButtonKey",
-                                                      ),
-                                                      onTap: _pasteAddress,
-                                                      child:
-                                                          sendToController
-                                                              .text
-                                                              .isEmpty
-                                                          ? const ClipboardIcon()
-                                                          : const XIcon(),
-                                                    ),
-                                              if (sendToController.text.isEmpty)
-                                                TextFieldIconButton(
-                                                  semanticsLabel: l10n
-                                                      .sendAddressBookSemantics,
-                                                  key: const Key(
-                                                    "sendViewAddressBookButtonKey",
-                                                  ),
-                                                  onTap: () {
-                                                    Navigator.of(
-                                                      context,
-                                                    ).pushNamed(
-                                                      AddressBookView.routeName,
-                                                      arguments: widget.coin,
-                                                    );
-                                                  },
-                                                  child:
-                                                      const AddressBookIcon(),
+                                      hintText: "0",
+                                      hintStyle: STextStyles.fieldLabel(context)
+                                          .copyWith(fontSize: 14),
+                                      prefixIcon: FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: Padding(
+                                          padding: const EdgeInsets.all(12),
+                                          child: Text(
+                                            ref
+                                                .watch(pAmountUnit(coin))
+                                                .unitForCoin(coin),
+                                            style:
+                                                STextStyles.smallMed14(
+                                                  context,
+                                                ).copyWith(
+                                                  color: Theme.of(context)
+                                                      .extension<StackColors>()!
+                                                      .accentColorDark,
                                                 ),
-                                              if (sendToController.text.isEmpty)
-                                                TextFieldIconButton(
-                                                  semanticsLabel:
-                                                      l10n.sendScanQrSemantics,
-                                                  key: const Key(
-                                                    "sendViewScanQrButtonKey",
-                                                  ),
-                                                  onTap: _scanQr,
-                                                  child: const QrCodeIcon(),
-                                                ),
-                                            ],
                                           ),
                                         ),
                                       ),
                                     ),
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                            Builder(
-                              builder: (_) {
-                                final String? error;
-
-                                if (_address == null ||
-                                    _address!.isEmpty ||
-                                    (_data != null &&
-                                        _data.contactLabel == _address) ||
-                                    ref.watch(pValidSendToAddress)) {
-                                  error = null;
-                                } else {
-                                  error = recipientInputError(coin, _address!);
-                                }
-
-                                if (error == null || error.isEmpty) {
-                                  return Container();
-                                } else {
-                                  return Align(
-                                    alignment: AlignmentDirectional.topStart,
-                                    child: Padding(
-                                      padding: const EdgeInsetsDirectional.only(
-                                        start: 12.0,
-                                        top: 4.0,
-                                      ),
-                                      child: Text(
-                                        error,
-                                        textAlign: TextAlign.start,
-                                        style: STextStyles.label(context)
-                                            .copyWith(
-                                              color: Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .textError,
-                                            ),
-                                      ),
-                                    ),
-                                  );
-                                }
-                              },
-                            ),
-                            const SizedBox(height: 12),
-                            PivxFundingCard(
-                              walletId: walletId,
-                              funding: (
-                                fromShield: balType == BalanceType.private,
-                                coins: selectedUTXOs.map((e) => e.utxo).toSet(),
-                                changeAddress: _pivxChange(balType),
-                              ),
-                              amount: ref.watch(pSendAmount),
-                              coinsTarget: _pivxCoinsTarget(),
-                              subtractFee: _pivxSubtractFee,
-                              toShield: _sendsToShield,
-                              onChanged: _setPivxFunding,
-                            ),
-                            const SizedBox(height: 12),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  l10n.commonAmount,
-                                  style: STextStyles.smallMed12(context),
-                                  textAlign: TextAlign.start,
-                                ),
-                                CustomTextButton(
-                                  text: _getSendAllTitle(selectedUTXOs),
-                                  onTap: _sendAllTapped,
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            TextField(
-                              autocorrect: Util.isDesktop ? false : true,
-                              enableSuggestions: Util.isDesktop ? false : true,
-                              style: STextStyles.smallMed14(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textDark,
-                              ),
-                              key: const Key(
-                                "amountInputFieldCryptoTextFieldKey",
-                              ),
-                              controller: cryptoAmountController,
-                              focusNode: _cryptoFocus,
-                              keyboardType: Util.isDesktop
-                                  ? null
-                                  : const TextInputType.numberWithOptions(
-                                      signed: false,
-                                      decimal: true,
-                                    ),
-                              textAlign: TextAlign.end,
-                              inputFormatters: [
-                                AmountInputFormatter(
-                                  decimals: coin.fractionDigits,
-                                  unit: ref.watch(pAmountUnit(coin)),
-                                  locale: locale,
-                                ),
-                              ],
-                              decoration: InputDecoration(
-                                contentPadding:
-                                    const EdgeInsetsDirectional.only(
-                                      top: 12,
-                                      end: 12,
-                                    ),
-                                hintText: "0",
-                                hintStyle: STextStyles.fieldLabel(context)
-                                    .copyWith(fontSize: 14),
-                                prefixIcon: FittedBox(
-                                  fit: BoxFit.scaleDown,
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(12),
-                                    child: Text(
-                                      ref
-                                          .watch(pAmountUnit(coin))
-                                          .unitForCoin(coin),
+                                  ),
+                                  if (Prefs.instance.externalCalls)
+                                    const SizedBox(height: 8),
+                                  if (Prefs.instance.externalCalls)
+                                    TextField(
+                                      autocorrect: Util.isDesktop
+                                          ? false
+                                          : true,
+                                      enableSuggestions: Util.isDesktop
+                                          ? false
+                                          : true,
                                       style: STextStyles.smallMed14(context)
                                           .copyWith(
                                             color: Theme.of(context)
                                                 .extension<StackColors>()!
-                                                .accentColorDark,
+                                                .textDark,
                                           ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            if (Prefs.instance.externalCalls)
-                              const SizedBox(height: 8),
-                            if (Prefs.instance.externalCalls)
-                              TextField(
-                                autocorrect: Util.isDesktop ? false : true,
-                                enableSuggestions: Util.isDesktop
-                                    ? false
-                                    : true,
-                                style: STextStyles.smallMed14(context).copyWith(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textDark,
-                                ),
-                                key: const Key(
-                                  "amountInputFieldFiatTextFieldKey",
-                                ),
-                                controller: baseAmountController,
-                                focusNode: _baseFocus,
-                                keyboardType: Util.isDesktop
-                                    ? null
-                                    : const TextInputType.numberWithOptions(
-                                        signed: false,
-                                        decimal: true,
+                                      key: const Key(
+                                        "amountInputFieldFiatTextFieldKey",
                                       ),
-                                textAlign: TextAlign.end,
-                                inputFormatters: [
-                                  AmountInputFormatter(
-                                    decimals: 2,
-                                    locale: locale,
-                                  ),
-                                ],
-                                onChanged: _fiatFieldChanged,
-                                decoration: InputDecoration(
-                                  contentPadding:
-                                      const EdgeInsetsDirectional.only(
-                                        top: 12,
-                                        end: 12,
-                                      ),
-                                  hintText: "0",
-                                  hintStyle: STextStyles.fieldLabel(context)
-                                      .copyWith(fontSize: 14),
-                                  prefixIcon: FittedBox(
-                                    fit: BoxFit.scaleDown,
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(12),
-                                      child: Text(
-                                        ref.watch(
-                                          prefsChangeNotifierProvider.select(
-                                            (value) => value.currency,
-                                          ),
-                                        ),
-                                        style: STextStyles.smallMed14(context)
-                                            .copyWith(
-                                              color: Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .accentColorDark,
+                                      controller: baseAmountController,
+                                      focusNode: _baseFocus,
+                                      keyboardType: Util.isDesktop
+                                          ? null
+                                          : const TextInputType.numberWithOptions(
+                                              signed: false,
+                                              decimal: true,
                                             ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            if (coin is Pivx) const SizedBox(height: 8),
-                            if (coin is Pivx)
-                              GestureDetector(
-                                onTap: () =>
-                                    _setPivxSubtractFee(!_pivxSubtractFee),
-                                child: Container(
-                                  color: Colors.transparent,
-                                  child: Row(
-                                    children: [
-                                      SizedBox(
-                                        width: 20,
-                                        height: 20,
-                                        child: Checkbox(
-                                          materialTapTargetSize:
-                                              MaterialTapTargetSize.shrinkWrap,
-                                          value: _pivxSubtractFee,
-                                          onChanged: (v) =>
-                                              _setPivxSubtractFee(v ?? false),
+                                      textAlign: TextAlign.end,
+                                      inputFormatters: [
+                                        AmountInputFormatter(
+                                          decimals: 2,
+                                          locale: locale,
                                         ),
-                                      ),
-                                      const SizedBox(width: 12),
-                                      Text(
-                                        l10n.sendSubtractFee,
-                                        style: STextStyles.itemSubtitle12(
+                                      ],
+                                      onChanged: _fiatFieldChanged,
+                                      decoration: InputDecoration(
+                                        contentPadding:
+                                            const EdgeInsetsDirectional.only(
+                                              top: 12,
+                                              end: 12,
+                                            ),
+                                        hintText: "0",
+                                        hintStyle: STextStyles.fieldLabel(
                                           context,
+                                        ).copyWith(fontSize: 14),
+                                        prefixIcon: FittedBox(
+                                          fit: BoxFit.scaleDown,
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(12),
+                                            child: Text(
+                                              ref.watch(
+                                                prefsChangeNotifierProvider
+                                                    .select(
+                                                      (value) => value.currency,
+                                                    ),
+                                              ),
+                                              style:
+                                                  STextStyles.smallMed14(
+                                                    context,
+                                                  ).copyWith(
+                                                    color: Theme.of(context)
+                                                        .extension<
+                                                          StackColors
+                                                        >()!
+                                                        .accentColorDark,
+                                                  ),
+                                            ),
+                                          ),
                                         ),
                                       ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            const SizedBox(height: 12),
-                            // PIVX: the shielded memo travels encrypted
-                            // with the payment; only shield recipients
-                            // can receive one.
-                            if (_sendsToShield) ...[
-                              Text(
-                                l10n.sendShieldedMemoOptional,
-                                style: STextStyles.smallMed12(context),
-                                textAlign: TextAlign.start,
-                              ),
-                              const SizedBox(height: 8),
-                              PivxMemoField(
-                                key: const Key("sendViewPivxMemoFieldKey"),
-                                controller: memoController,
-                                focusNode: _pivxMemoFocusNode,
-                                onChanged: () => setState(() {}),
-                              ),
-                              const SizedBox(height: 4),
-                            ],
-                            Text(
-                              l10n.sendNoteOptional,
-                              style: STextStyles.smallMed12(context),
-                              textAlign: TextAlign.start,
-                            ),
-                            const SizedBox(height: 8),
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(
-                                Constants.size.circularBorderRadius,
-                              ),
-                              child: TextField(
-                                autocorrect: Util.isDesktop ? false : true,
-                                enableSuggestions: Util.isDesktop
-                                    ? false
-                                    : true,
-                                controller: noteController,
-                                focusNode: _noteFocusNode,
-                                style: STextStyles.field(context),
-                                onChanged: (_) => setState(() {}),
-                                decoration:
-                                    standardInputDecoration(
-                                      // Short enough for a phone's field.
-                                      coin is Pivx
-                                          ? l10n.sendNoteHint
-                                          : l10n.sendTypeSomething,
-                                      _noteFocusNode,
-                                      context,
-                                    ).copyWith(
-                                      suffixIcon: noteController.text.isNotEmpty
-                                          ? Padding(
-                                              padding:
-                                                  const EdgeInsetsDirectional.only(
-                                                    end: 0,
-                                                  ),
-                                              child: UnconstrainedBox(
-                                                child: Row(
-                                                  children: [
-                                                    TextFieldIconButton(
-                                                      child: const XIcon(),
-                                                      onTap: () async {
-                                                        setState(() {
-                                                          noteController.text =
-                                                              "";
-                                                        });
-                                                      },
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            )
-                                          : null,
                                     ),
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              l10n.sendNetworkFeeEstimated,
-                              style: STextStyles.smallMed12(context),
-                              textAlign: TextAlign.start,
-                            ),
-                            const SizedBox(height: 8),
-                            // PIVX has no fee market: the fee is the
-                            // network minimum, nothing to choose.
-                            RoundedContainer(
-                              color: Theme.of(context)
-                                  .extension<StackColors>()!
-                                  .textFieldDefaultBG,
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 14,
-                              ),
-                              child: FutureBuilder(
-                                future: _calculateFeesFuture,
-                                builder: (context, snapshot) {
-                                  if (snapshot.connectionState ==
-                                          ConnectionState.done &&
-                                      snapshot.hasData) {
-                                    return Text(
-                                      "~${snapshot.data!}",
-                                      style: STextStyles.itemSubtitle12(
-                                        context,
+                                  if (coin is Pivx) const SizedBox(height: 8),
+                                  if (coin is Pivx)
+                                    GestureDetector(
+                                      onTap: () => _setPivxSubtractFee(
+                                        !_pivxSubtractFee,
                                       ),
-                                    );
-                                  }
-                                  return AnimatedText(
-                                    stringsToLoopThrough: stringsToLoopThrough,
-                                    style: STextStyles.itemSubtitle(context),
-                                  );
-                                },
+                                      child: Container(
+                                        color: Colors.transparent,
+                                        child: Row(
+                                          children: [
+                                            SizedBox(
+                                              width: 20,
+                                              height: 20,
+                                              child: Checkbox(
+                                                materialTapTargetSize:
+                                                    MaterialTapTargetSize
+                                                        .shrinkWrap,
+                                                value: _pivxSubtractFee,
+                                                onChanged: (v) =>
+                                                    _setPivxSubtractFee(
+                                                      v ?? false,
+                                                    ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Text(
+                                              l10n.sendSubtractFee,
+                                              style: STextStyles.itemSubtitle12(
+                                                context,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  const SizedBox(height: 12),
+                                  // PIVX: the shielded memo travels encrypted
+                                  // with the payment; only shield recipients
+                                  // can receive one.
+                                  if (_sendsToShield) ...[
+                                    Text(
+                                      l10n.sendShieldedMemoOptional,
+                                      style: STextStyles.smallMed12(context),
+                                      textAlign: TextAlign.start,
+                                    ),
+                                    const SizedBox(height: 8),
+                                    PivxMemoField(
+                                      key: const Key(
+                                        "sendViewPivxMemoFieldKey",
+                                      ),
+                                      controller: memoController,
+                                      focusNode: _pivxMemoFocusNode,
+                                      onChanged: () => setState(() {}),
+                                    ),
+                                    const SizedBox(height: 4),
+                                  ],
+                                  Text(
+                                    l10n.sendNoteOptional,
+                                    style: STextStyles.smallMed12(context),
+                                    textAlign: TextAlign.start,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(
+                                      Constants.size.circularBorderRadius,
+                                    ),
+                                    child: TextField(
+                                      autocorrect: Util.isDesktop
+                                          ? false
+                                          : true,
+                                      enableSuggestions: Util.isDesktop
+                                          ? false
+                                          : true,
+                                      controller: noteController,
+                                      focusNode: _noteFocusNode,
+                                      style: STextStyles.field(context),
+                                      onChanged: (_) => setState(() {}),
+                                      decoration:
+                                          standardInputDecoration(
+                                            // Short enough for a phone's field.
+                                            coin is Pivx
+                                                ? l10n.sendNoteHint
+                                                : l10n.sendTypeSomething,
+                                            _noteFocusNode,
+                                            context,
+                                          ).copyWith(
+                                            suffixIcon:
+                                                noteController.text.isNotEmpty
+                                                ? Padding(
+                                                    padding:
+                                                        const EdgeInsetsDirectional.only(
+                                                          end: 0,
+                                                        ),
+                                                    child: UnconstrainedBox(
+                                                      child: Row(
+                                                        children: [
+                                                          TextFieldIconButton(
+                                                            child:
+                                                                const XIcon(),
+                                                            onTap: () async {
+                                                              setState(() {
+                                                                noteController
+                                                                        .text =
+                                                                    "";
+                                                              });
+                                                            },
+                                                          ),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  )
+                                                : null,
+                                          ),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    l10n.sendNetworkFeeEstimated,
+                                    style: STextStyles.smallMed12(context),
+                                    textAlign: TextAlign.start,
+                                  ),
+                                  const SizedBox(height: 8),
+                                  // PIVX has no fee market: the fee is the
+                                  // network minimum, nothing to choose.
+                                  RoundedContainer(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textFieldDefaultBG,
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 12,
+                                      vertical: 14,
+                                    ),
+                                    child: FutureBuilder(
+                                      future: _calculateFeesFuture,
+                                      builder: (context, snapshot) {
+                                        if (snapshot.connectionState ==
+                                                ConnectionState.done &&
+                                            snapshot.hasData) {
+                                          return Text(
+                                            "~${snapshot.data!}",
+                                            style: STextStyles.itemSubtitle12(
+                                              context,
+                                            ),
+                                          );
+                                        }
+                                        return AnimatedText(
+                                          stringsToLoopThrough:
+                                              stringsToLoopThrough,
+                                          style: STextStyles.itemSubtitle(
+                                            context,
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                  ),
+                                  const Spacer(),
+                                  const SizedBox(height: 12),
+                                  TextButton(
+                                    onPressed:
+                                        ref.watch(pPreviewTxButtonEnabled(coin))
+                                        ? _previewTransaction
+                                        : null,
+                                    style:
+                                        ref.watch(pPreviewTxButtonEnabled(coin))
+                                        ? Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .getPrimaryEnabledButtonStyle(
+                                                context,
+                                              )
+                                        : Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .getPrimaryDisabledButtonStyle(
+                                                context,
+                                              ),
+                                    child: Text(
+                                      l10n.sendPreview,
+                                      style: STextStyles.button(context),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                ],
                               ),
                             ),
-                            const Spacer(),
-                            const SizedBox(height: 12),
-                            TextButton(
-                              onPressed:
-                                  ref.watch(pPreviewTxButtonEnabled(coin))
-                                  ? _previewTransaction
-                                  : null,
-                              style: ref.watch(pPreviewTxButtonEnabled(coin))
-                                  ? Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .getPrimaryEnabledButtonStyle(context)
-                                  : Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .getPrimaryDisabledButtonStyle(context),
-                              child: Text(
-                                l10n.sendPreview,
-                                style: STextStyles.button(context),
-                              ),
-                            ),
-                            const SizedBox(height: 16),
                           ],
                         ),
                       ),

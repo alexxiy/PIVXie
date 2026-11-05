@@ -147,7 +147,7 @@ static void my_application_activate(GApplication* application) {
   g_autofree gchar* icon = bundled_icon_path();
   if (icon != nullptr) gtk_window_set_icon_from_file(window, icon, nullptr);
 
-  gtk_window_set_default_size(window, 1220, 500);
+  gtk_window_set_default_size(window, 1024, 560);
   gtk_widget_show(GTK_WIDGET(window));
 
   g_autoptr(FlDartProject) project = fl_dart_project_new();

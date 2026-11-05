@@ -9,6 +9,7 @@ import '../../utilities/block_explorers.dart';
 import '../../utilities/text_styles.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
+import '../../widgets/adaptive_page.dart';
 import '../../widgets/background.dart';
 import '../../widgets/block_explorer_link.dart';
 import '../../widgets/custom_buttons/blue_text_button.dart';
@@ -143,7 +144,7 @@ class _PivxProposalViewState extends ConsumerState<PivxProposalView> {
         if (!didPop) Navigator.of(context).pop(_voted);
       },
       child: Background(
-        child: Scaffold(
+        child: AppScaffold(
           backgroundColor: colors.background,
           appBar: PageAppBar(
             onBack: () => Navigator.of(context).pop(_voted),

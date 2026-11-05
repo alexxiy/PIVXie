@@ -44,6 +44,7 @@ import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../wallets/isar/models/wallet_info.dart';
 import '../../../wallets/wallet/impl/pivx_wallet.dart';
 import '../../../wallets/wallet/wallet.dart';
+import '../../../widgets/adaptive_page.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/desktop/desktop_app_bar.dart';
 import '../../../widgets/desktop/desktop_scaffold.dart';
@@ -694,6 +695,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
     final isDesktop = Util.isDesktop;
     return MasterScaffold(
       isDesktop: isDesktop,
+      maxBodyWidth: ScreenFit.panesOrColumn(context),
       appBar: isDesktop
           ? const DesktopAppBar(
               isCompactHeight: false,
@@ -1186,102 +1188,150 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
-                          for (int i = 1; i <= _seedWordCount; i++)
-                            Column(
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 4,
-                                  ),
-                                  child: TextFormField(
-                                    enableIMEPersonalizedLearning: false,
-                                    obscureText: _hideSeedWords,
-                                    // The word list suggests words; the
-                                    // keyboard must not learn or "fix" them.
-                                    autocorrect: false,
-                                    enableSuggestions: false,
-                                    textCapitalization: TextCapitalization.none,
-                                    textInputAction: i < _seedWordCount
-                                        ? TextInputAction.next
-                                        : TextInputAction.done,
-                                    focusNode: _focusNodes[i - 1],
-                                    // A focused field is scrolled above the
-                                    // keyboard with room for the suggestions
-                                    // under it, or they'd be behind it.
-                                    scrollPadding: _wordFieldScrollPadding,
-                                    // Like predictive text: Next takes
-                                    // the first suggestion.
-                                    onFieldSubmitted: (_) => _submitWord(i - 1),
-                                    key: Key("restoreMnemonicFormField_$i"),
-                                    decoration: _getInputDecorationFor(
-                                      _inputStatuses[i - 1],
-                                      "$i",
-                                    ),
-                                    autovalidateMode:
-                                        AutovalidateMode.onUserInteraction,
-                                    selectionControls: i == 1
-                                        ? textSelectionControls
-                                        : null,
-                                    onChanged: (value) {
-                                      if (_spreadPastedWords(value, i - 1)) {
-                                        return;
-                                      }
-                                      final FormInputStatus formInputStatus;
-
-                                      if (value.isEmpty) {
-                                        formInputStatus = FormInputStatus.empty;
-                                      } else if (_isValidMnemonicWord(
-                                        value.trim().toLowerCase(),
-                                      )) {
-                                        formInputStatus = FormInputStatus.valid;
-                                      } else {
-                                        formInputStatus =
-                                            FormInputStatus.invalid;
-                                      }
-
-                                      setState(() {
-                                        _inputStatuses[i - 1] = formInputStatus;
-                                      });
-                                    },
-                                    controller: _controllers[i - 1],
-                                    textDirection: TextDirection.ltr,
-                                    style: STextStyles.field(context).copyWith(
-                                      color: Theme.of(context)
-                                          .extension<StackColors>()!
-                                          .textRestore,
-                                      fontSize: isDesktop ? 16 : 14,
-                                    ),
-                                  ),
-                                ),
-                                if (_focusedField == i - 1)
-                                  _wordSuggestions(i - 1),
-                                // Not while typing a word that has
-                                // suggestions.
-                                if (_inputStatuses[i - 1] ==
-                                        FormInputStatus.invalid &&
-                                    (_focusedField != i - 1 ||
-                                        _suggestionsFor(i - 1).isEmpty))
-                                  Align(
-                                    alignment: AlignmentDirectional.topStart,
-                                    child: Padding(
-                                      padding: const EdgeInsetsDirectional.only(
-                                        start: 12.0,
-                                        bottom: 4.0,
-                                      ),
-                                      child: Text(
-                                        l10n.restoreCheckSpelling,
-                                        textAlign: TextAlign.start,
-                                        style: STextStyles.label(context)
-                                            .copyWith(
-                                              color: Theme.of(context)
-                                                  .extension<StackColors>()!
-                                                  .textError,
+                          LayoutBuilder(
+                            builder: (context, constraints) {
+                              // The same tree at every size: rotating keeps
+                              // the focus and the keyboard.
+                              final columns = ScreenFit.sideBySide(context)
+                                  ? (constraints.maxWidth >= 720 ? 3 : 2)
+                                  : 1;
+                              const gap = 8.0;
+                              final fieldWidth =
+                                  (constraints.maxWidth - gap * (columns - 1)) /
+                                  columns;
+                              return Wrap(
+                                spacing: gap,
+                                children: [
+                                  for (int i = 1; i <= _seedWordCount; i++)
+                                    SizedBox(
+                                      width: fieldWidth,
+                                      child: Column(
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.symmetric(
+                                              vertical: 4,
                                             ),
+                                            child: TextFormField(
+                                              enableIMEPersonalizedLearning:
+                                                  false,
+                                              obscureText: _hideSeedWords,
+                                              // The word list suggests words; the
+                                              // keyboard must not learn or "fix" them.
+                                              autocorrect: false,
+                                              enableSuggestions: false,
+                                              textCapitalization:
+                                                  TextCapitalization.none,
+                                              textInputAction:
+                                                  i < _seedWordCount
+                                                  ? TextInputAction.next
+                                                  : TextInputAction.done,
+                                              focusNode: _focusNodes[i - 1],
+                                              // A focused field is scrolled above the
+                                              // keyboard with room for the suggestions
+                                              // under it, or they'd be behind it.
+                                              scrollPadding:
+                                                  _wordFieldScrollPadding,
+                                              // Like predictive text: Next takes
+                                              // the first suggestion.
+                                              onFieldSubmitted: (_) =>
+                                                  _submitWord(i - 1),
+                                              key: Key(
+                                                "restoreMnemonicFormField_$i",
+                                              ),
+                                              decoration:
+                                                  _getInputDecorationFor(
+                                                    _inputStatuses[i - 1],
+                                                    "$i",
+                                                  ),
+                                              autovalidateMode: AutovalidateMode
+                                                  .onUserInteraction,
+                                              selectionControls: i == 1
+                                                  ? textSelectionControls
+                                                  : null,
+                                              onChanged: (value) {
+                                                if (_spreadPastedWords(
+                                                  value,
+                                                  i - 1,
+                                                )) {
+                                                  return;
+                                                }
+                                                final FormInputStatus
+                                                formInputStatus;
+
+                                                if (value.isEmpty) {
+                                                  formInputStatus =
+                                                      FormInputStatus.empty;
+                                                } else if (_isValidMnemonicWord(
+                                                  value.trim().toLowerCase(),
+                                                )) {
+                                                  formInputStatus =
+                                                      FormInputStatus.valid;
+                                                } else {
+                                                  formInputStatus =
+                                                      FormInputStatus.invalid;
+                                                }
+
+                                                setState(() {
+                                                  _inputStatuses[i - 1] =
+                                                      formInputStatus;
+                                                });
+                                              },
+                                              controller: _controllers[i - 1],
+                                              textDirection: TextDirection.ltr,
+                                              style: STextStyles.field(context)
+                                                  .copyWith(
+                                                    color: Theme.of(context)
+                                                        .extension<
+                                                          StackColors
+                                                        >()!
+                                                        .textRestore,
+                                                    fontSize: isDesktop
+                                                        ? 16
+                                                        : 14,
+                                                  ),
+                                            ),
+                                          ),
+                                          if (_focusedField == i - 1)
+                                            _wordSuggestions(i - 1),
+                                          // Not while typing a word that has
+                                          // suggestions.
+                                          if (_inputStatuses[i - 1] ==
+                                                  FormInputStatus.invalid &&
+                                              (_focusedField != i - 1 ||
+                                                  _suggestionsFor(i - 1)
+                                                      .isEmpty))
+                                            Align(
+                                              alignment:
+                                                  AlignmentDirectional.topStart,
+                                              child: Padding(
+                                                padding:
+                                                    const EdgeInsetsDirectional.only(
+                                                      start: 12.0,
+                                                      bottom: 4.0,
+                                                    ),
+                                                child: Text(
+                                                  l10n.restoreCheckSpelling,
+                                                  textAlign: TextAlign.start,
+                                                  style:
+                                                      STextStyles.label(
+                                                        context,
+                                                      ).copyWith(
+                                                        color: Theme.of(context)
+                                                            .extension<
+                                                              StackColors
+                                                            >()!
+                                                            .textError,
+                                                      ),
+                                                ),
+                                              ),
+                                            ),
+                                        ],
                                       ),
                                     ),
-                                  ),
-                              ],
-                            ),
+                                ],
+                              );
+                            },
+                          ),
                           Padding(
                             padding: const EdgeInsets.only(top: 8.0),
                             child: PrimaryButton(

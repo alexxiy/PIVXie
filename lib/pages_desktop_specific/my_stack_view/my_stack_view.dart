@@ -16,6 +16,7 @@ import '../../pages/settings_views/global_settings_view/hidden_settings.dart';
 import '../../pages/wallets_view/sub_widgets/empty_wallets.dart';
 import '../../utilities/text_styles.dart';
 import '../../wallets/isar/providers/all_wallets_info_provider.dart';
+import '../../widgets/adaptive_page.dart';
 import '../../widgets/animated_widgets/rotate_icon.dart';
 import '../../widgets/app_icon.dart';
 import '../../widgets/background.dart';
@@ -45,7 +46,11 @@ class _MyStackViewState extends ConsumerState<MyStackView> {
             leading: DesktopMyStackTitle(),
           ),
           Expanded(
-            child: hasWallets ? const MyWallets() : const EmptyWallets(),
+            child: DesktopPageBody(
+              // Room for two rows of favorites above the wallet list.
+              minHeight: 640,
+              child: hasWallets ? const MyWallets() : const EmptyWallets(),
+            ),
           ),
         ],
       ),

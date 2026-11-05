@@ -14,6 +14,7 @@ import '../../utilities/amount/amount_formatter.dart';
 import '../../utilities/text_styles.dart';
 import '../../wallets/models/tx_data.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
+import '../../widgets/adaptive_page.dart';
 import '../../widgets/background.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/page_app_bar.dart';
@@ -284,7 +285,7 @@ class _PivxCreateProposalViewState
     final enoughFunds = balance.raw > fee.raw;
 
     return Background(
-      child: Scaffold(
+      child: AppScaffold(
         backgroundColor: colors.background,
         appBar: PageAppBar(
           title: Text(
@@ -479,6 +480,7 @@ class _PivxCreateProposalViewState
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
                 child: PrimaryButton(
+                  width: double.infinity,
                   label: enoughFunds
                       ? l10n.govPayAndPublish(fmt.format(fee))
                       : l10n.govNotEnoughForFee(coin.ticker),

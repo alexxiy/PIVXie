@@ -22,6 +22,7 @@ import '../../../../utilities/enums/backup_frequency_type.dart';
 import '../../../../utilities/format.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
+import '../../../../widgets/adaptive_page.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/custom_buttons/blue_text_button.dart';
@@ -223,7 +224,7 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
     );
 
     return Background(
-      child: Scaffold(
+      child: AppScaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         appBar: AppBar(
           leading: AppBarBackButton(
@@ -234,214 +235,216 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
           title: Text(l10n.backupAuto, style: STextStyles.navBarTitle(context)),
         ),
         body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                RoundedWhiteContainer(
-                  padding: const EdgeInsets.all(0),
-                  child: RawMaterialButton(
-                    // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(
-                        Constants.size.circularBorderRadius,
-                      ),
-                    ),
-                    onPressed: null,
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 20,
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              l10n.backupAuto,
-                              style: STextStyles.titleBold12(context),
-                              textAlign: TextAlign.start,
-                            ),
-                          ),
-                          const SizedBox(width: 12),
-                          SizedBox(
-                            height: 20,
-                            width: 40,
-                            child: DraggableSwitchButton(
-                              key: const Key("autoBackupToggleButtonKey"),
-                              isOn: _toggle,
-                              controller: toggleController,
-                              onValueChanged: (newValue) async {
-                                _toggle = newValue;
-
-                                if (_toggle) {
-                                  attemptEnable();
-                                } else {
-                                  attemptDisable();
-                                }
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                if (!isEnabledAutoBackup)
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
                   RoundedWhiteContainer(
-                    child: RichText(
-                      textAlign: TextAlign.start,
-                      text: TextSpan(
-                        style: STextStyles.label(context),
-                        children: [
-                          TextSpan(
-                            text: l10n.backupAutoText(AppConfig.appName),
-                          ),
-                        ],
+                    padding: const EdgeInsets.all(0),
+                    child: RawMaterialButton(
+                      // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(
+                          Constants.size.circularBorderRadius,
+                        ),
                       ),
-                    ),
-                  ),
-                if (isEnabledAutoBackup)
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      RoundedWhiteContainer(
+                      onPressed: null,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 20,
+                        ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            CustomTextButton(
-                              text: l10n.backupNow,
-                              onTap: () {
-                                ref.read(autoSWBServiceProvider).doBackup();
-                              },
-                            ),
-                            Text(
-                              l10n.backupBackedUp(
-                                prettySinceLastBackupString(
-                                  ref.watch(
-                                    prefsChangeNotifierProvider.select(
-                                      (value) => value.lastAutoBackup,
-                                    ),
-                                  ),
-                                ),
+                            Expanded(
+                              child: Text(
+                                l10n.backupAuto,
+                                style: STextStyles.titleBold12(context),
+                                textAlign: TextAlign.start,
                               ),
-                              style: STextStyles.itemSubtitle(context),
+                            ),
+                            const SizedBox(width: 12),
+                            SizedBox(
+                              height: 20,
+                              width: 40,
+                              child: DraggableSwitchButton(
+                                key: const Key("autoBackupToggleButtonKey"),
+                                isOn: _toggle,
+                                controller: toggleController,
+                                onValueChanged: (newValue) async {
+                                  _toggle = newValue;
+
+                                  if (_toggle) {
+                                    attemptEnable();
+                                  } else {
+                                    attemptDisable();
+                                  }
+                                },
+                              ),
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(height: 32),
-                      Text(
-                        l10n.backupAutoFile,
-                        style: STextStyles.smallMed12(context),
-                      ),
-                      const SizedBox(height: 10),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(
-                          Constants.size.circularBorderRadius,
-                        ),
-                        child: TextField(
-                          key: const Key(
-                            "backupSavedToFileLocationTextFieldKey",
-                          ),
-                          focusNode: fileLocationFocusNode,
-                          controller: fileLocationController,
-                          enabled: false,
-                          style: STextStyles.field(context).copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textDark
-                                .withOpacity(0.5),
-                          ),
-                          readOnly: true,
-                          enableSuggestions: false,
-                          autocorrect: false,
-                          toolbarOptions: const ToolbarOptions(
-                            copy: true,
-                            cut: false,
-                            paste: false,
-                            selectAll: true,
-                          ),
-                          decoration: standardInputDecoration(
-                            l10n.backupSavedTo,
-                            fileLocationFocusNode,
-                            context,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(
-                          Constants.size.circularBorderRadius,
-                        ),
-                        child: TextField(
-                          key: const Key("backupPasswordFieldKey"),
-                          focusNode: passwordFocusNode,
-                          controller: passwordController,
-                          enabled: false,
-                          style: STextStyles.field(context).copyWith(
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textDark
-                                .withOpacity(0.5),
-                          ),
-                          obscureText: true,
-                          enableSuggestions: false,
-                          autocorrect: false,
-                          toolbarOptions: const ToolbarOptions(
-                            copy: true,
-                            cut: false,
-                            paste: false,
-                            selectAll: true,
-                          ),
-                          decoration: standardInputDecoration(
-                            l10n.backupPassphrase,
-                            passwordFocusNode,
-                            context,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        l10n.backupAutoFrequency,
-                        style: STextStyles.smallMed12(context),
-                      ),
-                      const SizedBox(height: 10),
-                      TextField(
-                        autocorrect: Util.isDesktop ? false : true,
-                        enableSuggestions: Util.isDesktop ? false : true,
-                        key: const Key("backupFrequencyFieldKey"),
-                        controller: frequencyController,
-                        enabled: false,
-                        style: STextStyles.field(context).copyWith(
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textDark
-                              .withOpacity(0.5),
-                        ),
-                        toolbarOptions: const ToolbarOptions(
-                          copy: true,
-                          cut: false,
-                          paste: false,
-                          selectAll: true,
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      Center(
-                        child: CustomTextButton(
-                          text: l10n.backupEditAuto,
-                          onTap: () async {
-                            Navigator.of(context)
-                                .pushNamed(EditAutoBackupView.routeName);
-                          },
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
-              ],
+                  const SizedBox(height: 8),
+                  if (!isEnabledAutoBackup)
+                    RoundedWhiteContainer(
+                      child: RichText(
+                        textAlign: TextAlign.start,
+                        text: TextSpan(
+                          style: STextStyles.label(context),
+                          children: [
+                            TextSpan(
+                              text: l10n.backupAutoText(AppConfig.appName),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  if (isEnabledAutoBackup)
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        RoundedWhiteContainer(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              CustomTextButton(
+                                text: l10n.backupNow,
+                                onTap: () {
+                                  ref.read(autoSWBServiceProvider).doBackup();
+                                },
+                              ),
+                              Text(
+                                l10n.backupBackedUp(
+                                  prettySinceLastBackupString(
+                                    ref.watch(
+                                      prefsChangeNotifierProvider.select(
+                                        (value) => value.lastAutoBackup,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                style: STextStyles.itemSubtitle(context),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+                        Text(
+                          l10n.backupAutoFile,
+                          style: STextStyles.smallMed12(context),
+                        ),
+                        const SizedBox(height: 10),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(
+                            Constants.size.circularBorderRadius,
+                          ),
+                          child: TextField(
+                            key: const Key(
+                              "backupSavedToFileLocationTextFieldKey",
+                            ),
+                            focusNode: fileLocationFocusNode,
+                            controller: fileLocationController,
+                            enabled: false,
+                            style: STextStyles.field(context).copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textDark
+                                  .withOpacity(0.5),
+                            ),
+                            readOnly: true,
+                            enableSuggestions: false,
+                            autocorrect: false,
+                            toolbarOptions: const ToolbarOptions(
+                              copy: true,
+                              cut: false,
+                              paste: false,
+                              selectAll: true,
+                            ),
+                            decoration: standardInputDecoration(
+                              l10n.backupSavedTo,
+                              fileLocationFocusNode,
+                              context,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(
+                            Constants.size.circularBorderRadius,
+                          ),
+                          child: TextField(
+                            key: const Key("backupPasswordFieldKey"),
+                            focusNode: passwordFocusNode,
+                            controller: passwordController,
+                            enabled: false,
+                            style: STextStyles.field(context).copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textDark
+                                  .withOpacity(0.5),
+                            ),
+                            obscureText: true,
+                            enableSuggestions: false,
+                            autocorrect: false,
+                            toolbarOptions: const ToolbarOptions(
+                              copy: true,
+                              cut: false,
+                              paste: false,
+                              selectAll: true,
+                            ),
+                            decoration: standardInputDecoration(
+                              l10n.backupPassphrase,
+                              passwordFocusNode,
+                              context,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          l10n.backupAutoFrequency,
+                          style: STextStyles.smallMed12(context),
+                        ),
+                        const SizedBox(height: 10),
+                        TextField(
+                          autocorrect: Util.isDesktop ? false : true,
+                          enableSuggestions: Util.isDesktop ? false : true,
+                          key: const Key("backupFrequencyFieldKey"),
+                          controller: frequencyController,
+                          enabled: false,
+                          style: STextStyles.field(context).copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .textDark
+                                .withOpacity(0.5),
+                          ),
+                          toolbarOptions: const ToolbarOptions(
+                            copy: true,
+                            cut: false,
+                            paste: false,
+                            selectAll: true,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        Center(
+                          child: CustomTextButton(
+                            text: l10n.backupEditAuto,
+                            onTap: () async {
+                              Navigator.of(context)
+                                  .pushNamed(EditAutoBackupView.routeName);
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                ],
+              ),
             ),
           ),
         ),

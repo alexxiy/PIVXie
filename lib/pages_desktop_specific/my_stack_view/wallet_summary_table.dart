@@ -143,6 +143,7 @@ class _DesktopWalletSummaryRowState
           context: context,
           builder: (_) => DesktopDialog(
             maxHeight: 600,
+            fitsWindow: true,
             maxWidth: 700,
             child: Column(
               children: [

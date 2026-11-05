@@ -9,10 +9,13 @@
  */
 
 import 'package:flutter/material.dart';
+
+import '../adaptive_page.dart';
 import '../conditional_parent.dart';
 
 const double kDesktopAppBarHeight = 96.0;
 const double kDesktopAppBarHeightCompact = 82.0;
+const double kDesktopAppBarHeightShort = 64.0;
 
 class DesktopAppBar extends StatelessWidget {
   const DesktopAppBar({
@@ -70,16 +73,21 @@ class DesktopAppBar extends StatelessWidget {
         ],
       ),
       child: Container(
-        decoration: BoxDecoration(
-          color: background,
-        ),
-        height: isCompactHeight
+        decoration: BoxDecoration(color: background),
+        height: DesktopFit.short(context)
+            ? kDesktopAppBarHeightShort
+            : isCompactHeight
             ? kDesktopAppBarHeightCompact
             : kDesktopAppBarHeight,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: items,
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: DesktopFit.pageWidth),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: items,
+            ),
+          ),
         ),
       ),
     );

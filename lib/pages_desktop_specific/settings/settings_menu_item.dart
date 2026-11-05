@@ -9,6 +9,7 @@
  */
 
 import 'package:flutter/material.dart';
+
 import '../../themes/stack_colors.dart';
 import '../../utilities/text_styles.dart';
 
@@ -34,31 +35,30 @@ class SettingsMenuItem<T> extends StatelessWidget {
       //if val == group, then button is selected, otherwise unselected
       style: value == group
           ? Theme.of(context)
-              .extension<StackColors>()!
-              .getDesktopSettingsButtonStyle(context)
+                .extension<StackColors>()!
+                .getDesktopSettingsButtonStyle(context)
           : Theme.of(context)
-              .extension<StackColors>()!
-              .getDesktopSettingsButtonStyle(context),
+                .extension<StackColors>()!
+                .getDesktopSettingsButtonStyle(context),
       onPressed: () {
         onChanged(value);
       },
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-          vertical: 16,
-          horizontal: 16,
-        ),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
             icon,
-            const SizedBox(
-              width: 12,
-            ),
-            Text(
-              label,
-              style: value == group //checks if option is selected
-                  ? STextStyles.settingsMenuItemSelected(context)
-                  : STextStyles.settingsMenuItem(context),
+            const SizedBox(width: 12),
+            Flexible(
+              child: Text(
+                label,
+                style:
+                    value ==
+                        group //checks if option is selected
+                    ? STextStyles.settingsMenuItemSelected(context)
+                    : STextStyles.settingsMenuItem(context),
+              ),
             ),
           ],
         ),

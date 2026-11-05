@@ -207,6 +207,7 @@ class _ForgottenPassphraseRestoreFromSWBState
   @override
   Widget build(BuildContext context) {
     return DesktopScaffold(
+      bodyGrows: true,
       appBar: DesktopAppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -386,6 +387,7 @@ class _ForgottenPassphraseRestoreFromSWBState
                 ),
                 const SizedBox(height: 24),
                 PrimaryButton(
+                  width: double.infinity,
                   label: l10n.restoreAction,
                   enabled: _enableButton,
                   onPressed: () {

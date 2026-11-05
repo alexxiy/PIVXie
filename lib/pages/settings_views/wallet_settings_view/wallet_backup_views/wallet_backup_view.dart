@@ -9,6 +9,7 @@
  */
 
 import 'dart:async';
+import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -26,6 +27,7 @@ import '../../../../utilities/clipboard_interface.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../../widgets/adaptive_page.dart';
 import '../../../../widgets/mnemonic_passphrase_note.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -57,7 +59,8 @@ class WalletBackupView extends ConsumerWidget {
     debugPrint("BUILD: $runtimeType");
 
     return Background(
-      child: Scaffold(
+      child: AppScaffold(
+        maxBodyWidth: ScreenFit.panesOrColumn(context),
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         appBar: AppBar(
           leading: AppBarBackButton(
@@ -86,126 +89,144 @@ class _Mnemonic extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
+    final header = <Widget>[
+      Text(
+        ref.watch(pWalletName(walletId)),
+        textAlign: TextAlign.center,
+        style: STextStyles.label(context).copyWith(fontSize: 12),
+      ),
+      const SizedBox(height: 4),
+      Text(
+        l10n.addWalletRecoveryPhraseTitle,
+        textAlign: TextAlign.center,
+        style: STextStyles.pageTitleH1(context),
+      ),
+      const SizedBox(height: 16),
+      Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).extension<StackColors>()!.popupBG,
+          borderRadius: BorderRadius.circular(
+            Constants.size.circularBorderRadius,
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Text(
+            l10n.walletSeedText(AppConfig.appName),
+            style: STextStyles.label(context),
+          ),
+        ),
+      ),
+    ];
+    final words = Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          ref.watch(pWalletName(walletId)),
-          textAlign: TextAlign.center,
-          style: STextStyles.label(context).copyWith(fontSize: 12),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          l10n.addWalletRecoveryPhraseTitle,
-          textAlign: TextAlign.center,
-          style: STextStyles.pageTitleH1(context),
-        ),
-        const SizedBox(height: 16),
-        Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).extension<StackColors>()!.popupBG,
-            borderRadius: BorderRadius.circular(
-              Constants.size.circularBorderRadius,
-            ),
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Text(
-              l10n.walletSeedText(AppConfig.appName),
-              style: STextStyles.label(context),
-            ),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Expanded(
-          child: SingleChildScrollView(
-            child: Column(
-              children: [
-                MnemonicTable(words: mnemonic, isDesktop: false),
-                MnemonicPassphraseNote(walletId: walletId),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        SecondaryButton(
-          label: l10n.commonCopy,
-          onPressed: () async {
-            await const ClipboardWrapper().setSecret(mnemonic.join(" "));
-            if (context.mounted) {
-              unawaited(
-                showFloatingFlushBar(
-                  type: FlushBarType.info,
-                  message: l10n.commonCopiedToClipboard,
-                  iconAsset: Assets.svg.copy,
-                  context: context,
-                ),
-              );
-            }
-          },
-        ),
-        const SizedBox(height: 12),
-        PrimaryButton(
-          label: l10n.walletShowQr,
-          onPressed: () {
-            final String data = AddressUtils.encodeQRSeedData(mnemonic);
+        MnemonicTable(words: mnemonic, isDesktop: false),
+        MnemonicPassphraseNote(walletId: walletId),
+      ],
+    );
+    final buttons = <Widget>[
+      SecondaryButton(
+        label: l10n.commonCopy,
+        onPressed: () async {
+          await const ClipboardWrapper().setSecret(mnemonic.join(" "));
+          if (context.mounted) {
+            unawaited(
+              showFloatingFlushBar(
+                type: FlushBarType.info,
+                message: l10n.commonCopiedToClipboard,
+                iconAsset: Assets.svg.copy,
+                context: context,
+              ),
+            );
+          }
+        },
+      ),
+      const SizedBox(height: 12),
+      PrimaryButton(
+        label: l10n.walletShowQr,
+        onPressed: () {
+          final String data = AddressUtils.encodeQRSeedData(mnemonic);
 
-            showDialog<dynamic>(
-              context: context,
-              useSafeArea: false,
-              barrierDismissible: true,
-              builder: (_) {
-                final width = MediaQuery.of(context).size.width / 2;
-                return StackDialogBase(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Center(
-                        child: Text(
-                          l10n.walletSeedQr,
-                          style: STextStyles.pageTitleH2(context),
-                        ),
+          showDialog<dynamic>(
+            context: context,
+            useSafeArea: false,
+            barrierDismissible: true,
+            builder: (_) {
+              final size = MediaQuery.sizeOf(context);
+              final width = min(size.width / 2, size.height - 180);
+              return StackDialogBase(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Center(
+                      child: Text(
+                        l10n.walletSeedQr,
+                        style: STextStyles.pageTitleH2(context),
                       ),
-                      const SizedBox(height: 12),
-                      Center(
-                        child: RepaintBoundary(
-                          // key: _qrKey,
-                          child: SizedBox(
-                            width: width + 20,
-                            height: width + 20,
-                            child: QR(data: data, size: width),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Center(
+                    ),
+                    const SizedBox(height: 12),
+                    Center(
+                      child: RepaintBoundary(
+                        // key: _qrKey,
                         child: SizedBox(
-                          width: width,
-                          child: TextButton(
-                            onPressed: () async {
-                              Navigator.of(context).pop();
-                            },
-                            style: Theme.of(context)
-                                .extension<StackColors>()!
-                                .getSecondaryEnabledButtonStyle(context),
-                            child: Text(
-                              l10n.commonClose,
-                              style: STextStyles.button(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .accentColorDark,
-                              ),
+                          width: width + 20,
+                          height: width + 20,
+                          child: QR(data: data, size: width),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Center(
+                      child: SizedBox(
+                        width: width,
+                        child: TextButton(
+                          onPressed: () async {
+                            Navigator.of(context).pop();
+                          },
+                          style: Theme.of(context)
+                              .extension<StackColors>()!
+                              .getSecondaryEnabledButtonStyle(context),
+                          child: Text(
+                            l10n.commonClose,
+                            style: STextStyles.button(context).copyWith(
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .accentColorDark,
                             ),
                           ),
                         ),
                       ),
-                    ],
-                  ),
-                );
-              },
-            );
-          },
+                    ),
+                  ],
+                ),
+              );
+            },
+          );
+        },
+      ),
+    ];
+
+    if (ScreenFit.sideBySide(context)) {
+      return SplitPane(
+        startFlex: 2,
+        endFlex: 3,
+        start: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [...header, const SizedBox(height: 12), ...buttons],
         ),
+        end: words,
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        ...header,
+        const SizedBox(height: 8),
+        Expanded(child: SingleChildScrollView(child: words)),
+        const SizedBox(height: 12),
+        ...buttons,
       ],
     );
   }
@@ -232,7 +253,7 @@ class MobileKeyDataView extends ConsumerWidget {
 
   Widget _buildScreen(BuildContext context, WidgetRef ref) {
     return Background(
-      child: Scaffold(
+      child: AppScaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         appBar: AppBar(
           leading: AppBarBackButton(

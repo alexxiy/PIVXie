@@ -34,6 +34,7 @@ import '../../../../utilities/password_rules.dart';
 import '../../../../utilities/show_loading.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
+import '../../../../widgets/adaptive_page.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/conditional_parent.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -239,7 +240,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) => Background(
-        child: Scaffold(
+        child: AppScaffold(
           backgroundColor: Theme.of(context)
               .extension<StackColors>()!
               .background,
@@ -615,7 +616,8 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                       ),
                     ),
                     onPressed: () {
-                      showModalBottomSheet<dynamic>(
+                      showAppSheet<dynamic>(
+                        scrollable: true,
                         backgroundColor: Colors.transparent,
                         context: context,
                         shape: const RoundedRectangleBorder(

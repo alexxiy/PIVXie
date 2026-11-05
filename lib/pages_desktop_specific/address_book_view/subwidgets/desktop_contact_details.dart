@@ -173,6 +173,7 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
                                 builder: (context) => DesktopDialog(
                                   maxWidth: 580,
                                   maxHeight: 566,
+                                  fitsWindow: true,
                                   child: Column(
                                     children: [
                                       Row(

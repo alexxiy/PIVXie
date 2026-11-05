@@ -20,6 +20,7 @@ import '../../../../../themes/stack_colors.dart';
 import '../../../../../utilities/assets.dart';
 import '../../../../../utilities/clipboard_interface.dart';
 import '../../../../../utilities/text_styles.dart';
+import '../../../../../widgets/adaptive_page.dart';
 import '../../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../add_wallet_views/new_wallet_recovery_phrase_view/sub_widgets/mnemonic_table.dart';
 
@@ -40,7 +41,7 @@ class RecoverPhraseView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     debugPrint("BUILD: $runtimeType");
-    return Scaffold(
+    return AppScaffold(
       backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(
         leading: AppBarBackButton(

@@ -36,6 +36,7 @@ import '../../widgets/rounded_white_container.dart';
 import '../send_view/send_view.dart';
 import '../wallet_view/wallet_view.dart';
 import 'home_view.dart';
+import '../../widgets/adaptive_page.dart';
 
 /// A pivx: payment link opened from another app (e.g. a QR code scanned
 /// with the camera, or a link clicked in a browser), waiting for the
@@ -379,7 +380,8 @@ Future<T?> _chooseOne<T>(
       ),
     );
   }
-  return showModalBottomSheet<T>(
+  return showAppSheet<T>(
+    scrollable: true,
     context: context,
     backgroundColor: colors.popupBG,
     shape: const RoundedRectangleBorder(

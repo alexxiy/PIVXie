@@ -17,6 +17,27 @@ import '../../l10n/l10n.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/text_styles.dart';
+import '../../utilities/util.dart';
+
+/// The keys of the PIN pad. Wide and low on a screen too short for four rows
+/// of round keys.
+abstract final class PinKeySize {
+  static Size of(BuildContext context) =>
+      compact(context) ? const Size(88, 56) : const Size(72, 72);
+
+  static bool compact(BuildContext context) =>
+      !Util.isDesktop && MediaQuery.sizeOf(context).height < 600;
+
+  static double rowGap(BuildContext context) => compact(context) ? 8 : 24;
+
+  static double columnGap(BuildContext context) => compact(context) ? 16 : 24;
+
+  static double padWidth(BuildContext context) =>
+      of(context).width * 3 + columnGap(context) * 2;
+
+  static double padHeight(BuildContext context) =>
+      of(context).height * 4 + rowGap(context) * 3;
+}
 
 class NumberKey extends StatefulWidget {
   const NumberKey({super.key, required this.number, required this.onPressed});
@@ -46,41 +67,44 @@ class _NumberKeyState extends State<NumberKey> {
   Widget build(BuildContext context) {
     _color ??= Theme.of(context).extension<StackColors>()!.numberBackDefault;
 
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      curve: Curves.easeInOut,
-      height: 72,
-      width: 72,
-      decoration: ShapeDecoration(
-        shape: const StadiumBorder(),
-        color: _color,
-        shadows: const [],
-      ),
-      child: MaterialButton(
-        // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
-        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        shape: const StadiumBorder(),
-        onPressed: () async {
-          onPressed.call(number);
-          setState(() {
-            _color = Theme.of(context)
-                .extension<StackColors>()!
-                .numberBackDefault
-                .withOpacity(0.8);
-          });
+    // Only the color is animated: the pad takes its new size at once when the
+    // screen rotates, and a key still growing wouldn't fit in it.
+    return SizedBox.fromSize(
+      size: PinKeySize.of(context),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeInOut,
+        decoration: ShapeDecoration(
+          shape: const StadiumBorder(),
+          color: _color,
+          shadows: const [],
+        ),
+        child: MaterialButton(
+          // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
+          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          shape: const StadiumBorder(),
+          onPressed: () async {
+            onPressed.call(number);
+            setState(() {
+              _color = Theme.of(context)
+                  .extension<StackColors>()!
+                  .numberBackDefault
+                  .withOpacity(0.8);
+            });
 
-          Future<void>.delayed(const Duration(milliseconds: 200), () {
-            if (mounted) {
-              setState(() {
-                _color = Theme.of(context)
-                    .extension<StackColors>()!
-                    .numberBackDefault;
-              });
-            }
-          });
-        },
-        child: Center(
-          child: Text(number, style: STextStyles.numberDefault(context)),
+            Future<void>.delayed(const Duration(milliseconds: 200), () {
+              if (mounted) {
+                setState(() {
+                  _color = Theme.of(context)
+                      .extension<StackColors>()!
+                      .numberBackDefault;
+                });
+              }
+            });
+          },
+          child: Center(
+            child: Text(number, style: STextStyles.numberDefault(context)),
+          ),
         ),
       ),
     );
@@ -110,50 +134,53 @@ class _BackspaceKeyState extends State<BackspaceKey> {
   @override
   Widget build(BuildContext context) {
     _color ??= Theme.of(context).extension<StackColors>()!.numpadBackDefault;
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      curve: Curves.easeInOut,
-      height: 72,
-      width: 72,
-      decoration: ShapeDecoration(
-        shape: const StadiumBorder(),
-        color: _color,
-        shadows: const [],
-      ),
-      child: MaterialButton(
-        // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
-        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-        shape: const StadiumBorder(),
-        onPressed: () {
-          onPressed.call();
-          setState(() {
-            _color = Theme.of(context)
-                .extension<StackColors>()!
-                .numpadBackDefault
-                .withOpacity(0.8);
-          });
-
-          Future<void>.delayed(const Duration(milliseconds: 200), () {
-            if (mounted) {
-              setState(() {
-                _color = Theme.of(context)
-                    .extension<StackColors>()!
-                    .numpadBackDefault;
-              });
-            }
-          });
-        },
-        child: Semantics(
-          label: l10n.pinBackspaceSemantics,
-          excludeSemantics: true,
-          child: Center(
-            child: SvgPicture.asset(
-              Assets.svg.delete,
-              width: 20,
-              height: 20,
-              color: Theme.of(context)
+    // Only the color is animated: the pad takes its new size at once when the
+    // screen rotates, and a key still growing wouldn't fit in it.
+    return SizedBox.fromSize(
+      size: PinKeySize.of(context),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeInOut,
+        decoration: ShapeDecoration(
+          shape: const StadiumBorder(),
+          color: _color,
+          shadows: const [],
+        ),
+        child: MaterialButton(
+          // splashColor: Theme.of(context).extension<StackColors>()!.highlight,
+          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          shape: const StadiumBorder(),
+          onPressed: () {
+            onPressed.call();
+            setState(() {
+              _color = Theme.of(context)
                   .extension<StackColors>()!
-                  .numpadTextDefault,
+                  .numpadBackDefault
+                  .withOpacity(0.8);
+            });
+
+            Future<void>.delayed(const Duration(milliseconds: 200), () {
+              if (mounted) {
+                setState(() {
+                  _color = Theme.of(context)
+                      .extension<StackColors>()!
+                      .numpadBackDefault;
+                });
+              }
+            });
+          },
+          child: Semantics(
+            label: l10n.pinBackspaceSemantics,
+            excludeSemantics: true,
+            child: Center(
+              child: SvgPicture.asset(
+                Assets.svg.delete,
+                width: 20,
+                height: 20,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .numpadTextDefault,
+              ),
             ),
           ),
         ),
@@ -170,8 +197,8 @@ class SubmitKey extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 72,
-      width: 72,
+      height: PinKeySize.of(context).height,
+      width: PinKeySize.of(context).width,
       decoration: ShapeDecoration(
         shape: const StadiumBorder(),
         color: Theme.of(context).extension<StackColors>()!.numpadBackDefault,
@@ -214,8 +241,8 @@ class CustomKey extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 72,
-      width: 72,
+      height: PinKeySize.of(context).height,
+      width: PinKeySize.of(context).width,
       decoration: ShapeDecoration(
         shape: const StadiumBorder(),
         color: Theme.of(context).extension<StackColors>()!.numpadBackDefault,
@@ -257,8 +284,8 @@ class PinKeyboard extends ConsumerWidget {
     required this.onSubmitPressed,
     required this.isRandom,
     this.backgroundColor,
-    this.width = 264,
-    this.height = 360,
+    this.width,
+    this.height,
     this.customKey,
   });
 
@@ -292,8 +319,8 @@ class PinKeyboard extends ConsumerWidget {
 
     // Keypads keep 1 2 3 from left to right in right-to-left languages too.
     return Container(
-      width: width,
-      height: height,
+      width: width ?? PinKeySize.padWidth(context),
+      height: height ?? PinKeySize.padHeight(context),
       color: backgroundColor ?? Colors.transparent,
       child: Column(
         children: [
@@ -301,42 +328,42 @@ class PinKeyboard extends ConsumerWidget {
             textDirection: TextDirection.ltr,
             children: [
               NumberKey(number: list[0], onPressed: _numberHandler),
-              const SizedBox(width: 24),
+              SizedBox(width: PinKeySize.columnGap(context)),
               NumberKey(number: list[1], onPressed: _numberHandler),
-              const SizedBox(width: 24),
+              SizedBox(width: PinKeySize.columnGap(context)),
               NumberKey(number: list[2], onPressed: _numberHandler),
             ],
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: PinKeySize.rowGap(context)),
           Row(
             textDirection: TextDirection.ltr,
             children: [
               NumberKey(number: list[3], onPressed: _numberHandler),
-              const SizedBox(width: 24),
+              SizedBox(width: PinKeySize.columnGap(context)),
               NumberKey(number: list[4], onPressed: _numberHandler),
-              const SizedBox(width: 24),
+              SizedBox(width: PinKeySize.columnGap(context)),
               NumberKey(number: list[5], onPressed: _numberHandler),
             ],
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: PinKeySize.rowGap(context)),
           Row(
             textDirection: TextDirection.ltr,
             children: [
               NumberKey(number: list[6], onPressed: _numberHandler),
-              const SizedBox(width: 24),
+              SizedBox(width: PinKeySize.columnGap(context)),
               NumberKey(number: list[7], onPressed: _numberHandler),
-              const SizedBox(width: 24),
+              SizedBox(width: PinKeySize.columnGap(context)),
               NumberKey(number: list[8], onPressed: _numberHandler),
             ],
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: PinKeySize.rowGap(context)),
           Row(
             textDirection: TextDirection.ltr,
             children: [
               BackspaceKey(onPressed: _backHandler),
-              const SizedBox(width: 24),
+              SizedBox(width: PinKeySize.columnGap(context)),
               NumberKey(number: list[9], onPressed: _numberHandler),
-              const SizedBox(width: 24),
+              SizedBox(width: PinKeySize.columnGap(context)),
               SubmitKey(onPressed: _submitHandler),
             ],
           ),
@@ -353,8 +380,8 @@ class RandomKeyboard extends StatelessWidget {
     required this.onBackPressed,
     required this.onSubmitPressed,
     this.backgroundColor,
-    this.width = 264,
-    this.height = 360,
+    this.width,
+    this.height,
     this.customKey,
   });
 
@@ -384,8 +411,8 @@ class RandomKeyboard extends StatelessWidget {
     final list = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"];
     list.shuffle();
     return Container(
-      width: width,
-      height: height,
+      width: width ?? PinKeySize.padWidth(context),
+      height: height ?? PinKeySize.padHeight(context),
       color: backgroundColor ?? Colors.transparent,
       child: Column(
         children: [
@@ -393,42 +420,42 @@ class RandomKeyboard extends StatelessWidget {
             textDirection: TextDirection.ltr,
             children: [
               NumberKey(number: list[0], onPressed: _numberHandler),
-              const SizedBox(width: 24),
+              SizedBox(width: PinKeySize.columnGap(context)),
               NumberKey(number: list[1], onPressed: _numberHandler),
-              const SizedBox(width: 24),
+              SizedBox(width: PinKeySize.columnGap(context)),
               NumberKey(number: list[2], onPressed: _numberHandler),
             ],
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: PinKeySize.rowGap(context)),
           Row(
             textDirection: TextDirection.ltr,
             children: [
               NumberKey(number: list[3], onPressed: _numberHandler),
-              const SizedBox(width: 24),
+              SizedBox(width: PinKeySize.columnGap(context)),
               NumberKey(number: list[4], onPressed: _numberHandler),
-              const SizedBox(width: 24),
+              SizedBox(width: PinKeySize.columnGap(context)),
               NumberKey(number: list[5], onPressed: _numberHandler),
             ],
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: PinKeySize.rowGap(context)),
           Row(
             textDirection: TextDirection.ltr,
             children: [
               NumberKey(number: list[6], onPressed: _numberHandler),
-              const SizedBox(width: 24),
+              SizedBox(width: PinKeySize.columnGap(context)),
               NumberKey(number: list[7], onPressed: _numberHandler),
-              const SizedBox(width: 24),
+              SizedBox(width: PinKeySize.columnGap(context)),
               NumberKey(number: list[8], onPressed: _numberHandler),
             ],
           ),
-          const SizedBox(height: 24),
+          SizedBox(height: PinKeySize.rowGap(context)),
           Row(
             textDirection: TextDirection.ltr,
             children: [
               BackspaceKey(onPressed: _backHandler),
-              const SizedBox(width: 24),
+              SizedBox(width: PinKeySize.columnGap(context)),
               NumberKey(number: list[9], onPressed: _numberHandler),
-              const SizedBox(width: 24),
+              SizedBox(width: PinKeySize.columnGap(context)),
               SubmitKey(onPressed: _submitHandler),
             ],
           ),

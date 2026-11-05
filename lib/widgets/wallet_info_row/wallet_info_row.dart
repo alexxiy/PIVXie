@@ -72,9 +72,14 @@ class WalletInfoRow extends ConsumerWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
-                    CustomTextButton(
-                      text: l10n.walletOpen,
-                      onTap: onPressedDesktop,
+                    Flexible(
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: CustomTextButton(
+                          text: l10n.walletOpen,
+                          onTap: onPressedDesktop,
+                        ),
+                      ),
                     ),
                   ],
                 ),

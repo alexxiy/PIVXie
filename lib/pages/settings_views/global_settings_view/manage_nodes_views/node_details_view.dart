@@ -27,6 +27,7 @@ import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/tor_plain_net_option_enum.dart';
 import '../../../../utilities/util.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../../widgets/adaptive_page.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/conditional_parent.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -129,7 +130,7 @@ class _NodeDetailsViewState extends ConsumerState<NodeDetailsView> {
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) => Background(
-        child: Scaffold(
+        child: AppScaffold(
           backgroundColor: Theme.of(context)
               .extension<StackColors>()!
               .background,

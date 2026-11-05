@@ -167,11 +167,13 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Padding(
-                padding: const EdgeInsetsDirectional.only(start: 32),
-                child: Text(
-                  l10n.walletMoreFeatures,
-                  style: STextStyles.desktopH3(context),
+              Flexible(
+                child: Padding(
+                  padding: const EdgeInsetsDirectional.only(start: 32),
+                  child: Text(
+                    l10n.walletMoreFeatures,
+                    style: STextStyles.desktopH3(context),
+                  ),
                 ),
               ),
               const DesktopDialogCloseButton(),
@@ -211,14 +213,11 @@ class _MoreFeaturesDialogState extends ConsumerState<MoreFeaturesDialog> {
                                 ),
                               ),
                               const SizedBox(width: 16),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    l10n.walletReuseAddress,
-                                    style: STextStyles.w600_20(context),
-                                  ),
-                                ],
+                              Expanded(
+                                child: Text(
+                                  l10n.walletReuseAddress,
+                                  style: STextStyles.w600_20(context),
+                                ),
                               ),
                             ],
                           ),
@@ -304,15 +303,17 @@ class _MoreFeaturesItemState extends State<_MoreFeaturesItem> {
             ),
           ),
           const SizedBox(width: 16),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(widget.label, style: STextStyles.w600_20(context)),
-              Text(
-                widget.detail,
-                style: STextStyles.desktopTextExtraExtraSmall(context),
-              ),
-            ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(widget.label, style: STextStyles.w600_20(context)),
+                Text(
+                  widget.detail,
+                  style: STextStyles.desktopTextExtraExtraSmall(context),
+                ),
+              ],
+            ),
           ),
         ],
       ),

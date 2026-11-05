@@ -11,14 +11,28 @@
 import 'package:flutter/material.dart';
 
 import '../../themes/stack_colors.dart';
+import '../adaptive_page.dart';
 import '../background.dart';
 
 class DesktopScaffold extends StatelessWidget {
-  const DesktopScaffold({super.key, this.background, this.appBar, this.body});
+  const DesktopScaffold({
+    super.key,
+    this.background,
+    this.appBar,
+    this.body,
+    this.minBodyHeight = DesktopFit.pageHeight,
+    this.bodyGrows = false,
+  });
 
   final Color? background;
   final Widget? appBar;
   final Widget? body;
+
+  /// See [DesktopPageBody.minHeight].
+  final double minBodyHeight;
+
+  /// See [DesktopPageBody.growsWithChild].
+  final bool bodyGrows;
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +44,14 @@ class DesktopScaffold extends StatelessWidget {
           // crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             if (appBar != null) appBar!,
-            if (body != null) Expanded(child: body!),
+            if (body != null)
+              Expanded(
+                child: DesktopPageBody(
+                  minHeight: minBodyHeight,
+                  growsWithChild: bodyGrows,
+                  child: body!,
+                ),
+              ),
           ],
         ),
       ),
@@ -45,12 +66,16 @@ class MasterScaffold extends StatelessWidget {
     required this.appBar,
     required this.body,
     this.background,
+    this.maxBodyWidth = ScreenFit.columnWidth,
   });
 
   final bool isDesktop;
   final Widget appBar;
   final Widget body;
   final Color? background;
+
+  /// On mobile, see [AppScaffold.maxBodyWidth].
+  final double maxBodyWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -62,9 +87,10 @@ class MasterScaffold extends StatelessWidget {
       );
     } else {
       return Background(
-        child: Scaffold(
+        child: AppScaffold(
           backgroundColor: background ?? Colors.transparent,
           appBar: appBar as PreferredSizeWidget?,
+          maxBodyWidth: maxBodyWidth,
           body: SafeArea(child: body),
         ),
       );

@@ -23,12 +23,14 @@ class DesktopTorStatusButton extends ConsumerStatefulWidget {
     required this.transitionDuration,
     this.controller,
     this.labelLength = 125,
+    this.isExpandedInitially = true,
   });
 
   final VoidCallback? onPressed;
   final Duration transitionDuration;
   final DMIController? controller;
   final double labelLength;
+  final bool isExpandedInitially;
 
   @override
   ConsumerState<DesktopTorStatusButton> createState() =>
@@ -46,7 +48,7 @@ class _DesktopTorStatusButtonState extends ConsumerState<DesktopTorStatusButton>
 
   /// The subscription to the TorConnectionStatusChangedEvent.
   late final StreamSubscription<TorConnectionStatusChangedEvent>
-      _torConnectionStatusSubscription;
+  _torConnectionStatusSubscription;
 
   /// The current status of the Tor connection.
   late TorConnectionStatus _torConnectionStatus;
@@ -87,21 +89,22 @@ class _DesktopTorStatusButtonState extends ConsumerState<DesktopTorStatusButton>
     _torConnectionStatus = ref.read(pTorService).status;
 
     // Subscribe to the TorConnectionStatusChangedEvent.
-    _torConnectionStatusSubscription =
-        eventBus.on<TorConnectionStatusChangedEvent>().listen(
-      (event) async {
-        // Rebuild the widget.
-        setState(() {
-          _torConnectionStatus = event.newStatus;
+    _torConnectionStatusSubscription = eventBus
+        .on<TorConnectionStatusChangedEvent>()
+        .listen((event) async {
+          // Rebuild the widget.
+          setState(() {
+            _torConnectionStatus = event.newStatus;
+          });
         });
-      },
-    );
 
+    _iconOnly = !widget.isExpandedInitially;
     controller?.toggle = toggle;
     animationController = AnimationController(
       vsync: this,
       duration: widget.transitionDuration,
-    )..forward();
+      value: _iconOnly ? 0 : 1,
+    );
 
     super.initState();
   }
@@ -131,9 +134,7 @@ class _DesktopTorStatusButtonState extends ConsumerState<DesktopTorStatusButton>
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Padding(
-            padding: const EdgeInsets.symmetric(
-              vertical: 16,
-            ),
+            padding: const EdgeInsets.symmetric(vertical: 16),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -157,20 +158,15 @@ class _DesktopTorStatusButtonState extends ConsumerState<DesktopTorStatusButton>
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const SizedBox(
-                          width: 12,
-                        ),
+                        const SizedBox(width: 12),
                         Text(
                           torOn
                               ? _torConnectionStatus.name.capitalize()
                               : l10n.torOff,
-                          style: STextStyles.smallMed12(context).copyWith(
-                            color: _color(_torConnectionStatus),
-                          ),
+                          style: STextStyles.smallMed12(context)
+                              .copyWith(color: _color(_torConnectionStatus)),
                         ),
-                        const SizedBox(
-                          width: 21,
-                        ),
+                        const SizedBox(width: 21),
                       ],
                     ),
                   ),

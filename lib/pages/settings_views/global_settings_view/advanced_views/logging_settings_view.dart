@@ -31,6 +31,7 @@ import '../../../../utilities/logger.dart';
 import '../../../../utilities/show_loading.dart';
 import '../../../../utilities/stack_file_system.dart';
 import '../../../../utilities/text_styles.dart';
+import '../../../../widgets/adaptive_page.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/desktop/primary_button.dart';
@@ -225,7 +226,7 @@ class _LoggingSettingsViewState extends ConsumerState<LoggingSettingsView> {
   @override
   Widget build(BuildContext context) {
     return Background(
-      child: Scaffold(
+      child: AppScaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         appBar: AppBar(
           leading: AppBarBackButton(
@@ -241,124 +242,126 @@ class _LoggingSettingsViewState extends ConsumerState<LoggingSettingsView> {
         body: SafeArea(
           child: Padding(
             padding: const EdgeInsets.only(top: 12, left: 16, right: 16),
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    Text(
-                      l10n.logsLocation,
-                      style: STextStyles.fieldLabel(context),
-                      textAlign: TextAlign.start,
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  autocorrect: false,
-                  enableSuggestions: false,
-                  controller: fileLocationController,
-                  style: STextStyles.field(context),
-                  decoration: InputDecoration(
-                    hintText: l10n.logsSaveTo,
-                    hintStyle: STextStyles.fieldLabel(context),
-                    suffixIcon: UnconstrainedBox(
-                      child: Row(
-                        children: [
-                          const SizedBox(width: 16),
-                          SvgPicture.asset(
-                            Assets.svg.folder,
-                            color: Theme.of(context)
-                                .extension<StackColors>()!
-                                .textDark3,
-                            width: 16,
-                            height: 16,
-                          ),
-                          const SizedBox(width: 12),
-                        ],
+            child: FillOrScroll(
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        l10n.logsLocation,
+                        style: STextStyles.fieldLabel(context),
+                        textAlign: TextAlign.start,
                       ),
-                    ),
+                    ],
                   ),
-                  key: const Key("logsDirPathLocationControllerKey"),
-                  readOnly: true,
-                  toolbarOptions: const ToolbarOptions(
-                    copy: true,
-                    cut: false,
-                    paste: false,
-                    selectAll: false,
-                  ),
-                  onChanged: (newValue) {},
-                ),
-                const SizedBox(height: 16),
-                const LogLevelPreferenceWidget(),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: RoundedWhiteContainer(
-                        child: Text(
-                          l10n.logsRestartNote(AppConfig.appName),
-                          style: STextStyles.subtitle500(context),
+                  const SizedBox(height: 16),
+                  TextField(
+                    autocorrect: false,
+                    enableSuggestions: false,
+                    controller: fileLocationController,
+                    style: STextStyles.field(context),
+                    decoration: InputDecoration(
+                      hintText: l10n.logsSaveTo,
+                      hintStyle: STextStyles.fieldLabel(context),
+                      suffixIcon: UnconstrainedBox(
+                        child: Row(
+                          children: [
+                            const SizedBox(width: 16),
+                            SvgPicture.asset(
+                              Assets.svg.folder,
+                              color: Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .textDark3,
+                              width: 16,
+                              height: 16,
+                            ),
+                            const SizedBox(width: 12),
+                          ],
                         ),
                       ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                const Spacer(),
-
-                if (Platform.isAndroid) ...[
-                  SecondaryButton(
-                    label: l10n.logsShare,
-                    onPressed: () => _androidExportLogs(save: false),
+                    key: const Key("logsDirPathLocationControllerKey"),
+                    readOnly: true,
+                    toolbarOptions: const ToolbarOptions(
+                      copy: true,
+                      cut: false,
+                      paste: false,
+                      selectAll: false,
+                    ),
+                    onChanged: (newValue) {},
                   ),
                   const SizedBox(height: 16),
-                  PrimaryButton(
-                    label: l10n.logsSaveToFile,
-                    onPressed: () => _androidExportLogs(save: true),
+                  const LogLevelPreferenceWidget(),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: RoundedWhiteContainer(
+                          child: Text(
+                            l10n.logsRestartNote(AppConfig.appName),
+                            style: STextStyles.subtitle500(context),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ] else
-                  PrimaryButton(
-                    label: l10n.logsSelectLocation,
-                    onPressed: () async {
-                      if (_lock) {
-                        return;
-                      }
-                      _lock = true;
-                      try {
-                        await _edit();
-                      } catch (e, s) {
-                        Logging.instance.e(
-                          "Failed to change logs path",
-                          error: e,
-                          stackTrace: s,
-                        );
-                        if (context.mounted) {
-                          final String err;
-                          if (e.toString().contains(
-                            "OS Error: Operation not permitted",
-                          )) {
-                            err = l10n.logsCannotUseLocation;
-                          } else {
-                            err = e.toString();
-                          }
+                  const SizedBox(height: 16),
+                  const Spacer(),
 
-                          unawaited(
-                            showDialog(
-                              context: context,
-                              builder: (context) => StackOkDialog(
-                                title: l10n.logsChangePathFailed,
-                                message: err,
-                              ),
-                            ),
-                          );
+                  if (Platform.isAndroid) ...[
+                    SecondaryButton(
+                      label: l10n.logsShare,
+                      onPressed: () => _androidExportLogs(save: false),
+                    ),
+                    const SizedBox(height: 16),
+                    PrimaryButton(
+                      label: l10n.logsSaveToFile,
+                      onPressed: () => _androidExportLogs(save: true),
+                    ),
+                  ] else
+                    PrimaryButton(
+                      label: l10n.logsSelectLocation,
+                      onPressed: () async {
+                        if (_lock) {
+                          return;
                         }
-                      } finally {
-                        _lock = false;
-                      }
-                    },
-                  ),
-                const SizedBox(height: 16),
-              ],
+                        _lock = true;
+                        try {
+                          await _edit();
+                        } catch (e, s) {
+                          Logging.instance.e(
+                            "Failed to change logs path",
+                            error: e,
+                            stackTrace: s,
+                          );
+                          if (context.mounted) {
+                            final String err;
+                            if (e.toString().contains(
+                              "OS Error: Operation not permitted",
+                            )) {
+                              err = l10n.logsCannotUseLocation;
+                            } else {
+                              err = e.toString();
+                            }
+
+                            unawaited(
+                              showDialog(
+                                context: context,
+                                builder: (context) => StackOkDialog(
+                                  title: l10n.logsChangePathFailed,
+                                  message: err,
+                                ),
+                              ),
+                            );
+                          }
+                        } finally {
+                          _lock = false;
+                        }
+                      },
+                    ),
+                  const SizedBox(height: 16),
+                ],
+              ),
             ),
           ),
         ),

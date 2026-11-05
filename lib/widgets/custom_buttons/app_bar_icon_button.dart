@@ -15,6 +15,7 @@ import '../../l10n/l10n.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/util.dart';
+import '../adaptive_page.dart';
 import '../conditional_parent.dart';
 
 class AppBarIconButton extends StatelessWidget {
@@ -90,16 +91,17 @@ class AppBarBackButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDesktop = Util.isDesktop;
+    final short = isDesktop && DesktopFit.short(context);
     return Padding(
       padding: isDesktop
-          ? const EdgeInsets.symmetric(vertical: 20, horizontal: 24)
+          ? EdgeInsets.symmetric(vertical: short ? 11 : 20, horizontal: 24)
           : const EdgeInsets.all(10),
       child: AppBarIconButton(
         semanticsLabel: semanticsLabel ?? l10n.backButtonSemantics,
         size:
             size ??
             (isDesktop
-                ? isCompact
+                ? isCompact || short
                       ? 42
                       : 56
                 : 32),

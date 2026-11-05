@@ -29,7 +29,7 @@ class _SWDatePickerState extends State<_SWDatePicker> {
       for (int i = 0; i < oldWidget.value.length; i++) {
         final isSame =
             (oldWidget.value[i] == null && widget.value[i] == null) ||
-                DateUtils.isSameDay(oldWidget.value[i], widget.value[i]);
+            DateUtils.isSameDay(oldWidget.value[i], widget.value[i]);
         if (!isSame) {
           isValueSame = false;
           break;
@@ -47,114 +47,125 @@ class _SWDatePickerState extends State<_SWDatePicker> {
 
   @override
   Widget build(BuildContext context) {
+    final calendar = MediaQuery.removePadding(
+      context: context,
+      child: CalendarDatePicker2(
+        value: [..._editCache],
+        config: widget.config,
+        onValueChanged: (values) => _editCache = values,
+      ),
+    );
+    final cancel = SecondaryButton(
+      label: l10n.commonCancel,
+      buttonHeight: Util.isDesktop ? ButtonHeight.m : null,
+      onPressed: () {
+        setState(() {
+          _editCache = _values;
+          if ((widget.config.openedFromDialog ?? false) &&
+              (widget.config.closeDialogOnCancelTapped ?? true)) {
+            Navigator.pop(context);
+          }
+        });
+      },
+    );
+    final ok = PrimaryButton(
+      buttonHeight: Util.isDesktop ? ButtonHeight.m : null,
+      label: l10n.commonOk,
+      onPressed: () {
+        setState(() {
+          _values = _editCache;
+          if ((widget.config.openedFromDialog ?? false) &&
+              (widget.config.closeDialogOnOkTapped ?? true)) {
+            Navigator.pop(context, _values);
+          }
+        });
+      },
+    );
+
     return Theme(
       data: Theme.of(context).copyWith(
         hoverColor: Colors.transparent,
         highlightColor: Colors.transparent,
         focusColor: Colors.transparent,
         colorScheme: Theme.of(context).colorScheme.copyWith(
-              background: Theme.of(context).extension<StackColors>()!.popupBG,
-              onBackground:
-                  Theme.of(context).extension<StackColors>()!.accentColorDark,
-              surface: Theme.of(context).extension<StackColors>()!.popupBG,
-              surfaceVariant:
-                  Theme.of(context).extension<StackColors>()!.popupBG,
-              onSurface:
-                  Theme.of(context).extension<StackColors>()!.accentColorDark,
-              onSurfaceVariant:
-                  Theme.of(context).extension<StackColors>()!.accentColorDark,
-              surfaceTint: Colors.transparent,
-              shadow: Colors.transparent,
-            ),
+          background: Theme.of(context).extension<StackColors>()!.popupBG,
+          onBackground: Theme.of(context)
+              .extension<StackColors>()!
+              .accentColorDark,
+          surface: Theme.of(context).extension<StackColors>()!.popupBG,
+          surfaceVariant: Theme.of(context).extension<StackColors>()!.popupBG,
+          onSurface: Theme.of(context)
+              .extension<StackColors>()!
+              .accentColorDark,
+          onSurfaceVariant: Theme.of(context)
+              .extension<StackColors>()!
+              .accentColorDark,
+          surfaceTint: Colors.transparent,
+          shadow: Colors.transparent,
+        ),
       ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          MediaQuery.removePadding(
-            context: context,
-            child: CalendarDatePicker2(
-              value: [..._editCache],
-              config: widget.config,
-              onValueChanged: (values) => _editCache = values,
-            ),
-          ),
-          SizedBox(height: widget.config.gapBetweenCalendarAndButtons ?? 10),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              if (!Util.isDesktop)
+      child: ScreenFit.short(context)
+          ? Row(
+              children: [
+                Expanded(child: SingleChildScrollView(child: calendar)),
+                const SizedBox(width: 8),
                 SizedBox(
-                  width: widget.config.buttonPadding?.right ?? 0,
-                ),
-              ConditionalParent(
-                condition: !Util.isDesktop,
-                builder: (child) => Expanded(
-                  child: child,
-                ),
-                child: Padding(
-                  padding: widget.config.buttonPadding ?? EdgeInsets.zero,
-                  child: ConditionalParent(
-                    condition: Util.isDesktop,
-                    builder: (child) => SizedBox(
-                      width: 140,
-                      child: child,
-                    ),
-                    child: SecondaryButton(
-                      label: l10n.commonCancel,
-                      buttonHeight: Util.isDesktop ? ButtonHeight.m : null,
-                      onPressed: () {
-                        setState(
-                          () {
-                            _editCache = _values;
-                            if ((widget.config.openedFromDialog ?? false) &&
-                                (widget.config.closeDialogOnCancelTapped ??
-                                    true)) {
-                              Navigator.pop(context);
-                            }
-                          },
-                        );
-                      },
-                    ),
+                  width: 120,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [ok, const SizedBox(height: 8), cancel],
                   ),
                 ),
-              ),
-              if ((widget.config.gapBetweenCalendarAndButtons ?? 0) > 0)
-                SizedBox(width: widget.config.gapBetweenCalendarAndButtons),
-              ConditionalParent(
-                condition: !Util.isDesktop,
-                builder: (child) => Expanded(
-                  child: child,
+                const SizedBox(width: 16),
+              ],
+            )
+          : Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                calendar,
+                SizedBox(
+                  height: widget.config.gapBetweenCalendarAndButtons ?? 10,
                 ),
-                child: Padding(
-                  padding: widget.config.buttonPadding ?? EdgeInsets.zero,
-                  child: ConditionalParent(
-                    condition: Util.isDesktop,
-                    builder: (child) => SizedBox(
-                      width: 140,
-                      child: child,
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    if (!Util.isDesktop)
+                      SizedBox(width: widget.config.buttonPadding?.right ?? 0),
+                    ConditionalParent(
+                      condition: !Util.isDesktop,
+                      builder: (child) => Expanded(child: child),
+                      child: Padding(
+                        padding: widget.config.buttonPadding ?? EdgeInsets.zero,
+                        child: ConditionalParent(
+                          condition: Util.isDesktop,
+                          builder: (child) =>
+                              SizedBox(width: 140, child: child),
+                          child: cancel,
+                        ),
+                      ),
                     ),
-                    child: PrimaryButton(
-                      buttonHeight: Util.isDesktop ? ButtonHeight.m : null,
-                      label: l10n.commonOk,
-                      onPressed: () {
-                        setState(
-                          () {
-                            _values = _editCache;
-                            if ((widget.config.openedFromDialog ?? false) &&
-                                (widget.config.closeDialogOnOkTapped ?? true)) {
-                              Navigator.pop(context, _values);
-                            }
-                          },
-                        );
-                      },
+                    if ((widget.config.gapBetweenCalendarAndButtons ?? 0) > 0)
+                      SizedBox(
+                        width: widget.config.gapBetweenCalendarAndButtons,
+                      ),
+                    ConditionalParent(
+                      condition: !Util.isDesktop,
+                      builder: (child) => Expanded(child: child),
+                      child: Padding(
+                        padding: widget.config.buttonPadding ?? EdgeInsets.zero,
+                        child: ConditionalParent(
+                          condition: Util.isDesktop,
+                          builder: (child) =>
+                              SizedBox(width: 140, child: child),
+                          child: ok,
+                        ),
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-              ),
-            ],
-          ),
-        ],
-      ),
+              ],
+            ),
     );
   }
 }

@@ -14,6 +14,7 @@ import '../../../utilities/constants.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../widgets/adaptive_page.dart';
 import '../../../widgets/background.dart';
 import '../../../widgets/conditional_parent.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -90,7 +91,7 @@ class _NewWalletOptionsViewState extends ConsumerState<NewWalletOptionsView> {
       child: ConditionalParent(
         condition: !Util.isDesktop,
         builder: (child) => Background(
-          child: Scaffold(
+          child: AppScaffold(
             backgroundColor: Theme.of(context)
                 .extension<StackColors>()!
                 .background,
@@ -274,7 +275,8 @@ class _NewWalletOptionsViewState extends ConsumerState<NewWalletOptionsView> {
                   if (!Util.isDesktop && lengths.length > 1)
                     MobileMnemonicLengthSelector(
                       chooseMnemonicLength: () {
-                        showModalBottomSheet<dynamic>(
+                        showAppSheet<dynamic>(
+                          scrollable: true,
                           backgroundColor: Colors.transparent,
                           context: context,
                           shape: const RoundedRectangleBorder(

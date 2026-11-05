@@ -13,6 +13,7 @@ import '../../utilities/clipboard_interface.dart';
 import '../../utilities/show_loading.dart';
 import '../../utilities/text_styles.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
+import '../../widgets/adaptive_page.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/blue_text_button.dart';
 import '../../widgets/desktop/primary_button.dart';
@@ -258,7 +259,7 @@ class _PivxMasternodeDetailsViewState
         "${l10n.mnCollateralTx}: ${mn.txid}\n"
         "${l10n.mnOutputIndex}: ${mn.vout}\n"
         "${l10n.mnPrivateKey}: $key";
-    await showModalBottomSheet<void>(
+    await showAppSheet<void>(
       context: context,
       backgroundColor: Colors.transparent,
       isScrollControlled: true,
@@ -338,7 +339,7 @@ class _PivxMasternodeDetailsViewState
         : wallet.masternodeServiceError(_serviceController.text);
 
     return Background(
-      child: Scaffold(
+      child: AppScaffold(
         backgroundColor: colors.background,
         appBar: PageAppBar(
           title: Text(

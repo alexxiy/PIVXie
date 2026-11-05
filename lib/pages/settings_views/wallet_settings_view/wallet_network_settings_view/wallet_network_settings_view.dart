@@ -10,6 +10,7 @@
 
 import 'dart:async';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
@@ -36,6 +37,7 @@ import '../../../../utilities/format.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../../widgets/adaptive_page.dart';
 import '../../../../widgets/animated_text.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/conditional_parent.dart';
@@ -286,7 +288,11 @@ class _WalletNetworkSettingsViewState
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
+    final screenWidth = min(
+      MediaQuery.sizeOf(context).width -
+          MediaQuery.paddingOf(context).horizontal,
+      ScreenFit.columnWidth,
+    );
     final online = ref.watch(pDeviceNetwork.select((e) => e.online));
     // Without a network it can't sync, whatever it did last.
     final syncStatus = online
@@ -301,7 +307,7 @@ class _WalletNetworkSettingsViewState
       condition: !isDesktop,
       builder: (child) {
         return Background(
-          child: Scaffold(
+          child: AppScaffold(
             backgroundColor: Theme.of(context)
                 .extension<StackColors>()!
                 .background,

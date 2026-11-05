@@ -30,6 +30,7 @@ import '../../../utilities/text_styles.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import 'wallet_balance_toggle_sheet.dart';
 import 'wallet_refresh_button.dart';
+import '../../../widgets/adaptive_page.dart';
 
 class WalletSummaryInfo extends ConsumerWidget {
   const WalletSummaryInfo({
@@ -42,7 +43,7 @@ class WalletSummaryInfo extends ConsumerWidget {
   final WalletSyncStatus initialSyncStatus;
 
   void showSheet(BuildContext context) {
-    showModalBottomSheet<dynamic>(
+    showAppSheet<dynamic>(
       backgroundColor: Colors.transparent,
       context: context,
       useSafeArea: true,

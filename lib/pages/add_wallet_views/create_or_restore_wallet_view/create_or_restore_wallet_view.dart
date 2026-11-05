@@ -18,6 +18,7 @@ import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
+import '../../../widgets/adaptive_page.dart';
 import '../../../widgets/background.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/desktop/desktop_app_bar.dart';
@@ -48,7 +49,8 @@ class CreateOrRestoreWalletView extends StatelessWidget {
       );
     } else {
       return Background(
-        child: Scaffold(
+        child: AppScaffold(
+          maxBodyWidth: ScreenFit.panesOrColumn(context),
           backgroundColor: Theme.of(context)
               .extension<StackColors>()!
               .background,
@@ -118,41 +120,74 @@ class CreateOrRestoreWalletContent extends StatelessWidget {
       );
     }
 
-    // Sized by the width, but at most 40% of the height: in landscape the
-    // buttons below would be out of sight.
     final screen = MediaQuery.sizeOf(context);
-    final side = min(screen.width / 1.6, screen.height * 0.4);
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return SingleChildScrollView(
-          child: ConstrainedBox(
-            constraints: BoxConstraints(minHeight: constraints.maxHeight),
-            child: IntrinsicHeight(
-              child: Padding(
-                padding: padding,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    const Spacer(flex: 2),
-                    Image.asset(
-                      Assets.persona.addWallet,
-                      width: side,
-                      height: side,
-                      fit: BoxFit.contain,
-                    ),
-                    const Spacer(flex: 2),
-                    CreateRestoreWalletTitle(coin: coin, isDesktop: false),
-                    const SizedBox(height: 8),
-                    const CreateRestoreWalletSubTitle(isDesktop: false),
-                    const Spacer(flex: 5),
-                    CreateWalletButtonGroup(coin: coin, isDesktop: false),
-                  ],
-                ),
+    if (ScreenFit.sideBySide(context)) {
+      return Center(
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: ScreenFit.panesWidth),
+          child: Padding(
+            padding: padding,
+            child: SplitPane(
+              start: Image.asset(
+                Assets.persona.addWallet,
+                height: min(screen.height * 0.6, 360),
+                fit: BoxFit.contain,
+              ),
+              end: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  CreateRestoreWalletTitle(coin: coin, isDesktop: false),
+                  const SizedBox(height: 8),
+                  const CreateRestoreWalletSubTitle(isDesktop: false),
+                  const SizedBox(height: 24),
+                  CreateWalletButtonGroup(coin: coin, isDesktop: false),
+                ],
               ),
             ),
           ),
-        );
-      },
+        ),
+      );
+    }
+
+    // Sized by the width, but at most 40% of the height.
+    final side = min(screen.width / 1.6, screen.height * 0.4);
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: ScreenFit.columnWidth),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minHeight: constraints.maxHeight),
+                child: IntrinsicHeight(
+                  child: Padding(
+                    padding: padding,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        const Spacer(flex: 2),
+                        Image.asset(
+                          Assets.persona.addWallet,
+                          width: side,
+                          height: side,
+                          fit: BoxFit.contain,
+                        ),
+                        const Spacer(flex: 2),
+                        CreateRestoreWalletTitle(coin: coin, isDesktop: false),
+                        const SizedBox(height: 8),
+                        const CreateRestoreWalletSubTitle(isDesktop: false),
+                        const Spacer(flex: 5),
+                        CreateWalletButtonGroup(coin: coin, isDesktop: false),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
     );
   }
 }

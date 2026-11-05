@@ -20,6 +20,7 @@ import '../../../utilities/assets.dart';
 import '../../../utilities/constants.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
+import '../../../widgets/adaptive_page.dart';
 import '../../../widgets/background.dart';
 import '../../../widgets/conditional_parent.dart';
 import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -148,7 +149,7 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
       condition: !isDesktop,
       builder: (child) {
         return Background(
-          child: Scaffold(
+          child: AppScaffold(
             backgroundColor: Theme.of(context)
                 .extension<StackColors>()!
                 .background,

@@ -11,6 +11,8 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+
+import '../adaptive_page.dart';
 import 'custom_pin_put.dart';
 import 'pin_keyboard.dart';
 
@@ -70,52 +72,75 @@ class CustomPinPutState extends State<CustomPinPut>
 
   @override
   Widget build(BuildContext context) {
+    // The same widgets in both directions: rotating keeps the typed PIN.
+    final side = ScreenFit.sideBySide(context) && PinKeySize.compact(context);
     return SizedBox(
       width: widget.width,
       height: widget.height,
-      child: Column(
-        children: [
-          SizedBox(
-            width: max((30 * pinCount) - 18, 1),
-            child: Stack(
-              children: [
-                _hiddenTextField,
-                Align(
-                  alignment: Alignment.bottomCenter,
-                  child: _fields(pinCount),
-                ),
-              ],
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: side ? 16 : 0),
+        child: Flex(
+          direction: side ? Axis.horizontal : Axis.vertical,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Flexible(
+              flex: side ? 1 : 0,
+              fit: side ? FlexFit.tight : FlexFit.loose,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  ?widget.header,
+                  SizedBox(
+                    height: widget.header == null
+                        ? 0
+                        : (side ? 24 : widget.headerGap),
+                  ),
+                  SizedBox(
+                    width: max((30 * pinCount) - 18, 1),
+                    child: Stack(
+                      children: [
+                        _hiddenTextField,
+                        Align(
+                          alignment: Alignment.bottomCenter,
+                          child: _fields(pinCount),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-          Center(
-            child: PinKeyboard(
-              isRandom: widget.isRandom,
-              customKey: widget.customKey,
-              onNumberKeyPressed: (number) {
-                _controller.text += number;
+            SizedBox(width: side ? 24 : 0),
+            Center(
+              child: PinKeyboard(
+                isRandom: widget.isRandom,
+                customKey: widget.customKey,
+                onNumberKeyPressed: (number) {
+                  _controller.text += number;
 
-                // add a set state and have the counter increment
-                setState(() {
-                  pinCount = _controller.text.length;
-                });
-              },
-              onBackPressed: () {
-                final text = _controller.text;
-                if (text.isNotEmpty) {
-                  _controller.text = text.substring(0, text.length - 1);
+                  // add a set state and have the counter increment
                   setState(() {
                     pinCount = _controller.text.length;
                   });
-                }
-                // decrement counter here
-              },
-              onSubmitPressed: () {
-                final pin = _controller.value.text;
-                widget.onSubmit?.call(pin);
-              },
+                },
+                onBackPressed: () {
+                  final text = _controller.text;
+                  if (text.isNotEmpty) {
+                    _controller.text = text.substring(0, text.length - 1);
+                    setState(() {
+                      pinCount = _controller.text.length;
+                    });
+                  }
+                  // decrement counter here
+                },
+                onSubmitPressed: () {
+                  final pin = _controller.value.text;
+                  widget.onSubmit?.call(pin);
+                },
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

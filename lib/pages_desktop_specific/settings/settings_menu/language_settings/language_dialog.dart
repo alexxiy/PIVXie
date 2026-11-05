@@ -102,6 +102,7 @@ class _LanguageDialog extends ConsumerState<LanguageDialog> {
 
     return DesktopDialog(
       maxHeight: 700,
+      fitsWindow: true,
       maxWidth: 600,
       child: Column(
         children: [
@@ -148,6 +149,9 @@ class _LanguageDialog extends ConsumerState<LanguageDialog> {
                                   enableSuggestions: false,
                                   controller: searchLanguageController,
                                   focusNode: searchLanguageFocusNode,
+                                  onChanged: (newString) {
+                                    setState(() => filter = newString);
+                                  },
                                   style: STextStyles.desktopTextMedium(context)
                                       .copyWith(height: 2),
                                   textAlign: TextAlign.start,

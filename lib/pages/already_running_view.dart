@@ -24,6 +24,7 @@ import '../utilities/enums/languages_enum.dart';
 import '../utilities/stack_file_system.dart';
 import '../utilities/text_styles.dart';
 import '../utilities/util.dart';
+import '../widgets/adaptive_page.dart';
 import '../widgets/app_icon.dart';
 import '../widgets/background.dart';
 
@@ -95,7 +96,7 @@ class AlreadyRunningView extends ConsumerWidget {
     );
 
     return Background(
-      child: Scaffold(
+      child: AppScaffold(
         backgroundColor: colors.background,
         body: SafeArea(
           child: Center(

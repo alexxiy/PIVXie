@@ -15,7 +15,9 @@ import '../../utilities/biometrics.dart';
 import '../../utilities/flutter_secure_storage_interface.dart';
 import '../../utilities/pin_attempts.dart';
 import '../../utilities/text_styles.dart';
+import '../../widgets/adaptive_page.dart';
 import '../../widgets/custom_pin_put/custom_pin_put.dart';
+import '../../widgets/custom_pin_put/pin_keyboard.dart';
 import '../../widgets/shake/shake.dart';
 import '../../widgets/stack_dialog.dart';
 import 'lock_screen_view.dart';
@@ -193,7 +195,10 @@ class _PinpadDialogState extends ConsumerState<PinpadDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final side = ScreenFit.sideBySide(context) && PinKeySize.compact(context);
     return StackDialogBase(
+      width: side ? 640 : null,
+      padding: side ? const EdgeInsets.all(16) : const EdgeInsets.all(24),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -205,14 +210,13 @@ class _PinpadDialogState extends ConsumerState<PinpadDialog> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Center(
-                    child: Text(
+                  CustomPinPut(
+                    header: Text(
                       l10n.pinEnter,
+                      textAlign: TextAlign.center,
                       style: STextStyles.pageTitleH1(context),
                     ),
-                  ),
-                  const SizedBox(height: 40),
-                  CustomPinPut(
+                    headerGap: 40,
                     fieldsCount: pinCount,
                     eachFieldHeight: 12,
                     eachFieldWidth: 12,
@@ -243,7 +247,7 @@ class _PinpadDialogState extends ConsumerState<PinpadDialog> {
                       }
                     },
                   ),
-                  const SizedBox(height: 32),
+                  SizedBox(height: side ? 0 : 32),
                 ],
               ),
             ),

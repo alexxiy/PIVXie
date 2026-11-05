@@ -35,6 +35,7 @@ import '../../../../utilities/util.dart';
 import '../../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../../wallets/wallet/impl/pivx/pivx_tx_parser.dart';
+import '../../../../widgets/adaptive_page.dart';
 import '../../../../widgets/icon_buttons.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/block_explorer_link.dart';
@@ -252,7 +253,7 @@ class _TransactionV2DetailsViewState
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) => Background(child: child),
-      child: Scaffold(
+      child: AppScaffold(
         backgroundColor: isDesktop
             ? Colors.transparent
             : Theme.of(context).extension<StackColors>()!.background,

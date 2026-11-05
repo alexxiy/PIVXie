@@ -17,6 +17,7 @@ import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/enums/sync_type_enum.dart';
 import '../../../../utilities/text_styles.dart';
+import '../../../../widgets/adaptive_page.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/rounded_white_container.dart';
@@ -41,7 +42,7 @@ class SyncingPreferencesView extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return Background(
-      child: Scaffold(
+      child: AppScaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         appBar: AppBar(
           leading: AppBarBackButton(

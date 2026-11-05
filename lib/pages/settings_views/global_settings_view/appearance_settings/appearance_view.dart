@@ -7,6 +7,7 @@ import '../../../../providers/global/prefs_provider.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/text_styles.dart';
+import '../../../../widgets/adaptive_page.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/custom_buttons/draggable_switch_button.dart';
@@ -24,7 +25,7 @@ class AppearanceView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Background(
-      child: Scaffold(
+      child: AppScaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         appBar: AppBar(
           leading: AppBarBackButton(
@@ -36,81 +37,83 @@ class AppearanceView extends StatelessWidget {
           ),
         ),
         body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                RoundedWhiteContainer(
-                  padding: const EdgeInsets.all(4),
-                  child: Column(
-                    children: [
-                      SettingsListButton(
-                        iconAssetName: Assets.svg.language,
-                        iconSize: 18,
-                        title: l10n.languageTitle,
-                        onPressed: () =>
-                            Navigator.of(context)
-                                .pushNamed(LanguageSettingsView.routeName),
-                      ),
-                      if (AppConfig.hasFeature(AppFeature.darkTheme)) ...[
-                        const SizedBox(height: 8),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  RoundedWhiteContainer(
+                    padding: const EdgeInsets.all(4),
+                    child: Column(
+                      children: [
                         SettingsListButton(
-                          iconAssetName: Assets.svg.sun,
+                          iconAssetName: Assets.svg.language,
                           iconSize: 18,
-                          title: l10n.settingsTheme,
+                          title: l10n.languageTitle,
                           onPressed: () =>
                               Navigator.of(context)
-                                  .pushNamed(ThemeModeView.routeName),
+                                  .pushNamed(LanguageSettingsView.routeName),
                         ),
-                      ],
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 12),
-                RoundedWhiteContainer(
-                  child: Consumer(
-                    builder: (_, ref, __) => Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                l10n.appearanceSounds,
-                                style: STextStyles.titleBold12(context),
-                              ),
-                              const SizedBox(height: 2),
-                              Text(
-                                l10n.appearanceSoundsText,
-                                style: STextStyles.itemSubtitle(context),
-                              ),
-                            ],
+                        if (AppConfig.hasFeature(AppFeature.darkTheme)) ...[
+                          const SizedBox(height: 8),
+                          SettingsListButton(
+                            iconAssetName: Assets.svg.sun,
+                            iconSize: 18,
+                            title: l10n.settingsTheme,
+                            onPressed: () =>
+                                Navigator.of(context)
+                                    .pushNamed(ThemeModeView.routeName),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        SizedBox(
-                          height: 20,
-                          width: 40,
-                          child: DraggableSwitchButton(
-                            key: const Key("soundEffectsSwitch"),
-                            isOn: ref.watch(
-                              prefsChangeNotifierProvider.select(
-                                (value) => value.soundEffects,
-                              ),
-                            ),
-                            onValueChanged: (on) =>
-                                ref
-                                        .read(prefsChangeNotifierProvider)
-                                        .soundEffects =
-                                    on,
-                          ),
-                        ),
+                        ],
                       ],
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 12),
+                  RoundedWhiteContainer(
+                    child: Consumer(
+                      builder: (_, ref, __) => Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  l10n.appearanceSounds,
+                                  style: STextStyles.titleBold12(context),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  l10n.appearanceSoundsText,
+                                  style: STextStyles.itemSubtitle(context),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          SizedBox(
+                            height: 20,
+                            width: 40,
+                            child: DraggableSwitchButton(
+                              key: const Key("soundEffectsSwitch"),
+                              isOn: ref.watch(
+                                prefsChangeNotifierProvider.select(
+                                  (value) => value.soundEffects,
+                                ),
+                              ),
+                              onValueChanged: (on) =>
+                                  ref
+                                          .read(prefsChangeNotifierProvider)
+                                          .soundEffects =
+                                      on,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ),

@@ -12,6 +12,7 @@ import '../../utilities/text_styles.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
+import '../../widgets/adaptive_page.dart';
 import '../../widgets/background.dart';
 import '../../widgets/custom_buttons/blue_text_button.dart';
 import '../../widgets/desktop/primary_button.dart';
@@ -226,45 +227,112 @@ class _PivxGovernanceViewState extends ConsumerState<PivxGovernanceView> {
     final colors = Theme.of(context).extension<StackColors>()!;
     final wallet = _wallet;
     final canCreate = !wallet.isViewOnly;
+    final side = ScreenFit.sideBySide(context);
+    final tabs = Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
+      child: _Tabs(
+        selected: _tab,
+        onSelected: (t) => setState(() {
+          _tab = t;
+          if (t == _Tab.past && _past == null) _loadPast();
+        }),
+      ),
+    );
+    final list = RefreshIndicator(
+      onRefresh: _refresh,
+      child: _tab == _Tab.past ? _pastList() : _proposalList(),
+    );
+    final create = Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+      child: PrimaryButton(
+        width: double.infinity,
+        label: l10n.govCreateProposal,
+        onPressed: _create,
+      ),
+    );
     return Background(
-      child: Scaffold(
+      child: AppScaffold(
+        maxBodyWidth: ScreenFit.panesOrColumn(context),
         backgroundColor: colors.background,
         appBar: PageAppBar(
           title: Text(l10n.govTitle, style: STextStyles.navBarTitle(context)),
         ),
         body: SafeArea(
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-                child: _Tabs(
-                  selected: _tab,
-                  onSelected: (t) => setState(() {
-                    _tab = t;
-                    if (t == _Tab.past && _past == null) _loadPast();
-                  }),
+          child: side
+              ? Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Expanded(
+                      flex: 5,
+                      child: Column(
+                        children: [
+                          tabs,
+                          Expanded(child: _summaryPane()),
+                          if (canCreate) create,
+                        ],
+                      ),
+                    ),
+                    Expanded(flex: 6, child: list),
+                  ],
+                )
+              : Column(
+                  children: [
+                    tabs,
+                    Expanded(child: list),
+                    if (canCreate) create,
+                  ],
                 ),
-              ),
-              Expanded(
-                child: RefreshIndicator(
-                  onRefresh: _refresh,
-                  child: _tab == _Tab.past ? _pastList() : _proposalList(),
-                ),
-              ),
-              if (canCreate)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                  child: PrimaryButton(
-                    label: l10n.govCreateProposal,
-                    onPressed: _create,
-                  ),
-                ),
-            ],
-          ),
         ),
       ),
     );
   }
+
+  /// In landscape: what stays next to the list.
+  Widget _summaryPane() {
+    if (_tab == _Tab.past) {
+      return ListView(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+        children: [Text(_pastNote, style: STextStyles.itemSubtitle(context))],
+      );
+    }
+    return FutureBuilder<PivxGovernance>(
+      future: _governance,
+      builder: (context, snapshot) {
+        final g = snapshot.data;
+        if (g == null) return const SizedBox.shrink();
+        return ListView(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+          children: _budget(g),
+        );
+      },
+    );
+  }
+
+  List<Widget> _budget(PivxGovernance g) {
+    final future = _tab == _Tab.future;
+    return [
+      _BudgetCard(wallet: _wallet, governance: g, future: future),
+      if (!future) ...[const SizedBox(height: 14), _filterChips(g)],
+    ];
+  }
+
+  String get _pastNote {
+    final mainnet =
+        _wallet.cryptoCurrency.network == CryptoCurrencyNetwork.main;
+    return !mainnet
+        ? l10n.govPastNetwork
+        : _archiveAllowed
+        ? l10n.govPastArchive
+        : l10n.govPastIncognito;
+  }
+
+  /// The list's padding: in landscape the pane next to it brings the gap.
+  EdgeInsetsGeometry _listPadding() => EdgeInsetsDirectional.fromSTEB(
+    ScreenFit.sideBySide(context) ? 0 : 16,
+    8,
+    16,
+    16,
+  );
 
   Widget _proposalList() => FutureBuilder<PivxGovernance>(
     future: _governance,
@@ -291,10 +359,9 @@ class _PivxGovernanceViewState extends ConsumerState<PivxGovernanceView> {
       ];
       return ListView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+        padding: _listPadding(),
         children: [
-          _BudgetCard(wallet: _wallet, governance: g, future: future),
-          if (!future) ...[const SizedBox(height: 14), _filterChips(g)],
+          if (!ScreenFit.sideBySide(context)) ..._budget(g),
           for (final p in pending) ...[
             const SizedBox(height: 10),
             _PendingCard(
@@ -382,18 +449,12 @@ class _PivxGovernanceViewState extends ConsumerState<PivxGovernanceView> {
         return const Center(child: CircularProgressIndicator());
       }
       final wallet = _wallet;
-      final mainnet =
-          wallet.cryptoCurrency.network == CryptoCurrencyNetwork.main;
-      final note = !mainnet
-          ? l10n.govPastNetwork
-          : _archiveAllowed
-          ? l10n.govPastArchive
-          : l10n.govPastIncognito;
       return ListView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+        padding: _listPadding(),
         children: [
-          Text(note, style: STextStyles.itemSubtitle(context)),
+          if (!ScreenFit.sideBySide(context))
+            Text(_pastNote, style: STextStyles.itemSubtitle(context)),
           if (past.isEmpty)
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 40),

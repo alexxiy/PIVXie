@@ -254,6 +254,7 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
       child: DesktopDialog(
         maxWidth: 696,
         maxHeight: 600,
+        fitsWindow: true,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

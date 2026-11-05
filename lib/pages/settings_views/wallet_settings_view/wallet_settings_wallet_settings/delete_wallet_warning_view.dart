@@ -20,6 +20,7 @@ import '../../../../utilities/text_styles.dart';
 import '../../../../wallets/wallet/impl/pivx_wallet.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/mnemonic_interface.dart';
 import '../../../../wallets/wallet/wallet_mixin_interfaces/view_only_option_interface.dart';
+import '../../../../widgets/adaptive_page.dart';
 import '../../../../widgets/background.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/rounded_container.dart';
@@ -37,7 +38,7 @@ class DeleteWalletWarningView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final extra = pivxDeleteWarning(ref.read(pWallets).getWallet(walletId));
     return Background(
-      child: Scaffold(
+      child: AppScaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         appBar: AppBar(
           leading: AppBarBackButton(
@@ -49,94 +50,96 @@ class DeleteWalletWarningView extends ConsumerWidget {
         body: SafeArea(
           child: Padding(
             padding: const EdgeInsets.only(top: 12, left: 16, right: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 32),
-                Center(
-                  child: Text(
-                    l10n.walletAttention,
-                    style: STextStyles.pageTitleH1(context),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                RoundedContainer(
-                  color: Theme.of(context)
-                      .extension<StackColors>()!
-                      .warningBackground,
-                  child: Text(
-                    "${l10n.walletDeleteWarning(AppConfig.appName)}\n\n"
-                    "${extra == null ? "" : "$extra\n\n"}"
-                    "${l10n.walletDeleteSaveFirst}",
-                    style: STextStyles.baseXS(context).copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .warningForeground,
+            child: FillOrScroll(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  SizedBox(height: ScreenFit.short(context) ? 0 : 32),
+                  Center(
+                    child: Text(
+                      l10n.walletAttention,
+                      style: STextStyles.pageTitleH1(context),
                     ),
                   ),
-                ),
-                const Spacer(),
-                TextButton(
-                  style: Theme.of(context)
-                      .extension<StackColors>()!
-                      .getSecondaryEnabledButtonStyle(context),
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: Text(
-                    l10n.commonCancel,
-                    style: STextStyles.button(context).copyWith(
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .accentColorDark,
+                  const SizedBox(height: 16),
+                  RoundedContainer(
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .warningBackground,
+                    child: Text(
+                      "${l10n.walletDeleteWarning(AppConfig.appName)}\n\n"
+                      "${extra == null ? "" : "$extra\n\n"}"
+                      "${l10n.walletDeleteSaveFirst}",
+                      style: STextStyles.baseXS(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .warningForeground,
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 12),
-                TextButton(
-                  style: Theme.of(context)
-                      .extension<StackColors>()!
-                      .getPrimaryEnabledButtonStyle(context),
-                  onPressed: () async {
-                    final wallet = ref.read(pWallets).getWallet(walletId);
+                  const Spacer(),
+                  TextButton(
+                    style: Theme.of(context)
+                        .extension<StackColors>()!
+                        .getSecondaryEnabledButtonStyle(context),
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: Text(
+                      l10n.commonCancel,
+                      style: STextStyles.button(context).copyWith(
+                        color: Theme.of(context)
+                            .extension<StackColors>()!
+                            .accentColorDark,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextButton(
+                    style: Theme.of(context)
+                        .extension<StackColors>()!
+                        .getPrimaryEnabledButtonStyle(context),
+                    onPressed: () async {
+                      final wallet = ref.read(pWallets).getWallet(walletId);
 
-                    // TODO: [prio=med] take wallets that don't have a mnemonic into account
+                      // TODO: [prio=med] take wallets that don't have a mnemonic into account
 
-                    List<String>? mnemonic;
-                    ViewOnlyWalletData? viewOnlyData;
+                      List<String>? mnemonic;
+                      ViewOnlyWalletData? viewOnlyData;
 
-                    if (wallet is ViewOnlyOptionInterface &&
-                        wallet.isViewOnly) {
-                      viewOnlyData = await wallet.getViewOnlyWalletData();
-                    } else if (wallet is MnemonicInterface) {
-                      mnemonic = await wallet.getMnemonicAsWords();
-                    }
-                    if (context.mounted) {
-                      if (viewOnlyData != null) {
-                        await Navigator.of(context).pushNamed(
-                          DeleteViewOnlyWalletKeysView.routeName,
-                          arguments: (walletId: walletId, data: viewOnlyData),
-                        );
-                      } else {
-                        await Navigator.of(context).pushNamed(
-                          DeleteWalletRecoveryPhraseView.routeName,
-                          arguments: (
-                            walletId: walletId,
-                            mnemonicWords: mnemonic ?? [],
-                          ),
-                        );
+                      if (wallet is ViewOnlyOptionInterface &&
+                          wallet.isViewOnly) {
+                        viewOnlyData = await wallet.getViewOnlyWalletData();
+                      } else if (wallet is MnemonicInterface) {
+                        mnemonic = await wallet.getMnemonicAsWords();
                       }
-                    }
-                  },
-                  child: Text(
-                    walletSecretViewLabel(
-                      ref.read(pWallets).getWallet(walletId),
+                      if (context.mounted) {
+                        if (viewOnlyData != null) {
+                          await Navigator.of(context).pushNamed(
+                            DeleteViewOnlyWalletKeysView.routeName,
+                            arguments: (walletId: walletId, data: viewOnlyData),
+                          );
+                        } else {
+                          await Navigator.of(context).pushNamed(
+                            DeleteWalletRecoveryPhraseView.routeName,
+                            arguments: (
+                              walletId: walletId,
+                              mnemonicWords: mnemonic ?? [],
+                            ),
+                          );
+                        }
+                      }
+                    },
+                    child: Text(
+                      walletSecretViewLabel(
+                        ref.read(pWallets).getWallet(walletId),
+                      ),
+                      style: STextStyles.button(context),
                     ),
-                    style: STextStyles.button(context),
                   ),
-                ),
-                const SizedBox(height: 16),
-              ],
+                  const SizedBox(height: 16),
+                ],
+              ),
             ),
           ),
         ),

@@ -8,7 +8,10 @@
  *
  */
 
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+
 import '../../themes/stack_colors.dart';
 
 class DesktopDialog extends StatelessWidget {
@@ -17,36 +20,48 @@ class DesktopDialog extends StatelessWidget {
     this.child,
     this.maxWidth = 641,
     this.maxHeight = 474,
+    this.fitsWindow = false,
   });
 
   final Widget? child;
   final double maxWidth;
   final double? maxHeight;
 
+  /// For a dialog with a list that takes the height left: on a short window
+  /// the list gets shorter, and the title and buttons stay in sight. Other
+  /// dialogs scroll as a whole there.
+  final bool fitsWindow;
+
   @override
   Widget build(BuildContext context) {
+    final window = MediaQuery.sizeOf(context);
+    final height = maxHeight ?? window.height - 64;
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         ConstrainedBox(
           constraints: BoxConstraints(
-            maxWidth: maxWidth,
-            maxHeight: maxHeight ?? MediaQuery.of(context).size.height - 64,
+            maxWidth: min(maxWidth, window.width - 32),
+            maxHeight: min(height, window.height - 32),
           ),
           child: Material(
             color: Colors.transparent,
-            borderRadius: BorderRadius.circular(
-              20,
-            ),
+            borderRadius: BorderRadius.circular(20),
             child: Container(
               decoration: BoxDecoration(
                 color: Theme.of(context).extension<StackColors>()!.popupBG,
-                borderRadius: BorderRadius.circular(
-                  20,
-                ),
+                borderRadius: BorderRadius.circular(20),
               ),
-              child: child,
+              child: fitsWindow
+                  ? child
+                  : SingleChildScrollView(
+                      primary: false,
+                      child: ConstrainedBox(
+                        constraints: BoxConstraints(maxHeight: height),
+                        child: child,
+                      ),
+                    ),
             ),
           ),
         ),

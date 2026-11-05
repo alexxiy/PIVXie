@@ -29,6 +29,7 @@ import '../../utilities/show_node_tor_settings_mismatch.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/wallet/wallet.dart';
+import '../../widgets/adaptive_page.dart';
 import '../../widgets/background.dart';
 import '../../widgets/center_or_scroll.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
@@ -372,7 +373,7 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
 
   Widget get _body => Background(
     child: SafeArea(
-      child: Scaffold(
+      child: AppScaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
         appBar: AppBar(
           leading: widget.showBackButton
@@ -427,14 +428,12 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Center(
-                        child: Text(
+                      CustomPinPut(
+                        header: Text(
                           l10n.pinEnter,
+                          textAlign: TextAlign.center,
                           style: STextStyles.pageTitleH1(context),
                         ),
-                      ),
-                      const SizedBox(height: 52),
-                      CustomPinPut(
                         fieldsCount: pinCount,
                         eachFieldHeight: 12,
                         eachFieldWidth: 12,

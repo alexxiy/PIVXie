@@ -45,6 +45,7 @@ class _ForgotPasswordDesktopViewState
   @override
   Widget build(BuildContext context) {
     return DesktopScaffold(
+      bodyGrows: true,
       appBar: DesktopAppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -91,6 +92,7 @@ class _ForgotPasswordDesktopViewState
                 ),
                 const SizedBox(height: 48),
                 PrimaryButton(
+                  width: double.infinity,
                   label: l10n.passwordDeleteAndClose,
                   enabled: !_deleteInProgress,
                   onPressed: () async {
@@ -118,6 +120,7 @@ class _ForgotPasswordDesktopViewState
                 ),
                 const SizedBox(height: 24),
                 SecondaryButton(
+                  width: double.infinity,
                   label: l10n.passwordTakeMeBack,
                   enabled: !_deleteInProgress,
                   onPressed: () {

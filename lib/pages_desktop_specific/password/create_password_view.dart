@@ -26,6 +26,7 @@ import '../../utilities/flutter_secure_storage_interface.dart';
 import '../../utilities/password_rules.dart';
 import '../../utilities/show_loading.dart';
 import '../../utilities/text_styles.dart';
+import '../../widgets/adaptive_page.dart';
 import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/desktop/desktop_app_bar.dart';
 import '../../widgets/desktop/desktop_scaffold.dart';
@@ -35,10 +36,7 @@ import '../desktop_home_view.dart';
 import 'forgotten_passphrase_restore_from_swb.dart';
 
 class CreatePasswordView extends ConsumerStatefulWidget {
-  const CreatePasswordView({
-    super.key,
-    this.restoreFromSWB = false,
-  });
+  const CreatePasswordView({super.key, this.restoreFromSWB = false});
 
   static const String routeName = "/createPasswordDesktop";
   final bool restoreFromSWB;
@@ -148,15 +146,12 @@ class _CreatePasswordViewState extends ConsumerState<CreatePasswordView> {
     if (mounted) {
       if (widget.restoreFromSWB) {
         unawaited(
-          Navigator.of(context).pushNamed(
-            ForgottenPassphraseRestoreFromSWB.routeName,
-          ),
+          Navigator.of(context)
+              .pushNamed(ForgottenPassphraseRestoreFromSWB.routeName),
         );
       } else {
         unawaited(
-          Navigator.of(context).pushReplacementNamed(
-            DesktopHomeView.routeName,
-          ),
+          Navigator.of(context).pushReplacementNamed(DesktopHomeView.routeName),
         );
       }
     }
@@ -212,6 +207,7 @@ class _CreatePasswordViewState extends ConsumerState<CreatePasswordView> {
     debugPrint("BUILD: $runtimeType ");
 
     return DesktopScaffold(
+      bodyGrows: true,
       appBar: DesktopAppBar(
         leading: AppBarBackButton(
           onPressed: () async {
@@ -223,266 +219,264 @@ class _CreatePasswordViewState extends ConsumerState<CreatePasswordView> {
         isCompactHeight: false,
       ),
       body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Expanded(
-            child: Center(
-              child: SizedBox(
-                width: 480,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      l10n.passwordCreateTitle,
-                      style: STextStyles.desktopH2(context),
+          Center(
+            child: SizedBox(
+              width: 480,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    l10n.passwordCreateTitle,
+                    style: STextStyles.desktopH2(context),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    l10n.passwordCreateText,
+                    style: STextStyles.desktopSubtitleH2(context),
+                  ),
+                  const SizedBox(height: 40),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(
+                      Constants.size.circularBorderRadius,
                     ),
-                    const SizedBox(
-                      height: 16,
-                    ),
-                    Text(
-                      l10n.passwordCreateText,
-                      style: STextStyles.desktopSubtitleH2(context),
-                    ),
-                    const SizedBox(
-                      height: 40,
-                    ),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(
-                        Constants.size.circularBorderRadius,
-                      ),
-                      child: TextField(
-                        key: const Key("createBackupPasswordFieldKey1"),
-                        focusNode: passwordFocusNode,
-                        controller: passwordController,
-                        style: STextStyles.desktopTextMedium(context).copyWith(
-                          height: 2,
-                        ),
-                        obscureText: hidePassword,
-                        enableSuggestions: false,
-                        autocorrect: false,
-                        decoration: standardInputDecoration(
-                          l10n.passwordCreate,
-                          passwordFocusNode,
-                          context,
-                        ).copyWith(
-                          suffixIcon: UnconstrainedBox(
-                            child: SizedBox(
-                              height: 70,
-                              child: Row(
-                                children: [
-                                  GestureDetector(
-                                    key: const Key(
-                                      "createDesktopPasswordFieldShowPasswordButtonKey",
-                                    ),
-                                    onTap: () async {
-                                      setState(() {
-                                        hidePassword = !hidePassword;
-                                      });
-                                    },
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: Colors.transparent,
-                                        borderRadius:
-                                            BorderRadius.circular(1000),
+                    child: TextField(
+                      key: const Key("createBackupPasswordFieldKey1"),
+                      focusNode: passwordFocusNode,
+                      controller: passwordController,
+                      style: STextStyles.desktopTextMedium(context)
+                          .copyWith(height: 2),
+                      obscureText: hidePassword,
+                      enableSuggestions: false,
+                      autocorrect: false,
+                      decoration:
+                          standardInputDecoration(
+                            l10n.passwordCreate,
+                            passwordFocusNode,
+                            context,
+                          ).copyWith(
+                            suffixIcon: UnconstrainedBox(
+                              child: SizedBox(
+                                height: 70,
+                                child: Row(
+                                  children: [
+                                    GestureDetector(
+                                      key: const Key(
+                                        "createDesktopPasswordFieldShowPasswordButtonKey",
                                       ),
-                                      height: 32,
-                                      width: 32,
-                                      child: Center(
-                                        child: MouseRegion(
-                                          cursor: SystemMouseCursors.click,
-                                          child: SvgPicture.asset(
-                                            hidePassword
-                                                ? Assets.svg.eye
-                                                : Assets.svg.eyeSlash,
-                                            color: Theme.of(context)
-                                                .extension<StackColors>()!
-                                                .textDark3,
-                                            width: 24,
-                                            height: 19,
+                                      onTap: () async {
+                                        setState(() {
+                                          hidePassword = !hidePassword;
+                                        });
+                                      },
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: Colors.transparent,
+                                          borderRadius: BorderRadius.circular(
+                                            1000,
+                                          ),
+                                        ),
+                                        height: 32,
+                                        width: 32,
+                                        child: Center(
+                                          child: MouseRegion(
+                                            cursor: SystemMouseCursors.click,
+                                            child: SvgPicture.asset(
+                                              hidePassword
+                                                  ? Assets.svg.eye
+                                                  : Assets.svg.eyeSlash,
+                                              color: Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .textDark3,
+                                              width: 24,
+                                              height: 19,
+                                            ),
                                           ),
                                         ),
                                       ),
                                     ),
-                                  ),
-                                  const SizedBox(
-                                    width: 10,
-                                  ),
-                                ],
+                                    const SizedBox(width: 10),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        onChanged: (newValue) {
-                          final check = newPasswordFeedback(newValue);
-                          setState(() {
-                            passwordFeedback = check.feedback;
-                            passwordStrength = check.strength;
-                          });
-                        },
-                      ),
+                      onChanged: (newValue) {
+                        final check = newPasswordFeedback(newValue);
+                        setState(() {
+                          passwordFeedback = check.feedback;
+                          passwordStrength = check.strength;
+                        });
+                      },
                     ),
-                    if (passwordFocusNode.hasFocus ||
-                        passwordRepeatFocusNode.hasFocus ||
-                        passwordController.text.isNotEmpty)
-                      Padding(
-                        padding: EdgeInsets.only(
-                          top: passwordFeedback.isNotEmpty ? 4 : 8,
-                        ),
-                        child: passwordFeedback.isNotEmpty
-                            ? Text(
-                                passwordFeedback,
-                                style:
-                                    STextStyles.desktopTextExtraSmall(context)
-                                        .copyWith(
-                                  color: Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .textSubtitle1,
-                                ),
-                              )
-                            : null,
+                  ),
+                  if (passwordFocusNode.hasFocus ||
+                      passwordRepeatFocusNode.hasFocus ||
+                      passwordController.text.isNotEmpty)
+                    Padding(
+                      padding: EdgeInsets.only(
+                        top: passwordFeedback.isNotEmpty ? 4 : 8,
                       ),
-                    if (passwordFocusNode.hasFocus ||
-                        passwordRepeatFocusNode.hasFocus ||
-                        passwordController.text.isNotEmpty)
-                      Padding(
-                        padding: const EdgeInsets.only(
-                          top: 10,
-                        ),
-                        child: ProgressBar(
-                          key: const Key("createDesktopPasswordProgressBar"),
-                          width: 458,
-                          height: 8,
-                          fillColor: passwordStrength < 0.51
-                              ? Theme.of(context)
+                      child: passwordFeedback.isNotEmpty
+                          ? Text(
+                              passwordFeedback,
+                              style: STextStyles.desktopTextExtraSmall(context)
+                                  .copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textSubtitle1,
+                                  ),
+                            )
+                          : null,
+                    ),
+                  if (passwordFocusNode.hasFocus ||
+                      passwordRepeatFocusNode.hasFocus ||
+                      passwordController.text.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 10),
+                      child: ProgressBar(
+                        key: const Key("createDesktopPasswordProgressBar"),
+                        width: 458,
+                        height: 8,
+                        fillColor: passwordStrength < 0.51
+                            ? Theme.of(context)
                                   .extension<StackColors>()!
                                   .accentColorRed
-                              : passwordStrength < 1
-                                  ? Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .accentColorYellow
-                                  : Theme.of(context)
-                                      .extension<StackColors>()!
-                                      .accentColorGreen,
-                          backgroundColor: Theme.of(context)
-                              .extension<StackColors>()!
-                              .buttonBackSecondary,
-                          percent:
-                              passwordStrength < 0.25 ? 0.03 : passwordStrength,
-                        ),
+                            : passwordStrength < 1
+                            ? Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .accentColorYellow
+                            : Theme.of(context)
+                                  .extension<StackColors>()!
+                                  .accentColorGreen,
+                        backgroundColor: Theme.of(context)
+                            .extension<StackColors>()!
+                            .buttonBackSecondary,
+                        percent: passwordStrength < 0.25
+                            ? 0.03
+                            : passwordStrength,
                       ),
-                    const SizedBox(
-                      height: 16,
                     ),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(
-                        Constants.size.circularBorderRadius,
-                      ),
-                      child: TextField(
-                        key: const Key("createDesktopPasswordFieldKey2"),
-                        focusNode: passwordRepeatFocusNode,
-                        controller: passwordRepeatController,
-                        style: STextStyles.desktopTextMedium(context).copyWith(
-                          height: 2,
-                        ),
-                        obscureText: hidePassword,
-                        enableSuggestions: false,
-                        autocorrect: false,
-                        decoration: standardInputDecoration(
-                          l10n.passwordConfirm,
-                          passwordRepeatFocusNode,
-                          context,
-                        ).copyWith(
-                          suffixIcon: UnconstrainedBox(
-                            child: SizedBox(
-                              height: 70,
-                              child: Row(
-                                children: [
-                                  GestureDetector(
-                                    key: const Key(
-                                      "createDesktopPasswordFieldShowPasswordButtonKey2",
-                                    ),
-                                    onTap: () async {
-                                      setState(() {
-                                        hidePassword = !hidePassword;
-                                      });
-                                    },
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        color: Colors.transparent,
-                                        borderRadius:
-                                            BorderRadius.circular(1000),
+                  const SizedBox(height: 16),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(
+                      Constants.size.circularBorderRadius,
+                    ),
+                    child: TextField(
+                      key: const Key("createDesktopPasswordFieldKey2"),
+                      focusNode: passwordRepeatFocusNode,
+                      controller: passwordRepeatController,
+                      style: STextStyles.desktopTextMedium(context)
+                          .copyWith(height: 2),
+                      obscureText: hidePassword,
+                      enableSuggestions: false,
+                      autocorrect: false,
+                      decoration:
+                          standardInputDecoration(
+                            l10n.passwordConfirm,
+                            passwordRepeatFocusNode,
+                            context,
+                          ).copyWith(
+                            suffixIcon: UnconstrainedBox(
+                              child: SizedBox(
+                                height: 70,
+                                child: Row(
+                                  children: [
+                                    GestureDetector(
+                                      key: const Key(
+                                        "createDesktopPasswordFieldShowPasswordButtonKey2",
                                       ),
-                                      height: 32,
-                                      width: 32,
-                                      child: Center(
-                                        child: MouseRegion(
-                                          cursor: SystemMouseCursors.click,
-                                          child: SvgPicture.asset(
-                                            fieldsMatch && passwordMissing(passwordController.text) == null
-                                                ? Assets.svg.checkCircle
-                                                : hidePassword
-                                                    ? Assets.svg.eye
-                                                    : Assets.svg.eyeSlash,
-                                            color: fieldsMatch &&
-                                                    passwordMissing(
-                                                          passwordController.text,
-                                                        ) ==
-                                                        null
-                                                ? Theme.of(context)
-                                                    .extension<StackColors>()!
-                                                    .accentColorGreen
-                                                : Theme.of(context)
-                                                    .extension<StackColors>()!
-                                                    .textDark3,
-                                            width: 24,
-                                            height: 19,
+                                      onTap: () async {
+                                        setState(() {
+                                          hidePassword = !hidePassword;
+                                        });
+                                      },
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: Colors.transparent,
+                                          borderRadius: BorderRadius.circular(
+                                            1000,
+                                          ),
+                                        ),
+                                        height: 32,
+                                        width: 32,
+                                        child: Center(
+                                          child: MouseRegion(
+                                            cursor: SystemMouseCursors.click,
+                                            child: SvgPicture.asset(
+                                              fieldsMatch &&
+                                                      passwordMissing(
+                                                            passwordController
+                                                                .text,
+                                                          ) ==
+                                                          null
+                                                  ? Assets.svg.checkCircle
+                                                  : hidePassword
+                                                  ? Assets.svg.eye
+                                                  : Assets.svg.eyeSlash,
+                                              color:
+                                                  fieldsMatch &&
+                                                      passwordMissing(
+                                                            passwordController
+                                                                .text,
+                                                          ) ==
+                                                          null
+                                                  ? Theme.of(context)
+                                                        .extension<
+                                                          StackColors
+                                                        >()!
+                                                        .accentColorGreen
+                                                  : Theme.of(context)
+                                                        .extension<
+                                                          StackColors
+                                                        >()!
+                                                        .textDark3,
+                                              width: 24,
+                                              height: 19,
+                                            ),
                                           ),
                                         ),
                                       ),
                                     ),
-                                  ),
-                                  const SizedBox(
-                                    width: 10,
-                                  ),
-                                ],
+                                    const SizedBox(width: 10),
+                                  ],
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        onChanged: (newValue) {
-                          setState(() {});
-                        },
-                      ),
+                      onChanged: (newValue) {
+                        setState(() {});
+                      },
                     ),
-                    const SizedBox(
-                      height: 32,
-                    ),
-                    SizedBox(
-                      width: 480,
-                      height: 70,
-                      child: TextButton(
-                        style: nextEnabled
-                            ? Theme.of(context)
+                  ),
+                  const SizedBox(height: 32),
+                  SizedBox(
+                    width: 480,
+                    height: 70,
+                    child: TextButton(
+                      style: nextEnabled
+                          ? Theme.of(context)
                                 .extension<StackColors>()!
                                 .getPrimaryEnabledButtonStyle(context)
-                            : Theme.of(context)
+                          : Theme.of(context)
                                 .extension<StackColors>()!
                                 .getPrimaryDisabledButtonStyle(context),
-                        onPressed: nextEnabled ? _onNextPressedWrapper : null,
-                        child: Text(
-                          l10n.commonNext,
-                          style: nextEnabled
-                              ? STextStyles.desktopButtonEnabled(context)
-                              : STextStyles.desktopButtonDisabled(context),
-                        ),
+                      onPressed: nextEnabled ? _onNextPressedWrapper : null,
+                      child: Text(
+                        l10n.commonNext,
+                        style: nextEnabled
+                            ? STextStyles.desktopButtonEnabled(context)
+                            : STextStyles.desktopButtonDisabled(context),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
-          const SizedBox(
-            height: kDesktopAppBarHeight,
+          SizedBox(
+            height: DesktopFit.short(context) ? 16 : kDesktopAppBarHeight,
           ),
         ],
       ),

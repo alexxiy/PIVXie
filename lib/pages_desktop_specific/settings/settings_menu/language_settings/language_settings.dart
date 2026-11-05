@@ -129,29 +129,32 @@ class _LanguageOptionSettings extends ConsumerState<LanguageOptionSettings> {
                     ),
                     const SizedBox(height: 12),
                     for (final mode in AppThemeMode.values)
-                      RadioListTile<AppThemeMode>(
-                        contentPadding: EdgeInsets.zero,
-                        value: mode,
-                        groupValue: currentThemeMode(ref),
-                        activeColor: Theme.of(context)
-                            .extension<StackColors>()!
-                            .radioButtonIconEnabled,
-                        onChanged: (m) => setThemeMode(context, ref, m!),
-                        title: Text(
-                          kThemeModeTexts[mode]!.$1,
-                          // The style's own colour is a button text one:
-                          // white on the light theme's white card.
-                          style: STextStyles.desktopTextExtraSmall(context)
-                              .copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textDark,
-                              ),
-                        ),
-                        subtitle: Text(
-                          kThemeModeTexts[mode]!.$2,
-                          style: STextStyles.desktopTextExtraExtraSmall(
-                            context,
+                      Material(
+                        type: MaterialType.transparency,
+                        child: RadioListTile<AppThemeMode>(
+                          contentPadding: EdgeInsets.zero,
+                          value: mode,
+                          groupValue: currentThemeMode(ref),
+                          activeColor: Theme.of(context)
+                              .extension<StackColors>()!
+                              .radioButtonIconEnabled,
+                          onChanged: (m) => setThemeMode(context, ref, m!),
+                          title: Text(
+                            kThemeModeTexts[mode]!.$1,
+                            // The style's own colour is a button text one:
+                            // white on the light theme's white card.
+                            style: STextStyles.desktopTextExtraSmall(context)
+                                .copyWith(
+                                  color: Theme.of(context)
+                                      .extension<StackColors>()!
+                                      .textDark,
+                                ),
+                          ),
+                          subtitle: Text(
+                            kThemeModeTexts[mode]!.$2,
+                            style: STextStyles.desktopTextExtraExtraSmall(
+                              context,
+                            ),
                           ),
                         ),
                       ),

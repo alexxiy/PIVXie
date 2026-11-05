@@ -14,6 +14,7 @@ import '../../themes/stack_colors.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/wallet/impl/pivx_wallet.dart';
+import '../../widgets/adaptive_page.dart';
 import '../../widgets/background.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
@@ -203,7 +204,8 @@ class _PivxNamesMyNamesViewState extends ConsumerState<PivxNamesMyNamesView> {
         ),
       ],
     ];
-    final picked = await showModalBottomSheet<_Action>(
+    final picked = await showAppSheet<_Action>(
+      scrollable: true,
       context: context,
       backgroundColor: colors.popupBG,
       shape: const RoundedRectangleBorder(
@@ -460,7 +462,8 @@ class _PivxNamesMyNamesViewState extends ConsumerState<PivxNamesMyNamesView> {
     final names = _names;
     final filtered = _filter != kPivxNamesNoFilter;
     return Background(
-      child: Scaffold(
+      child: AppScaffold(
+        maxBodyWidth: ScreenFit.panesOrColumn(context),
         backgroundColor: colors.background,
         appBar: PivxNamesAppBar(
           walletId: widget.walletId,
@@ -533,7 +536,7 @@ class _PivxNamesMyNamesViewState extends ConsumerState<PivxNamesMyNamesView> {
                   )
                 else ...[
                   if (_loading) const LinearProgressIndicator(minHeight: 2),
-                  for (final d in names.items) _card(d),
+                  CardGrid(children: [for (final d in names.items) _card(d)]),
                   PivxNamesPager(
                     page: _page,
                     count: names.count,

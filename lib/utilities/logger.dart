@@ -45,11 +45,12 @@ class Logging {
         "Logging.initialize() must be called on the main isolate.",
       );
     }
-    if (IsolateNameServer.lookupPortByName(_kLoggerPortName) != null) {
-      throw Exception("Logging was already initialized");
-    }
 
     logsDirPath = logsPath;
+
+    // Android can keep the process after the app closes and start the next
+    // run in it, with the last run's port still registered.
+    IsolateNameServer.removePortNameMapping(_kLoggerPortName);
 
     final receivePort = ReceivePort();
     await Isolate.spawn((sendPort) {

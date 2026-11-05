@@ -28,6 +28,7 @@ import '../../../../../utilities/enums/stack_restoring_status.dart';
 import '../../../../../utilities/logger.dart';
 import '../../../../../utilities/text_styles.dart';
 import '../../../../../utilities/util.dart';
+import '../../../../../widgets/adaptive_page.dart';
 import '../../../../../widgets/conditional_parent.dart';
 import '../../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../../widgets/desktop/primary_button.dart';
@@ -254,7 +255,7 @@ class _StackRestoreProgressViewState
       builder: (child) {
         return WillPopScope(
           onWillPop: _onWillPop,
-          child: Scaffold(
+          child: AppScaffold(
             backgroundColor: Theme.of(context)
                 .extension<StackColors>()!
                 .background,
