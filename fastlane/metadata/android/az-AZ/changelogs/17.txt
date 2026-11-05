@@ -1,0 +1,1 @@
+PIVXie indi telefon və planşetlərdə üfüqi rejimdə işləyir, bütün ekranlar buna uyğunlaşdırılıb. Masaüstü tətbiqi kiçik netbukdan 4K ekrana qədər istənilən pəncərəyə uyğunlaşır. Düzəldildi: Android tətbiqi çıxıb yenidən açanda açılış ekranında qala bilirdi. Masaüstündə dil axtarışı artıq işləyir. Həmçinin kiçik düzəlişlər.

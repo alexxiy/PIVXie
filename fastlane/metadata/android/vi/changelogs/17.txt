@@ -1,0 +1,1 @@
+PIVXie giờ đã hoạt động ở chế độ ngang trên điện thoại và máy tính bảng, mọi màn hình đều được sắp xếp lại cho phù hợp. Ứng dụng máy tính vừa với mọi cửa sổ, từ netbook nhỏ đến màn hình 4K. Đã sửa: ứng dụng Android có thể dừng ở màn hình khởi động khi bạn thoát ra rồi mở lại. Tìm kiếm ngôn ngữ trên máy tính nay đã hoạt động. Cùng một số sửa lỗi nhỏ.

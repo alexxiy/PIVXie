@@ -1,0 +1,1 @@
+O PIVXie agora funciona na horizontal em telefones e tablets, com todas as telas adaptadas. O app para computador se ajusta a qualquer janela, de um netbook pequeno a uma tela 4K. Corrigido: o app Android podia ficar parado na tela de abertura ao sair e abri-lo de novo. A busca de idioma agora funciona no computador. E mais pequenas correções.

@@ -1,0 +1,1 @@
+PIVXie artık telefon ve tabletlerde yatay modda çalışıyor, tüm ekranlar buna göre düzenlendi. Masaüstü uygulaması küçük bir netbook'tan 4K ekrana kadar her pencereye uyum sağlıyor. Düzeltildi: Android uygulaması çıkıp yeniden açıldığında açılış ekranında kalabiliyordu. Masaüstünde dil arama artık çalışıyor. Ayrıca küçük düzeltmeler.

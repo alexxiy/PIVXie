@@ -1,0 +1,1 @@
+PIVXie now works in landscape on phones and tablets, with every screen laid out for it. The desktop app fits any window, from a small netbook to a 4K screen. Fixed: the Android app could stay on the splash screen after you backed out and opened it again. Language search now works on desktop. Plus small fixes.

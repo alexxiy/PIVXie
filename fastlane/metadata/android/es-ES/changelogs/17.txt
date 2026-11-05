@@ -1,0 +1,1 @@
+PIVXie ya funciona en horizontal en teléfonos y tabletas, con todas las pantallas adaptadas. La app de escritorio se ajusta a cualquier ventana, desde un netbook pequeño hasta una pantalla 4K. Corregido: la app de Android podía quedarse en la pantalla de inicio al salir y volver a abrirla. La búsqueda de idioma ya funciona en el escritorio. Y otras pequeñas correcciones.
