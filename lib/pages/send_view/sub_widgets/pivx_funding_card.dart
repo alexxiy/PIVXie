@@ -283,24 +283,12 @@ class PivxOwnAddressField extends ConsumerWidget {
   final String placeholder;
 
   Future<void> _pick(BuildContext context, PivxWallet wallet) async {
-    final addresses = shield
-        ? await wallet.ownShieldAddresses()
-        : await wallet.ownTransparentAddresses();
-    if (!context.mounted) return;
-    final picked = await showAppSheet<String>(
-      backgroundColor: Colors.transparent,
-      context: context,
-      useSafeArea: true,
-      isScrollControlled: true,
-      builder: (_) => _OwnAddressSheet(
-        walletId: walletId,
-        addresses: addresses,
-        current: value,
-        tags: tags,
-        onNew: shield
-            ? wallet.generateNewShieldAddress
-            : wallet.newReceivingAddress,
-      ),
+    final picked = await pickPivxOwnAddress(
+      context,
+      wallet: wallet,
+      shield: shield,
+      current: value,
+      tags: tags,
     );
     if (picked != null) onChanged(picked);
   }
@@ -351,6 +339,36 @@ class PivxOwnAddressField extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// One of [wallet]'s transparent (or, with [shield], shield) addresses,
+/// picked from a sheet that can also create a new one. Null: none picked.
+Future<String?> pickPivxOwnAddress(
+  BuildContext context, {
+  required PivxWallet wallet,
+  bool shield = false,
+  String? current,
+  Map<String, String> tags = const {},
+}) async {
+  final addresses = shield
+      ? await wallet.ownShieldAddresses()
+      : await wallet.ownTransparentAddresses();
+  if (!context.mounted) return null;
+  return showAppSheet<String>(
+    backgroundColor: Colors.transparent,
+    context: context,
+    useSafeArea: true,
+    isScrollControlled: true,
+    builder: (_) => _OwnAddressSheet(
+      walletId: wallet.walletId,
+      addresses: addresses,
+      current: current,
+      tags: tags,
+      onNew: shield
+          ? wallet.generateNewShieldAddress
+          : wallet.newReceivingAddress,
+    ),
+  );
 }
 
 /// The address label, else its kind and index.

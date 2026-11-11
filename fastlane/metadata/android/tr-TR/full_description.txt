@@ -1,4 +1,4 @@
-PIVXie, kontrolü sizde tutan bir PIVX cüzdanıdır. Kurtarma ifadeniz ve anahtarlarınız cihazınızda kalır. Hesap oluşturmanız gerekmez ve coin'lerinizi sizden başka kimse hareket ettiremez. PIVXie coin'lerinizi asla tutmaz, kripto para takası yapmaz, nakit veya banka ödemeleriyle uğraşmaz.
+PIVXie, kontrolü sizde tutan bir PIVX cüzdanıdır. Kurtarma ifadeniz ve anahtarlarınız cihazınızda kalır. Hesap oluşturmanız gerekmez ve coin'lerinizi sizden başka kimse hareket ettiremez. Cüzdan coin'lerinizi asla tutmaz, nakit veya banka ödemeleriyle de uğraşmaz.
 
 Gizlilik
 • SHIELD işlemleri: PIV'leri Shield'e taşıyın, Shield'den çıkarın ve gizlice gönderin; isterseniz şifreli bir memo ekleyin.
@@ -17,6 +17,12 @@ PIVX Name
 • Adlarınız kurtarma ifadenize bağlıdır; aynı ifade onları pivx.name'de de açar.
 • Adres yerine bir PIVX adına ödeme yapın. PIVXie, göndermeden önce adın nereyi gösterdiğini kontrol eder.
 • PIVX adlarını bu cüzdandan ayrı bir hizmet olan PIVX.name işletir.
+
+DeFi Köprüsü
+• PIVX'i BNB Smart Chain üzerindeki bir token olan wPIVX'e 1:1 oranında çevirin ve istediğiniz zaman PIVX'e geri döndürün.
+• Geri dönen PIVX, seçtiğiniz SHIELD adresine ya da bir PIVX adına gelir.
+• Her iki yön de bu cüzdandan ayrı, isteğe bağlı bir hizmet olan PIVXie DeFi Köprüsü üzerinden yürür. PIVX'iniz wPIVX olarak durduğu sürece onu köprü tutar. Her siparişin onaylamadan önce gösterilen bir ücreti vardır.
+• Her wPIVX'in karşılığı olduğunu herkes kontrol edebilir: köprünün kasası, görüntüleme anahtarı herkese açık bir SHIELD adresidir.
 
 Günlük kullanım
 • QR kodlarını tarayın ve pivx: ödeme bağlantılarını açın.

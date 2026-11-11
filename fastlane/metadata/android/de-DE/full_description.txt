@@ -1,4 +1,4 @@
-PIVXie ist eine PIVX-Wallet in Eigenverwahrung, bei der Sie die Kontrolle behalten. Ihre Wiederherstellungsphrase und Ihre Schlüssel bleiben auf Ihrem Gerät. Sie brauchen kein Konto, und niemand außer Ihnen kann Ihre Coins bewegen. PIVXie verwahrt nie Ihre Coins, tauscht keine Kryptowährungen und wickelt weder Bargeld noch Bankzahlungen ab.
+PIVXie ist eine PIVX-Wallet in Eigenverwahrung, bei der Sie die Kontrolle behalten. Ihre Wiederherstellungsphrase und Ihre Schlüssel bleiben auf Ihrem Gerät. Sie brauchen kein Konto, und niemand außer Ihnen kann Ihre Coins bewegen. Die Wallet verwahrt nie Ihre Coins und wickelt weder Bargeld noch Bankzahlungen ab.
 
 Privatsphäre
 • SHIELD-Transaktionen: PIV ins Shield und aus dem Shield verschieben und privat senden, auf Wunsch mit verschlüsseltem Memo.
@@ -17,6 +17,12 @@ PIVX Name
 • Ihre Namen gehören zu Ihrer Wiederherstellungsphrase, deshalb öffnet dieselbe Phrase sie auch auf pivx.name.
 • Zahlen Sie an einen PIVX-Namen statt an eine Adresse. PIVXie prüft vor dem Senden, wohin der Name zeigt.
 • PIVX-Namen betreibt PIVX.name, ein von dieser Wallet getrennter Dienst.
+
+DeFi-Bridge
+• Wandeln Sie PIVX im Verhältnis 1:1 in wPIVX um, einen Token auf BNB Smart Chain, und jederzeit wieder zurück in PIVX.
+• Zurückgewandelte PIVX gehen an eine SHIELD-Adresse Ihrer Wahl oder an einen PIVX-Namen.
+• Beides läuft über die PIVXie DeFi-Bridge, einen optionalen, von dieser Wallet getrennten Dienst. Solange Ihre PIVX als wPIVX vorliegen, verwahrt die Bridge sie. Für jeden Auftrag fällt eine Gebühr an, die Sie vor dem Bestätigen sehen.
+• Jeder kann prüfen, dass jeder wPIVX gedeckt ist: Der Tresor der Bridge ist eine SHIELD-Adresse mit öffentlichem Viewing Key.
 
 Im Alltag
 • QR-Codes scannen und pivx:-Zahlungslinks öffnen.

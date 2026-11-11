@@ -4501,5 +4501,1239 @@
   "donateAgain": "Brew another",
   "@donateAgain": {
     "description": "Start over on the donation screen after a donation."
+  },
+  "defiHeadline": "Take your PIVX public. Bring it back private.",
+  "@defiHeadline": {
+    "description": "DeFi Bridge, the wrap/unwrap form."
+  },
+  "defiSidePrivate": "Private side",
+  "@defiSidePrivate": {
+    "description": "DeFi Bridge, the wrap/unwrap form."
+  },
+  "defiSidePrivateSub": "shielded PIVX",
+  "@defiSidePrivateSub": {
+    "description": "DeFi Bridge, the wrap/unwrap form."
+  },
+  "defiSidePublic": "Public side",
+  "@defiSidePublic": {
+    "description": "DeFi Bridge, the wrap/unwrap form."
+  },
+  "defiSidePublicSub": "wPIVX on BSC",
+  "@defiSidePublicSub": {
+    "description": "DeFi Bridge, the wrap/unwrap form."
+  },
+  "defiTabWrap": "Wrap",
+  "@defiTabWrap": {
+    "description": "DeFi Bridge, the wrap/unwrap form."
+  },
+  "defiTabUnwrap": "Unwrap",
+  "@defiTabUnwrap": {
+    "description": "DeFi Bridge, the wrap/unwrap form."
+  },
+  "defiYouSend": "You send",
+  "@defiYouSend": {
+    "description": "DeFi Bridge, the wrap/unwrap form."
+  },
+  "defiYouReceive": "You receive",
+  "@defiYouReceive": {
+    "description": "DeFi Bridge, the wrap/unwrap form."
+  },
+  "defiAfterFee": "after the service fee",
+  "@defiAfterFee": {
+    "description": "DeFi Bridge, the wrap/unwrap form."
+  },
+  "defiFlip": "Switch direction",
+  "@defiFlip": {
+    "description": "DeFi Bridge, the wrap/unwrap form."
+  },
+  "defiRecipient": "Recipient",
+  "@defiRecipient": {
+    "description": "DeFi Bridge, the wrap/unwrap form."
+  },
+  "defiPivxAddressLabel": "PIVX address to receive coins",
+  "@defiPivxAddressLabel": {
+    "description": "DeFi Bridge, the wrap/unwrap form."
+  },
+  "defiPivxAddressLabelNames": "PIVX address or PIVX.name",
+  "@defiPivxAddressLabelNames": {
+    "description": "DeFi Bridge, the wrap/unwrap form."
+  },
+  "defiPivxAddressHint": "A shielded address ({shield}…): the bridge pays to shielded addresses only.",
+  "@defiPivxAddressHint": {
+    "description": "DeFi Bridge, the wrap/unwrap form.",
+    "placeholders": {
+      "shield": {
+        "type": "String"
+      }
+    }
+  },
+  "defiPivxAddressHintNames": "A shielded address ({shield}…) or a PIVX.name name such as alice.pivx: the bridge pays to shielded addresses only.",
+  "@defiPivxAddressHintNames": {
+    "description": "DeFi Bridge, the wrap/unwrap form.",
+    "placeholders": {
+      "shield": {
+        "type": "String"
+      }
+    }
+  },
+  "defiPivxAddressInvalid": "This is not a valid PIVX address for this network.",
+  "@defiPivxAddressInvalid": {
+    "description": "DeFi Bridge, the wrap/unwrap form."
+  },
+  "defiPivxAddressShield": "Shielded address: the payout is private.",
+  "@defiPivxAddressShield": {
+    "description": "DeFi Bridge, the wrap/unwrap form."
+  },
+  "defiPivxAddressTransparent": "Transparent addresses are not accepted: the bridge pays to shielded addresses only.",
+  "@defiPivxAddressTransparent": {
+    "description": "DeFi Bridge, the wrap/unwrap form."
+  },
+  "defiNameChecking": "Looking up {name} on PIVX.name…",
+  "@defiNameChecking": {
+    "description": "DeFi Bridge, the wrap/unwrap form.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "defiNameOk": "{name} points to this shielded address, as PIVX.name records it on BNB Smart Chain:",
+  "@defiNameOk": {
+    "description": "DeFi Bridge, the wrap/unwrap form.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "defiNameOff": "PIVX.name names are not accepted here: enter a shielded address.",
+  "@defiNameOff": {
+    "description": "DeFi Bridge, the wrap/unwrap form."
+  },
+  "defiNameInvalid": "Not a PIVX.name name: a name is letters, digits and single hyphens, ending in .pivx, .secure, .safe or .private.",
+  "@defiNameInvalid": {
+    "description": "DeFi Bridge, the wrap/unwrap form."
+  },
+  "defiNameNotFound": "{name} is not registered on PIVX.name.",
+  "@defiNameNotFound": {
+    "description": "DeFi Bridge, the wrap/unwrap form.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "defiNameSyncing": "PIVX.name is catching up with BNB Smart Chain, so {name} cannot be checked yet. Trying again shortly…",
+  "@defiNameSyncing": {
+    "description": "DeFi Bridge, the wrap/unwrap form.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "defiNameUnreachable": "PIVX.name or BNB Smart Chain did not answer, so {name} cannot be checked yet. Trying again shortly…",
+  "@defiNameUnreachable": {
+    "description": "DeFi Bridge, the wrap/unwrap form.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "defiNameRefused": "PIVX.name answered for {name} with data BNB Smart Chain does not confirm, so the name is not used. Enter the shielded address instead.",
+  "@defiNameRefused": {
+    "description": "DeFi Bridge, the wrap/unwrap form.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "defiNameNetwork": "{name} points to an address of another PIVX network.",
+  "@defiNameNetwork": {
+    "description": "DeFi Bridge, the wrap/unwrap form.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "defiRate": "Rate",
+  "@defiRate": {
+    "description": "DeFi Bridge, the wrap/unwrap form."
+  },
+  "defiFee": "Service fee",
+  "@defiFee": {
+    "description": "DeFi Bridge, the wrap/unwrap form."
+  },
+  "defiFeeRule": "{percent}, at least {min} PIVX",
+  "@defiFeeRule": {
+    "description": "DeFi Bridge, the wrap/unwrap form.",
+    "placeholders": {
+      "percent": {
+        "type": "String"
+      },
+      "min": {
+        "type": "String"
+      }
+    }
+  },
+  "defiFeeMinimum": "minimum fee",
+  "@defiFeeMinimum": {
+    "description": "DeFi Bridge, the wrap/unwrap form."
+  },
+  "defiMinimum": "Minimum",
+  "@defiMinimum": {
+    "description": "DeFi Bridge, the wrap/unwrap form."
+  },
+  "defiMaximum": "Maximum per order",
+  "@defiMaximum": {
+    "description": "DeFi Bridge, the wrap/unwrap form."
+  },
+  "defiTime": "Estimated time",
+  "@defiTime": {
+    "description": "DeFi Bridge, the wrap/unwrap form."
+  },
+  "defiTimeWrap": "about {minutes} minutes after payment",
+  "@defiTimeWrap": {
+    "description": "DeFi Bridge, the wrap/unwrap form.",
+    "placeholders": {
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "defiTimeUnwrap": "about 5 minutes",
+  "@defiTimeUnwrap": {
+    "description": "DeFi Bridge, the wrap/unwrap form."
+  },
+  "defiCapacityWarning": "The bridge can mint {available} wPIVX right now. A larger amount is minted as soon as the 24-hour limit frees up, which can take up to a day.",
+  "@defiCapacityWarning": {
+    "description": "DeFi Bridge, the wrap/unwrap form.",
+    "placeholders": {
+      "available": {
+        "type": "String"
+      }
+    }
+  },
+  "defiFootnote": "wPIVX is backed 1:1 by PIVX held by the bridge. Wrapping mints wPIVX to your BNB Smart Chain wallet; unwrapping burns it and pays PIVX out.",
+  "@defiFootnote": {
+    "description": "DeFi Bridge, the wrap/unwrap form."
+  },
+  "defiLoading": "Loading…",
+  "@defiLoading": {
+    "description": "DeFi Bridge, the wrap/unwrap form."
+  },
+  "defiUnavailable": "Bridge temporarily unavailable",
+  "@defiUnavailable": {
+    "description": "DeFi Bridge, the wrap/unwrap form."
+  },
+  "defiPaused": "Bridge paused",
+  "@defiPaused": {
+    "description": "DeFi Bridge, the wrap/unwrap form."
+  },
+  "defiEnterAmount": "Enter an amount",
+  "@defiEnterAmount": {
+    "description": "DeFi Bridge, the wrap/unwrap form."
+  },
+  "defiInvalidAmount": "Invalid amount",
+  "@defiInvalidAmount": {
+    "description": "DeFi Bridge, the wrap/unwrap form."
+  },
+  "defiBelowMin": "Minimum is {min} {symbol}",
+  "@defiBelowMin": {
+    "description": "DeFi Bridge, the wrap/unwrap form.",
+    "placeholders": {
+      "min": {
+        "type": "String"
+      },
+      "symbol": {
+        "type": "String"
+      }
+    }
+  },
+  "defiAboveMax": "Maximum is {max} {symbol}",
+  "@defiAboveMax": {
+    "description": "DeFi Bridge, the wrap/unwrap form.",
+    "placeholders": {
+      "max": {
+        "type": "String"
+      },
+      "symbol": {
+        "type": "String"
+      }
+    }
+  },
+  "defiEnterAddress": "Enter a PIVX address",
+  "@defiEnterAddress": {
+    "description": "DeFi Bridge, the wrap/unwrap form."
+  },
+  "defiInvalidAddress": "Invalid PIVX address",
+  "@defiInvalidAddress": {
+    "description": "DeFi Bridge, the wrap/unwrap form."
+  },
+  "defiNameWait": "Checking the name…",
+  "@defiNameWait": {
+    "description": "DeFi Bridge, the wrap/unwrap form."
+  },
+  "defiNameUnusable": "This name cannot be used",
+  "@defiNameUnusable": {
+    "description": "DeFi Bridge, the wrap/unwrap form."
+  },
+  "defiBtnWrap": "Wrap PIVX",
+  "@defiBtnWrap": {
+    "description": "DeFi Bridge, the wrap/unwrap form."
+  },
+  "defiBtnUnwrap": "Unwrap wPIVX",
+  "@defiBtnUnwrap": {
+    "description": "DeFi Bridge, the wrap/unwrap form."
+  },
+  "defiNetworkPivx": "PIVX network, shielded",
+  "@defiNetworkPivx": {
+    "description": "DeFi Bridge, the network a token is on."
+  },
+  "defiReviewWrap": "Review wrap",
+  "@defiReviewWrap": {
+    "description": "DeFi Bridge, the review dialog before an order is created."
+  },
+  "defiReviewUnwrap": "Review unwrap",
+  "@defiReviewUnwrap": {
+    "description": "DeFi Bridge, the review dialog before an order is created."
+  },
+  "defiReviewPivxAddress": "PIVX address",
+  "@defiReviewPivxAddress": {
+    "description": "DeFi Bridge, the review dialog before an order is created."
+  },
+  "defiReviewConfirm": "Create order",
+  "@defiReviewConfirm": {
+    "description": "DeFi Bridge, the review dialog before an order is created."
+  },
+  "defiNoteWrap2": "wPIVX is minted to your wallet after {confirmations} confirmations of the payment.",
+  "@defiNoteWrap2": {
+    "description": "DeFi Bridge, the review dialog before an order is created.",
+    "placeholders": {
+      "confirmations": {
+        "type": "String"
+      }
+    }
+  },
+  "defiNoteUnwrap1": "Next you will see a deposit address for this order. Send the wPIVX there from any wallet or exchange: the bridge burns it and pays the gas of the burn, out of the service fee.",
+  "@defiNoteUnwrap1": {
+    "description": "DeFi Bridge, the review dialog before an order is created."
+  },
+  "defiNoteUnwrap2": "PIVX is sent to your address once the burn is final on BNB Smart Chain. Double-check the address: a payout cannot be reversed.",
+  "@defiNoteUnwrap2": {
+    "description": "DeFi Bridge, the review dialog before an order is created."
+  },
+  "defiNoteName": "{name} is checked against BNB Smart Chain once more when you create the order. The payout goes to the address above, even if the name is changed later.",
+  "@defiNoteName": {
+    "description": "DeFi Bridge, the review dialog before an order is created.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "defiPayIntro": "Send exactly this amount from a PIVX wallet that supports shielded transactions, with the memo below. The memo holds your order and your BSC address: wPIVX is minted to the address it names.",
+  "@defiPayIntro": {
+    "description": "DeFi Bridge, the payment details of a wrap order."
+  },
+  "defiPayDest": "Destination address",
+  "@defiPayDest": {
+    "description": "DeFi Bridge, the payment details of a wrap order."
+  },
+  "defiPayAmount": "Amount",
+  "@defiPayAmount": {
+    "description": "DeFi Bridge, the payment details of a wrap order."
+  },
+  "defiPayMemo": "Shielded memo",
+  "@defiPayMemo": {
+    "description": "DeFi Bridge, the payment details of a wrap order."
+  },
+  "defiPayMemoWarning": "Required!",
+  "@defiPayMemoWarning": {
+    "description": "DeFi Bridge, the payment details of a wrap order."
+  },
+  "defiPayYouGet": "You will receive",
+  "@defiPayYouGet": {
+    "description": "DeFi Bridge, the payment details of a wrap order."
+  },
+  "defiPayToWallet": "To wallet",
+  "@defiPayToWallet": {
+    "description": "DeFi Bridge, the payment details of a wrap order."
+  },
+  "defiPayExpires": "Pay within",
+  "@defiPayExpires": {
+    "description": "DeFi Bridge, the payment details of a wrap order."
+  },
+  "defiPayQr": "Show QR code",
+  "@defiPayQr": {
+    "description": "DeFi Bridge, the payment details of a wrap order."
+  },
+  "defiPayPaid": "I paid",
+  "@defiPayPaid": {
+    "description": "DeFi Bridge, the payment details of a wrap order."
+  },
+  "defiQrTitle": "Scan with your PIVX wallet app",
+  "@defiQrTitle": {
+    "description": "DeFi Bridge, the QR code of a wrap payment."
+  },
+  "defiQrWarning": "Check that your wallet filled in the amount and the shielded memo before you send.",
+  "@defiQrWarning": {
+    "description": "DeFi Bridge, the QR code of a wrap payment."
+  },
+  "defiOrderLoading": "Loading order…",
+  "@defiOrderLoading": {
+    "description": "DeFi Bridge, the order screen."
+  },
+  "defiOrderTitleWrap": "Wrap {amount} PIVX",
+  "@defiOrderTitleWrap": {
+    "description": "DeFi Bridge, the order screen.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "defiOrderTitleUnwrap": "Unwrap {amount} wPIVX",
+  "@defiOrderTitleUnwrap": {
+    "description": "DeFi Bridge, the order screen.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "defiOrderNotFound": "Order not found",
+  "@defiOrderNotFound": {
+    "description": "DeFi Bridge, the order screen."
+  },
+  "defiOrderNotFoundText": "Check the link. Order IDs are 12 characters long.",
+  "@defiOrderNotFoundText": {
+    "description": "DeFi Bridge, the order screen."
+  },
+  "defiNewOrder": "New order",
+  "@defiNewOrder": {
+    "description": "DeFi Bridge, the order screen."
+  },
+  "defiShowPayment": "Show payment details",
+  "@defiShowPayment": {
+    "description": "DeFi Bridge, the order screen."
+  },
+  "defiViewMint": "View mint transaction",
+  "@defiViewMint": {
+    "description": "DeFi Bridge, the order screen."
+  },
+  "defiViewBurn": "View burn transaction",
+  "@defiViewBurn": {
+    "description": "DeFi Bridge, the order screen."
+  },
+  "defiViewPayout": "View PIVX payout",
+  "@defiViewPayout": {
+    "description": "DeFi Bridge, the order screen."
+  },
+  "defiAmountDiffers": "The bridge received {received} PIVX, not the {ordered} PIVX of the order. wPIVX is minted for what was received, minus the fee.",
+  "@defiAmountDiffers": {
+    "description": "DeFi Bridge, the order screen.",
+    "placeholders": {
+      "received": {
+        "type": "String"
+      },
+      "ordered": {
+        "type": "String"
+      }
+    }
+  },
+  "defiViewTransfer": "View your transfer",
+  "@defiViewTransfer": {
+    "description": "DeFi Bridge, the order screen."
+  },
+  "defiDepositLabel": "Send {amount} wPIVX to",
+  "@defiDepositLabel": {
+    "description": "DeFi Bridge, the order screen.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "defiDepositNote": "Only wPIVX on {chain}. Whatever arrives here is burned and paid out to this order's PIVX address. Send it in one transfer: each one burned has its own fee, and one below the minimum waits here until more arrives.",
+  "@defiDepositNote": {
+    "description": "DeFi Bridge, the order screen.",
+    "placeholders": {
+      "chain": {
+        "type": "String"
+      }
+    }
+  },
+  "defiStepWrapPay": "Payment",
+  "@defiStepWrapPay": {
+    "description": "DeFi Bridge, a progress step on the order screen."
+  },
+  "defiStepWrapPayWait": "Waiting for your PIVX payment",
+  "@defiStepWrapPayWait": {
+    "description": "DeFi Bridge, a progress step on the order screen."
+  },
+  "defiStepWrapPaySeen": "Payment received",
+  "@defiStepWrapPaySeen": {
+    "description": "DeFi Bridge, a progress step on the order screen."
+  },
+  "defiStepWrapConfirm": "PIVX confirmations",
+  "@defiStepWrapConfirm": {
+    "description": "DeFi Bridge, a progress step on the order screen."
+  },
+  "defiStepConfirmations": "{n} of {total} confirmations",
+  "@defiStepConfirmations": {
+    "description": "DeFi Bridge, a progress step on the order screen.",
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "defiStepWrapMint": "Minting wPIVX",
+  "@defiStepWrapMint": {
+    "description": "DeFi Bridge, a progress step on the order screen."
+  },
+  "defiStepMintQueue": "Queued for minting",
+  "@defiStepMintQueue": {
+    "description": "DeFi Bridge, a progress step on the order screen."
+  },
+  "defiStepMintSent": "Mint transaction sent",
+  "@defiStepMintSent": {
+    "description": "DeFi Bridge, a progress step on the order screen."
+  },
+  "defiStepMintDone": "wPIVX minted",
+  "@defiStepMintDone": {
+    "description": "DeFi Bridge, a progress step on the order screen."
+  },
+  "defiStepUnwrapBurn": "Burn on {chain}",
+  "@defiStepUnwrapBurn": {
+    "description": "DeFi Bridge, a progress step on the order screen.",
+    "placeholders": {
+      "chain": {
+        "type": "String"
+      }
+    }
+  },
+  "defiStepBurnSent": "Burn transaction sent",
+  "@defiStepBurnSent": {
+    "description": "DeFi Bridge, a progress step on the order screen."
+  },
+  "defiStepUnwrapPayout": "PIVX payout",
+  "@defiStepUnwrapPayout": {
+    "description": "DeFi Bridge, a progress step on the order screen."
+  },
+  "defiStepPayoutQueue": "Queued for payout",
+  "@defiStepPayoutQueue": {
+    "description": "DeFi Bridge, a progress step on the order screen."
+  },
+  "defiStepPayoutDone": "PIVX sent",
+  "@defiStepPayoutDone": {
+    "description": "DeFi Bridge, a progress step on the order screen."
+  },
+  "defiStepDone": "Done",
+  "@defiStepDone": {
+    "description": "DeFi Bridge, a progress step on the order screen."
+  },
+  "defiStepUnwrapSend": "Send wPIVX",
+  "@defiStepUnwrapSend": {
+    "description": "DeFi Bridge, a progress step on the order screen."
+  },
+  "defiStepSendWait": "Waiting for your wPIVX on the deposit address",
+  "@defiStepSendWait": {
+    "description": "DeFi Bridge, a progress step on the order screen."
+  },
+  "defiStepSendDone": "wPIVX sent",
+  "@defiStepSendDone": {
+    "description": "DeFi Bridge, a progress step on the order screen."
+  },
+  "defiStepBurnQueue": "Queued for burning",
+  "@defiStepBurnQueue": {
+    "description": "DeFi Bridge, a progress step on the order screen."
+  },
+  "defiStepBurnDone": "Burned and final",
+  "@defiStepBurnDone": {
+    "description": "DeFi Bridge, a progress step on the order screen."
+  },
+  "defiStatusAwaitingPayment": "Waiting for your payment",
+  "@defiStatusAwaitingPayment": {
+    "description": "DeFi Bridge, the order status on the order screen."
+  },
+  "defiStatusAwaitingPaymentText": "This page updates as soon as your payment reaches the PIVX network. A shielded transaction can take a minute to show up.",
+  "@defiStatusAwaitingPaymentText": {
+    "description": "DeFi Bridge, the order status on the order screen."
+  },
+  "defiStatusPaymentSeen": "Payment detected",
+  "@defiStatusPaymentSeen": {
+    "description": "DeFi Bridge, the order status on the order screen."
+  },
+  "defiStatusPaymentSeenText": "Your transaction is on the network and waits to be included in a block.",
+  "@defiStatusPaymentSeenText": {
+    "description": "DeFi Bridge, the order status on the order screen."
+  },
+  "defiStatusExpired": "Order expired",
+  "@defiStatusExpired": {
+    "description": "DeFi Bridge, the order status on the order screen."
+  },
+  "defiStatusExpiredText": "No payment arrived in time. If you have sent one with this memo, it is still credited when it arrives. If not, create a new order.",
+  "@defiStatusExpiredText": {
+    "description": "DeFi Bridge, the order status on the order screen."
+  },
+  "defiStatusConfirming": "Confirming payment",
+  "@defiStatusConfirming": {
+    "description": "DeFi Bridge, the order status on the order screen."
+  },
+  "defiStatusConfirmingText": "wPIVX is minted after {n} confirmations, about {minutes} more minutes.",
+  "@defiStatusConfirmingText": {
+    "description": "DeFi Bridge, the order status on the order screen.",
+    "placeholders": {
+      "n": {
+        "type": "String"
+      },
+      "minutes": {
+        "type": "String"
+      }
+    }
+  },
+  "defiStatusMinting": "Minting wPIVX",
+  "@defiStatusMinting": {
+    "description": "DeFi Bridge, the order status on the order screen."
+  },
+  "defiStatusMintingText": "The payment is confirmed. The bridge is minting your wPIVX on {chain}.",
+  "@defiStatusMintingText": {
+    "description": "DeFi Bridge, the order status on the order screen.",
+    "placeholders": {
+      "chain": {
+        "type": "String"
+      }
+    }
+  },
+  "defiStatusCompleted": "Order completed",
+  "@defiStatusCompleted": {
+    "description": "DeFi Bridge, the order status on the order screen."
+  },
+  "defiStatusCompletedWrap": "{amount} wPIVX was minted to {address}.",
+  "@defiStatusCompletedWrap": {
+    "description": "DeFi Bridge, the order status on the order screen.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "address": {
+        "type": "String"
+      }
+    }
+  },
+  "defiStatusCompletedUnwrap": "{amount} PIVX was sent to your address.",
+  "@defiStatusCompletedUnwrap": {
+    "description": "DeFi Bridge, the order status on the order screen.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "defiStatusAttention": "Needs a manual check",
+  "@defiStatusAttention": {
+    "description": "DeFi Bridge, the order status on the order screen."
+  },
+  "defiStatusAttentionText": "Something about this order needs the operator's attention. Your funds are not lost: contact support and give them order ID {id}.",
+  "@defiStatusAttentionText": {
+    "description": "DeFi Bridge, the order status on the order screen.",
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "defiStatusClosed": "Closed by the operator",
+  "@defiStatusClosed": {
+    "description": "DeFi Bridge, the order status on the order screen."
+  },
+  "defiStatusClosedText": "The operator closed this unwrap by hand. If you have questions, contact support and give them order ID {id}.",
+  "@defiStatusClosedText": {
+    "description": "DeFi Bridge, the order status on the order screen.",
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "defiStatusClosedWrapText": "The operator refunded this payment by hand. If you have questions, contact support and give them order ID {id}.",
+  "@defiStatusClosedWrapText": {
+    "description": "DeFi Bridge, the order status on the order screen.",
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "defiStatusAwaitingTx": "Send wPIVX to continue",
+  "@defiStatusAwaitingTx": {
+    "description": "DeFi Bridge, the order status on the order screen."
+  },
+  "defiStatusAwaitingTxText": "Send {amount} wPIVX to the address below. It needs no approval and no further step from you.",
+  "@defiStatusAwaitingTxText": {
+    "description": "DeFi Bridge, the order status on the order screen.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "defiStatusTxFailed": "The transfer failed",
+  "@defiStatusTxFailed": {
+    "description": "DeFi Bridge, the order status on the order screen."
+  },
+  "defiStatusTxFailedText": "It was reverted, so no wPIVX left your wallet. You can try again.",
+  "@defiStatusTxFailedText": {
+    "description": "DeFi Bridge, the order status on the order screen."
+  },
+  "defiStatusTxPending": "Transfer sent",
+  "@defiStatusTxPending": {
+    "description": "DeFi Bridge, the order status on the order screen."
+  },
+  "defiStatusTxPendingText": "Waiting for it to be final on {chain}. This usually takes about a minute.",
+  "@defiStatusTxPendingText": {
+    "description": "DeFi Bridge, the order status on the order screen.",
+    "placeholders": {
+      "chain": {
+        "type": "String"
+      }
+    }
+  },
+  "defiStatusPayout": "Sending PIVX",
+  "@defiStatusPayout": {
+    "description": "DeFi Bridge, the order status on the order screen."
+  },
+  "defiStatusPayoutText": "The burn is final. The bridge is sending {amount} PIVX to your address.",
+  "@defiStatusPayoutText": {
+    "description": "DeFi Bridge, the order status on the order screen.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "defiStatusPayoutSent": "PIVX sent",
+  "@defiStatusPayoutSent": {
+    "description": "DeFi Bridge, the order status on the order screen."
+  },
+  "defiStatusPayoutSentText": "The bridge sent {amount} PIVX to your address, and your wallet may show them already. The order completes at {total} confirmations, about a minute each.",
+  "@defiStatusPayoutSentText": {
+    "description": "DeFi Bridge, the order status on the order screen.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "defiStatusPayoutHeld": "On hold for a check",
+  "@defiStatusPayoutHeld": {
+    "description": "DeFi Bridge, the order status on the order screen."
+  },
+  "defiStatusPayoutHeldText": "The burn is final and your funds are safe, but this payout has to be checked by hand before it goes out. If it takes long, contact support with order ID {id}.",
+  "@defiStatusPayoutHeldText": {
+    "description": "DeFi Bridge, the order status on the order screen.",
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "defiStatusBelowMinimum": "Below the minimum",
+  "@defiStatusBelowMinimum": {
+    "description": "DeFi Bridge, the order status on the order screen."
+  },
+  "defiStatusBelowMinimumText": "The deposit address holds {balance} wPIVX, and the minimum is {min} wPIVX. Send the rest to the same address and it continues by itself.",
+  "@defiStatusBelowMinimumText": {
+    "description": "DeFi Bridge, the order status on the order screen.",
+    "placeholders": {
+      "balance": {
+        "type": "String"
+      },
+      "min": {
+        "type": "String"
+      }
+    }
+  },
+  "defiStatusBurnQueued": "wPIVX received",
+  "@defiStatusBurnQueued": {
+    "description": "DeFi Bridge, the order status on the order screen."
+  },
+  "defiStatusBurnQueuedText": "It reached the deposit address, and nothing more is needed from you. The bridge burns it next, which can wait if the token is paused or gas is unusually high.",
+  "@defiStatusBurnQueuedText": {
+    "description": "DeFi Bridge, the order status on the order screen."
+  },
+  "defiStatusBurning": "Burning wPIVX",
+  "@defiStatusBurning": {
+    "description": "DeFi Bridge, the order status on the order screen."
+  },
+  "defiStatusBurningText": "The bridge is burning your wPIVX on {chain}.",
+  "@defiStatusBurningText": {
+    "description": "DeFi Bridge, the order status on the order screen.",
+    "placeholders": {
+      "chain": {
+        "type": "String"
+      }
+    }
+  },
+  "defiDetailsOrderId": "Order ID",
+  "@defiDetailsOrderId": {
+    "description": "DeFi Bridge, a row of the order details."
+  },
+  "defiDetailsCreated": "Created",
+  "@defiDetailsCreated": {
+    "description": "DeFi Bridge, a row of the order details."
+  },
+  "defiDetailsRecipient": "Recipient",
+  "@defiDetailsRecipient": {
+    "description": "DeFi Bridge, a row of the order details."
+  },
+  "defiDetailsPivxName": "PIVX.name",
+  "@defiDetailsPivxName": {
+    "description": "DeFi Bridge, a row of the order details."
+  },
+  "defiDetailsDeposit": "Payment",
+  "@defiDetailsDeposit": {
+    "description": "DeFi Bridge, a row of the order details."
+  },
+  "defiDetailsDepositN": "Payment {n}",
+  "@defiDetailsDepositN": {
+    "description": "DeFi Bridge, a row of the order details.",
+    "placeholders": {
+      "n": {
+        "type": "String"
+      }
+    }
+  },
+  "defiDetailsSeenTx": "Payment (unconfirmed)",
+  "@defiDetailsSeenTx": {
+    "description": "DeFi Bridge, a row of the order details."
+  },
+  "defiDetailsMintTx": "Mint transaction",
+  "@defiDetailsMintTx": {
+    "description": "DeFi Bridge, a row of the order details."
+  },
+  "defiDetailsBurnTx": "Burn transaction",
+  "@defiDetailsBurnTx": {
+    "description": "DeFi Bridge, a row of the order details."
+  },
+  "defiDetailsPayoutTx": "Payout transaction",
+  "@defiDetailsPayoutTx": {
+    "description": "DeFi Bridge, a row of the order details."
+  },
+  "defiDetailsDepositAddress": "Deposit address",
+  "@defiDetailsDepositAddress": {
+    "description": "DeFi Bridge, a row of the order details."
+  },
+  "defiDetailsTransferTx": "Your transfer",
+  "@defiDetailsTransferTx": {
+    "description": "DeFi Bridge, a row of the order details."
+  },
+  "defiDetailsLaterBurns": "Later transfers",
+  "@defiDetailsLaterBurns": {
+    "description": "DeFi Bridge, a row of the order details."
+  },
+  "defiDetailsLaterBurnsValue": "{amount} wPIVX burned, {receive} PIVX paid separately",
+  "@defiDetailsLaterBurnsValue": {
+    "description": "DeFi Bridge, a row of the order details.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      },
+      "receive": {
+        "type": "String"
+      }
+    }
+  },
+  "defiDetailsDepositLeft": "Below the minimum",
+  "@defiDetailsDepositLeft": {
+    "description": "DeFi Bridge, a row of the order details."
+  },
+  "defiDetailsDepositLeftValue": "{amount} wPIVX waiting at the deposit address",
+  "@defiDetailsDepositLeftValue": {
+    "description": "DeFi Bridge, a row of the order details.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "defiRecent": "Recent orders",
+  "@defiRecent": {
+    "description": "DeFi Bridge, the DeFi Bridge menu."
+  },
+  "defiRecentWrap": "Wrap {amount} PIVX",
+  "@defiRecentWrap": {
+    "description": "DeFi Bridge, a line of the recent orders list.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "defiRecentUnwrap": "Unwrap {amount} wPIVX",
+  "@defiRecentUnwrap": {
+    "description": "DeFi Bridge, a line of the recent orders list.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "defiNoticeApiDown": "The bridge server cannot be reached. Check your connection; the page retries by itself.",
+  "@defiNoticeApiDown": {
+    "description": "DeFi Bridge, a notice above the form."
+  },
+  "defiNoticePaused": "The bridge is paused for maintenance. Orders already paid are processed when it resumes.",
+  "@defiNoticePaused": {
+    "description": "DeFi Bridge, a notice above the form."
+  },
+  "defiNoticeUnavailable": "The bridge is temporarily unavailable. Please try again in a few minutes.",
+  "@defiNoticeUnavailable": {
+    "description": "DeFi Bridge, a notice above the form."
+  },
+  "defiTimeHoursMinutes": "{h} h {m} min",
+  "@defiTimeHoursMinutes": {
+    "description": "DeFi Bridge, the time left to pay a wrap order.",
+    "placeholders": {
+      "h": {
+        "type": "String"
+      },
+      "m": {
+        "type": "String"
+      }
+    }
+  },
+  "defiTimeMinutes": "{m} min",
+  "@defiTimeMinutes": {
+    "description": "DeFi Bridge, the time left to pay a wrap order.",
+    "placeholders": {
+      "m": {
+        "type": "String"
+      }
+    }
+  },
+  "defiErrorNetwork": "Cannot reach the bridge server. Check your connection.",
+  "@defiErrorNetwork": {
+    "description": "DeFi Bridge, an error message."
+  },
+  "defiErrorNetworkRetry": "Connection problems. The page keeps retrying.",
+  "@defiErrorNetworkRetry": {
+    "description": "DeFi Bridge, an error message."
+  },
+  "defiErrorServer": "The bridge server returned an error. Please try again.",
+  "@defiErrorServer": {
+    "description": "DeFi Bridge, an error message."
+  },
+  "defiErrorAmountLow": "The amount is below the minimum.",
+  "@defiErrorAmountLow": {
+    "description": "DeFi Bridge, an error message."
+  },
+  "defiErrorAmountHigh": "The amount is above the maximum.",
+  "@defiErrorAmountHigh": {
+    "description": "DeFi Bridge, an error message."
+  },
+  "defiErrorEvmAddress": "Invalid wallet address.",
+  "@defiErrorEvmAddress": {
+    "description": "DeFi Bridge, an error message."
+  },
+  "defiErrorPivxAddress": "Invalid PIVX address.",
+  "@defiErrorPivxAddress": {
+    "description": "DeFi Bridge, an error message."
+  },
+  "defiErrorBridgeAddress": "This address belongs to the bridge. Enter your own PIVX address.",
+  "@defiErrorBridgeAddress": {
+    "description": "DeFi Bridge, an error message."
+  },
+  "defiErrorNameChanged": "{name} now points to a different address, so no order was created. Check the new address and review again.",
+  "@defiErrorNameChanged": {
+    "description": "DeFi Bridge, an error message.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "defiErrorShieldOnly": "The bridge pays to shielded addresses only. Enter a shielded PIVX address.",
+  "@defiErrorShieldOnly": {
+    "description": "DeFi Bridge, an error message."
+  },
+  "defiErrorPaused": "The bridge is paused.",
+  "@defiErrorPaused": {
+    "description": "DeFi Bridge, an error message."
+  },
+  "defiErrorUnavailable": "The bridge is temporarily unavailable.",
+  "@defiErrorUnavailable": {
+    "description": "DeFi Bridge, an error message."
+  },
+  "defiErrorRateLimit": "Too many orders right now. Try again in an hour.",
+  "@defiErrorRateLimit": {
+    "description": "DeFi Bridge, an error message."
+  },
+  "defiErrorNotFound": "Order not found.",
+  "@defiErrorNotFound": {
+    "description": "DeFi Bridge, an error message."
+  },
+  "defiErrorOrderState": "The order has already moved on. Reload the page.",
+  "@defiErrorOrderState": {
+    "description": "DeFi Bridge, an error message."
+  },
+  "defiErrorDepositMismatch": "The token gives a different deposit address for this order, so nothing was sent. Please contact support.",
+  "@defiErrorDepositMismatch": {
+    "description": "DeFi Bridge, an error message."
+  },
+  "defiErrorOrderMismatch": "The order the server returned does not match your request, so nothing was sent. Do not pay it, and please contact support.",
+  "@defiErrorOrderMismatch": {
+    "description": "DeFi Bridge, an error message."
+  },
+  "defiReserves": "Reserves",
+  "@defiReserves": {
+    "description": "DeFi Bridge, the DeFi Bridge menu."
+  },
+  "defiSupport": "Support",
+  "@defiSupport": {
+    "description": "DeFi Bridge, the DeFi Bridge menu."
+  },
+  "defiReservesIntro": "Every wPIVX in circulation is backed by PIVX in the bridge's vault, a shielded address whose viewing key is public. Payments and fees go to another address, so the vault's balance covers the supply whenever no order is in process. Anything it holds beyond that is listed below.",
+  "@defiReservesIntro": {
+    "description": "DeFi Bridge, the reserves screen."
+  },
+  "defiReservesSupply": "wPIVX in circulation",
+  "@defiReservesSupply": {
+    "description": "DeFi Bridge, the reserves screen."
+  },
+  "defiReservesBalance": "PIVX in the vault",
+  "@defiReservesBalance": {
+    "description": "DeFi Bridge, the reserves screen."
+  },
+  "defiReservesMatch": "Fully backed",
+  "@defiReservesMatch": {
+    "description": "DeFi Bridge, the reserves screen."
+  },
+  "defiReservesMatchText": "The balance covers the supply and no order is in process.",
+  "@defiReservesMatchText": {
+    "description": "DeFi Bridge, the reserves screen."
+  },
+  "defiReservesInProcess": "Orders in process",
+  "@defiReservesInProcess": {
+    "description": "DeFi Bridge, the reserves screen."
+  },
+  "defiReservesInProcessText": "The balance and the supply differ by {difference} PIVX, all of it listed below. They meet again once these settle.",
+  "@defiReservesInProcessText": {
+    "description": "DeFi Bridge, the reserves screen.",
+    "placeholders": {
+      "difference": {
+        "type": "String"
+      }
+    }
+  },
+  "defiReservesMismatch": "The numbers do not add up",
+  "@defiReservesMismatch": {
+    "description": "DeFi Bridge, the reserves screen."
+  },
+  "defiReservesMismatchText": "Part of the difference has no explanation, and the operator has been told.",
+  "@defiReservesMismatchText": {
+    "description": "DeFi Bridge, the reserves screen."
+  },
+  "defiReservesUnavailable": "Not up to date",
+  "@defiReservesUnavailable": {
+    "description": "DeFi Bridge, the reserves screen."
+  },
+  "defiReservesUnavailableText": "The bridge has not read both chains recently, so these numbers may be old.",
+  "@defiReservesUnavailableText": {
+    "description": "DeFi Bridge, the reserves screen."
+  },
+  "defiReservesFailed": "The numbers could not be loaded. Try again in a moment.",
+  "@defiReservesFailed": {
+    "description": "DeFi Bridge, the reserves screen."
+  },
+  "defiReservesParts": "What stands between them",
+  "@defiReservesParts": {
+    "description": "DeFi Bridge, the reserves screen."
+  },
+  "defiReservesMovingToVault": "Minted, on its way to the vault",
+  "@defiReservesMovingToVault": {
+    "description": "DeFi Bridge, the reserves screen."
+  },
+  "defiReservesBurnsInFlight": "Burns waiting for their payout",
+  "@defiReservesBurnsInFlight": {
+    "description": "DeFi Bridge, the reserves screen."
+  },
+  "defiReservesBurnsHeld": "Burns held for review",
+  "@defiReservesBurnsHeld": {
+    "description": "DeFi Bridge, the reserves screen."
+  },
+  "defiReservesSurplus": "Held beyond the supply",
+  "@defiReservesSurplus": {
+    "description": "DeFi Bridge, the reserves screen."
+  },
+  "defiReservesUnbacked": "Minted with no deposit behind it",
+  "@defiReservesUnbacked": {
+    "description": "DeFi Bridge, the reserves screen."
+  },
+  "defiReservesUnexplained": "Unexplained",
+  "@defiReservesUnexplained": {
+    "description": "DeFi Bridge, the reserves screen."
+  },
+  "defiReservesUnconfirmed": "Being confirmed on the chains",
+  "@defiReservesUnconfirmed": {
+    "description": "DeFi Bridge, the reserves screen."
+  },
+  "defiReservesVerify": "Check it yourself",
+  "@defiReservesVerify": {
+    "description": "DeFi Bridge, the reserves screen."
+  },
+  "defiReservesToken": "wPIVX token",
+  "@defiReservesToken": {
+    "description": "DeFi Bridge, the reserves screen."
+  },
+  "defiReservesVaultWallet": "Vault address",
+  "@defiReservesVaultWallet": {
+    "description": "DeFi Bridge, the reserves screen."
+  },
+  "defiReservesViewingKey": "Viewing key",
+  "@defiReservesViewingKey": {
+    "description": "DeFi Bridge, the reserves screen."
+  },
+  "defiReservesVerifyText": "The supply is on the token page. For the balance, import the viewing key in your own PIVX node: it can only read, never spend. Use a separate wallet: PIVX Core 5.6.1 does not save imported viewing keys, and a wallet holding one can fail to start after a restart. The rescan takes a while, then:",
+  "@defiReservesVerifyText": {
+    "description": "DeFi Bridge, the reserves screen."
+  },
+  "defiReservesNoKey": "The viewing key is not published, so this balance is the bridge's own report.",
+  "@defiReservesNoKey": {
+    "description": "DeFi Bridge, the reserves screen."
+  },
+  "defiReservesUpdated": "Updated",
+  "@defiReservesUpdated": {
+    "description": "DeFi Bridge, the reserves screen."
+  },
+  "defiTitle": "DeFi Bridge",
+  "@defiTitle": {
+    "description": "Menu item and screen title of the DeFi Bridge (wraps PIVX into wPIVX on BNB Smart Chain)."
+  },
+  "featureDefiText": "Wrap shielded PIVX into wPIVX on BNB Smart Chain, and back",
+  "@featureDefiText": {
+    "description": "Description of the DeFi Bridge on the desktop wallet features list."
+  },
+  "defiMenu": "DeFi Bridge menu",
+  "@defiMenu": {
+    "description": "Screen reader label of the DeFi Bridge menu button."
+  },
+  "defiAbout": "About the DeFi Bridge",
+  "@defiAbout": {
+    "description": "Title of the DeFi Bridge info dialog, and its menu entry."
+  },
+  "defiAboutService": "The DeFi Bridge is a service separate from this wallet, run at defi-bridge.pivxie.me. PIVXie creates your orders there and can pay them from this wallet. While your coins are wrapped, the PIVX behind them is held in the bridge's vault.",
+  "@defiAboutService": {
+    "description": "DeFi Bridge info dialog: the bridge is a separate service."
+  },
+  "defiOpenInBrowser": "Open in browser",
+  "@defiOpenInBrowser": {
+    "description": "DeFi Bridge menu: open the bridge's web app in the browser."
+  },
+  "defiEvmAddressLabel": "{chain} address to receive wPIVX",
+  "@defiEvmAddressLabel": {
+    "description": "Label of the address field of a wrap. {chain}: BNB Smart Chain.",
+    "placeholders": {
+      "chain": {
+        "type": "String"
+      }
+    }
+  },
+  "defiEvmAddressHint": "wPIVX is minted to this address. Check it: a mint cannot be reversed.",
+  "@defiEvmAddressHint": {
+    "description": "Under the address field of a wrap."
+  },
+  "defiEnterEvmAddress": "Enter a {chain} address",
+  "@defiEnterEvmAddress": {
+    "description": "Disabled button of a wrap without a valid address. {chain}: BNB Smart Chain.",
+    "placeholders": {
+      "chain": {
+        "type": "String"
+      }
+    }
+  },
+  "defiChooseMyAddress": "Choose from this wallet",
+  "@defiChooseMyAddress": {
+    "description": "Link under the unwrap's address field: opens a list of this wallet's shield addresses (with \"Create a new address\") to pick the payout address from."
+  },
+  "defiPivxAddressMine": "This wallet's address ({title}): the payout is private.",
+  "@defiPivxAddressMine": {
+    "description": "Under the unwrap's address field when it holds one of this wallet's shield addresses. title: the address label, or e.g. \"Shield #3\".",
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "defiNoteWrapApp": "Next you pay {amount} PIVX with the order's memo: from this wallet, or from another wallet that supports shielded transactions.",
+  "@defiNoteWrapApp": {
+    "description": "Review dialog of a wrap: what comes after the order is created.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "defiPayFromWallet": "Pay from this wallet",
+  "@defiPayFromWallet": {
+    "description": "Heading of the in-app payment of a wrap order."
+  },
+  "defiPayButton": "Pay {amount} PIVX",
+  "@defiPayButton": {
+    "description": "Button paying a wrap order from this wallet.",
+    "placeholders": {
+      "amount": {
+        "type": "String"
+      }
+    }
+  },
+  "defiPayOtherWallet": "Pay from another wallet",
+  "@defiPayOtherWallet": {
+    "description": "Heading of the payment details, to pay a wrap order from another wallet."
+  },
+  "defiPayNote": "PIVXie pays the exact amount with the order's memo. The network fee comes on top.",
+  "@defiPayNote": {
+    "description": "Under the button paying a wrap order from this wallet."
+  },
+  "defiNotShieldAddress": "The bridge gave a payment address that is not a shielded address, so nothing was paid. Please contact support.",
+  "@defiNotShieldAddress": {
+    "description": "Error: the bridge's payment address of a wrap order is not a shield address."
+  },
+  "defiDepositChecking": "Checking the deposit address on {chain}…",
+  "@defiDepositChecking": {
+    "description": "While the deposit address of an unwrap is checked on BNB Smart Chain ({chain}).",
+    "placeholders": {
+      "chain": {
+        "type": "String"
+      }
+    }
+  },
+  "defiDepositUnavailable": "{chain} did not answer, so the deposit address cannot be checked yet. Trying again shortly…",
+  "@defiDepositUnavailable": {
+    "description": "The deposit address of an unwrap could not be checked on BNB Smart Chain ({chain}) yet.",
+    "placeholders": {
+      "chain": {
+        "type": "String"
+      }
+    }
+  },
+  "defiNoOrders": "No orders yet. Orders made in this wallet show up here.",
+  "@defiNoOrders": {
+    "description": "Recent orders list with no orders."
+  },
+  "defiConfigMismatch": "The bridge's settings don't match this version of PIVXie, so it can't be used from here. Update the app.",
+  "@defiConfigMismatch": {
+    "description": "The bridge names another token, chain or network than this app version expects."
   }
 }

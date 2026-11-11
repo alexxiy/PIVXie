@@ -1,4 +1,4 @@
-PIVXie es una billetera PIVX de autocustodia que te deja el control. Tu frase de recuperación y tus claves se quedan en tu dispositivo. No tienes que crear ninguna cuenta y nadie más puede mover tus monedas. PIVXie nunca guarda tus monedas, no intercambia criptomonedas y no maneja efectivo ni pagos bancarios.
+PIVXie es una billetera PIVX de autocustodia que te deja el control. Tu frase de recuperación y tus claves se quedan en tu dispositivo. No tienes que crear ninguna cuenta y nadie más puede mover tus monedas. La billetera nunca guarda tus monedas y no maneja efectivo ni pagos bancarios.
 
 Privacidad
 • Transacciones SHIELD: mueve PIV a Shield, sácalos de Shield y envíalos de forma privada, con un memo cifrado opcional.
@@ -17,6 +17,12 @@ PIVX Name
 • Tus nombres pertenecen a tu frase de recuperación, así que la misma frase también los abre en pivx.name.
 • Paga a un nombre PIVX en lugar de a una dirección. PIVXie comprueba a dónde apunta el nombre antes de enviar.
 • Los nombres PIVX los gestiona PIVX.name, un servicio aparte de esta billetera.
+
+Puente DeFi
+• Convierte PIVX en wPIVX, un token de BNB Smart Chain, en proporción 1:1, y devuélvelos a PIVX cuando quieras.
+• Los PIVX de vuelta llegan a la dirección SHIELD que elijas o a un nombre PIVX.
+• Ambas conversiones pasan por el Puente DeFi de PIVXie, un servicio opcional aparte de esta billetera. Mientras tus PIVX están convertidos en wPIVX, el puente los guarda. Cada orden tiene una comisión, que ves antes de confirmar.
+• Cualquiera puede comprobar que cada wPIVX está respaldado: la bóveda del puente es una dirección SHIELD con clave de visualización pública.
 
 Uso diario
 • Escanea códigos QR y abre enlaces de pago pivx:.

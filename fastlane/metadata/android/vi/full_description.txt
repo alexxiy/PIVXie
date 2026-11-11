@@ -1,4 +1,4 @@
-PIVXie là ví PIVX tự lưu ký giúp bạn luôn nắm quyền kiểm soát. Cụm từ khôi phục và khóa của bạn luôn nằm trên thiết bị của bạn. Không cần tạo tài khoản, và không ai khác có thể di chuyển coin của bạn. PIVXie không bao giờ giữ coin của bạn, không trao đổi tiền mã hóa và không xử lý tiền mặt hay thanh toán ngân hàng.
+PIVXie là ví PIVX tự lưu ký giúp bạn luôn nắm quyền kiểm soát. Cụm từ khôi phục và khóa của bạn luôn nằm trên thiết bị của bạn. Không cần tạo tài khoản, và không ai khác có thể di chuyển coin của bạn. Ví không bao giờ giữ coin của bạn và không xử lý tiền mặt hay thanh toán ngân hàng.
 
 Quyền riêng tư
 • Giao dịch SHIELD: chuyển PIV vào Shield, rút khỏi Shield và gửi riêng tư, kèm memo mã hóa nếu muốn.
@@ -17,6 +17,12 @@ PIVX Name
 • Tên của bạn gắn với cụm từ khôi phục, nên cùng cụm từ đó cũng mở được chúng trên pivx.name.
 • Thanh toán cho tên PIVX thay vì địa chỉ. PIVXie kiểm tra tên đang trỏ đến đâu trước khi gửi.
 • Tên PIVX do PIVX.name vận hành, một dịch vụ tách biệt với ví này.
+
+Cầu DeFi
+• Chuyển PIVX thành wPIVX, một token trên BNB Smart Chain, theo tỷ lệ 1:1, và chuyển lại thành PIVX bất cứ lúc nào.
+• PIVX chuyển lại sẽ tới địa chỉ SHIELD bạn chọn hoặc tới một tên PIVX.
+• Cả hai chiều đều đi qua Cầu DeFi PIVXie, một dịch vụ tùy chọn tách biệt với ví này. Trong lúc PIVX của bạn đang ở dạng wPIVX, cầu nối giữ số PIVX đó. Mỗi lệnh có một khoản phí, được hiển thị trước khi bạn xác nhận.
+• Ai cũng có thể kiểm tra rằng mỗi wPIVX đều được bảo chứng: kho của cầu nối là một địa chỉ SHIELD có khóa xem công khai.
 
 Dùng hằng ngày
 • Quét mã QR và mở liên kết thanh toán pivx:.

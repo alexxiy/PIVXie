@@ -57,6 +57,9 @@ import 'pages/settings_views/global_settings_view/advanced_views/manage_coin_uni
 import 'pages/settings_views/global_settings_view/advanced_views/manage_explorer_view.dart';
 import 'pages/pivx_cold_staking/pivx_cold_staking_view.dart';
 import 'pages/pivx_cold_staking/pivx_delegate_view.dart';
+import 'pages/pivx_defi/pivx_defi_orders_view.dart';
+import 'pages/pivx_defi/pivx_defi_reserves_view.dart';
+import 'pages/pivx_defi/pivx_defi_view.dart';
 import 'pages/pivx_donation/pivx_donation_view.dart';
 import 'pages/pivx_governance/pivx_create_proposal_view.dart';
 import 'pages/pivx_governance/pivx_governance_view.dart';
@@ -1078,6 +1081,39 @@ class RouteGenerator {
             shouldUseMaterialRoute: useMaterialPageRoute,
             builder: (_) =>
                 DesktopPageColumn(child: PivxDonationView(walletId: args)),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case PivxDefiView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) =>
+                DesktopPageColumn(child: PivxDefiView(walletId: args)),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case PivxDefiOrdersView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) =>
+                DesktopPageColumn(child: PivxDefiOrdersView(walletId: args)),
+            settings: RouteSettings(name: settings.name),
+          );
+        }
+        return _routeError("${settings.name} invalid args: ${args.toString()}");
+
+      case PivxDefiReservesView.routeName:
+        if (args is String) {
+          return getRoute(
+            shouldUseMaterialRoute: useMaterialPageRoute,
+            builder: (_) =>
+                DesktopPageColumn(child: PivxDefiReservesView(walletId: args)),
             settings: RouteSettings(name: settings.name),
           );
         }

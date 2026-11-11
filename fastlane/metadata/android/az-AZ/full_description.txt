@@ -1,4 +1,4 @@
-PIVXie nəzarəti sizdə saxlayan PIVX pulqabısıdır. Bərpa ifadəniz və açarlarınız cihazınızda qalır. Hesab yaratmağa ehtiyac yoxdur və sizdən başqa heç kim coinlərinizi köçürə bilməz. PIVXie heç vaxt coinlərinizi saxlamır, kriptovalyuta mübadiləsi aparmır, nağd pul və ya bank ödənişləri ilə işləmir.
+PIVXie nəzarəti sizdə saxlayan PIVX pulqabısıdır. Bərpa ifadəniz və açarlarınız cihazınızda qalır. Hesab yaratmağa ehtiyac yoxdur və sizdən başqa heç kim coinlərinizi köçürə bilməz. Pulqabı heç vaxt coinlərinizi saxlamır və nağd pul və ya bank ödənişləri ilə işləmir.
 
 Məxfilik
 • SHIELD əməliyyatları: PIV-ləri Shield-ə köçürün, Shield-dən çıxarın və məxfi göndərin, istəsəniz şifrələnmiş memo ilə.
@@ -17,6 +17,12 @@ PIVX Name
 • Adlarınız bərpa ifadənizə bağlıdır, ona görə də eyni ifadə onları pivx.name saytında da açır.
 • Ünvan əvəzinə PIVX adına ödəniş edin. PIVXie göndərməzdən əvvəl adın hara yönəldiyini yoxlayır.
 • PIVX adlarını bu pulqabından ayrı xidmət olan PIVX.name idarə edir.
+
+DeFi körpüsü
+• PIVX-i BNB Smart Chain-dəki token olan wPIVX-ə 1:1 nisbətində çevirin və istədiyiniz vaxt geri PIVX-ə qaytarın.
+• Geri qaytarılan PIVX seçdiyiniz SHIELD ünvanına və ya PIVX adına gəlir.
+• Hər iki istiqamətdə çevirmə bu pulqabından ayrı, istəyə bağlı xidmət olan PIVXie DeFi körpüsü vasitəsilə aparılır. PIVX-iniz wPIVX şəklində olduğu müddətdə onu körpü saxlayır. Hər sifarişin haqqı var və o, təsdiqləmədən əvvəl göstərilir.
+• Hər kəs hər wPIVX-in təmin olunduğunu yoxlaya bilər: körpünün seyfi açıq baxış açarı olan SHIELD ünvanıdır.
 
 Gündəlik istifadə
 • QR kodları skan edin və pivx: ödəniş linklərini açın.

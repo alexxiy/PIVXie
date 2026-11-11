@@ -21,6 +21,7 @@ import '../../../../models/keys/view_only_wallet_data.dart';
 import '../../../../notifications/show_flush_bar.dart';
 import '../../../../pages/coin_control/coin_control_view.dart';
 import '../../../../providers/providers.dart';
+import '../../../../services/pivx_defi/pivx_defi_api.dart';
 import '../../../../services/pivx_name/pivx_names_registrar.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/amount/amount.dart';
@@ -38,6 +39,8 @@ import '../../../../widgets/static_overflow_row/static_overflow_row.dart';
 import '../../../../widgets/wallet_navigation_bar/components/wallet_navigation_bar_item.dart';
 import '../../../coin_control/desktop_coin_control_view.dart';
 import '../../../../pages/pivx_cold_staking/pivx_cold_staking_view.dart';
+import '../../../../pages/pivx_defi/pivx_defi_common.dart';
+import '../../../../pages/pivx_defi/pivx_defi_view.dart';
 import '../../../../pages/pivx_donation/pivx_donation.dart';
 import '../../../../pages/pivx_donation/pivx_donation_view.dart';
 import '../../../../pages/pivx_governance/pivx_governance_view.dart';
@@ -53,6 +56,7 @@ enum WalletFeature {
   coldStaking,
   governance,
   names,
+  defi,
   privatize,
   donate,
 
@@ -65,6 +69,7 @@ enum WalletFeature {
     coldStaking => l10n.csTitle,
     governance => l10n.govTitle,
     names => l10n.pivxNamesTitle,
+    defi => l10n.defiTitle,
     privatize => l10n.walletPrivatizeFunds,
     donate => l10n.donateTitle,
     reuseAddress => "",
@@ -76,6 +81,7 @@ enum WalletFeature {
     coldStaking => l10n.featureColdStakingText,
     governance => l10n.featureGovernanceText,
     names => l10n.featureNamesText,
+    defi => l10n.featureDefiText,
     privatize => l10n.featurePrivatizeText,
     donate => l10n.featureDonateText,
     reuseAddress => "",
@@ -264,6 +270,14 @@ class _DesktopWalletFeaturesState extends ConsumerState<DesktopWalletFeatures> {
           WalletFeature.names,
           const PivxNamesLogo(small: true),
           () => _push(PivxNamesView.routeName),
+        ),
+      if (wallet is PivxWallet &&
+          !isViewOnly &&
+          PivxDefiConfig.forCoin(wallet.cryptoCurrency) != null)
+        (
+          WalletFeature.defi,
+          Image.asset(kPivxDefiWpivxIcon),
+          () => _push(PivxDefiView.routeName),
         ),
       if (wallet is PivxWallet && wallet.supportsShield && !isViewOnly)
         (WalletFeature.privatize, Icons.shield_rounded, _onPrivatizePressed),

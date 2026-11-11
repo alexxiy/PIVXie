@@ -48,6 +48,7 @@ import 'pivx/pivx_shield_stream.dart';
 import 'pivx/pivx_tx_parser.dart';
 
 part 'pivx/pivx_cold_staking.dart';
+part 'pivx/pivx_defi.dart';
 part 'pivx/pivx_governance.dart';
 part 'pivx/pivx_masternodes.dart';
 part 'pivx/pivx_names.dart';

@@ -11,6 +11,8 @@ name: Build
 # Run it from Actions > Build > Run workflow. With "release" ticked, the
 # Linux arm64, Windows and macOS files also go on the draft release
 # v<version> (made if there is none). A published release is never changed.
+# With "defi_bridge" unticked, every build of the run leaves the DeFi Bridge
+# out (--dart-define=PIVXIE_DEFI=false), e.g. for an App Store submission.
 
 on:
   workflow_dispatch:
@@ -29,6 +31,10 @@ on:
         description: 'Put the desktop builds on the draft release v<version>'
         type: boolean
         default: false
+      defi_bridge:
+        description: 'Include the DeFi Bridge (untick for a store that has not reviewed it)'
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -55,6 +61,7 @@ jobs:
           BUILD_NUMBER: ${{ inputs.build_number }}
           TESTNET: ${{ inputs.testnet }}
           RELEASE: ${{ inputs.release }}
+          DEFI_BRIDGE: ${{ inputs.defi_bridge }}
         run: |
           if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "::error::The version must look like 1.2.0, not '$VERSION'"
@@ -71,6 +78,10 @@ jobs:
               exit 1
             fi
             DEFINES="--dart-define=PIVX_TESTNET=true"
+          fi
+          if [ "$DEFI_BRIDGE" = "false" ]; then
+            DEFINES="$DEFINES --dart-define=PIVXIE_DEFI=false"
+            echo "**The DeFi Bridge is left out of these builds.**" >> "$GITHUB_STEP_SUMMARY"
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "build_number=$BUILD_NUMBER" >> "$GITHUB_OUTPUT"

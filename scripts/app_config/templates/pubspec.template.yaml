@@ -74,6 +74,9 @@ dependencies:
   hex: ^0.2.0
   crypto: ^3.0.2
   cryptography: ^2.9.0
+  # Keccak-256, for the EIP-55 capitals of BNB Smart Chain addresses (DeFi
+  # Bridge). Already in the build through coinlib.
+  pointycastle: ^4.0.0
 
   # Storage plugins
   flutter_secure_storage: ^11.2.0
@@ -209,6 +212,9 @@ flutter:
 
     # "Fuel PIVXie" donation tiers (WebP)
     - assets/donation/
+
+    # DeFi Bridge: the wPIVX token's icon
+    - assets/defi/
 
     # lottie animations
     # basic
