@@ -41,9 +41,9 @@ const kTextThemeFontFeatures = TextTheme(
 const _featuresOnly = TextStyle(fontFeatures: kTextFontFeatures);
 
 /// Inter has no Arabic letters. They come from IBM Plex Sans Arabic (bundled,
-/// see `fonts:` in the pubspec), so Arabic looks the same on every platform
-/// instead of using whatever font the system has. Latin letters and digits
-/// stay in Inter.
+/// see `fonts:` in the pubspec), which also has the Persian ones, so Arabic
+/// and Persian look the same on every platform instead of using whatever
+/// font the system has. Latin letters and digits stay in Inter.
 const kArabicFontFamily = "IBM Plex Sans Arabic";
 
 /// [style] (a GoogleFonts style) with [kArabicFontFamily] as a fallback.

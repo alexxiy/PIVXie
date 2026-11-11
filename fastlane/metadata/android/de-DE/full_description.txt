@@ -24,7 +24,7 @@ Im Alltag
 • Nachrichten signieren und prüfen.
 • Ein übersichtlicher Verlauf: Staking-Belohnungen, Masternode-Belohnungen, Zahlungen aus Vorschlägen und SHIELD-Transaktionen sind gekennzeichnet, und Sie können nach jeder Art filtern.
 • Mehrere Konten aus einer Wiederherstellungsphrase und Nur-Ansicht-Wallets aus einem erweiterten öffentlichen Schlüssel oder einem SHIELD-Viewing-Key.
-• In 14 Sprachen verfügbar. PIVXie folgt der Sprache Ihres Telefons, oder Sie wählen eine in den Einstellungen.
+• In 15 Sprachen verfügbar. PIVXie folgt der Sprache Ihres Telefons, oder Sie wählen eine in den Einstellungen.
 
 Backups und Sicherheit
 • Stellen Sie Wallets mit Ihrer Wiederherstellungsphrase aus 12 oder 24 Wörtern wieder her, auf Wunsch mit Passphrase. Wiederherstellungsphrasen aus MyPIVXWallet funktionieren auch.

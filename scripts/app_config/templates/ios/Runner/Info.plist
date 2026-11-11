@@ -23,6 +23,8 @@
 		<string>zh-Hans</string>
 		<string>ko</string>
 		<string>ja</string>
+		<string>ar</string>
+		<string>fa</string>
 	</array>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>

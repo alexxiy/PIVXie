@@ -24,7 +24,7 @@ Gündəlik istifadə
 • Mesajları imzalayın və yoxlayın.
 • Aydın tarixçə: staking mükafatları, masternod mükafatları, təklif ödənişləri və SHIELD əməliyyatları işarələnir, hər növə görə filtr edə bilərsiniz.
 • Bir bərpa ifadəsindən bir neçə hesab və genişləndirilmiş açıq açardan və ya SHIELD baxış açarından yalnız baxış pulqabıları.
-• 14 dildə mövcuddur. PIVXie telefonunuzun dilini izləyir, ya da Parametrlər bölməsində dil seçə bilərsiniz.
+• 15 dildə mövcuddur. PIVXie telefonunuzun dilini izləyir, ya da Parametrlər bölməsində dil seçə bilərsiniz.
 
 Ehtiyat nüsxələr və təhlükəsizlik
 • 12 və ya 24 sözlük bərpa ifadənizlə, istəsəniz parol ifadəsi ilə birlikdə bərpa edin. MyPIVXWallet bərpa ifadələri də işləyir.

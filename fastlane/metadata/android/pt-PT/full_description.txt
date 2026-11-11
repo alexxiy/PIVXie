@@ -24,7 +24,7 @@ Uso diário
 • Assine e verifique mensagens.
 • Um histórico claro: recompensas de staking, recompensas de masternode, pagamentos de propostas e transações SHIELD vêm identificados, e você pode filtrar por cada tipo.
 • Várias contas com uma única frase de recuperação e carteiras somente leitura a partir de uma chave pública estendida ou de uma chave de visualização SHIELD.
-• Disponível em 14 idiomas. O PIVXie segue o idioma do seu celular, ou você escolhe um em Configurações.
+• Disponível em 15 idiomas. O PIVXie segue o idioma do seu celular, ou você escolhe um em Configurações.
 
 Backups e segurança
 • Restaure com sua frase de recuperação de 12 ou 24 palavras, com uma frase secreta opcional. Frases de recuperação da MyPIVXWallet também funcionam.

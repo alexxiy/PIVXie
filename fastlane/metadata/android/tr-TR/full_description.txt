@@ -24,7 +24,7 @@ Günlük kullanım
 • Mesajları imzalayın ve doğrulayın.
 • Anlaşılır bir geçmiş: staking ödülleri, masternode ödülleri, teklif ödemeleri ve SHIELD işlemleri etiketlenir; her türe göre filtreleyebilirsiniz.
 • Tek bir kurtarma ifadesinden birden fazla hesap ve genişletilmiş açık anahtardan ya da SHIELD görüntüleme anahtarından salt görüntüleme cüzdanları.
-• 14 dilde kullanılabilir. PIVXie telefonunuzun dilini izler ya da Ayarlar'dan bir dil seçebilirsiniz.
+• 15 dilde kullanılabilir. PIVXie telefonunuzun dilini izler ya da Ayarlar'dan bir dil seçebilirsiniz.
 
 Yedekler ve güvenlik
 • 12 veya 24 kelimelik kurtarma ifadenizle, isterseniz bir parola ifadesiyle birlikte geri yükleyin. MyPIVXWallet kurtarma ifadeleri de çalışır.

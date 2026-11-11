@@ -24,7 +24,7 @@ Everyday use
 • Sign and verify messages.
 • A clear history: staking rewards, masternode rewards, proposal payments and SHIELD transactions are labelled, and you can filter by each kind.
 • Several accounts from one recovery phrase, and view-only wallets from an extended public key or a SHIELD viewing key.
-• Available in 14 languages. PIVXie follows your phone's language, or you can pick one in Settings.
+• Available in 15 languages. PIVXie follows your phone's language, or you can pick one in Settings.
 
 Backups and security
 • Restore with your 12- or 24-word recovery phrase, with an optional passphrase. Recovery phrases from MyPIVXWallet work too.
