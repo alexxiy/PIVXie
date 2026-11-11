@@ -64,28 +64,26 @@ const _websiteUrl = "https://pivxie.me";
 const _termsUrl = "https://pivxie.me/terms-of-service.html";
 const _privacyUrl = "https://pivxie.me/privacy-policy.html";
 
-// Support: the official PIVX community channels (see pivx.org).
-const List<SupportLink> _supportLinks = [
-  (
-    channel: SupportChannel.discord,
-    text: "discord.pivx.org",
-    url: "https://discord.pivx.org/",
-  ),
+// Support. The developer: questions about the app and bug reports.
+const List<SupportLink> _developerLinks = [
   (
     channel: SupportChannel.telegram,
-    text: "@PIVX_official",
-    url: "https://t.me/PIVX_official",
+    text: "@alexxiy_lounge",
+    url: "https://t.me/alexxiy_lounge",
   ),
-  (
-    channel: SupportChannel.reddit,
-    text: "r/pivx",
-    url: "https://www.reddit.com/r/pivx/",
-  ),
-  (channel: SupportChannel.x, text: "@_PIVX", url: "https://x.com/_PIVX"),
   (
     channel: SupportChannel.email,
     text: "support@pivxie.me",
     url: "mailto:support@pivxie.me",
+  ),
+];
+
+// The official PIVX community (see pivx.org).
+const List<SupportLink> _communityLinks = [
+  (
+    channel: SupportChannel.discord,
+    text: "discord.pivx.org",
+    url: "https://discord.pivx.org/",
   ),
 ];
 

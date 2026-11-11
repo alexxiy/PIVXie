@@ -8,12 +8,16 @@
  *
  */
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../app_config.dart';
 import '../../../l10n/l10n.dart';
+import '../../../notifications/show_flush_bar.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/assets.dart';
 import '../../../utilities/constants.dart';
@@ -69,38 +73,87 @@ class SupportView extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          RoundedWhiteContainer(
-            child: Text(
-              l10n.supportText,
-              style: STextStyles.smallMed12(context),
-            ),
+          _Section(
+            title: l10n.supportDeveloperTitle,
+            text: l10n.supportDeveloperText(AppConfig.appName),
+            links: AppConfig.developerLinks,
+            isDesktop: isDesktop,
           ),
-          isDesktop ? const SizedBox(height: 24) : const SizedBox(height: 12),
-          for (final (i, link) in AppConfig.supportLinks.indexed) ...[
-            if (i > 0) const SizedBox(height: 8),
-            AboutItem(
-              linkUrl: link.url,
-              label: switch (link.channel) {
-                SupportChannel.telegram => "Telegram",
-                SupportChannel.discord => "Discord",
-                SupportChannel.reddit => "Reddit",
-                SupportChannel.x => "X",
-                SupportChannel.email => l10n.supportEmail,
-              },
-              buttonText: link.text,
-              iconAsset: switch (link.channel) {
-                SupportChannel.telegram => Assets.socials.telegram,
-                SupportChannel.discord => Assets.socials.discord,
-                SupportChannel.reddit => Assets.socials.reddit,
-                SupportChannel.x => Assets.socials.twitter,
-                SupportChannel.email => Assets.svg.envelope,
-              },
-              isDesktop: isDesktop,
-              email: link.channel == SupportChannel.email,
-            ),
-          ],
+          if (AppConfig.developerLinks.isNotEmpty &&
+              AppConfig.communityLinks.isNotEmpty)
+            SizedBox(height: isDesktop ? 32 : 24),
+          _Section(
+            title: l10n.supportCommunityTitle,
+            text: l10n.supportCommunityText,
+            links: AppConfig.communityLinks,
+            isDesktop: isDesktop,
+          ),
         ],
       ),
+    );
+  }
+}
+
+/// A title, a line about who answers there, and the links. Nothing when
+/// there are no links.
+class _Section extends StatelessWidget {
+  const _Section({
+    required this.title,
+    required this.text,
+    required this.links,
+    required this.isDesktop,
+  });
+
+  final String title;
+  final String text;
+  final List<SupportLink> links;
+  final bool isDesktop;
+
+  @override
+  Widget build(BuildContext context) {
+    if (links.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          title,
+          style: isDesktop
+              ? STextStyles.desktopTextSmall(context)
+              : STextStyles.titleBold12(context),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          text,
+          style: isDesktop
+              ? STextStyles.desktopTextExtraExtraSmall(context)
+              : STextStyles.smallMed12(context),
+        ),
+        SizedBox(height: isDesktop ? 16 : 12),
+        for (final (i, link) in links.indexed) ...[
+          if (i > 0) const SizedBox(height: 8),
+          AboutItem(
+            linkUrl: link.url,
+            label: switch (link.channel) {
+              SupportChannel.telegram => "Telegram",
+              SupportChannel.discord => "Discord",
+              SupportChannel.reddit => "Reddit",
+              SupportChannel.x => "X",
+              SupportChannel.email => l10n.supportEmail,
+            },
+            buttonText: link.text,
+            iconAsset: switch (link.channel) {
+              SupportChannel.telegram => Assets.socials.telegram,
+              SupportChannel.discord => Assets.socials.discord,
+              SupportChannel.reddit => Assets.socials.reddit,
+              SupportChannel.x => Assets.socials.twitter,
+              SupportChannel.email => Assets.svg.envelope,
+            },
+            isDesktop: isDesktop,
+            email: link.channel == SupportChannel.email,
+          ),
+        ],
+      ],
     );
   }
 }
@@ -141,10 +194,29 @@ class AboutItem extends StatelessWidget {
         ),
         onPressed: () async {
           if (email) {
-            await launchUrl(
-              Uri.parse(linkUrl),
-              mode: LaunchMode.externalApplication,
-            );
+            bool opened;
+            try {
+              opened = await launchUrl(
+                Uri.parse(linkUrl),
+                mode: LaunchMode.externalApplication,
+              );
+            } catch (_) {
+              opened = false;
+            }
+            // No mail app: the address is on the clipboard instead.
+            if (!opened && context.mounted) {
+              await Clipboard.setData(ClipboardData(text: buttonText));
+              if (context.mounted) {
+                unawaited(
+                  showFloatingFlushBar(
+                    type: FlushBarType.info,
+                    message: l10n.commonCopiedToClipboard,
+                    iconAsset: Assets.svg.copy,
+                    context: context,
+                  ),
+                );
+              }
+            }
           } else {
             await showDialog<void>(
               context: context,
@@ -163,49 +235,79 @@ class AboutItem extends StatelessWidget {
               ? const EdgeInsets.symmetric(horizontal: 20, vertical: 15)
               : const EdgeInsets.symmetric(horizontal: 12, vertical: 20),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  ConditionalParent(
-                    condition: isDesktop,
-                    builder: (child) => Container(
-                      width: 40,
-                      height: 40,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(10000),
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .buttonBackSecondary,
-                      ),
-                      child: Center(child: child),
-                    ),
-                    child: SvgPicture.asset(
-                      iconAsset,
-                      width: iconSize,
-                      height: iconSize,
-                      color: Theme.of(context)
-                          .extension<StackColors>()!
-                          .topNavIconPrimary,
-                    ),
+              ConditionalParent(
+                condition: isDesktop,
+                builder: (child) => Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10000),
+                    color: Theme.of(context)
+                        .extension<StackColors>()!
+                        .buttonBackSecondary,
                   ),
-                  const SizedBox(width: 12),
-                  Text(
-                    label,
-                    style: STextStyles.titleBold12(context),
-                    textAlign: TextAlign.start,
-                  ),
-                ],
+                  child: Center(child: child),
+                ),
+                child: SvgPicture.asset(
+                  iconAsset,
+                  width: iconSize,
+                  height: iconSize,
+                  color: Theme.of(context)
+                      .extension<StackColors>()!
+                      .topNavIconPrimary,
+                ),
               ),
-              if (isDesktop)
-                Text(
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      label,
+                      style: STextStyles.titleBold12(context),
+                      textAlign: TextAlign.start,
+                    ),
+                    if (!isDesktop) ...[
+                      const SizedBox(height: 2),
+                      _Handle(
+                        buttonText,
+                        style: STextStyles.itemSubtitle12(context),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              if (isDesktop) ...[
+                const SizedBox(width: 12),
+                _Handle(
                   buttonText,
                   style: STextStyles.desktopTextExtraExtraSmall(context),
                 ),
+              ],
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+/// "@name" or an email address: left to right in Arabic and Persian too,
+/// so the "@" stays in front.
+class _Handle extends StatelessWidget {
+  const _Handle(this.text, {required this.style});
+
+  final String text;
+  final TextStyle style;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      text,
+      style: style,
+      textDirection: TextDirection.ltr,
+      overflow: TextOverflow.ellipsis,
     );
   }
 }

@@ -3283,7 +3283,18 @@
   "@torConnectingCaps": {
     "description": "In capitals where the language has them."
   },
-  "supportText": "If you need support or want to report a bug, ask the PIVX community on any of these channels!",
+  "supportDeveloperTitle": "Developer contacts",
+  "supportDeveloperText": "Have a question about {app} or found a bug? Write to the developer.",
+  "@supportDeveloperText": {
+    "description": "{app} is the app name.",
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "supportCommunityTitle": "Reach the community",
+  "supportCommunityText": "Ask the PIVX community for help on its official channels.",
   "supportEmail": "Email",
   "supportScamTitle": "Important: Protect Yourself from Scammers!",
   "supportScamOfficial": "All official support for <b>{app}</b> in <b>{channel}</b> is provided <b>ONLY</b> in public channels.",

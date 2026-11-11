@@ -43,7 +43,11 @@ abstract class AppConfig {
   static String get websiteUrl => _websiteUrl;
   static String get termsUrl => _termsUrl;
   static String get privacyUrl => _privacyUrl;
-  static List<SupportLink> get supportLinks => _supportLinks;
+
+  /// Settings > Support: the developer's own contacts, then the community's
+  /// channels. A section without links isn't shown.
+  static List<SupportLink> get developerLinks => _developerLinks;
+  static List<SupportLink> get communityLinks => _communityLinks;
 
   static bool hasFeature(AppFeature feature) => _features.contains(feature);
 

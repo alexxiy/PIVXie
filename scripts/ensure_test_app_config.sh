@@ -31,7 +31,8 @@ const _commitHash = "$BUILT_COMMIT_HASH";
 const _websiteUrl = "";
 const _termsUrl = "";
 const _privacyUrl = "";
-const List<SupportLink> _supportLinks = [];
+const List<SupportLink> _developerLinks = [];
+const List<SupportLink> _communityLinks = [];
 
 const Set<AppFeature> _features = {
   AppFeature.tor,
