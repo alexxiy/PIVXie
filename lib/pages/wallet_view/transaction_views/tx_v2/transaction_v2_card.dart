@@ -166,39 +166,61 @@ class _TransactionCardStateV2 extends ConsumerState<TransactionCardV2> {
                       // the title the rest: two equal halves shrank long
                       // titles like "Cold staking reward (59/101)". A title
                       // still too long (some translations) wraps rather
-                      // than shrinking out of reading size; three lines
-                      // keep the counter of "Masternode-Belohnung (12/101)".
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(
-                            child: Text(
-                              whatIsIt(coin, currentHeight),
-                              maxLines: 3,
-                              overflow: TextOverflow.ellipsis,
-                              style: STextStyles.itemSubtitle12(context),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          ConstrainedBox(
-                            constraints: const BoxConstraints(maxWidth: 160),
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Builder(
-                                builder: (context) {
-                                  final formattedAmount = ref
-                                      .watch(pAmountFormatter(coin))
-                                      .format(amount);
+                      // than shrinking out of reading size. In a narrow
+                      // card (Recent activity in an 800 px desktop window)
+                      // the amount goes under the title: beside it the
+                      // title got ~70 px and broke inside words
+                      // ("Recompens/a de cold staking").
+                      LayoutBuilder(
+                        builder: (context, constraints) {
+                          final title = Text(
+                            whatIsIt(coin, currentHeight),
+                            maxLines: 4,
+                            overflow: TextOverflow.ellipsis,
+                            style: STextStyles.itemSubtitle12(context),
+                          );
+                          final amountText = FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Builder(
+                              builder: (context) {
+                                final formattedAmount = ref
+                                    .watch(pAmountFormatter(coin))
+                                    .format(amount);
 
-                                  return Text(
-                                    "$prefix$formattedAmount",
-                                    style: STextStyles.itemSubtitle12(context),
-                                  );
-                                },
-                              ),
+                                return Text(
+                                  "$prefix$formattedAmount",
+                                  style: STextStyles.itemSubtitle12(context),
+                                );
+                              },
                             ),
-                          ),
-                        ],
+                          );
+                          if (constraints.maxWidth < 220) {
+                            return SizedBox(
+                              width: constraints.maxWidth,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  title,
+                                  const SizedBox(height: 2),
+                                  amountText,
+                                ],
+                              ),
+                            );
+                          }
+                          return Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(child: title),
+                              const SizedBox(width: 10),
+                              ConstrainedBox(
+                                constraints: const BoxConstraints(
+                                  maxWidth: 160,
+                                ),
+                                child: amountText,
+                              ),
+                            ],
+                          );
+                        },
                       ),
                       // PIVX: the same block also paid our masternode.
                       if (_transaction.pivxAlsoLabel != null) ...[

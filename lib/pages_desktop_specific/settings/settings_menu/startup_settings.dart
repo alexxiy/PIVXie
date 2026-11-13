@@ -18,7 +18,6 @@ class StartupSettings extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    debugPrint("BUILD: $runtimeType");
     final colors = Theme.of(context).extension<StackColors>()!;
     final prefs = ref.watch(prefsChangeNotifierProvider);
     final wallets = ref.watch(pWallets).wallets.toList();

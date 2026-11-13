@@ -30,6 +30,7 @@ import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/rounded_white_container.dart';
+import '../../../../widgets/status_chip.dart';
 
 class TorSettings extends ConsumerStatefulWidget {
   const TorSettings({super.key});
@@ -167,17 +168,7 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
                       Flexible(
                         child: Padding(
                           padding: const EdgeInsets.all(8.0),
-                          child: SvgPicture.asset(
-                            _torConnectionStatus ==
-                                    TorConnectionStatus.connected
-                                ? Assets.svg.connectedButton
-                                : _torConnectionStatus ==
-                                      TorConnectionStatus.connecting
-                                ? Assets.svg.connectingButton
-                                : Assets.svg.disconnectedButton,
-                            width: 48,
-                            height: 48,
-                          ),
+                          child: _TorStatusChip(status: _torConnectionStatus),
                         ),
                       ),
                     ],
@@ -292,5 +283,32 @@ class _TorSettingsState extends ConsumerState<TorSettings> {
         ],
       ),
     );
+  }
+}
+
+/// The Tor status as a small label.
+class _TorStatusChip extends StatelessWidget {
+  const _TorStatusChip({required this.status});
+
+  final TorConnectionStatus status;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).extension<StackColors>()!;
+    final (text, color) = switch (status) {
+      TorConnectionStatus.connected => (
+        l10n.commonConnected,
+        colors.accentColorGreen,
+      ),
+      TorConnectionStatus.connecting => (
+        l10n.commonConnecting,
+        colors.accentColorYellow,
+      ),
+      TorConnectionStatus.disconnected => (
+        l10n.commonDisconnected,
+        colors.textSubtitle1,
+      ),
+    };
+    return StatusChip(text: text, color: color);
   }
 }

@@ -31,7 +31,6 @@ class DesktopFavoriteWallets extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    debugPrint("BUILD: $runtimeType");
     final favourites = ref.watch(pFavouriteWalletInfos(true));
 
     final bool hasFavorites = favourites.isNotEmpty;
@@ -58,9 +57,7 @@ class DesktopFavoriteWallets extends ConsumerWidget {
             ),
           ],
         ),
-        const SizedBox(
-          height: 20,
-        ),
+        const SizedBox(height: 20),
         ConstrainedBox(
           constraints: const BoxConstraints(
             maxHeight: (cardHeight * 2) + standardPadding,
@@ -96,8 +93,9 @@ class DesktopFavoriteWallets extends ConsumerWidget {
                     ),
                   ),
                   child: MaterialButton(
-                    splashColor:
-                        Theme.of(context).extension<StackColors>()!.highlight,
+                    splashColor: Theme.of(context)
+                        .extension<StackColors>()!
+                        .highlight,
                     key: const Key("favoriteWalletsAddFavoriteButtonKey"),
                     padding: const EdgeInsets.all(12),
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -121,23 +119,18 @@ class DesktopFavoriteWallets extends ConsumerWidget {
                               .extension<StackColors>()!
                               .textSubtitle1,
                         ),
-                        const SizedBox(
-                          width: 4,
-                        ),
+                        const SizedBox(width: 4),
                         Text(
                           l10n.walletsAddFavorite,
-                          style: STextStyles.itemSubtitle(context).copyWith(
-                            fontSize: 18,
-                          ),
+                          style: STextStyles.itemSubtitle(context)
+                              .copyWith(fontSize: 18),
                         ),
                       ],
                     ),
                   ),
                 ),
         ),
-        const SizedBox(
-          height: 40,
-        ),
+        const SizedBox(height: 40),
       ],
     );
   }

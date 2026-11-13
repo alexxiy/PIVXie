@@ -51,7 +51,7 @@ void main() {
       final fund =
           jsonDecode(await _cli(["getrawtransaction", fundTxid, "1"])) as Map;
       final vout =
-          (fund["vout"] as List).cast<Map>().firstWhere(
+          (fund["vout"] as List).cast<Map<String, dynamic>>().firstWhere(
                 (o) => o["value"] == 60,
               )["n"]
               as int;

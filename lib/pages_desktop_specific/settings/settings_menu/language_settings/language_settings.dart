@@ -48,7 +48,6 @@ Future<void> chooseLanguage(BuildContext context) async {
 class _LanguageOptionSettings extends ConsumerState<LanguageOptionSettings> {
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType");
     return SingleChildScrollView(
       child: Column(
         children: [

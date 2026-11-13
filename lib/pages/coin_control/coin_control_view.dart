@@ -272,8 +272,6 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType");
-
     final coin = ref.watch(pWalletCoin(widget.walletId));
     final currentHeight = ref.watch(pWalletChainHeight(widget.walletId));
 
@@ -371,9 +369,15 @@ class _CoinControlViewState extends ConsumerState<CoinControlView> {
                     controller: searchController,
                     focusNode: searchFocus,
                   )
-                : Text(
-                    l10n.coinControlTitle,
-                    style: STextStyles.navBarTitle(context),
+                // Beside three buttons a longer title ("Control de
+                // monedas") shrinks a little rather than being cut.
+                : FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: AlignmentDirectional.centerStart,
+                    child: Text(
+                      l10n.coinControlTitle,
+                      style: STextStyles.navBarTitle(context),
+                    ),
                   ),
             titleSpacing: 0,
             actions: _isSearching

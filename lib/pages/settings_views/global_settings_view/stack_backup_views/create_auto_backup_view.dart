@@ -212,8 +212,6 @@ class _EnableAutoBackupViewState extends ConsumerState<CreateAutoBackupView> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType");
-
     return Background(
       child: AppScaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,

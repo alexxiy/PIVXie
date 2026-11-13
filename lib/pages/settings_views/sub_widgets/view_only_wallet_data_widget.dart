@@ -35,8 +35,8 @@ class ViewOnlyWalletDataWidget extends StatelessWidget {
               title: xPub.path,
               detail: xPub.encoded,
               button: Util.isDesktop
-                  ? IconCopyButton(data: xPub.encoded)
-                  : SimpleCopyButton(data: xPub.encoded),
+                  ? IconCopyButton(data: xPub.encoded, secret: true)
+                  : SimpleCopyButton(data: xPub.encoded, secret: true),
             ),
           ),
         ],
@@ -48,8 +48,8 @@ class ViewOnlyWalletDataWidget extends StatelessWidget {
             title: l10n.walletShieldViewingKey,
             detail: e.viewingKey,
             button: Util.isDesktop
-                ? IconCopyButton(data: e.viewingKey)
-                : SimpleCopyButton(data: e.viewingKey),
+                ? IconCopyButton(data: e.viewingKey, secret: true)
+                : SimpleCopyButton(data: e.viewingKey, secret: true),
           ),
         ],
       ),

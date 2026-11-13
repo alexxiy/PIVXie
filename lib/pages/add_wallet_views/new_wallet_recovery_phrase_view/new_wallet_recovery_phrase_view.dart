@@ -131,7 +131,7 @@ class _NewWalletRecoveryPhraseViewState
     constraints: BoxConstraints(minHeight: isDesktop ? 70 : 0),
     child: TextButton(
       onPressed: () async {
-        final int next = Random().nextInt(_mnemonic.length);
+        final int next = Random.secure().nextInt(_mnemonic.length);
         ref
             .read(verifyMnemonicWordIndexStateProvider.notifier)
             .update((state) => next);
@@ -165,7 +165,6 @@ class _NewWalletRecoveryPhraseViewState
       SecretScreen(child: Builder(builder: _buildScreen));
 
   Widget _buildScreen(BuildContext context) {
-    debugPrint("BUILD: $runtimeType");
     return WillPopScope(
       onWillPop: onWillPop,
       child: MasterScaffold(

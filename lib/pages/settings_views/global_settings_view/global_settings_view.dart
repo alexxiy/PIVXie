@@ -47,7 +47,6 @@ class GlobalSettingsView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    debugPrint("BUILD: $runtimeType");
     return Background(
       child: AppScaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
@@ -91,7 +90,7 @@ class GlobalSettingsView extends ConsumerWidget {
                                     onPressed: () {
                                       Navigator.push(
                                         context,
-                                        RouteGenerator.getRoute(
+                                        RouteGenerator.getRoute<void>(
                                           shouldUseMaterialRoute: RouteGenerator
                                               .useMaterialPageRoute,
                                           builder: (_) => LockscreenView(

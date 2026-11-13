@@ -27,7 +27,6 @@ class WalletsView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    debugPrint("BUILD: $runtimeType");
     final hasWallets = ref.watch(pAllWalletsInfo).isNotEmpty;
 
     // Favorite wallet cards above the wallet list, as on desktop.

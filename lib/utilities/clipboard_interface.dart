@@ -41,14 +41,20 @@ extension SecretClipboard on ClipboardInterface {
   /// meanwhile.
   ///
   /// On Android the copy is marked sensitive: the system's copy preview
-  /// hides it, and keyboards keep it out of their clipboard history.
+  /// hides it, and keyboards keep it out of their clipboard history. On
+  /// iOS it stays on this device (no Universal Clipboard) and expires by
+  /// itself after a minute, so the app never reads the clipboard back.
   Future<void> setSecret(
     String text, {
     Duration after = const Duration(minutes: 1),
   }) async {
-    if (this is ClipboardWrapper && Platform.isAndroid) {
+    if (this is ClipboardWrapper && (Platform.isAndroid || Platform.isIOS)) {
       try {
-        await _secretChannel.invokeMethod<void>("setSecret", {"text": text});
+        await _secretChannel.invokeMethod<void>("setSecret", {
+          "text": text,
+          "seconds": after.inSeconds,
+        });
+        if (Platform.isIOS) return;
       } on MissingPluginException {
         await setData(ClipboardData(text: text));
       }

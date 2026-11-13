@@ -56,8 +56,6 @@ class SettingsMenu extends ConsumerStatefulWidget {
 class _SettingsMenuState extends ConsumerState<SettingsMenu> {
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType");
-
     final labels = [for (final page in DesktopSettingsPage.values) page.label];
 
     return Column(

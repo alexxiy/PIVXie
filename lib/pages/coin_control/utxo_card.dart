@@ -81,8 +81,6 @@ class _UtxoCardState extends ConsumerState<UtxoCard> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType");
-
     final coin = ref.watch(pWalletCoin(widget.walletId));
     final currentHeight = ref.watch(pWalletChainHeight(widget.walletId));
 

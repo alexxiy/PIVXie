@@ -366,7 +366,7 @@ class _WalletSettingsWalletSettingsViewState
                                 Navigator.pop(context);
                                 Navigator.push(
                                   context,
-                                  RouteGenerator.getRoute(
+                                  RouteGenerator.getRoute<void>(
                                     shouldUseMaterialRoute:
                                         RouteGenerator.useMaterialPageRoute,
                                     builder: (_) => LockscreenView(

@@ -74,7 +74,7 @@ class _AddAddressBookEntryViewState
 
   @override
   initState() {
-    ref.refresh(addressEntryDataProviderFamilyRefresher);
+    ref.invalidate(addressEntryDataProviderFamilyRefresher);
 
     clipboard = widget.clipboard;
 
@@ -120,7 +120,7 @@ class _AddAddressBookEntryViewState
   void _removeForm(int id) {
     forms.retainWhere((e) => e.id != id);
     _formIds.remove(id);
-    ref.refresh(addressEntryDataProvider(id));
+    ref.invalidate(addressEntryDataProvider(id));
     setState(() {});
   }
 
@@ -149,8 +149,6 @@ class _AddAddressBookEntryViewState
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType");
-
     final isDesktop = Util.isDesktop;
     return ConditionalParent(
       condition: !isDesktop,

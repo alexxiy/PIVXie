@@ -209,12 +209,19 @@ class _PivxNamesTransactionsViewState
                         : colors.textSubtitle1,
                   ),
                   const SizedBox(width: 6),
-                  Text(
-                    label,
-                    style: STextStyles.w600_14(context).copyWith(
-                      color: selected
-                          ? colors.buttonTextPrimary
-                          : colors.textSubtitle1,
+                  // A label a little too long ("Geri qaytarmalar") shrinks
+                  // a little rather than overflowing.
+                  Flexible(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        label,
+                        style: STextStyles.w600_14(context).copyWith(
+                          color: selected
+                              ? colors.buttonTextPrimary
+                              : colors.textSubtitle1,
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -320,9 +327,13 @@ class _PivxNamesTransactionsViewState
                     status,
                     if (confirmations != null) ...[
                       const SizedBox(width: 8),
-                      Text(
-                        l10n.pivxNamesConfirmations(confirmations),
-                        style: secondary,
+                      Flexible(
+                        child: Text(
+                          l10n.pivxNamesConfirmations(confirmations),
+                          style: secondary,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ),
                     ],
                   ],

@@ -56,8 +56,6 @@ class _WDesktopWalletSummaryState extends ConsumerState<DesktopWalletSummary> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType");
-
     final externalCalls = ref.watch(
       prefsChangeNotifierProvider.select((value) => value.externalCalls),
     );

@@ -1,0 +1,120 @@
+name: Apple
+
+# What only a Mac can do for the builds the DevBox signed (build.yaml makes
+# them unsigned; no signing keys live on GitHub):
+# - appstore_asset: the Mac App Store app, signed for the store. Checks the
+#   signature and wraps the app in an installer package with Apple's
+#   productbuild; the DevBox gives the package its installer signature and
+#   uploads it.
+# - devid_asset: the macOS app for GitHub, signed with the Developer ID and
+#   notarized. Checks it the way Gatekeeper does and opens it once.
+# - ios_asset: the signed iOS app (.ipa). Checks the signature.
+# The files come from a draft release, which only the repository's
+# writers can see.
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Draft release that holds the signed files'
+        required: true
+      appstore_asset:
+        description: 'Signed Mac App Store app (zip)'
+        required: false
+      devid_asset:
+        description: 'Signed and notarized macOS app (zip)'
+        required: false
+      ios_asset:
+        description: 'Signed iOS app (ipa)'
+        required: false
+
+permissions:
+  contents: write
+
+jobs:
+  mac:
+    name: Check and package
+    runs-on: macos-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      TAG: ${{ inputs.tag }}
+      APPSTORE_ASSET: ${{ inputs.appstore_asset }}
+      DEVID_ASSET: ${{ inputs.devid_asset }}
+      IOS_ASSET: ${{ inputs.ios_asset }}
+    steps:
+      - name: Get the files
+        run: |
+          mkdir in out
+          for a in "$APPSTORE_ASSET" "$DEVID_ASSET" "$IOS_ASSET"; do
+            [ -z "$a" ] && continue
+            if ! [[ "$a" =~ ^[A-Za-z0-9._-]+$ ]]; then
+              echo "::error::Unexpected file name '$a'"
+              exit 1
+            fi
+            gh release download "$TAG" --pattern "$a" --dir in
+          done
+          ls -l in
+          sw_vers
+          xcodebuild -version
+
+      - name: Mac App Store app
+        if: ${{ inputs.appstore_asset != '' }}
+        run: |
+          mkdir appstore
+          ditto -x -k "in/$APPSTORE_ASSET" appstore
+          APP=$(find appstore -maxdepth 1 -name '*.app' | head -1)
+          codesign --verify --deep --strict --verbose=2 "$APP"
+          codesign -d --verbose=2 "$APP" 2>&1 | grep -E '^(Identifier|Format|Authority|TeamIdentifier|Runtime|Timestamp)'
+          codesign -d --entitlements - --xml "$APP" | plutil -p -
+          security cms -D -i "$APP/Contents/embedded.provisionprofile" | plutil -extract Name raw -
+          PKG="out/${APPSTORE_ASSET%.zip}.pkg"
+          productbuild --component "$APP" /Applications "$PKG"
+          pkgutil --payload-files "$PKG" | head -5
+          ls -l out
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ inputs.appstore_asset != '' }}
+        with:
+          name: appstore-pkg
+          path: out/
+          retention-days: 7
+
+      - name: macOS app for GitHub
+        if: ${{ inputs.devid_asset != '' }}
+        run: |
+          mkdir devid
+          ditto -x -k "in/$DEVID_ASSET" devid
+          APP=$(find devid -maxdepth 1 -name '*.app' | head -1)
+          codesign --verify --deep --strict --verbose=2 "$APP"
+          codesign -d --verbose=2 "$APP" 2>&1 | grep -E '^(Identifier|Format|Authority|TeamIdentifier|Runtime|Timestamp)'
+          codesign -d --entitlements - --xml "$APP" | plutil -p -
+          xcrun stapler validate "$APP"
+          # Gatekeeper's verdict for a downloaded copy (it needs the
+          # notarization). A quarantined copy would wait on the first-open
+          # prompt, so the one opened here is not quarantined.
+          spctl --assess --type execute --verbose=4 "$APP"
+          open "$APP"
+          sleep 40
+          if pgrep -fl "$APP/Contents/MacOS" ; then echo "running: yes"; else echo "::error::PIVXie is not running"; exit 1; fi
+          screencapture -x out/devid-running.png || true
+          pkill -f "$APP/Contents/MacOS" || true
+
+      - uses: actions/upload-artifact@v7
+        if: ${{ inputs.devid_asset != '' }}
+        with:
+          name: devid-screenshot
+          path: out/devid-running.png
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: iOS app
+        if: ${{ inputs.ios_asset != '' }}
+        run: |
+          mkdir ios
+          ditto -x -k "in/$IOS_ASSET" ios
+          APP=$(find ios/Payload -maxdepth 1 -name '*.app' | head -1)
+          codesign --verify --deep --strict --verbose=2 "$APP"
+          codesign -d --verbose=2 "$APP" 2>&1 | grep -E '^(Identifier|Format|Authority|TeamIdentifier|Timestamp)'
+          codesign -d --entitlements - --xml "$APP" | plutil -p -
+          for f in "$APP"/Frameworks/*.framework; do codesign --verify --strict "$f" && echo "ok $(basename "$f")"; done

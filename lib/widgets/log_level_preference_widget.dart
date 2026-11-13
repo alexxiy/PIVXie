@@ -5,7 +5,6 @@ import 'package:logger/logger.dart';
 import '../l10n/l10n.dart';
 import '../providers/global/prefs_provider.dart';
 import '../themes/stack_colors.dart';
-import '../utilities/extensions/extensions.dart';
 import '../utilities/text_styles.dart';
 import '../utilities/util.dart';
 import 'rounded_container.dart';
@@ -48,7 +47,7 @@ class _LogLevelPreferenceWidgetState
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          l10n.logLevelCurrent(current.name.capitalize()),
+          l10n.logLevelCurrent(l10n.logLevelName(current.name)),
           style: Util.isDesktop
               ? STextStyles.desktopTextFieldLabel(context)
               : STextStyles.fieldLabel(context),

@@ -13,7 +13,6 @@ import '../../services/event_bus/global_event_bus.dart';
 import '../../services/tor_service.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
-import '../../utilities/extensions/extensions.dart';
 import '../../utilities/text_styles.dart';
 
 class DesktopTorStatusButton extends ConsumerStatefulWidget {
@@ -160,9 +159,16 @@ class _DesktopTorStatusButtonState extends ConsumerState<DesktopTorStatusButton>
                       children: [
                         const SizedBox(width: 12),
                         Text(
-                          torOn
-                              ? _torConnectionStatus.name.capitalize()
-                              : l10n.torOff,
+                          !torOn
+                              ? l10n.torOff
+                              : switch (_torConnectionStatus) {
+                                  TorConnectionStatus.connected =>
+                                    l10n.commonConnected,
+                                  TorConnectionStatus.connecting =>
+                                    l10n.commonConnecting,
+                                  TorConnectionStatus.disconnected =>
+                                    l10n.commonDisconnected,
+                                },
                           style: STextStyles.smallMed12(context)
                               .copyWith(color: _color(_torConnectionStatus)),
                         ),

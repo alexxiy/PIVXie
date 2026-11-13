@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import '../../utilities/app_store_build.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
 import '../pivx_name/pivx_name_resolver.dart';
 import 'pivx_defi_models.dart';
@@ -59,9 +60,10 @@ class PivxDefiConfig {
   );
 
   /// The bridge for [coin], or null where there is none or the build leaves
-  /// it out. Every way into the bridge asks this.
+  /// it out. Every way into the bridge asks this. Not in App Store builds
+  /// for now: the first App Store release goes to review without it.
   static PivxDefiConfig? forCoin(CryptoCurrency coin) =>
-      enabled ? _forCoin(coin) : null;
+      enabled && !isAppStoreBuild ? _forCoin(coin) : null;
 
   /// It wraps mainnet PIVX only.
   static PivxDefiConfig? _forCoin(CryptoCurrency coin) =>

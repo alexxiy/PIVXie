@@ -207,8 +207,6 @@ class _DesktopReceiveState extends ConsumerState<DesktopReceive> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType");
-
     final String address;
     if (showMultiType) {
       address = _addressMap[_walletAddressTypes[_currentIndex]]!;

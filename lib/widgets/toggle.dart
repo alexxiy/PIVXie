@@ -87,8 +87,6 @@ class ToggleState extends State<Toggle> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType");
-
     return GestureDetector(
       onTap: () {
         _isOn = !_isOn;
@@ -206,29 +204,41 @@ class ToggleState extends State<Toggle> {
                                           .textSubtitle1,
                               ),
                             if (widget.onIcon != null) const SizedBox(width: 5),
-                            Text(
-                              widget.onText ?? "",
-                              style: isDesktop
-                                  ? STextStyles.desktopTextExtraExtraSmall(
-                                      context,
-                                    ).copyWith(
-                                      color: !_isOn
-                                          ? Theme.of(context)
-                                                .extension<StackColors>()!
-                                                .accentColorBlue
-                                          : Theme.of(context)
-                                                .extension<StackColors>()!
-                                                .buttonTextSecondary,
-                                    )
-                                  : STextStyles.smallMed12(context).copyWith(
-                                      color: !_isOn
-                                          ? Theme.of(context)
-                                                .extension<StackColors>()!
-                                                .textDark
-                                          : Theme.of(context)
-                                                .extension<StackColors>()!
-                                                .textSubtitle1,
-                                    ),
+                            Flexible(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                ),
+                                child: Text(
+                                  widget.onText ?? "",
+                                  textAlign: TextAlign.center,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: isDesktop
+                                      ? STextStyles.desktopTextExtraExtraSmall(
+                                          context,
+                                        ).copyWith(
+                                          color: !_isOn
+                                              ? Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .accentColorBlue
+                                              : Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .buttonTextSecondary,
+                                        )
+                                      : STextStyles.smallMed12(
+                                          context,
+                                        ).copyWith(
+                                          color: !_isOn
+                                              ? Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .textDark
+                                              : Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .textSubtitle1,
+                                        ),
+                                ),
+                              ),
                             ),
                           ],
                         ),
@@ -263,29 +273,41 @@ class ToggleState extends State<Toggle> {
                               ),
                             if (widget.offIcon != null)
                               const SizedBox(width: 5),
-                            Text(
-                              widget.offText ?? "",
-                              style: isDesktop
-                                  ? STextStyles.desktopTextExtraExtraSmall(
-                                      context,
-                                    ).copyWith(
-                                      color: _isOn
-                                          ? Theme.of(context)
-                                                .extension<StackColors>()!
-                                                .accentColorBlue
-                                          : Theme.of(context)
-                                                .extension<StackColors>()!
-                                                .buttonTextSecondary,
-                                    )
-                                  : STextStyles.smallMed12(context).copyWith(
-                                      color: _isOn
-                                          ? Theme.of(context)
-                                                .extension<StackColors>()!
-                                                .textDark
-                                          : Theme.of(context)
-                                                .extension<StackColors>()!
-                                                .textSubtitle1,
-                                    ),
+                            Flexible(
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                ),
+                                child: Text(
+                                  widget.offText ?? "",
+                                  textAlign: TextAlign.center,
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: isDesktop
+                                      ? STextStyles.desktopTextExtraExtraSmall(
+                                          context,
+                                        ).copyWith(
+                                          color: _isOn
+                                              ? Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .accentColorBlue
+                                              : Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .buttonTextSecondary,
+                                        )
+                                      : STextStyles.smallMed12(
+                                          context,
+                                        ).copyWith(
+                                          color: _isOn
+                                              ? Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .textDark
+                                              : Theme.of(context)
+                                                    .extension<StackColors>()!
+                                                    .textSubtitle1,
+                                        ),
+                                ),
+                              ),
                             ),
                           ],
                         ),

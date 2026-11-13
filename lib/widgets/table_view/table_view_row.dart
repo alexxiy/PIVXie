@@ -9,6 +9,7 @@
  */
 
 import 'package:flutter/material.dart';
+
 import '../../themes/stack_colors.dart';
 import '../expandable.dart';
 import 'table_view_cell.dart';
@@ -44,7 +45,6 @@ class _TableViewRowState extends State<TableViewRow> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType");
     return Container(
       decoration: !_hovering
           ? widget.decoration
@@ -73,9 +73,7 @@ class _TableViewRowState extends State<TableViewRow> {
                   children: [
                     for (int i = 0; i < widget.cells.length; i++) ...[
                       if (i != 0 && i != widget.cells.length)
-                        SizedBox(
-                          width: widget.spacing,
-                        ),
+                        SizedBox(width: widget.spacing),
                       Expanded(
                         flex: widget.cells[i].flex,
                         child: widget.cells[i],
@@ -105,9 +103,7 @@ class _TableViewRowState extends State<TableViewRow> {
                     children: [
                       for (int i = 0; i < widget.cells.length; i++) ...[
                         if (i != 0 && i != widget.cells.length)
-                          SizedBox(
-                            width: widget.spacing,
-                          ),
+                          SizedBox(width: widget.spacing),
                         Expanded(
                           flex: widget.cells[i].flex,
                           child: widget.cells[i],

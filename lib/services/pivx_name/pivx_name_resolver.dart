@@ -46,15 +46,18 @@ class PivxNameService {
     indexer: Uri.parse("https://indexer.pivx.name"),
     anchor: "0xe21df741aab28c1916edb1718f18e62c08fab4bc",
     rpcs: [
-      Uri.parse("https://bsc-dataseed.bnbchain.org"),
-      Uri.parse("https://bsc-dataseed.defibit.io"),
-      Uri.parse("https://bsc-dataseed.ninicoin.io"),
-      Uri.parse("https://bsc-rpc.publicnode.com"),
-      Uri.parse("https://bsc-mainnet.public.blastapi.io"),
+      Uri.parse("https://bsc-dataseed.bnbchain.org"), // BNB Chain
+      Uri.parse("https://bsc-rpc.publicnode.com"), // Allnodes (PublicNode)
+      Uri.parse("https://bsc.api.pocket.network"), // Pocket Network
+      Uri.parse("https://public-bsc.nownodes.io"), // NOWNodes
+      Uri.parse("https://rpc-bsc.48.club"), // 48 Club
+      Uri.parse("https://bsc-mainnet.public.blastapi.io"), // Blast API
+      Uri.parse("https://bsc.blockrazor.xyz"), // BlockRazor
+      Uri.parse("https://bsc.rpc.blxrbdn.com"), // bloXroute
     ],
-    // 2: the rules change for prover v0.2.1's program key, which can be
-    // activated from 2026-10-29 15:13 UTC. Drop 1 once 2 is live.
-    epochs: const {1, 2},
+    // 2: the rules change for prover v0.2.1's program key, live on chain
+    // (checked 2026-11-11). Epochs never go back, so 1 is gone for good.
+    epochs: const {2},
   );
 
   /// The name service for [coin], or null where there is none: names exist

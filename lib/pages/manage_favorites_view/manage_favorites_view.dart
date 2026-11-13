@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../../l10n/l10n.dart';
 import '../../providers/db/main_db_provider.dart';
 import '../../themes/stack_colors.dart';
@@ -29,8 +30,6 @@ class ManageFavoritesView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType");
-
     final isDesktop = Util.isDesktop;
 
     return MasterScaffold(
@@ -39,9 +38,7 @@ class ManageFavoritesView extends StatelessWidget {
           ? DesktopAppBar(
               background: Theme.of(context).extension<StackColors>()!.popupBG,
               isCompactHeight: true,
-              leading: const AppBarBackButton(
-                isCompact: true,
-              ),
+              leading: const AppBarBackButton(isCompact: true),
               center: Expanded(
                 child: Text(
                   l10n.walletsFavorites,
@@ -68,9 +65,7 @@ class ManageFavoritesView extends StatelessWidget {
 
                 return Column(
                   children: [
-                    const SizedBox(
-                      height: 24,
-                    ),
+                    const SizedBox(height: 24),
                     Expanded(
                       child: ListView(
                         children: [
@@ -92,17 +87,15 @@ class ManageFavoritesView extends StatelessWidget {
                                   style:
                                       STextStyles.desktopTextExtraSmall(context)
                                           .copyWith(
-                                    color: Theme.of(context)
-                                        .extension<StackColors>()!
-                                        .textSubtitle1,
-                                  ),
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .textSubtitle1,
+                                          ),
                                 ),
                               ),
                             ),
                           ),
-                          const SizedBox(
-                            height: 5,
-                          ),
+                          const SizedBox(height: 5),
                           ReorderableListView.builder(
                             buildDefaultDragHandles: false,
                             shrinkWrap: true,
@@ -112,18 +105,14 @@ class ManageFavoritesView extends StatelessWidget {
                             itemBuilder: (builderContext, index) {
                               final walletId = favorites[index].walletId;
                               return Padding(
-                                key: Key(
-                                  "manageFavoriteWalletsItem_$walletId",
-                                ),
+                                key: Key("manageFavoriteWalletsItem_$walletId"),
                                 padding: const EdgeInsets.symmetric(
                                   vertical: 5,
                                   horizontal: 24,
                                 ),
                                 child: ReorderableDelayedDragStartListener(
                                   index: index,
-                                  child: ManagedFavorite(
-                                    walletId: walletId,
-                                  ),
+                                  child: ManagedFavorite(walletId: walletId),
                                 ),
                               );
                             },
@@ -191,12 +180,12 @@ class ManageFavoritesView extends StatelessWidget {
                             ),
                             child: Text(
                               l10n.favoritesAdd,
-                              style:
-                                  STextStyles.itemSubtitle12(context).copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textDark3,
-                              ),
+                              style: STextStyles.itemSubtitle12(context)
+                                  .copyWith(
+                                    color: Theme.of(context)
+                                        .extension<StackColors>()!
+                                        .textDark3,
+                                  ),
                             ),
                           ),
                           ListView.builder(
@@ -213,9 +202,7 @@ class ManageFavoritesView extends StatelessWidget {
                                   horizontal: 24,
                                   vertical: 5,
                                 ),
-                                child: ManagedFavorite(
-                                  walletId: walletId,
-                                ),
+                                child: ManagedFavorite(walletId: walletId),
                               );
                             },
                           ),
@@ -229,11 +216,7 @@ class ManageFavoritesView extends StatelessWidget {
           : Container(
               color: Theme.of(context).extension<StackColors>()!.background,
               child: Padding(
-                padding: const EdgeInsets.only(
-                  left: 12,
-                  right: 12,
-                  top: 4,
-                ),
+                padding: const EdgeInsets.only(left: 12, right: 12, top: 4),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -257,27 +240,22 @@ class ManageFavoritesView extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const SizedBox(
-                      height: 8,
-                    ),
+                    const SizedBox(height: 8),
                     Expanded(
                       child: Consumer(
                         builder: (_, ref, __) {
-                          final favorites =
-                              ref.watch(pFavouriteWalletInfos(true));
+                          final favorites = ref.watch(
+                            pFavouriteWalletInfos(true),
+                          );
                           return ReorderableListView.builder(
                             key: key,
                             itemCount: favorites.length,
                             itemBuilder: (builderContext, index) {
                               final walletId = favorites[index].walletId;
                               return Padding(
-                                key: Key(
-                                  "manageFavoriteWalletsItem_$walletId",
-                                ),
+                                key: Key("manageFavoriteWalletsItem_$walletId"),
                                 padding: const EdgeInsets.all(4.0),
-                                child: ManagedFavorite(
-                                  walletId: walletId,
-                                ),
+                                child: ManagedFavorite(walletId: walletId),
                               );
                             },
                             onReorder: (oldIndex, newIndex) {
@@ -357,8 +335,9 @@ class ManageFavoritesView extends StatelessWidget {
                     Expanded(
                       child: Consumer(
                         builder: (_, ref, __) {
-                          final nonFavorites =
-                              ref.watch(pFavouriteWalletInfos(false));
+                          final nonFavorites = ref.watch(
+                            pFavouriteWalletInfos(false),
+                          );
 
                           return ListView.builder(
                             itemCount: nonFavorites.length,
@@ -369,9 +348,7 @@ class ManageFavoritesView extends StatelessWidget {
                                   "manageNonFavoriteWalletsItem_$walletId",
                                 ),
                                 padding: const EdgeInsets.all(4.0),
-                                child: ManagedFavorite(
-                                  walletId: walletId,
-                                ),
+                                child: ManagedFavorite(walletId: walletId),
                               );
                             },
                           );

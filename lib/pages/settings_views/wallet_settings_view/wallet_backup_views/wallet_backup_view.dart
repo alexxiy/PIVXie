@@ -56,8 +56,6 @@ class WalletBackupView extends ConsumerWidget {
   );
 
   Widget _buildScreen(BuildContext context, WidgetRef ref) {
-    debugPrint("BUILD: $runtimeType");
-
     return Background(
       child: AppScaffold(
         maxBodyWidth: ScreenFit.panesOrColumn(context),

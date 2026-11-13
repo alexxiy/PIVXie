@@ -72,8 +72,6 @@ class _FavoriteWalletsState extends ConsumerState<FavoriteWallets> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType");
-
     final favorites = ref.watch(pFavouriteWalletInfos(true));
     _favLength = favorites.length;
 

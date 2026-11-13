@@ -62,7 +62,7 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
         .isar
         .transactionV2s
         .filter()
-        .anyOf(
+        .anyOf<String, TransactionV2>(
           contact.addresses.map((e) => e.address),
           (q, String e) => q
               .outputsElement((o) => o.addressesElementEqualTo(e))
@@ -164,7 +164,7 @@ class _DesktopContactDetailsState extends ConsumerState<DesktopContactDetails> {
                           CustomTextButton(
                             text: l10n.commonAddNew,
                             onTap: () async {
-                              ref.refresh(
+                              ref.invalidate(
                                 addressEntryDataProviderFamilyRefresher,
                               );
 

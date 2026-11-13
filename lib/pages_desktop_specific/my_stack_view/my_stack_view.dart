@@ -35,7 +35,6 @@ class MyStackView extends ConsumerStatefulWidget {
 class _MyStackViewState extends ConsumerState<MyStackView> {
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType");
     final hasWallets = ref.watch(pAllWalletsInfo).isNotEmpty;
 
     return Background(

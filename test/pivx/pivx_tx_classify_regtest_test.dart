@@ -88,7 +88,7 @@ class _Scanner {
             for (final nf in wtx["nullifiers"] as List)
               if (nullifierNotes.containsKey(nf)) nf,
           ],
-          "sent": wtx["sent"] ?? const [],
+          "sent": wtx["sent"] ?? const <dynamic>[],
         };
       }
       tree = r["commitment_tree"] as String;

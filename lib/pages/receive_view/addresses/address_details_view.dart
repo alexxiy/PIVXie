@@ -418,6 +418,8 @@ class _AddressDetailsTxV2List extends ConsumerWidget {
         .watch(mainDBProvider)
         .isar
         .transactionV2s
+        // Isar's dynamic query API, still marked experimental.
+        // ignore: experimental_member_use
         .buildQuery<TransactionV2>(
           whereClauses: [
             IndexWhereClause.equalTo(indexName: 'walletId', value: [walletId]),

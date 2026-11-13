@@ -37,6 +37,7 @@ import '../../../../widgets/desktop/secondary_button.dart';
 import '../../../../widgets/rounded_container.dart';
 import '../../../../widgets/rounded_white_container.dart';
 import '../../../../widgets/stack_dialog.dart';
+import '../../../../widgets/status_chip.dart';
 
 class BackupRestoreSettings extends ConsumerStatefulWidget {
   const BackupRestoreSettings({super.key});
@@ -300,8 +301,6 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType");
-
     final bool isEnabledAutoBackup = ref.watch(
       prefsChangeNotifierProvider.select((value) => value.isAutoBackupEnabled),
     );
@@ -339,11 +338,20 @@ class _BackupRestoreSettings extends ConsumerState<BackupRestoreSettings> {
                                   width: 48,
                                   height: 48,
                                 ),
-                                isEnabledAutoBackup
-                                    ? SvgPicture.asset(Assets.svg.enableButton)
-                                    : SvgPicture.asset(
-                                        Assets.svg.disableButton,
-                                      ),
+                                Flexible(
+                                  child: StatusChip(
+                                    text: isEnabledAutoBackup
+                                        ? l10n.backupAutoOn
+                                        : l10n.backupAutoOff,
+                                    color: isEnabledAutoBackup
+                                        ? Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .accentColorGreen
+                                        : Theme.of(context)
+                                              .extension<StackColors>()!
+                                              .textSubtitle1,
+                                  ),
+                                ),
                               ],
                             ),
                           ),

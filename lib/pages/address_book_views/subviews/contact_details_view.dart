@@ -79,7 +79,7 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
         .isar
         .transactionV2s
         .filter()
-        .anyOf(
+        .anyOf<String, TransactionV2>(
           contact.addresses.map((e) => e.address),
           (q, String e) => q
               .outputsElement((o) => o.addressesElementEqualTo(e))
@@ -92,7 +92,7 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
 
   @override
   void initState() {
-    ref.refresh(addressEntryDataProviderFamilyRefresher);
+    ref.invalidate(addressEntryDataProviderFamilyRefresher);
     _contactId = widget.contactId;
     clipboard = widget.clipboard;
     super.initState();
@@ -105,8 +105,6 @@ class _ContactDetailsViewState extends ConsumerState<ContactDetailsView> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType");
-
     final _contact = ref.watch(
       addressBookServiceProvider.select(
         (value) => value.getContactById(_contactId),

@@ -219,8 +219,6 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType");
-
     final side = ScreenFit.sideBySide(context);
 
     final ticker = coin.ticker;

@@ -93,8 +93,6 @@ class DraggableSwitchButtonState extends State<DraggableSwitchButton> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType");
-
     return GestureDetector(
       onTap: () {
         _isOn = !_isOn;

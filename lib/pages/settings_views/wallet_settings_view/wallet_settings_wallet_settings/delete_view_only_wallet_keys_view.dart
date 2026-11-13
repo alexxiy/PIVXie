@@ -17,6 +17,7 @@ import '../../../../widgets/conditional_parent.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/rounded_white_container.dart';
+import '../../../../widgets/secret_screen.dart';
 import '../../../../widgets/stack_dialog.dart';
 import '../../../home_view/home_view.dart';
 import '../../sub_widgets/view_only_wallet_data_widget.dart';
@@ -49,15 +50,11 @@ class _DeleteViewOnlyWalletKeysViewState
     try {
       if (Util.isDesktop) {
         await Navigator.of(context).push(
-          RouteGenerator.getRoute(
+          RouteGenerator.getRoute<void>(
             builder: (context) {
-              return ConfirmDelete(
-                walletId: widget.walletId,
-              );
+              return ConfirmDelete(walletId: widget.walletId);
             },
-            settings: const RouteSettings(
-              name: "/desktopConfirmDelete",
-            ),
+            settings: const RouteSettings(name: "/desktopConfirmDelete"),
           ),
         );
       } else {
@@ -87,21 +84,19 @@ class _DeleteViewOnlyWalletKeysViewState
                   .extension<StackColors>()!
                   .getPrimaryEnabledButtonStyle(context),
               onPressed: () async {
-                await ref.read(pWallets).deleteWallet(
+                await ref
+                    .read(pWallets)
+                    .deleteWallet(
                       ref.read(pWalletInfo(widget.walletId)),
                       ref.read(secureStoreProvider),
                     );
 
                 if (mounted) {
-                  Navigator.of(context).popUntil(
-                    ModalRoute.withName(HomeView.routeName),
-                  );
+                  Navigator.of(context)
+                      .popUntil(ModalRoute.withName(HomeView.routeName));
                 }
               },
-              child: Text(
-                l10n.commonOk,
-                style: STextStyles.button(context),
-              ),
+              child: Text(l10n.commonOk, style: STextStyles.button(context)),
             ),
           ),
         );
@@ -112,7 +107,10 @@ class _DeleteViewOnlyWalletKeysViewState
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) =>
+      SecretScreen(child: Builder(builder: _buildScreen));
+
+  Widget _buildScreen(BuildContext context) {
     return ConditionalParent(
       condition: !Util.isDesktop,
       builder: (child) => AppScaffold(
@@ -151,16 +149,10 @@ class _DeleteViewOnlyWalletKeysViewState
               style: STextStyles.label(context),
             ),
           ),
-          const SizedBox(
-            height: 24,
-          ),
-          ViewOnlyWalletDataWidget(
-            data: widget.data,
-          ),
+          const SizedBox(height: 24),
+          ViewOnlyWalletDataWidget(data: widget.data),
           if (!Util.isDesktop) const Spacer(),
-          const SizedBox(
-            height: 16,
-          ),
+          const SizedBox(height: 16),
           PrimaryButton(
             label: l10n.commonContinue,
             onPressed: _continuePressed,

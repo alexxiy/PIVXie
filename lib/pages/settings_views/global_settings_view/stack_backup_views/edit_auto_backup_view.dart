@@ -233,8 +233,6 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType");
-
     final isDesktop = Util.isDesktop;
 
     return ConditionalParent(
@@ -252,6 +250,8 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
             ),
             title: Text(
               l10n.backupEditAuto,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               style: STextStyles.navBarTitle(context),
             ),
           ),

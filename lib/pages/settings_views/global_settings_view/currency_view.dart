@@ -376,40 +376,43 @@ class _CurrencyViewState extends ConsumerState<BaseCurrencySettingsView> {
                                       ),
                                     ),
                                     const SizedBox(width: 12),
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          currenciesWithoutSelected[index],
-                                          key:
-                                              (currenciesWithoutSelected[index] ==
-                                                  current)
-                                              ? const Key(
-                                                  "selectedCurrencySettingsCurrencyText",
-                                                )
-                                              : null,
-                                          style: STextStyles.largeMedium14(
-                                            context,
-                                          ),
-                                        ),
-                                        const SizedBox(height: 2),
-                                        Text(
-                                          _currencyName(
+                                    // Long currency names wrap.
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
                                             currenciesWithoutSelected[index],
+                                            key:
+                                                (currenciesWithoutSelected[index] ==
+                                                    current)
+                                                ? const Key(
+                                                    "selectedCurrencySettingsCurrencyText",
+                                                  )
+                                                : null,
+                                            style: STextStyles.largeMedium14(
+                                              context,
+                                            ),
                                           ),
-                                          key:
-                                              (currenciesWithoutSelected[index] ==
-                                                  current)
-                                              ? const Key(
-                                                  "selectedCurrencySettingsCurrencyTextDescription",
-                                                )
-                                              : null,
-                                          style: STextStyles.itemSubtitle(
-                                            context,
+                                          const SizedBox(height: 2),
+                                          Text(
+                                            _currencyName(
+                                              currenciesWithoutSelected[index],
+                                            ),
+                                            key:
+                                                (currenciesWithoutSelected[index] ==
+                                                    current)
+                                                ? const Key(
+                                                    "selectedCurrencySettingsCurrencyTextDescription",
+                                                  )
+                                                : null,
+                                            style: STextStyles.itemSubtitle(
+                                              context,
+                                            ),
                                           ),
-                                        ),
-                                      ],
+                                        ],
+                                      ),
                                     ),
                                   ],
                                 ),

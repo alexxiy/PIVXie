@@ -585,10 +585,13 @@ class _PivxCreateMasternodeViewState
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    l10n.mnPrivateKey,
-                    style: STextStyles.smallMed12(context),
+                  Expanded(
+                    child: Text(
+                      l10n.mnPrivateKey,
+                      style: STextStyles.smallMed12(context),
+                    ),
                   ),
+                  const SizedBox(width: 8),
                   if (!widget.existing)
                     CustomTextButton(
                       text: _pasteKey ? l10n.mnGenerateKey : l10n.mnHaveKey,

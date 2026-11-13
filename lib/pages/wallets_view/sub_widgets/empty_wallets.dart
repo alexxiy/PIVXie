@@ -33,8 +33,6 @@ class EmptyWallets extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    debugPrint("BUILD: $runtimeType");
-
     final isDesktop = Util.isDesktop;
 
     ref.watch(

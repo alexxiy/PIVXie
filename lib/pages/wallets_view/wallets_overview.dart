@@ -186,6 +186,8 @@ class _EthWalletsOverviewState extends ConsumerState<WalletsOverview> {
             leading: const AppBarBackButton(),
             title: Text(
               l10n.walletsOfCoin(widget.coin.prettyName, widget.coin.ticker),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               style: STextStyles.navBarTitle(context),
             ),
             actions: [

@@ -194,7 +194,7 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
 
                         if (mnemonic != null) {
                           Navigator.of(context).push(
-                            RouteGenerator.getRoute(
+                            RouteGenerator.getRoute<void>(
                               builder: (_) => RecoverPhraseView(
                                 walletName: ref.read(provider).walletName,
                                 mnemonic: mnemonic.split(" "),
@@ -289,7 +289,7 @@ class _RestoringWalletCardState extends ConsumerState<RestoringWalletCard> {
 
                           if (mnemonic != null) {
                             Navigator.of(context).push(
-                              RouteGenerator.getRoute(
+                              RouteGenerator.getRoute<void>(
                                 builder: (_) => RecoverPhraseView(
                                   walletName: ref.read(provider).walletName,
                                   mnemonic: mnemonic.split(" "),

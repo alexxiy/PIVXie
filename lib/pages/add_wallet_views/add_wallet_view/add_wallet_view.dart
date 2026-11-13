@@ -51,7 +51,7 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
-        ref.refresh(addWalletSelectedEntityStateProvider);
+        ref.invalidate(addWalletSelectedEntityStateProvider);
       }
     });
 
@@ -60,8 +60,6 @@ class _AddWalletViewState extends ConsumerState<AddWalletView> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType");
-
     if (isDesktop) {
       return DesktopScaffold(
         appBar: const DesktopAppBar(

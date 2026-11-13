@@ -129,8 +129,6 @@ class _TransactionFeeSelectionSheetState
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType");
-
     final wallet = ref.watch(pWallets).getWallet(walletId);
 
     final coin = ref.watch(pWalletCoin(walletId));

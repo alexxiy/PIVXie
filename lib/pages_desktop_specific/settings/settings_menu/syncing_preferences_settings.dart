@@ -51,7 +51,6 @@ class _SyncingPreferencesSettings
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType");
     return Column(
       children: [
         Padding(

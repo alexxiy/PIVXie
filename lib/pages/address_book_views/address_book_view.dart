@@ -110,7 +110,6 @@ class _AddressBookViewState extends ConsumerState<AddressBookView> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType");
     final contacts = ref.watch(
       addressBookServiceProvider.select((value) => value.contacts),
     );

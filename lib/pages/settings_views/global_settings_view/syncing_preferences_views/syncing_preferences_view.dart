@@ -89,34 +89,35 @@ class SyncingPreferencesView extends ConsumerWidget {
                                 padding: const EdgeInsets.all(12),
                                 child: Row(
                                   children: [
-                                    Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          l10n.syncingTitle,
-                                          style: STextStyles.titleBold12(
-                                            context,
-                                          ),
-                                          textAlign: TextAlign.start,
-                                        ),
-                                        Text(
-                                          _currentTypeDescription(
-                                            ref.watch(
-                                              prefsChangeNotifierProvider
-                                                  .select(
-                                                    (value) => value.syncType,
-                                                  ),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            l10n.syncingTitle,
+                                            style: STextStyles.titleBold12(
+                                              context,
                                             ),
+                                            textAlign: TextAlign.start,
                                           ),
-                                          style: STextStyles.itemSubtitle(
-                                            context,
+                                          Text(
+                                            _currentTypeDescription(
+                                              ref.watch(
+                                                prefsChangeNotifierProvider
+                                                    .select(
+                                                      (value) => value.syncType,
+                                                    ),
+                                              ),
+                                            ),
+                                            style: STextStyles.itemSubtitle(
+                                              context,
+                                            ),
+                                            textAlign: TextAlign.start,
                                           ),
-                                          textAlign: TextAlign.start,
-                                        ),
-                                      ],
+                                        ],
+                                      ),
                                     ),
-                                    const Spacer(),
                                   ],
                                 ),
                               ),

@@ -22,6 +22,7 @@ import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/page_app_bar.dart';
 import '../../widgets/stack_dialog.dart';
 import '../pivx_names/pivx_names_common.dart';
+import 'pivx_defi_guide.dart';
 
 // PIVXie DeFi Bridge (https://defi-bridge.pivxie.me), the parts its screens
 // share. The look follows the bridge's web app: a wrap takes PIVX to the
@@ -291,11 +292,11 @@ const kPivxDefiRoute = "/pivxDefi";
 const kPivxDefiOrdersRoute = "/pivxDefiOrders";
 const kPivxDefiReservesRoute = "/pivxDefiReserves";
 
-enum _MenuItem { orders, reserves, about, browser, support }
+enum _MenuItem { orders, reserves, guide, about, browser, support }
 
 /// The DeFi Bridge header: back, the wPIVX mark and [title], then the menu
-/// (recent orders, reserves, about, the web app, support). Sized like
-/// [PageAppBar].
+/// (recent orders, reserves, how it works, about, the web app, support).
+/// Sized like [PageAppBar].
 class PivxDefiAppBar extends StatelessWidget implements PreferredSizeWidget {
   const PivxDefiAppBar({
     super.key,
@@ -360,6 +361,7 @@ class PivxDefiAppBar extends StatelessWidget implements PreferredSizeWidget {
           Icons.account_balance_rounded,
           l10n.defiReserves,
         ),
+        item(_MenuItem.guide, Icons.help_outline_rounded, l10n.defiGuide),
         item(_MenuItem.about, Icons.info_outline_rounded, l10n.defiAbout),
         item(
           _MenuItem.browser,
@@ -381,6 +383,8 @@ class PivxDefiAppBar extends StatelessWidget implements PreferredSizeWidget {
         await navigator.pushNamed(kPivxDefiOrdersRoute, arguments: walletId);
       case _MenuItem.reserves:
         await navigator.pushNamed(kPivxDefiReservesRoute, arguments: walletId);
+      case _MenuItem.guide:
+        await showPivxDefiGuide(button, walletId);
       case _MenuItem.about:
         await showPivxDefiAbout(button);
       case _MenuItem.browser:

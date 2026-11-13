@@ -35,7 +35,6 @@ class CoinSelectItem extends ConsumerStatefulWidget {
 class _CoinSelectItemState extends ConsumerState<CoinSelectItem> {
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: CoinSelectItem for ${widget.entity.name}");
     final selectedEntity = ref.watch(addWalletSelectedEntityStateProvider);
 
     final isDesktop = Util.isDesktop;

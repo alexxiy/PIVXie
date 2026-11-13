@@ -98,15 +98,17 @@ class WalletNavigationBarItem extends ConsumerWidget {
                     ),
                   ),
                   const Spacer(),
-                  data.overrideText ??
-                      // One line, shrunk when a translation is wider than
-                      // the item (a fifth of a 360 px screen), with a gap
-                      // to the next label.
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 3),
-                        child: FittedBox(
-                          fit: BoxFit.scaleDown,
-                          child: Text(
+                  // One line, shrunk when a translation is wider than the
+                  // item (a fifth of a 360 px screen), with a gap to the
+                  // next label. "More" too: "Daha fazla" wrapped and
+                  // overflowed in landscape.
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 3),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child:
+                          data.overrideText ??
+                          Text(
                             data.label ?? "",
                             maxLines: 1,
                             style: STextStyles.buttonSmall(context).copyWith(
@@ -115,8 +117,8 @@ class WalletNavigationBarItem extends ConsumerWidget {
                                   .bottomNavText,
                             ),
                           ),
-                        ),
-                      ),
+                    ),
+                  ),
                 ],
               ),
             ),

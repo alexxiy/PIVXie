@@ -136,6 +136,7 @@ class _LockscreenViewState extends ConsumerState<LockscreenView> {
 
   Future<void> _onUnlock() async {
     await _pinAttempts.succeeded();
+    if (!mounted) return;
     final now = DateTime.now().toUtc();
     ref.read(prefsChangeNotifierProvider).lastUnlocked =
         now.millisecondsSinceEpoch ~/ 1000;

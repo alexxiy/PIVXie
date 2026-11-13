@@ -313,8 +313,6 @@ class _WalletViewState extends ConsumerState<WalletView> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType");
-
     final coin = ref.watch(pWalletCoin(walletId));
 
     final wallet = ref.watch(pWallets).getWallet(walletId);
@@ -353,6 +351,7 @@ class _WalletViewState extends ConsumerState<WalletView> {
                       child: Text(
                         ref.watch(pWalletName(walletId)),
                         style: STextStyles.navBarTitle(context),
+                        maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),

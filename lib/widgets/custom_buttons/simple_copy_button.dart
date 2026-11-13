@@ -13,25 +13,32 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+
 import '../../l10n/l10n.dart';
 import '../../notifications/show_flush_bar.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
+import '../../utilities/clipboard_interface.dart';
 import '../../utilities/text_styles.dart';
 
 class SimpleCopyButton extends StatelessWidget {
-  const SimpleCopyButton({
-    super.key,
-    required this.data,
-  });
+  const SimpleCopyButton({super.key, required this.data, this.secret = false});
 
   final String data;
+
+  /// Cleared from the clipboard again after a minute (see
+  /// [ClipboardWrapper.setSecret]).
+  final bool secret;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: () async {
-        await Clipboard.setData(ClipboardData(text: data));
+        if (secret) {
+          await const ClipboardWrapper().setSecret(data);
+        } else {
+          await Clipboard.setData(ClipboardData(text: data));
+        }
         if (context.mounted) {
           unawaited(
             showFloatingFlushBar(
@@ -50,13 +57,8 @@ class SimpleCopyButton extends StatelessWidget {
             height: 10,
             color: Theme.of(context).extension<StackColors>()!.infoItemIcons,
           ),
-          const SizedBox(
-            width: 4,
-          ),
-          Text(
-            l10n.commonCopy,
-            style: STextStyles.link2(context),
-          ),
+          const SizedBox(width: 4),
+          Text(l10n.commonCopy, style: STextStyles.link2(context)),
         ],
       ),
     );

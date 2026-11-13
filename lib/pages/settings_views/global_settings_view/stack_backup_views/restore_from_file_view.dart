@@ -399,7 +399,7 @@ class _RestoreFromFileViewState extends ConsumerState<RestoreFromFileView> {
                               }
 
                               await Navigator.of(context).push(
-                                RouteGenerator.getRoute(
+                                RouteGenerator.getRoute<void>(
                                   builder: (_) => StackRestoreProgressView(
                                     jsonString: jsonString,
                                     shouldPushToHome: true,

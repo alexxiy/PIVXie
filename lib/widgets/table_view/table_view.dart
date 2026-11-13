@@ -23,17 +23,13 @@ class TableView extends StatelessWidget {
   final bool shrinkWrap;
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType");
     return ListView(
       shrinkWrap: shrinkWrap,
       children: [
         for (int i = 0; i < rows.length; i++)
           Column(
             children: [
-              if (i != 0)
-                SizedBox(
-                  height: rowSpacing,
-                ),
+              if (i != 0) SizedBox(height: rowSpacing),
               rows[i],
             ],
           ),

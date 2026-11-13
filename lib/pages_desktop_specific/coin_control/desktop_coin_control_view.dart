@@ -83,8 +83,6 @@ class _DesktopCoinControlViewState
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType");
-
     if (_sort == CCSortDescriptor.address) {
       _list = null;
       _map = MainDB.instance.queryUTXOsGroupedByAddressSync(

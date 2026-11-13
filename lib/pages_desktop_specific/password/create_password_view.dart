@@ -204,8 +204,6 @@ class _CreatePasswordViewState extends ConsumerState<CreatePasswordView> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType ");
-
     return DesktopScaffold(
       bodyGrows: true,
       appBar: DesktopAppBar(

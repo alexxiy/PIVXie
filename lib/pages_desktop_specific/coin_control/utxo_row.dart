@@ -94,8 +94,6 @@ class _UtxoRowState extends ConsumerState<UtxoRow> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType");
-
     final coin = ref.watch(pWalletCoin(widget.walletId));
 
     return StreamBuilder<UTXO?>(

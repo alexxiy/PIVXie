@@ -146,27 +146,30 @@ class _OrderTile extends ConsumerWidget {
                         ),
                       ],
                       const SizedBox(height: 2),
-                      Row(
-                        children: [
-                          Text(
-                            "#${order.id}",
-                            textDirection: TextDirection.ltr,
-                            style: subtle,
-                          ),
-                          const Spacer(),
-                          Text(pivxDefiDate(order.created), style: subtle),
-                        ],
+                      // The whole id, with the date beside it or, when
+                      // there is no room, under it.
+                      SizedBox(
+                        width: double.infinity,
+                        child: Wrap(
+                          alignment: WrapAlignment.spaceBetween,
+                          spacing: 8,
+                          runSpacing: 2,
+                          children: [
+                            Text(
+                              "#${order.id}",
+                              textDirection: TextDirection.ltr,
+                              style: subtle,
+                            ),
+                            Text(pivxDefiDate(order.created), style: subtle),
+                          ],
+                        ),
                       ),
                     ],
                   ),
                 ),
                 const SizedBox(width: 6),
-                Icon(
-                  Directionality.of(context) == TextDirection.rtl
-                      ? Icons.chevron_left_rounded
-                      : Icons.chevron_right_rounded,
-                  color: colors.textSubtitle1,
-                ),
+                // Mirrors itself in right-to-left languages.
+                Icon(Icons.chevron_right_rounded, color: colors.textSubtitle1),
               ],
             ),
           ),

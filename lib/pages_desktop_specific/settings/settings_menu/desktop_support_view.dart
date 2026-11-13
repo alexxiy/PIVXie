@@ -30,7 +30,6 @@ class DesktopSupportView extends ConsumerStatefulWidget {
 class _DesktopSupportView extends ConsumerState<DesktopSupportView> {
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType");
     return DesktopScaffold(
       bodyGrows: true,
       background: Theme.of(context).extension<StackColors>()!.background,

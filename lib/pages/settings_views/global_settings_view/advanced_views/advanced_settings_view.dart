@@ -39,8 +39,6 @@ class AdvancedSettingsView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    debugPrint("BUILD: $runtimeType");
-
     return Background(
       child: AppScaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,

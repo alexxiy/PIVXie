@@ -54,11 +54,10 @@ class _FreezeButtonState extends State<FreezeButton> {
     switch (_freezeCache) {
       case true:
         for (final e in widget.selectedUTXOs) {
-          final utxo =
-              MainDB.instance.isar.utxos
-                  .where()
-                  .idEqualTo(e.utxoId)
-                  .findFirstSync()!;
+          final utxo = MainDB.instance.isar.utxos
+              .where()
+              .idEqualTo(e.utxoId)
+              .findFirstSync()!;
           if (!utxo.isBlocked) {
             utxosToUpdate.add(utxo.copyWith(isBlocked: true));
           }
@@ -67,17 +66,16 @@ class _FreezeButtonState extends State<FreezeButton> {
 
       case false:
         for (final e in widget.selectedUTXOs) {
-          final utxo =
-              MainDB.instance.isar.utxos
-                  .where()
-                  .idEqualTo(e.utxoId)
-                  .findFirstSync()!;
+          final utxo = MainDB.instance.isar.utxos
+              .where()
+              .idEqualTo(e.utxoId)
+              .findFirstSync()!;
           if (utxo.isBlocked) {
             utxosToUpdate.add(utxo.copyWith(isBlocked: false));
           }
         }
         break;
-        }
+    }
 
     // final update utxo set in db
     if (utxosToUpdate.isNotEmpty) {
@@ -110,7 +108,6 @@ class _FreezeButtonState extends State<FreezeButton> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType");
     return PrimaryButton(
       buttonHeight: ButtonHeight.l,
       width: 200,

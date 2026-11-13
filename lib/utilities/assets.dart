@@ -87,9 +87,6 @@ class _SVG {
 
   final coinControl = const _COIN_CONTROL();
 
-  String get connectedButton => "assets/svg/connected-button.svg";
-  String get connectingButton => "assets/svg/connecting-button.svg";
-  String get disconnectedButton => "assets/svg/disconnected-button.svg";
   String get circleTor => "assets/svg/tor-circle.svg";
   String get tor => "assets/svg/tor.svg";
   String get circleSliders => "assets/svg/configuration.svg";
@@ -99,8 +96,6 @@ class _SVG {
   String get circleLanguage => "assets/svg/language-circle.svg";
   String get circleDollarSign => "assets/svg/dollar-sign-circle.svg";
   String get circleLock => "assets/svg/lock-circle.svg";
-  String get enableButton => "assets/svg/enabled-button.svg";
-  String get disableButton => "assets/svg/Button.svg";
   String get polygon => "assets/svg/Polygon.svg";
   String get drd => "assets/svg/drd-icon.svg";
   String get plus => "assets/svg/plus.svg";

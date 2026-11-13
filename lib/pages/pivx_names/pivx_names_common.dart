@@ -322,6 +322,7 @@ class PivxNamesAppBar extends StatelessWidget implements PreferredSizeWidget {
             child: Text(
               title ?? l10n.pivxNamesTitle,
               style: STextStyles.navBarTitle(context),
+              maxLines: 2,
               overflow: TextOverflow.ellipsis,
             ),
           ),
@@ -378,6 +379,7 @@ PreferredSizeWidget pivxNamesFlowAppBar(BuildContext context, String title) =>
       title: Text(
         title,
         style: STextStyles.navBarTitle(context),
+        maxLines: 2,
         overflow: TextOverflow.ellipsis,
       ),
     );
@@ -419,6 +421,21 @@ typedef _Point = (IconData, String);
 
 class _InfoDialogState extends State<_InfoDialog> {
   int _slide = 0;
+
+  // One scroll view holds every slide, so a new slide starts at the top
+  // rather than where the last one was scrolled to.
+  final _scroll = ScrollController();
+
+  void _go(int slide) {
+    setState(() => _slide = slide);
+    if (_scroll.hasClients) _scroll.jumpTo(0);
+  }
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
+  }
 
   static List<(String, List<_Point>)> get _slides => [
     (
@@ -563,6 +580,7 @@ class _InfoDialogState extends State<_InfoDialog> {
                   const Spacer(),
                   Text(
                     l10n.commonPageOf(_slide + 1, _slides.length),
+                    textDirection: TextDirection.ltr,
                     style: STextStyles.w500_12(context)
                         .copyWith(color: colors.textSubtitle1),
                   ),
@@ -573,6 +591,7 @@ class _InfoDialogState extends State<_InfoDialog> {
               // stay under the finger while paging.
               Flexible(
                 child: SingleChildScrollView(
+                  controller: _scroll,
                   child: Stack(
                     children: [
                       for (var i = 0; i < _slides.length; i++)
@@ -628,7 +647,7 @@ class _InfoDialogState extends State<_InfoDialog> {
                       child: PrimaryButton(
                         label: l10n.commonNext,
                         buttonHeight: Util.isDesktop ? ButtonHeight.m : null,
-                        onPressed: () => setState(() => _slide++),
+                        onPressed: () => _go(_slide + 1),
                       ),
                     ),
                   ],

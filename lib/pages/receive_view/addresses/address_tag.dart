@@ -10,6 +10,7 @@
 
 import 'package:flutter/material.dart';
 
+import '../../../l10n/l10n.dart';
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/extensions/extensions.dart';
 import '../../../utilities/text_styles.dart';
@@ -24,13 +25,15 @@ class AddressTag extends StatelessWidget {
   Widget build(BuildContext context) {
     return RoundedContainer(
       radiusMultiplier: 0.5,
-      padding: const EdgeInsets.symmetric(
-        vertical: 5,
-        horizontal: 7,
-      ),
+      padding: const EdgeInsets.symmetric(vertical: 5, horizontal: 7),
       color: Theme.of(context).extension<StackColors>()!.buttonBackPrimary,
       child: Text(
-        tag.capitalize(),
+        // The stored tags are English words: show the known ones translated.
+        switch (tag) {
+          "receiving" => l10n.addressReceiving,
+          "change" => l10n.txChange,
+          _ => tag.capitalize(),
+        },
         style: STextStyles.w500_14(context).copyWith(
           color: Theme.of(context).extension<StackColors>()!.buttonTextPrimary,
         ),

@@ -131,7 +131,6 @@ class _SecuritySettings extends ConsumerState<SecuritySettings> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType");
     // Scrolls on short windows (two cards, the password form opens).
     return SingleChildScrollView(
       child: Column(

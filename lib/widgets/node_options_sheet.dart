@@ -228,23 +228,27 @@ class _NodeOptionsSheetState extends ConsumerState<NodeOptionsSheet> {
                           ),
                         ),
                         const SizedBox(width: 12),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              node.name,
-                              style: STextStyles.titleBold12(context),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              status == "Connected"
-                                  ? l10n.commonConnected
-                                  : l10n.commonDisconnected,
-                              style: STextStyles.label(context),
-                            ),
-                          ],
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                node.name,
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                                style: STextStyles.titleBold12(context),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                status == "Connected"
+                                    ? l10n.commonConnected
+                                    : l10n.commonDisconnected,
+                                style: STextStyles.label(context),
+                              ),
+                            ],
+                          ),
                         ),
-                        const Spacer(),
+                        const SizedBox(width: 8),
                         NodeSignalIcon(
                           nodeId: nodeId,
                           connected: status == "Connected",

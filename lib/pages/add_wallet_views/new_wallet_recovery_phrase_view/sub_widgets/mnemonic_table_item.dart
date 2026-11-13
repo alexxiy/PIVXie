@@ -9,6 +9,7 @@
  */
 
 import 'package:flutter/material.dart';
+
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../widgets/rounded_white_container.dart';
@@ -29,7 +30,6 @@ class MnemonicTableItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType");
     return RoundedWhiteContainer(
       borderColor: borderColor,
       padding: isDesktop
@@ -53,9 +53,7 @@ class MnemonicTableItem extends StatelessWidget {
                     fontSize: 10,
                   ),
           ),
-          const SizedBox(
-            width: 8,
-          ),
+          const SizedBox(width: 8),
           Text(
             word,
             style: isDesktop

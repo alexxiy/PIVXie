@@ -194,7 +194,6 @@ class _NewWalletRecoveryPhraseWarningViewState
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType");
     final options = ref.read(pNewWalletOptions);
 
     final seedCount =
@@ -350,10 +349,12 @@ class _NewWalletRecoveryPhraseWarningViewState
                                           ),
                                         ),
                                         const SizedBox(width: 20),
-                                        Text(
-                                          l10n.addWalletWriteThemDown,
-                                          style: STextStyles.navBarTitle(
-                                            context,
+                                        Expanded(
+                                          child: Text(
+                                            l10n.addWalletWriteThemDown,
+                                            style: STextStyles.navBarTitle(
+                                              context,
+                                            ),
                                           ),
                                         ),
                                       ],
@@ -379,10 +380,12 @@ class _NewWalletRecoveryPhraseWarningViewState
                                           ),
                                         ),
                                         const SizedBox(width: 20),
-                                        Text(
-                                          l10n.addWalletKeepSafe,
-                                          style: STextStyles.navBarTitle(
-                                            context,
+                                        Expanded(
+                                          child: Text(
+                                            l10n.addWalletKeepSafe,
+                                            style: STextStyles.navBarTitle(
+                                              context,
+                                            ),
                                           ),
                                         ),
                                       ],

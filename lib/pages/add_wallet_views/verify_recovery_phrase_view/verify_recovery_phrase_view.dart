@@ -11,7 +11,6 @@
 import 'dart:async';
 import 'dart:math';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tuple/tuple.dart';
@@ -146,7 +145,7 @@ class _VerifyRecoveryPhraseViewState
       );
 
       _shownIndex = null;
-      final int next = Random().nextInt(_mnemonic.length);
+      final int next = Random.secure().nextInt(_mnemonic.length);
       ref
           .read(verifyMnemonicWordIndexStateProvider.notifier)
           .update((state) => next);
@@ -175,7 +174,7 @@ class _VerifyRecoveryPhraseViewState
       }
     }
 
-    final random = Random();
+    final random = Random.secure();
 
     final List<String> result = [];
 
@@ -185,10 +184,6 @@ class _VerifyRecoveryPhraseViewState
     }
 
     result.insert(random.nextInt(wordsToShow), chosenWord);
-
-    if (kDebugMode) {
-      print("Mnemonic game correct word: $chosenWord");
-    }
 
     return Tuple2(result, chosenWord);
   }
@@ -214,7 +209,6 @@ class _VerifyRecoveryPhraseViewState
       SecretScreen(child: Builder(builder: _buildScreen));
 
   Widget _buildScreen(BuildContext context) {
-    debugPrint("BUILD: $runtimeType");
     final correctIndex = ref.watch(verifyMnemonicWordIndexStateProvider);
     final side = ScreenFit.sideBySide(context);
 

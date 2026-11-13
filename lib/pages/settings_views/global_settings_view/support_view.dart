@@ -38,8 +38,6 @@ class SupportView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType");
-
     final isDesktop = Util.isDesktop;
 
     return ConditionalParent(

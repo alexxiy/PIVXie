@@ -152,8 +152,6 @@ class _RestoreOptionsViewState extends ConsumerState<RestoreOptionsView> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType with ${coin.identifier} $walletName");
-
     return MasterScaffold(
       isDesktop: isDesktop,
       appBar: isDesktop

@@ -40,9 +40,6 @@ class _ManagedFavoriteCardState extends ConsumerState<ManagedFavorite> {
   @override
   Widget build(BuildContext context) {
     final walletId = widget.walletId;
-
-    debugPrint("BUILD: $runtimeType with walletId $walletId");
-
     final isDesktop = Util.isDesktop;
 
     final coin = ref.watch(pWalletCoin(walletId));

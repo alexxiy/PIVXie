@@ -34,6 +34,14 @@
       }
     }
   },
+  "logLevelName": "{level, select, off{Off} fatal{Fatal} error{Error} warning{Warning} info{Info} debug{Debug} trace{Trace} other{{level}}}",
+  "@logLevelName": {
+    "placeholders": {
+      "level": {
+        "type": "String"
+      }
+    }
+  },
   "logLevelPrivacyWarning": "<b>Privacy Warning:</b> Selecting <b>Trace</b> or <b>Debug</b> may log sensitive metadata, such as transaction details, amounts, addresses, or network activity. While <b>Info</b> logs are less likely to contain sensitive data, they may still include some. No private keys, mnemonics, or credentials will ever be logged, but enabling these levels could expose information that might compromise privacy if accessed by unauthorized parties.",
   "@logLevelPrivacyWarning": {
     "description": "Keep <b> and </b> around the words to bold: the log level names Trace, Debug and Info stay in English."
@@ -973,22 +981,15 @@
   "sendInvalidAddress": "Invalid address",
   "sendNamesMainnetOnly": "Names like alice.pivx work on mainnet only",
   "sendNameInvalid": "Names use letters, digits and single hyphens, like alice.pivx",
-  "sendEnterAddress": "Enter {ticker} address",
-  "@sendEnterAddress": {
+  "sendAddressHint": "{ticker} address",
+  "@sendAddressHint": {
     "placeholders": {
       "ticker": {
         "type": "String"
       }
     }
   },
-  "sendEnterAddressOrName": "Enter {ticker} address or .pivx name",
-  "@sendEnterAddressOrName": {
-    "placeholders": {
-      "ticker": {
-        "type": "String"
-      }
-    }
-  },
+  "sendAddressOrNameHint": "Address or .pivx name",
   "pivxNameErrorUnreachable": "Couldn't reach the PIVX.name server.",
   "pivxNameErrorIndexer": "The PIVX.name server sent an answer PIVXie can't use.",
   "pivxNameErrorChainUnavailable": "Too few BNB Smart Chain servers answered to check the name. Try again later.",
@@ -3236,6 +3237,19 @@
     "description": "Tooltip of the (i) button next to a security setting."
   },
   "securityNoScreenshots": "Disable screenshots",
+  "securityNoScreenshotsInfo": "Blocks screenshots and screen recordings of this app. Android also shows the app's preview in recent apps as a blank screen.",
+  "@securityNoScreenshotsInfo": {
+    "description": "Explains the \"Disable screenshots\" setting (Android only). Recent apps: the system's app switcher."
+  },
+  "securityCoverScreenshotsNote": "Recent apps still show a blank preview because “{setting}” is on.",
+  "@securityCoverScreenshotsNote": {
+    "description": "Small note under \"Cover in background\" when it is off but screenshots are disabled (Android only). {setting} is the name of the \"Disable screenshots\" setting.",
+    "placeholders": {
+      "setting": {
+        "type": "String"
+      }
+    }
+  },
   "securityDuressPin": "Duress PIN",
   "securityBiometricsDuress": "Biometrics opens duress",
   "@securityBiometricsDuress": {
@@ -3379,6 +3393,8 @@
     }
   },
   "backupAutoFile": "Auto Backup file",
+  "backupAutoOn": "Enabled",
+  "backupAutoOff": "Disabled",
   "backupSavedTo": "Saved to",
   "backupPassphrase": "Passphrase",
   "backupAutoFrequency": "Auto Backup frequency",
@@ -4434,7 +4450,7 @@
   "donateRocketBoostText": "100% block-fuel, no limits! Full-throttle orbital rocket boost has launched PIVXie into zero-gravity. Levitating, surrounded by orbiting PIV coins, and breaking the atmosphere. Orbit reached! 🚀",
   "donateCustomBrew": "The Custom Brew",
   "donateCustomBrewMascot": "Manual Calibration",
-  "donateCustomBrewText": "You set the dosage, alchemist! Type in any amount and watch PIVXie try to survive the recipe. Big or small, your custom dose keeps the non-custodial wizardry running.",
+  "donateCustomBrewText": "You set the dosage, alchemist! Type in any amount and watch PIVXie try to survive the recipe. Big or small, your custom dose keeps the self-custodial wizardry running.",
   "donateEggTapWater": "PIVXie is inspecting this... is this tap water? Hydration is still appreciated!",
   "@donateEggTapWater": {
     "description": "A custom donation under one US dollar."
@@ -4506,6 +4522,44 @@
   "@defiHeadline": {
     "description": "DeFi Bridge, the wrap/unwrap form."
   },
+  "defiGuide": "How it works",
+  "@defiGuide": {
+    "description": "Link under the DeFi Bridge headline and menu item that open the four-slide guide."
+  },
+  "defiGuideWrapTitle": "Take your PIVX public",
+  "@defiGuideWrapTitle": {
+    "description": "Guide slide 1 title (wrapping PIVX into wPIVX)."
+  },
+  "defiGuideWrap1": "Send PIVX to the bridge and get the same amount of wPIVX in your BNB Smart Chain wallet, minus a small service fee.",
+  "defiGuideWrap2": "Wrapping takes nothing from your privacy. wPIVX is public, just like PIVX on the transparent layer, and the shielded PIVX you keep stays hidden.",
+  "defiGuideWrap3": "Use wPIVX in DeFi apps on BNB Smart Chain. Unwrap it whenever you want your PIVX back.",
+  "defiGuideUnwrapTitle": "Bring it back private",
+  "@defiGuideUnwrapTitle": {
+    "description": "Guide slide 2 title (unwrapping wPIVX back to PIVX)."
+  },
+  "defiGuideUnwrap1": "Send wPIVX to the bridge and get PIVX back. The bridge pays to shielded addresses only.",
+  "defiGuideUnwrap2": "It works like moving PIVX from the transparent layer into the shield: once there, your coins are private again.",
+  "defiGuideUnwrap3": "Already have wPIVX? Unwrap it into shielded PIVX for payments, staking or a masternode.",
+  "defiGuideSafeTitle": "How your coins are kept safe",
+  "defiGuideSafe1": "The vault that holds the bridge's PIVX works on its own, on a separate server. The bridge's website holds no keys, so even a hacked website could not move a coin.",
+  "defiGuideSafe2": "The vault's server is a dedicated physical machine, not a rented virtual one that a hosting provider could look inside. It is also very stable.",
+  "defiGuideSafe3": "Its disk is encrypted: anyone who pulls the drive out of the datacenter gets nothing.",
+  "defiGuideSafe4": "The vault checks every payment on both blockchains by itself and stops at anything that does not add up. The token contract also limits how much wPIVX can be created per day.",
+  "defiGuideSafe5": "Every wPIVX is backed 1:1 by PIVX in the vault, and anyone can check it.",
+  "defiGuideReservesLink": "See the reserves",
+  "@defiGuideReservesLink": {
+    "description": "Link after the last point of the safety slide; opens the Reserves screen."
+  },
+  "defiGuideHelpTitle": "Have any questions?",
+  "defiGuideTelegram": "Join our Telegram",
+  "@defiGuideTelegram": {
+    "description": "Link row on the last guide slide; opens the Telegram group."
+  },
+  "defiGuideDiscord": "You can ask for help in the official PIVX Discord",
+  "@defiGuideDiscord": {
+    "description": "Link row on the last guide slide; opens the PIVX Discord."
+  },
+  "defiGuideSlogan": "Let's support privacy and make it simpler",
   "defiSidePrivate": "Private side",
   "@defiSidePrivate": {
     "description": "DeFi Bridge, the wrap/unwrap form."

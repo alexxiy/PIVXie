@@ -12,6 +12,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../l10n/l10n.dart';
 import '../notifications/show_flush_bar.dart';
 import '../providers/db/main_db_provider.dart';
@@ -22,10 +23,7 @@ import '../utilities/text_styles.dart';
 import '../utilities/util.dart';
 
 class DesktopWalletNameField extends ConsumerStatefulWidget {
-  const DesktopWalletNameField({
-    super.key,
-    required this.walletId,
-  });
+  const DesktopWalletNameField({super.key, required this.walletId});
 
   final String walletId;
 
@@ -39,10 +37,7 @@ class _HoverTextFieldState extends ConsumerState<DesktopWalletNameField> {
   bool readOnly = true;
 
   final InputBorder inputBorder = OutlineInputBorder(
-    borderSide: const BorderSide(
-      width: 0,
-      color: Colors.transparent,
-    ),
+    borderSide: const BorderSide(width: 0, color: Colors.transparent),
     borderRadius: BorderRadius.circular(Constants.size.circularBorderRadius),
   );
 
@@ -50,6 +45,8 @@ class _HoverTextFieldState extends ConsumerState<DesktopWalletNameField> {
     final info = ref.read(pWallets).getWallet(widget.walletId).info;
     final currentWalletName = info.name;
     final newName = controller.text;
+    // Nothing to save (and no "renamed" message) when the name is the same.
+    if (newName == currentWalletName) return;
 
     String? errMessage;
     try {
@@ -114,22 +111,47 @@ class _HoverTextFieldState extends ConsumerState<DesktopWalletNameField> {
   void dispose() {
     controller.dispose();
     focusNode.removeListener(listenerFunc);
+    focusNode.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    // Not editing: the name as text, so a long one ends in "…" instead of
+    // being clipped (an 800 px window with a long sync status showed
+    // "Desktop restor"). A click opens the field.
+    if (readOnly) {
+      return MouseRegion(
+        cursor: SystemMouseCursors.text,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            setState(() {
+              readOnly = false;
+            });
+          },
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
+            child: ValueListenableBuilder<TextEditingValue>(
+              valueListenable: controller,
+              builder: (context, value, _) => Text(
+                value.text,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: STextStyles.desktopH3(context),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
     return TextField(
       autocorrect: !Util.isDesktop,
       enableSuggestions: !Util.isDesktop,
       controller: controller,
       focusNode: focusNode,
+      autofocus: true,
       readOnly: readOnly,
-      onTap: () {
-        setState(() {
-          readOnly = false;
-        });
-      },
       onEditingComplete: () {
         setState(() {
           readOnly = true;
@@ -138,10 +160,7 @@ class _HoverTextFieldState extends ConsumerState<DesktopWalletNameField> {
       },
       style: STextStyles.desktopH3(context),
       decoration: InputDecoration(
-        contentPadding: const EdgeInsets.symmetric(
-          vertical: 4,
-          horizontal: 12,
-        ),
+        contentPadding: const EdgeInsets.symmetric(vertical: 4, horizontal: 12),
         border: inputBorder,
         focusedBorder: inputBorder,
         disabledBorder: inputBorder,

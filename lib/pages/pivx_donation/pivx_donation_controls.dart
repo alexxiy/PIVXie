@@ -130,30 +130,45 @@ class PivxDonationTierSlider extends StatelessWidget {
                   ),
                   const SizedBox(height: 6),
                   Row(
+                    // A two-line label ("Otra / cantidad") keeps the
+                    // others on its first line.
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       for (var i = 0; i < n; i++)
                         Expanded(
-                          child: Center(
-                            child: FittedBox(
-                              fit: BoxFit.scaleDown,
-                              child: Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 2,
-                                ),
-                                child: Text(
-                                  labels[i],
-                                  maxLines: 1,
-                                  style: STextStyles.w500_12(context).copyWith(
+                          child: LayoutBuilder(
+                            builder: (context, box) {
+                              final style = STextStyles.w500_12(context)
+                                  .copyWith(
                                     fontWeight: i == index
                                         ? FontWeight.w700
                                         : FontWeight.w500,
                                     color: i == index
                                         ? colors.textDark
                                         : colors.textSubtitle1,
+                                  );
+                              return Center(
+                                child: FittedBox(
+                                  fit: BoxFit.scaleDown,
+                                  child: Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 2,
+                                    ),
+                                    child: Text(
+                                      _fitLabel(
+                                        context,
+                                        labels[i],
+                                        style,
+                                        box.maxWidth - 4,
+                                      ),
+                                      maxLines: 2,
+                                      textAlign: TextAlign.center,
+                                      style: style,
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ),
+                              );
+                            },
                           ),
                         ),
                     ],
@@ -362,4 +377,24 @@ class _PivxSlideToConfirmState extends State<PivxSlideToConfirm>
       },
     );
   }
+}
+
+/// A slider label too wide for its place ("Eigener Betrag") goes on two
+/// lines before it is made smaller.
+String _fitLabel(
+  BuildContext context,
+  String label,
+  TextStyle style,
+  double width,
+) {
+  if (!label.contains(" ")) return label;
+  final painter = TextPainter(
+    text: TextSpan(text: label, style: style),
+    textDirection: Directionality.of(context),
+    textScaler: MediaQuery.textScalerOf(context),
+    maxLines: 1,
+  )..layout();
+  final tooWide = painter.width > width;
+  painter.dispose();
+  return tooWide ? label.replaceFirst(" ", "\n") : label;
 }

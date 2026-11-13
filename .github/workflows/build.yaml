@@ -4,9 +4,10 @@ name: Build
 # Flatpak), Windows, macOS and an iOS archive. Android and Linux x86_64
 # are built on the DevBox.
 #
-# Nothing here is signed and no signing keys live on GitHub. Sign the
-# Windows and macOS files locally; export the iOS archive to App Store
-# Connect from a Mac, which signs it.
+# Nothing here is signed and no signing keys live on GitHub. The DevBox
+# signs the macOS app (Developer ID, notarized) and the App Store builds
+# (iOS archive, Mac App Store app; apple.yaml wraps the signed Mac app in an
+# installer package). Sign the Windows files locally.
 #
 # Run it from Actions > Build > Run workflow. With "release" ticked, the
 # Linux arm64, Windows and macOS files also go on the draft release
@@ -40,7 +41,7 @@ permissions:
   contents: read
 
 env:
-  FLUTTER_VERSION: 3.47.7
+  FLUTTER_VERSION: 3.47.8
   # The Rust the Tor plugin pins (its rust-toolchain.toml, at the
   # tor_ffi_plugin ref in the pubspec template): update them together.
   TOR_RUST: 1.99.1
@@ -301,16 +302,26 @@ jobs:
           path: out/
           retention-days: 14
 
+  # Two builds: the one for GitHub, and the Mac App Store one
+  # (--dart-define=APP_STORE=true leaves out what App Review hasn't seen),
+  # which stays off the release.
   macos:
-    name: macOS (unsigned)
+    name: macOS${{ matrix.appstore && ' App Store' || '' }} (unsigned)
     runs-on: macos-latest
     needs: version
+    strategy:
+      matrix:
+        appstore: [false, true]
     env:
       VERSION: ${{ needs.version.outputs.version }}
       BUILD_NUMBER: ${{ needs.version.outputs.build_number }}
-      DART_DEFINES: ${{ needs.version.outputs.dart_defines }}
+      DART_DEFINES: ${{ needs.version.outputs.dart_defines }}${{ matrix.appstore && ' --dart-define=APP_STORE=true' || '' }}
+      APPSTORE: ${{ matrix.appstore }}
     steps:
       - uses: actions/checkout@v6
+
+      - name: Xcode
+        run: xcodebuild -version
 
       - uses: subosito/flutter-action@v2
         with:
@@ -335,18 +346,23 @@ jobs:
       - name: Build
         run: flutter build macos --release $DART_DEFINES
 
-      # Only ad-hoc signed: sign it with the Developer ID certificate and
-      # notarize it before handing it out.
+      # Only ad-hoc signed: the DevBox signs it (Developer ID and
+      # notarization, or for the Mac App Store) before it goes anywhere.
       - name: Package
         run: |
           APP=$(find build/macos/Build/Products/Release -maxdepth 1 -name '*.app' | head -1)
           mkdir -p out
-          ditto -c -k --sequesterRsrc --keepParent "$APP" \
-            "out/pivxie-$VERSION-macos-unsigned.zip"
+          if [ "$APPSTORE" = "true" ]; then
+            ZIP="out/pivxie-$VERSION-build$BUILD_NUMBER-macos-appstore.zip"
+          else
+            ZIP="out/pivxie-$VERSION-macos-unsigned.zip"
+          fi
+          ditto -c -k --sequesterRsrc --keepParent "$APP" "$ZIP"
 
+      # The release job takes the pivxie-* artifacts.
       - uses: actions/upload-artifact@v7
         with:
-          name: pivxie-${{ env.VERSION }}-macos-unsigned
+          name: ${{ matrix.appstore && format('appstore-macos-{0}-build{1}', env.VERSION, env.BUILD_NUMBER) || format('pivxie-{0}-macos-unsigned', env.VERSION) }}
           path: out/
           retention-days: 14
 
@@ -374,6 +390,10 @@ jobs:
       - name: Install the Tor plugin's Rust
         run: rustup toolchain install "$TOR_RUST" --profile minimal --target aarch64-apple-ios
 
+      # App Store Connect takes builds from Xcode 26 (iOS 26 SDK) on.
+      - name: Xcode
+        run: xcodebuild -version
+
       - name: Configure app
         working-directory: scripts
         run: echo yes | ./build_app.sh -a pivxie -p ios -i -v "$VERSION" -b "$BUILD_NUMBER"
@@ -381,9 +401,8 @@ jobs:
       - name: Build
         run: flutter build ipa --release --no-codesign $DART_DEFINES
 
-      # For the App Store only, so it stays out of the release: on a Mac,
-      # export it with the company's account (Xcode Organizer, or
-      # xcodebuild -exportArchive), which signs it.
+      # For the App Store only, so it stays out of the release: the DevBox
+      # signs it and uploads it to App Store Connect.
       - name: Package
         run: |
           mkdir -p out

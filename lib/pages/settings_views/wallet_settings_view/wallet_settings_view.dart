@@ -101,7 +101,7 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
           wallet.isViewOnly) {
         await Navigator.push(
           context,
-          RouteGenerator.getRoute(
+          RouteGenerator.getRoute<void>(
             shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
             builder: (_) => LockscreenView(
               routeOnSuccessArguments: (walletId: walletId, keyData: keyData),
@@ -117,7 +117,7 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
       } else {
         await Navigator.push(
           context,
-          RouteGenerator.getRoute(
+          RouteGenerator.getRoute<void>(
             shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
             builder: (_) => LockscreenView(
               routeOnSuccessArguments: (
@@ -204,7 +204,6 @@ class _WalletSettingsViewState extends ConsumerState<WalletSettingsView> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType");
     final wallet = ref.read(pWallets).getWallet(widget.walletId);
 
     bool canBackup = true;

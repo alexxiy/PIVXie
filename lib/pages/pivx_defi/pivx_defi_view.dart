@@ -31,6 +31,7 @@ import '../../widgets/stack_dialog.dart';
 import '../../widgets/stack_text_field.dart';
 import '../send_view/sub_widgets/pivx_funding_card.dart';
 import 'pivx_defi_common.dart';
+import 'pivx_defi_guide.dart';
 import 'pivx_defi_order_view.dart';
 
 /// PIVXie DeFi Bridge: wrap shielded PIVX into wPIVX on BNB Smart Chain, or
@@ -140,6 +141,9 @@ class _PivxDefiViewState extends ConsumerState<PivxDefiView> {
     unawaited(_loadInfo());
     _infoTimer = Timer.periodic(_kInfoRefresh, (_) => _loadInfo());
     unawaited(_loadOwnShield());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) unawaited(showPivxDefiGuideOnce(context, widget.walletId));
+    });
   }
 
   @override
@@ -670,25 +674,23 @@ class _PivxDefiViewState extends ConsumerState<PivxDefiView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Row(
+          // The note goes under the label where both don't fit on one
+          // line (tr in phone landscape), rather than being cut.
+          Wrap(
+            spacing: 6,
             children: [
               Text(
                 label,
                 style: STextStyles.w500_12(context)
                     .copyWith(color: colors.textSubtitle1),
               ),
-              if (note != null) ...[
-                const SizedBox(width: 6),
-                Flexible(
-                  child: Text(
-                    note,
-                    overflow: TextOverflow.ellipsis,
-                    style: STextStyles.w500_12(context).copyWith(
-                      color: colors.textSubtitle1.withValues(alpha: 0.7),
-                    ),
+              if (note != null)
+                Text(
+                  note,
+                  style: STextStyles.w500_12(context).copyWith(
+                    color: colors.textSubtitle1.withValues(alpha: 0.7),
                   ),
                 ),
-              ],
             ],
           ),
           const SizedBox(height: 6),
@@ -1010,6 +1012,13 @@ class _PivxDefiViewState extends ConsumerState<PivxDefiView> {
               : "${l10n.defiSidePrivate} · ${l10n.defiSidePrivateSub}",
           textAlign: TextAlign.center,
           style: STextStyles.w600_14(context).copyWith(color: color),
+        ),
+        const SizedBox(height: 6),
+        Center(
+          child: CustomTextButton(
+            text: l10n.defiGuide,
+            onTap: () => showPivxDefiGuide(context, widget.walletId),
+          ),
         ),
         if (side) ...[
           const SizedBox(height: 16),

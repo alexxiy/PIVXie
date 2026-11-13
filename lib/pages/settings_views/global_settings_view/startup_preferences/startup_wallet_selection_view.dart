@@ -59,12 +59,12 @@ class _StartupWalletSelectionViewState
               Navigator.of(context).pop();
             },
           ),
-          title: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Text(
-              l10n.startupSelectTitle,
-              style: STextStyles.navBarTitle(context),
-            ),
+          // Long titles (German, Russian) wrap rather than shrink.
+          title: Text(
+            l10n.startupSelectTitle,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: STextStyles.navBarTitle(context),
           ),
         ),
         body: SafeArea(
@@ -167,10 +167,9 @@ class _StartupWalletSelectionViewState
                                             height: 20,
                                             width: 20,
                                             child: Radio(
-                                              activeColor:
-                                                  Theme.of(context)
-                                                      .extension<StackColors>()!
-                                                      .radioButtonIconEnabled,
+                                              activeColor: Theme.of(context)
+                                                  .extension<StackColors>()!
+                                                  .radioButtonIconEnabled,
                                               value: wallet.walletId,
                                               groupValue: ref.watch(
                                                 prefsChangeNotifierProvider
@@ -182,10 +181,11 @@ class _StartupWalletSelectionViewState
                                               onChanged: (value) {
                                                 if (value is String) {
                                                   ref
-                                                      .read(
-                                                        prefsChangeNotifierProvider,
-                                                      )
-                                                      .startupWalletId = value;
+                                                          .read(
+                                                            prefsChangeNotifierProvider,
+                                                          )
+                                                          .startupWalletId =
+                                                      value;
                                                 }
                                               },
                                             ),

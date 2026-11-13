@@ -34,6 +34,26 @@ void main() {
     expect(last, const Duration(hours: 1));
   });
 
+  test("a clock that went back never stretches the lockout", () async {
+    final store = FakeSecureStorage();
+    final attempts = PinAttempts(store);
+    for (var i = 0; i < 4; i++) {
+      await attempts.failed();
+    }
+    // As if the clock was a day ahead when the lockout started.
+    final ahead = DateTime.now().add(const Duration(days: 1));
+    await store.write(
+      key: "pinLockedUntil",
+      value: "${ahead.millisecondsSinceEpoch}",
+    );
+    final left = await attempts.lockedFor();
+    expect(left, const Duration(seconds: 30));
+    expect(
+      (await attempts.lockedFor())! <= const Duration(seconds: 30),
+      isTrue,
+    );
+  });
+
   test("the wait is rounded up", () {
     expect(
       PinAttempts.lockedMessage(const Duration(seconds: 29, milliseconds: 1)),

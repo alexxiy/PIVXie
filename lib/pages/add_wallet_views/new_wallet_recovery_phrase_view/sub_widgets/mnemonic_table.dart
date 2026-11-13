@@ -27,7 +27,6 @@ class MnemonicTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType");
     final wordsPerRow =
         isDesktop ||
             (ScreenFit.sideBySide(context) &&
@@ -50,10 +49,7 @@ class MnemonicTable extends StatelessWidget {
             child: Row(
               children: [
                 for (int j = 1; j <= wordsPerRow; j++) ...[
-                  if (j > 1)
-                    SizedBox(
-                      width: isDesktop ? 10 : 6,
-                    ),
+                  if (j > 1) SizedBox(width: isDesktop ? 10 : 6),
                   Expanded(
                     child: MnemonicTableItem(
                       number: ++index,
@@ -72,10 +68,7 @@ class MnemonicTable extends StatelessWidget {
             child: Row(
               children: [
                 for (int i = index; i < words.length; i++) ...[
-                  if (i > index)
-                    SizedBox(
-                      width: isDesktop ? 10 : 6,
-                    ),
+                  if (i > index) SizedBox(width: isDesktop ? 10 : 6),
                   Expanded(
                     child: MnemonicTableItem(
                       number: i + 1,
@@ -86,12 +79,8 @@ class MnemonicTable extends StatelessWidget {
                   ),
                 ],
                 for (int i = remainder; i < wordsPerRow; i++) ...[
-                  const SizedBox(
-                    width: 6,
-                  ),
-                  Expanded(
-                    child: Container(),
-                  ),
+                  const SizedBox(width: 6),
+                  Expanded(child: Container()),
                 ],
               ],
             ),

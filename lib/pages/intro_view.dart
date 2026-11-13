@@ -49,7 +49,6 @@ class _IntroViewState extends ConsumerState<IntroView> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType ");
     return Background(
       child: AppScaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,

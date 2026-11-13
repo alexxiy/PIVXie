@@ -19,24 +19,40 @@ class PinAttempts {
     if (until == null) return null;
     final left = DateTime.fromMillisecondsSinceEpoch(until)
         .difference(DateTime.now());
-    return left > Duration.zero ? left : null;
+    if (left <= Duration.zero) return null;
+    final failures =
+        int.tryParse(await _store.read(key: _kFailures) ?? "") ?? 0;
+    final lockout = _lockout(failures);
+    if (lockout == null) return null;
+    if (left <= lockout) return left;
+    // The clock went back: count the lockout from now, not for longer.
+    await _store.write(
+      key: _kLockedUntil,
+      value: "${DateTime.now().add(lockout).millisecondsSinceEpoch}",
+    );
+    return lockout;
   }
+
+  /// The lockout after [failures] wrong PINs in a row; null for none.
+  static Duration? _lockout(int failures) => failures <= _free
+      ? null
+      : switch (failures - _free) {
+          1 => const Duration(seconds: 30),
+          2 => const Duration(minutes: 1),
+          3 => const Duration(minutes: 5),
+          4 => const Duration(minutes: 10),
+          5 => const Duration(minutes: 20),
+          6 => const Duration(minutes: 30),
+          _ => const Duration(hours: 1),
+        };
 
   /// Records a wrong PIN. Returns the lockout it starts, if any.
   Future<Duration?> failed() async {
     final failures =
         (int.tryParse(await _store.read(key: _kFailures) ?? "") ?? 0) + 1;
     await _store.write(key: _kFailures, value: "$failures");
-    if (failures <= _free) return null;
-    final lockout = switch (failures - _free) {
-      1 => const Duration(seconds: 30),
-      2 => const Duration(minutes: 1),
-      3 => const Duration(minutes: 5),
-      4 => const Duration(minutes: 10),
-      5 => const Duration(minutes: 20),
-      6 => const Duration(minutes: 30),
-      _ => const Duration(hours: 1),
-    };
+    final lockout = _lockout(failures);
+    if (lockout == null) return null;
     await _store.write(
       key: _kLockedUntil,
       value: "${DateTime.now().add(lockout).millisecondsSinceEpoch}",

@@ -46,20 +46,21 @@ class WalletSyncingOptionsView extends ConsumerWidget {
       builder: (child) {
         return Background(
           child: AppScaffold(
-            backgroundColor:
-                Theme.of(context).extension<StackColors>()!.background,
+            backgroundColor: Theme.of(context)
+                .extension<StackColors>()!
+                .background,
             appBar: AppBar(
               leading: AppBarBackButton(
                 onPressed: () async {
                   Navigator.of(context).pop();
                 },
               ),
-              title: FittedBox(
-                fit: BoxFit.scaleDown,
-                child: Text(
-                  l10n.syncingSelected,
-                  style: STextStyles.navBarTitle(context),
-                ),
+              // Long titles (German, Russian) wrap rather than shrink.
+              title: Text(
+                l10n.syncingSelected,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: STextStyles.navBarTitle(context),
               ),
             ),
             body: SafeArea(
@@ -100,12 +101,11 @@ class WalletSyncingOptionsView extends ConsumerWidget {
                         const SizedBox(height: 12),
                         RoundedWhiteContainer(
                           padding: const EdgeInsets.all(0),
-                          borderColor:
-                              !isDesktop
-                                  ? Colors.transparent
-                                  : Theme.of(
-                                    context,
-                                  ).extension<StackColors>()!.background,
+                          borderColor: !isDesktop
+                              ? Colors.transparent
+                              : Theme.of(context)
+                                    .extension<StackColors>()!
+                                    .background,
                           child: Column(
                             children: [
                               ...walletInfos.map(
@@ -179,21 +179,20 @@ class WalletSyncingOptionsView extends ConsumerWidget {
                                         child: DraggableSwitchButton(
                                           isOn: ref
                                               .watch(
-                                                prefsChangeNotifierProvider.select(
-                                                  (value) =>
-                                                      value
+                                                prefsChangeNotifierProvider
+                                                    .select(
+                                                      (value) => value
                                                           .walletIdsSyncOnStartup,
-                                                ),
+                                                    ),
                                               )
                                               .contains(info.walletId),
                                           onValueChanged: (value) {
-                                            final ids =
-                                                ref
-                                                    .read(
-                                                      prefsChangeNotifierProvider,
-                                                    )
-                                                    .walletIdsSyncOnStartup
-                                                    .toList();
+                                            final ids = ref
+                                                .read(
+                                                  prefsChangeNotifierProvider,
+                                                )
+                                                .walletIdsSyncOnStartup
+                                                .toList();
                                             if (value) {
                                               ids.add(info.walletId);
                                             } else {
@@ -201,10 +200,11 @@ class WalletSyncingOptionsView extends ConsumerWidget {
                                             }
 
                                             ref
-                                                .read(
-                                                  prefsChangeNotifierProvider,
-                                                )
-                                                .walletIdsSyncOnStartup = ids;
+                                                    .read(
+                                                      prefsChangeNotifierProvider,
+                                                    )
+                                                    .walletIdsSyncOnStartup =
+                                                ids;
                                           },
                                         ),
                                       ),

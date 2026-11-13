@@ -87,7 +87,7 @@ void main() {
   test("bridge derives the same addresses from the account xpub", () async {
     final xpub = accountXpub();
     final info = await bridge.xpub(xpub, details: "tokens", tokens: "derived");
-    final tokens = (info["tokens"] as List).cast<Map>();
+    final tokens = (info["tokens"] as List).cast<Map<String, dynamic>>();
     String tokenAt(String suffix) =>
         tokens.firstWhere((t) => (t["path"] as String).endsWith(suffix))["name"]
             as String;

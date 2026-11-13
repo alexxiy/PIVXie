@@ -196,7 +196,7 @@ class _DesktopAttentionDeleteWallet
 
                           if (context.mounted) {
                             await Navigator.of(context).push(
-                              RouteGenerator.getRoute(
+                              RouteGenerator.getRoute<void>(
                                 builder: (context) {
                                   return ErrorLoadingKeysDialog(
                                     walletId: widget.walletId,
@@ -269,7 +269,7 @@ class ErrorLoadingKeysDialog extends StatelessWidget {
                   label: l10n.commonContinue,
                   onPressed: () async {
                     await Navigator.of(context).push(
-                      RouteGenerator.getRoute(
+                      RouteGenerator.getRoute<void>(
                         builder: (context) {
                           return ConfirmDelete(walletId: walletId);
                         },

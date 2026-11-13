@@ -210,8 +210,6 @@ class _AutoBackupViewState extends ConsumerState<AutoBackupView> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType");
-
     final bool isEnabledAutoBackup = ref.watch(
       prefsChangeNotifierProvider.select((value) => value.isAutoBackupEnabled),
     );

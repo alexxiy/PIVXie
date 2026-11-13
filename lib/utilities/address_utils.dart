@@ -41,12 +41,10 @@ class AddressUtils {
         result["address"] = u.path;
         result.addAll(_parseQueryParameters(u.queryParameters));
       }
-    } catch (e, s) {
-      Logging.instance.d(
-        "Exception caught in parseUri($uri): $e",
-        error: e,
-        stackTrace: s,
-      );
+    } catch (e) {
+      // Only the kind of error: a FormatException's text quotes the whole
+      // input, which can be anything pasted.
+      Logging.instance.d("Exception caught in parseUri: ${e.runtimeType}");
     }
     return result;
   }
@@ -102,7 +100,8 @@ class AddressUtils {
         additionalParams: filteredParams,
       );
     } catch (e, s) {
-      logging?.i("Invalid payment URI: $uri", error: e, stackTrace: s);
+      // The text itself stays out of the log: it can be anything pasted.
+      logging?.i("Invalid payment URI", error: e, stackTrace: s);
       return null;
     }
   }

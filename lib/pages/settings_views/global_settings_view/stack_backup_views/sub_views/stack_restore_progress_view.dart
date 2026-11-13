@@ -135,7 +135,7 @@ class _StackRestoreProgressViewState
   }
 
   Future<void> _restore() async {
-    ref.refresh(stackRestoringUIStateProvider);
+    ref.invalidate(stackRestoringUIStateProvider);
     final uiState = ref.read(stackRestoringUIStateProvider);
 
     // Every step reported but the restore doesn't return (stuck loading

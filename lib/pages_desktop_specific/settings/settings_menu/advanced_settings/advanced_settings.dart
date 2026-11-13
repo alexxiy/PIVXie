@@ -40,7 +40,6 @@ class AdvancedSettings extends ConsumerStatefulWidget {
 class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType");
     return SingleChildScrollView(
       child: Column(
         children: [

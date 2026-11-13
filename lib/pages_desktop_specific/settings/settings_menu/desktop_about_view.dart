@@ -31,7 +31,6 @@ class DesktopAboutView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    debugPrint("BUILD: $runtimeType");
     return DesktopScaffold(
       background: Theme.of(context).extension<StackColors>()!.background,
       appBar: DesktopAppBar(

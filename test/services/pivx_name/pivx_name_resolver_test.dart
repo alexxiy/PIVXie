@@ -451,9 +451,9 @@ void main() {
     expect(PivxNameService.forCoin(Pivx(CryptoCurrencyNetwork.test)), isNull);
   });
 
-  test("mainnet trusts epoch 1 and the coming epoch 2", () {
-    // The prover v0.2.1 rules change moves the contract to epoch 2: this
-    // release has to work on both sides of its activation.
-    expect(PivxNameService.mainnet.epochs, containsAll(<int>[1, 2]));
+  test("mainnet trusts epoch 2 only", () {
+    // The prover v0.2.1 rules change moved the contract to epoch 2, and
+    // epochs never go back.
+    expect(PivxNameService.mainnet.epochs, {2});
   });
 }

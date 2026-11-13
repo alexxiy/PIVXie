@@ -36,8 +36,6 @@ class CreateOrRestoreWalletView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType");
-
     if (Util.isDesktop) {
       return DesktopScaffold(
         appBar: const DesktopAppBar(

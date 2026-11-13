@@ -67,6 +67,8 @@ class _ManageExplorerViewState extends ConsumerState<ManageExplorerView> {
           ),
           title: Text(
             l10n.explorerOfCoin(widget.coin.prettyName),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
             style: STextStyles.navBarTitle(context),
           ),
         ),
@@ -100,8 +102,8 @@ class _ManageExplorerViewState extends ConsumerState<ManageExplorerView> {
                 PrimaryButton(
                   label: l10n.commonSave,
                   onPressed: () async {
-                    textEditingController.text =
-                        textEditingController.text.trim();
+                    textEditingController.text = textEditingController.text
+                        .trim();
                     await setBlockExplorerForCoin(
                       coin: widget.coin,
                       url: Uri.parse(textEditingController.text),

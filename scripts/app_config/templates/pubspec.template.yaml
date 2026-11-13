@@ -72,7 +72,7 @@ dependencies:
       ref: f0e12dacb6d39e1cb340f0deae178d0fad1d6fd6
   dart_bs58: ^1.0.1
   hex: ^0.2.0
-  crypto: ^3.0.2
+  crypto: ^3.0.8
   cryptography: ^2.9.0
   # Keccak-256, for the EIP-55 capitals of BNB Smart Chain addresses (DeFi
   # Bridge). Already in the build through coinlib.
@@ -80,7 +80,7 @@ dependencies:
 
   # Storage plugins
   flutter_secure_storage: ^11.2.0
-  hive_ce: ^2.20.2
+  hive_ce: ^2.23.3
   isar_community: 3.4.1
   isar_community_flutter_libs: 3.4.1
   path_provider: ^2.1.6
@@ -92,8 +92,8 @@ dependencies:
   flutter_native_splash: ^2.4.8
   google_fonts: ^9.0.0
   url_launcher: ^6.3.3
-  flutter_svg: ^2.3.0
-  lottie: ^3.6.1
+  flutter_svg: ^2.4.0
+  lottie: ^3.8.2
   qr_flutter: ^4.0.0
   dropdown_button2: ^3.1.0
   # 4.x is built on package:material_ui instead of the SDK's material
@@ -103,7 +103,7 @@ dependencies:
   another_flushbar: ^2.2.4
   keyboard_dismisser: ^3.0.0
   emojis: ^3.2.0
-  flutter_riverpod: ^3.4.3
+  flutter_riverpod: ^3.5.0
 
   # Platform plugins
   wakelock_plus: ^1.8.2
@@ -112,8 +112,8 @@ dependencies:
   device_info_plus: ^13.3.0
   package_info_plus: ^10.2.2
   share_plus: ^13.3.1
-  file_picker: ^13.1.0
-  mobile_scanner: ^7.4.2
+  file_picker: ^13.3.3
+  mobile_scanner: ^7.5.0
   mobile_app_privacy:
     git:
       url: https://github.com/cypherstack/mobile_app_privacy
@@ -139,7 +139,7 @@ dependencies:
   tuple: ^2.0.0
   equatable: ^3.0.0
   async: ^2.13.1
-  archive: ^4.5.0
+  archive: ^4.7.0
   meta: ^1.9.1
   socks5_proxy: ^2.1.2
   logger:

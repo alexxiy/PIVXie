@@ -123,8 +123,6 @@ class _DeleteWalletRecoveryPhraseViewState
       SecretScreen(child: Builder(builder: _buildScreen));
 
   Widget _buildScreen(BuildContext context) {
-    debugPrint("BUILD: $runtimeType");
-
     return Background(
       child: AppScaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,

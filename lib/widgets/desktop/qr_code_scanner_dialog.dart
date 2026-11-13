@@ -106,8 +106,11 @@ class _QrCodeScannerDialogState extends State<QrCodeScannerDialog> {
           throw Exception('No cameras available');
         }
         _macOSDeviceId = videoDevices.first.deviceId;
+        // No audio: the plugin opens the microphone otherwise, and the app
+        // has no microphone permission (macOS would close it).
         await CameraMacOS.instance.initialize(
           cameraMacOSMode: CameraMacOSMode.photo,
+          enableAudio: false,
         );
 
         Logging.instance.d("macOS Camera initialized with ID: $_macOSDeviceId");

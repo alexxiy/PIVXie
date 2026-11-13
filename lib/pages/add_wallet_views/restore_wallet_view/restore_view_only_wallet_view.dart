@@ -31,6 +31,7 @@ import '../../../widgets/desktop/desktop_app_bar.dart';
 import '../../../widgets/desktop/desktop_scaffold.dart';
 import '../../../widgets/desktop/primary_button.dart';
 import '../../../widgets/rounded_white_container.dart';
+import '../../../widgets/secret_screen.dart';
 import '../../../widgets/stack_text_field.dart';
 import '../../../wl_gen/interfaces/lib_pivx_shield_interface.dart';
 import '../../home_view/home_view.dart';
@@ -335,7 +336,10 @@ class _RestoreViewOnlyWalletViewState
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) =>
+      SecretScreen(child: Builder(builder: _buildScreen));
+
+  Widget _buildScreen(BuildContext context) {
     final isDesktop = Util.isDesktop;
 
     return MasterScaffold(

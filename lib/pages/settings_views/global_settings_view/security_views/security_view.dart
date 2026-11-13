@@ -107,7 +107,7 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
     if (result == true && mounted) {
       await Navigator.push(
         context,
-        RouteGenerator.getRoute(
+        RouteGenerator.getRoute<void>(
           shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
           builder: (_) => LockscreenView(
             showBackButton: true,
@@ -182,8 +182,6 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType");
-
     return Background(
       child: AppScaffold(
         backgroundColor: Theme.of(context).extension<StackColors>()!.background,
@@ -217,7 +215,7 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        RouteGenerator.getRoute(
+                        RouteGenerator.getRoute<void>(
                           shouldUseMaterialRoute:
                               RouteGenerator.useMaterialPageRoute,
                           builder: (_) => LockscreenView(
@@ -420,9 +418,44 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Expanded(
-                                child: _InfoLabel(
-                                  label: l10n.securityCover,
-                                  info: l10n.securityCoverInfo,
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    _InfoLabel(
+                                      label: l10n.securityCover,
+                                      info: l10n.securityCoverInfo,
+                                    ),
+                                    // Blocking screenshots (FLAG_SECURE) also
+                                    // blanks the recent apps preview on
+                                    // Android, so with this off the app still
+                                    // looks covered there.
+                                    if (Platform.isAndroid &&
+                                        !ref.watch(
+                                          prefsChangeNotifierProvider.select(
+                                            (value) => value.privacyScreen,
+                                          ),
+                                        ) &&
+                                        ref.watch(
+                                          prefsChangeNotifierProvider.select(
+                                            (value) => value.disableScreenShots,
+                                          ),
+                                        ))
+                                      Padding(
+                                        padding: const EdgeInsets.only(
+                                          top: 2,
+                                          bottom: 4,
+                                        ),
+                                        child: Text(
+                                          l10n.securityCoverScreenshotsNote(
+                                            l10n.securityNoScreenshots,
+                                          ),
+                                          style: STextStyles.itemSubtitle12(
+                                            context,
+                                          ),
+                                        ),
+                                      ),
+                                  ],
                                 ),
                               ),
                               const SizedBox(width: 12),
@@ -465,15 +498,15 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                           ),
                           onPressed: null,
                           child: Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8),
+                            // The (i) is taller than the text.
+                            padding: const EdgeInsets.symmetric(vertical: 4),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Expanded(
-                                  child: Text(
-                                    l10n.securityNoScreenshots,
-                                    style: STextStyles.titleBold12(context),
-                                    textAlign: TextAlign.start,
+                                  child: _InfoLabel(
+                                    label: l10n.securityNoScreenshots,
+                                    info: l10n.securityNoScreenshotsInfo,
                                   ),
                                 ),
                                 const SizedBox(width: 12),
@@ -624,7 +657,7 @@ class _SecurityViewState extends ConsumerState<SecurityView> {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        RouteGenerator.getRoute(
+                        RouteGenerator.getRoute<void>(
                           shouldUseMaterialRoute:
                               RouteGenerator.useMaterialPageRoute,
                           builder: (_) => LockscreenView(

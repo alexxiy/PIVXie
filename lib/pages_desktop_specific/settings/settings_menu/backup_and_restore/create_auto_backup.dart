@@ -260,8 +260,6 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType ");
-
     // bool isEnabledAutoBackup = ref.watch(prefsChangeNotifierProvider
     //     .select((value) => value.isAutoBackupEnabled));
 

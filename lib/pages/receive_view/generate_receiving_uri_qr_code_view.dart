@@ -29,7 +29,6 @@ import '../../utilities/address_utils.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/clipboard_interface.dart';
 import '../../utilities/constants.dart';
-import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
@@ -182,8 +181,6 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
       queryParams,
     );
 
-    Logging.instance.d("Generated receiving QR code for: $uriString");
-
     return uriString;
   }
 
@@ -278,8 +275,6 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType");
-
     return ConditionalParent(
       condition: !isDesktop,
       builder: (child) => Background(

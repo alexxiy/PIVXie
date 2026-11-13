@@ -538,6 +538,8 @@ abstract class Wallet<T extends CryptoCurrency> {
 
   Future<Address?> _addressQuery(FilterOperation? filterOperation) async {
     return await mainDB.isar.addresses
+        // Isar's dynamic query API, still marked experimental.
+        // ignore: experimental_member_use
         .buildQuery<Address>(
           whereClauses: [
             IndexWhereClause.equalTo(indexName: r"walletId", value: [walletId]),

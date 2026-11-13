@@ -346,7 +346,7 @@ class SyncingOptionsView extends ConsumerWidget {
                                     ? Navigator.of(context).pushNamed(
                                         WalletSyncingOptionsView.routeName,
                                       )
-                                    : showDialog(
+                                    : showDialog<void>(
                                         context: context,
                                         useSafeArea: false,
                                         barrierDismissible: true,

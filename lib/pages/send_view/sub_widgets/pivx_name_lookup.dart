@@ -36,8 +36,15 @@ String recipientInputError(CryptoCurrency coin, String input) {
 /// Placeholder of the recipient field.
 String recipientHint(CryptoCurrency coin) =>
     PivxNameService.forCoin(coin) == null
-    ? l10n.sendEnterAddress(coin.ticker)
-    : l10n.sendEnterAddressOrName(coin.ticker);
+    ? l10n.sendAddressHint(coin.ticker)
+    : l10n.sendAddressOrNameHint;
+
+/// The recipient field's label, shrunk where the field is too narrow for it
+/// (about 150 px in phone landscape, next to the three buttons).
+Widget recipientLabel(CryptoCurrency coin) => FittedBox(
+  fit: BoxFit.scaleDown,
+  child: Text(recipientHint(coin), maxLines: 1),
+);
 
 /// [e]'s message in the language on screen. The resolver writes English,
 /// with what it knows of the case; other languages get the gist of each kind.

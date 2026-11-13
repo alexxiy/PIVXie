@@ -26,7 +26,6 @@ class AllWallets extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    debugPrint("BUILD: $runtimeType");
     return Column(
       children: [
         Row(

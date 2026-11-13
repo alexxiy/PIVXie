@@ -40,7 +40,6 @@ class RecoverPhraseView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType");
     return AppScaffold(
       backgroundColor: Theme.of(context).extension<StackColors>()!.background,
       appBar: AppBar(

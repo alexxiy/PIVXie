@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
 import 'package:socks5_proxy/socks_client.dart';
@@ -34,6 +35,14 @@ Map<String, String> _headerMap(HttpClientResponse response) {
 class HTTP {
   const HTTP();
 
+  /// Every caller fetches small JSON: a larger body is refused rather
+  /// than held in memory.
+  static const maxBodyBytes = 16 * 1024 * 1024;
+
+  /// A whole request, body included, gives up after this, so a server
+  /// that trickles bytes can't hold it forever.
+  static const overallTimeout = Duration(minutes: 2);
+
   Future<Response> get({
     required Uri url,
     Map<String, String>? headers,
@@ -50,19 +59,21 @@ class HTTP {
           ProxySettings(proxyInfo.host, proxyInfo.port),
         ]);
       }
-      final HttpClientRequest request = await httpClient.getUrl(url);
+      return await () async {
+        final HttpClientRequest request = await httpClient.getUrl(url);
 
-      if (headers != null) {
-        headers.forEach((key, value) => request.headers.add(key, value));
-      }
+        if (headers != null) {
+          headers.forEach((key, value) => request.headers.add(key, value));
+        }
 
-      final response = await request.close();
+        final response = await request.close();
 
-      return Response(
-        await _bodyBytes(response),
-        response.statusCode,
-        headers: _headerMap(response),
-      );
+        return Response(
+          await _bodyBytes(response),
+          response.statusCode,
+          headers: _headerMap(response),
+        );
+      }().timeout(overallTimeout);
     } catch (e, s) {
       Logging.instance.w("HTTP.get() rethrew: ", error: e, stackTrace: s);
       rethrow;
@@ -73,12 +84,21 @@ class HTTP {
 
   Future<Uint8List> _bodyBytes(HttpClientResponse response) {
     final completer = Completer<Uint8List>();
-    final List<int> bytes = [];
-    response.listen(
+    final bytes = BytesBuilder(copy: false);
+    late final StreamSubscription<List<int>> sub;
+    sub = response.listen(
       (data) {
-        bytes.addAll(data);
+        bytes.add(data);
+        if (bytes.length > maxBodyBytes && !completer.isCompleted) {
+          unawaited(sub.cancel());
+          completer.completeError(
+            const HttpException("Response body too large"),
+          );
+        }
       },
-      onDone: () => completer.complete(Uint8List.fromList(bytes)),
+      onDone: () {
+        if (!completer.isCompleted) completer.complete(bytes.takeBytes());
+      },
       onError: (Object err, StackTrace s) {
         Logging.instance.e(
           "Http wrapper layer listen",

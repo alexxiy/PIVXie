@@ -10,14 +10,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'word_table_item.dart';
 
 class WordTable extends ConsumerWidget {
-  const WordTable({
-    super.key,
-    required this.words,
-    required this.isDesktop,
-  });
+  const WordTable({super.key, required this.words, required this.isDesktop});
 
   final List<String> words;
   final bool isDesktop;
@@ -27,8 +24,6 @@ class WordTable extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    debugPrint("BUILD: $runtimeType");
-
     final int rows = words.length ~/ wordsPerRow;
     int index = 0;
     return Column(
@@ -40,10 +35,7 @@ class WordTable extends ConsumerWidget {
             child: Row(
               children: [
                 for (int j = 1; j <= wordsPerRow; j++) ...[
-                  if (j > 1)
-                    SizedBox(
-                      width: isDesktop ? 10 : 6,
-                    ),
+                  if (j > 1) SizedBox(width: isDesktop ? 10 : 6),
                   Expanded(
                     child: WordTableItem(
                       number: ++index,

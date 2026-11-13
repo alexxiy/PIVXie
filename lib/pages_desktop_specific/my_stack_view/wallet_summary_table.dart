@@ -45,7 +45,6 @@ class WalletSummaryTable extends ConsumerStatefulWidget {
 class _WalletTableState extends ConsumerState<WalletSummaryTable> {
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType");
     final walletsByCoin = ref.watch(pAllWalletsInfoByCoin);
 
     return ListView.separated(

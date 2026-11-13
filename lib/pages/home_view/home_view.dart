@@ -102,7 +102,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
       _locked = true;
       await Navigator.push(
         context,
-        RouteGenerator.getRoute(
+        RouteGenerator.getRoute<void>(
           shouldUseMaterialRoute: RouteGenerator.useMaterialPageRoute,
           builder: (_) => LockscreenView(
             showBackButton: false,
@@ -293,7 +293,6 @@ class _HomeViewState extends ConsumerState<HomeView> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType");
     ref.listen(pPendingPaymentLink, (_, next) {
       if (next != null) unawaited(_openPendingLink());
     });

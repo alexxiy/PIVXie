@@ -50,7 +50,12 @@ class SignMessageView extends StatelessWidget {
           leading: AppBarBackButton(
             onPressed: () => Navigator.of(context).pop(),
           ),
-          title: Text(l10n.signTitle, style: STextStyles.navBarTitle(context)),
+          title: Text(
+            l10n.signTitle,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: STextStyles.navBarTitle(context),
+          ),
         ),
         body: SafeArea(
           child: SingleChildScrollView(

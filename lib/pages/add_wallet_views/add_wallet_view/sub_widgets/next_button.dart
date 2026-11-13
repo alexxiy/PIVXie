@@ -24,7 +24,6 @@ class AddWalletNextButton extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    debugPrint("BUILD: NextButton");
     final selectedCoin = ref.watch(addWalletSelectedEntityStateProvider);
 
     final enabled = selectedCoin != null;

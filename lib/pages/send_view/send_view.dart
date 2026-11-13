@@ -240,7 +240,6 @@ class _SendViewState extends ConsumerState<SendView> {
 
       final qrResult = await ref.read(pBarcodeScanner).scan(context: context);
 
-      Logging.instance.d("qrResult content: ${qrResult.rawContent}");
       if (qrResult.rawContent == null) return;
 
       final paymentData = AddressUtils.parsePaymentUri(
@@ -873,7 +872,6 @@ class _SendViewState extends ConsumerState<SendView> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType");
     final String locale = ref.watch(
       localeServiceChangeNotifierProvider.select((value) => value.locale),
     );
@@ -1140,111 +1138,102 @@ class _SendViewState extends ConsumerState<SendView> {
                                       },
                                       focusNode: _addressFocusNode,
                                       style: STextStyles.field(context),
-                                      decoration:
-                                          standardInputDecoration(
-                                            recipientHint(coin),
-                                            _addressFocusNode,
-                                            context,
-                                          ).copyWith(
-                                            contentPadding:
-                                                const EdgeInsetsDirectional.only(
-                                                  start: 16,
-                                                  top: 6,
-                                                  bottom: 8,
-                                                  end: 5,
+                                      decoration: standardInputDecoration(null, _addressFocusNode, context).copyWith(
+                                        label: recipientLabel(coin),
+                                        contentPadding:
+                                            const EdgeInsetsDirectional.only(
+                                              start: 16,
+                                              top: 6,
+                                              bottom: 8,
+                                              end: 5,
+                                            ),
+                                        suffixIcon: Padding(
+                                          padding: sendToController.text.isEmpty
+                                              ? const EdgeInsetsDirectional.only(
+                                                  end: 8,
+                                                )
+                                              : const EdgeInsetsDirectional.only(
+                                                  end: 0,
                                                 ),
-                                            suffixIcon: Padding(
-                                              padding:
-                                                  sendToController.text.isEmpty
-                                                  ? const EdgeInsetsDirectional.only(
-                                                      end: 8,
-                                                    )
-                                                  : const EdgeInsetsDirectional.only(
-                                                      end: 0,
-                                                    ),
-                                              child: UnconstrainedBox(
-                                                child: Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceAround,
-                                                  children: [
-                                                    _addressToggleFlag
-                                                        ? TextFieldIconButton(
-                                                            semanticsLabel: l10n
-                                                                .sendClearAddressSemantics,
-                                                            key: const Key(
-                                                              "sendViewClearAddressFieldButtonKey",
-                                                            ),
-                                                            onTap: () {
-                                                              sendToController
-                                                                      .text =
-                                                                  "";
-                                                              _address = "";
-                                                              _setValidAddressProviders(
-                                                                _address,
-                                                              );
-                                                              setState(() {
-                                                                _addressToggleFlag =
-                                                                    false;
-                                                              });
-                                                            },
-                                                            child:
-                                                                const XIcon(),
-                                                          )
-                                                        : TextFieldIconButton(
-                                                            semanticsLabel: l10n
-                                                                .sendPasteAddressSemantics,
-                                                            key: const Key(
-                                                              "sendViewPasteAddressFieldButtonKey",
-                                                            ),
-                                                            onTap:
-                                                                _pasteAddress,
-                                                            child:
-                                                                sendToController
-                                                                    .text
-                                                                    .isEmpty
-                                                                ? const ClipboardIcon()
-                                                                : const XIcon(),
-                                                          ),
-                                                    if (sendToController
-                                                        .text
-                                                        .isEmpty)
-                                                      TextFieldIconButton(
+                                          child: UnconstrainedBox(
+                                            child: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment.spaceAround,
+                                              children: [
+                                                _addressToggleFlag
+                                                    ? TextFieldIconButton(
                                                         semanticsLabel: l10n
-                                                            .sendAddressBookSemantics,
+                                                            .sendClearAddressSemantics,
                                                         key: const Key(
-                                                          "sendViewAddressBookButtonKey",
+                                                          "sendViewClearAddressFieldButtonKey",
                                                         ),
                                                         onTap: () {
-                                                          Navigator.of(context)
-                                                              .pushNamed(
-                                                                AddressBookView
-                                                                    .routeName,
-                                                                arguments:
-                                                                    widget.coin,
-                                                              );
+                                                          sendToController
+                                                                  .text =
+                                                              "";
+                                                          _address = "";
+                                                          _setValidAddressProviders(
+                                                            _address,
+                                                          );
+                                                          setState(() {
+                                                            _addressToggleFlag =
+                                                                false;
+                                                          });
                                                         },
-                                                        child:
-                                                            const AddressBookIcon(),
-                                                      ),
-                                                    if (sendToController
-                                                        .text
-                                                        .isEmpty)
-                                                      TextFieldIconButton(
+                                                        child: const XIcon(),
+                                                      )
+                                                    : TextFieldIconButton(
                                                         semanticsLabel: l10n
-                                                            .sendScanQrSemantics,
+                                                            .sendPasteAddressSemantics,
                                                         key: const Key(
-                                                          "sendViewScanQrButtonKey",
+                                                          "sendViewPasteAddressFieldButtonKey",
                                                         ),
-                                                        onTap: _scanQr,
+                                                        onTap: _pasteAddress,
                                                         child:
-                                                            const QrCodeIcon(),
+                                                            sendToController
+                                                                .text
+                                                                .isEmpty
+                                                            ? const ClipboardIcon()
+                                                            : const XIcon(),
                                                       ),
-                                                  ],
-                                                ),
-                                              ),
+                                                if (sendToController
+                                                    .text
+                                                    .isEmpty)
+                                                  TextFieldIconButton(
+                                                    semanticsLabel: l10n
+                                                        .sendAddressBookSemantics,
+                                                    key: const Key(
+                                                      "sendViewAddressBookButtonKey",
+                                                    ),
+                                                    onTap: () {
+                                                      Navigator.of(
+                                                        context,
+                                                      ).pushNamed(
+                                                        AddressBookView
+                                                            .routeName,
+                                                        arguments: widget.coin,
+                                                      );
+                                                    },
+                                                    child:
+                                                        const AddressBookIcon(),
+                                                  ),
+                                                if (sendToController
+                                                    .text
+                                                    .isEmpty)
+                                                  TextFieldIconButton(
+                                                    semanticsLabel: l10n
+                                                        .sendScanQrSemantics,
+                                                    key: const Key(
+                                                      "sendViewScanQrButtonKey",
+                                                    ),
+                                                    onTap: _scanQr,
+                                                    child: const QrCodeIcon(),
+                                                  ),
+                                              ],
                                             ),
                                           ),
+                                        ),
+                                      ),
                                     ),
                                   ),
                                   const SizedBox(height: 10),

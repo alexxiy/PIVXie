@@ -306,7 +306,7 @@ class _AddEditNodeViewState extends ConsumerState<AddEditNodeView> {
   @override
   void initState() {
     isDesktop = Util.isDesktop;
-    ref.refresh(nodeFormDataProvider);
+    ref.invalidate(nodeFormDataProvider);
 
     viewType = widget.viewType;
     coin = widget.coin;

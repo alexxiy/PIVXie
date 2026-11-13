@@ -66,7 +66,6 @@ Future<void> chooseCurrency(BuildContext context) async {
 class _CurrencySettings extends ConsumerState<CurrencySettings> {
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType");
     return Column(
       children: [
         Padding(

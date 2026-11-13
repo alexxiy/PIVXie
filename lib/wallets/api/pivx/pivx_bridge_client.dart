@@ -4,12 +4,14 @@ import 'dart:io';
 import 'dart:isolate';
 import 'dart:typed_data';
 
+import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:socks5_proxy/socks_client.dart';
 
 import '../../../app_config.dart';
 import '../../../l10n/l10n.dart';
 import '../../../models/node_model.dart';
 import '../../../services/tor_service.dart';
+import '../../../utilities/extensions/extensions.dart';
 import '../../../utilities/local_network_access.dart';
 import '../../../utilities/prefs.dart';
 import '../../crypto_currency/crypto_currency.dart';
@@ -445,8 +447,11 @@ class PivxBridgeClient {
     })).trim().replaceAll('"', '');
   }
 
-  /// Broadcast a raw transaction; returns its txid.
+  /// Broadcast a raw transaction; returns its txid, worked out here from
+  /// [rawTxHex]: the bridge's answer can't name another transaction as
+  /// the one sent, and an odd answer after a send can't read as a failure.
   Future<String> sendTx(String rawTxHex) async {
+    final txid = pivxTxidOf(rawTxHex);
     final response = await _send(
       "POST",
       _uri("/sendtx"),
@@ -459,8 +464,7 @@ class PivxBridgeClient {
         statusCode: response.code,
       );
     }
-    final json = jsonDecode(response.body) as Map;
-    return json["result"] as String;
+    return txid;
   }
 
   /// Long-poll `POST /watch`. Answers when a
@@ -748,3 +752,9 @@ class PivxBridgeClient {
     }
   }
 }
+
+/// The txid of the raw transaction [rawTxHex]: its double SHA-256,
+/// byte-reversed, as PIVX Core shows it.
+String pivxTxidOf(String rawTxHex) => Uint8List.fromList(
+  coinlib.sha256DoubleHash(rawTxHex.toUint8ListFromHex).reversed.toList(),
+).toHex;

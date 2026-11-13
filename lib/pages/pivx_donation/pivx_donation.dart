@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:decimal/decimal.dart';
 import 'package:intl/intl.dart';
@@ -11,6 +10,7 @@ import '../../networking/http.dart';
 import '../../services/pivx_name/pivx_name_resolver.dart';
 import '../../services/tor_service.dart';
 import '../../utilities/amount/amount.dart';
+import '../../utilities/app_store_build.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/logger.dart';
 import '../../utilities/prefs.dart';
@@ -27,10 +27,10 @@ import '../../widgets/pivx_memo_field.dart';
 const kPivxDonationName = "alexxiy.pivx";
 
 /// Whether [coin]'s wallets can donate: where PIVX names resolve (mainnet).
-/// Not on iOS: the App Store wants tips to the developer to go through
-/// in-app purchase.
+/// Not in App Store builds: the App Store wants tips to the developer to go
+/// through in-app purchase.
 bool pivxDonationAvailable(CryptoCurrency coin) =>
-    !Platform.isIOS && PivxNameService.forCoin(coin) != null;
+    !isAppStoreBuild && PivxNameService.forCoin(coin) != null;
 
 /// The cheers message: what the 512-byte memo has room for after the
 /// tag line (at most 63 bytes, see [pivxDonationMemo]).

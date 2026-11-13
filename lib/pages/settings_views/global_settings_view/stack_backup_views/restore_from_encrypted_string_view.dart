@@ -269,7 +269,7 @@ class _RestoreFromEncryptedStringViewState
                                         }
 
                                         Navigator.of(context).push(
-                                          RouteGenerator.getRoute(
+                                          RouteGenerator.getRoute<void>(
                                             builder: (_) =>
                                                 StackRestoreProgressView(
                                                   jsonString: jsonString,

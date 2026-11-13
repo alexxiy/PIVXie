@@ -66,7 +66,6 @@ class AboutView extends ConsumerWidget {
                                 (context, AsyncSnapshot<PackageInfo> snapshot) {
                                   String version = "";
                                   String signature = "";
-                                  String appName = "";
                                   String build = "";
 
                                   if (snapshot.connectionState ==
@@ -75,7 +74,6 @@ class AboutView extends ConsumerWidget {
                                     version = snapshot.data!.version;
                                     build = snapshot.data!.buildNumber;
                                     signature = snapshot.data!.buildSignature;
-                                    appName = snapshot.data!.appName;
                                   }
 
                                   return Column(
@@ -84,7 +82,9 @@ class AboutView extends ConsumerWidget {
                                     children: [
                                       Center(
                                         child: Text(
-                                          appName,
+                                          // The store name, not the
+                                          // package's (Linux reports that).
+                                          AppConfig.appName,
                                           style: STextStyles.pageTitleH2(
                                             context,
                                           ),

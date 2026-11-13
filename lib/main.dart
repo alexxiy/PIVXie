@@ -58,6 +58,7 @@ import 'utilities/constants.dart';
 import 'utilities/enums/backup_frequency_type.dart';
 import 'utilities/enums/languages_enum.dart';
 import 'utilities/logger.dart';
+import 'utilities/mac_edit_menu.dart';
 import 'utilities/ui_stall_watch.dart';
 import 'utilities/prefs.dart';
 import 'utilities/stack_file_system.dart';
@@ -102,6 +103,7 @@ Future<void> _setUpDesktopWindow() async {
 // miscellaneous box for later use
 void main(List<String> args) async {
   WidgetsFlutterBinding.ensureInitialized();
+  listenToMacEditMenu();
   if (kReleaseMode) {
     // Release builds log through Logging only: debugPrint would still
     // reach logcat and stdout.
@@ -638,8 +640,6 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType");
-
     if (Platform.isAndroid) {
       ref.listen(
         prefsChangeNotifierProvider.select((s) => s.disableScreenShots),

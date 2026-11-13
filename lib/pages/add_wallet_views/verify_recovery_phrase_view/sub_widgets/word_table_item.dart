@@ -30,7 +30,6 @@ class WordTableItem extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    debugPrint("BUILD: $runtimeType");
     final selectedWord = ref.watch(verifyMnemonicSelectedWordStateProvider);
     return Container(
       decoration: BoxDecoration(

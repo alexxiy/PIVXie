@@ -94,8 +94,6 @@ class _NodesSettings extends ConsumerState<NodesSettings> {
 
   @override
   Widget build(BuildContext context) {
-    debugPrint("BUILD: $runtimeType");
-
     final bool showTestNet = ref.watch(
       prefsChangeNotifierProvider.select((value) => value.showTestNetCoins),
     );
