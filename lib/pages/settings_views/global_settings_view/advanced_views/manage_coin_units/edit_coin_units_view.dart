@@ -173,7 +173,7 @@ class _EditCoinUnitsViewState extends ConsumerState<EditCoinUnitsView> {
                   ],
                   onChanged: (value) {
                     if (value is AmountUnit) {
-                      _currentUnit = value;
+                      setState(() => _currentUnit = value);
                     }
                   },
                   isExpanded: true,
