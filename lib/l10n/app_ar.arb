@@ -867,6 +867,8 @@
   "introPrivacyLink": "سياسة الخصوصية",
   "introAgreeOne": "باستخدامك {app}، فإنك توافق على {link}",
   "introAgreeTwo": "باستخدامك {app}، فإنك توافق على {first} و{second}",
+  "introConsentOne": "أوافق على {link}",
+  "introConsentTwo": "أوافق على {first} و{second}",
   "introGetStarted": "ابدأ",
   "introCreateNew": "إنشاء {app} جديد",
   "privacyChooseExperience": "اختر تجربتك مع {app}",

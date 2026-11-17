@@ -867,6 +867,8 @@
   "introPrivacyLink": "политику конфиденциальности",
   "introAgreeOne": "Используя {app}, вы принимаете {link}",
   "introAgreeTwo": "Используя {app}, вы принимаете {first} и {second}",
+  "introConsentOne": "Я принимаю {link}",
+  "introConsentTwo": "Я принимаю {first} и {second}",
   "introGetStarted": "Начать",
   "introCreateNew": "Настроить {app}",
   "privacyChooseExperience": "Выберите режим {app}",

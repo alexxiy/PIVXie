@@ -867,6 +867,8 @@
   "introPrivacyLink": "개인정보 처리방침",
   "introAgreeOne": "{app}을(를) 사용하면 {link}에 동의하는 것으로 간주됩니다",
   "introAgreeTwo": "{app}을(를) 사용하면 {first} 및 {second}에 동의하는 것으로 간주됩니다",
+  "introConsentOne": "{link}에 동의합니다",
+  "introConsentTwo": "{first} 및 {second}에 동의합니다",
   "introGetStarted": "시작하기",
   "introCreateNew": "{app} 설정하기",
   "privacyChooseExperience": "{app} 모드 선택",

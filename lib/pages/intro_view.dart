@@ -41,6 +41,17 @@ class IntroView extends ConsumerStatefulWidget {
 class _IntroViewState extends ConsumerState<IntroView> {
   late final bool isDesktop;
 
+  /// The terms and privacy policy, agreed to by ticking the box: app stores
+  /// ask for an active choice, not "by using the app, you agree".
+  bool _agreed = false;
+  bool get _canStart => _agreed || PrivacyAndTOSText.links().isEmpty;
+
+  Widget _consent() => PrivacyConsent(
+    isDesktop: isDesktop,
+    value: _agreed,
+    onChanged: (value) => setState(() => _agreed = value),
+  );
+
   @override
   void initState() {
     isDesktop = Util.isDesktop;
@@ -76,9 +87,12 @@ class _IntroViewState extends ConsumerState<IntroView> {
                           const SizedBox(height: 8),
                           IntroAboutText(isDesktop: isDesktop),
                           const SizedBox(height: 24),
-                          PrivacyAndTOSText(isDesktop: isDesktop),
+                          _consent(),
                           const SizedBox(height: 16),
-                          GetStartedButton(isDesktop: isDesktop),
+                          GetStartedButton(
+                            isDesktop: isDesktop,
+                            enabled: _canStart,
+                          ),
                         ],
                       ),
                     ),
@@ -122,7 +136,7 @@ class _IntroViewState extends ConsumerState<IntroView> {
                                 padding: const EdgeInsets.symmetric(
                                   horizontal: 32,
                                 ),
-                                child: PrivacyAndTOSText(isDesktop: isDesktop),
+                                child: _consent(),
                               ),
                               Padding(
                                 padding: const EdgeInsets.symmetric(
@@ -134,6 +148,7 @@ class _IntroViewState extends ConsumerState<IntroView> {
                                     Expanded(
                                       child: GetStartedButton(
                                         isDesktop: isDesktop,
+                                        enabled: _canStart,
                                       ),
                                     ),
                                   ],
@@ -164,11 +179,17 @@ class _IntroViewState extends ConsumerState<IntroView> {
                           const Spacer(flex: 24),
                           IntroAboutText(isDesktop: isDesktop),
                           const Spacer(flex: 42),
-                          GetStartedButton(isDesktop: isDesktop),
+                          _consent(),
+                          const SizedBox(height: 16),
+                          GetStartedButton(
+                            isDesktop: isDesktop,
+                            enabled: _canStart,
+                          ),
                           if (isDesktop) const SizedBox(height: 20),
                           if (isDesktop)
                             SecondaryButton(
                               width: double.infinity,
+                              enabled: _canStart,
                               label: l10n.introRestoreBackup(AppConfig.prefix),
                               onPressed: () {
                                 // Stored now; the backup may bring its own.
@@ -180,7 +201,6 @@ class _IntroViewState extends ConsumerState<IntroView> {
                               },
                             ),
                           const Spacer(flex: 65),
-                          PrivacyAndTOSText(isDesktop: isDesktop),
                         ],
                       ),
                     ),
@@ -248,15 +268,18 @@ class PrivacyAndTOSText extends StatelessWidget {
   final double? fontSize;
   final Color? textColor;
 
+  /// The terms and privacy policy links (title, url) the app config sets.
+  static List<(String, String)> links() => [
+    if (AppConfig.termsUrl.isNotEmpty)
+      (l10n.introTermsLink, AppConfig.termsUrl),
+    if (AppConfig.privacyUrl.isNotEmpty)
+      (l10n.introPrivacyLink, AppConfig.privacyUrl),
+  ];
+
   @override
   Widget build(BuildContext context) {
     final size = fontSize ?? (isDesktop ? 18.0 : 12.0);
-    final links = [
-      if (AppConfig.termsUrl.isNotEmpty)
-        (l10n.introTermsLink, AppConfig.termsUrl),
-      if (AppConfig.privacyUrl.isNotEmpty)
-        (l10n.introPrivacyLink, AppConfig.privacyUrl),
-    ];
+    final links = PrivacyAndTOSText.links();
     if (links.isEmpty) return const SizedBox.shrink();
     final textStyle = STextStyles.label(context)
         .copyWith(fontSize: size, color: textColor);
@@ -264,6 +287,22 @@ class PrivacyAndTOSText extends StatelessWidget {
     final sentence = links.length == 1
         ? l10n.introAgreeOne(AppConfig.appName, "\u0000")
         : l10n.introAgreeTwo(AppConfig.appName, "\u0000", "\u0001");
+    return RichText(
+      textAlign: TextAlign.center,
+      text: TextSpan(
+        style: textStyle,
+        children: linkedSpans(context, sentence, links, size),
+      ),
+    );
+  }
+
+  /// [sentence] with each \u0000 / \u0001 replaced by that link of [links].
+  static List<InlineSpan> linkedSpans(
+    BuildContext context,
+    String sentence,
+    List<(String, String)> links,
+    double size,
+  ) {
     final children = <InlineSpan>[];
     var at = 0;
     for (final m in RegExp("[\u0000\u0001]").allMatches(sentence)) {
@@ -283,30 +322,99 @@ class PrivacyAndTOSText extends StatelessWidget {
       at = m.end;
     }
     children.add(TextSpan(text: sentence.substring(at)));
-    return RichText(
-      textAlign: TextAlign.center,
-      text: TextSpan(style: textStyle, children: children),
+    return children;
+  }
+}
+
+/// The unticked check box on the first screen with "I have read and agree
+/// to the Terms of service and Privacy policy" (whichever the app config
+/// sets; nothing when neither). Getting started waits for the tick.
+class PrivacyConsent extends StatelessWidget {
+  const PrivacyConsent({
+    super.key,
+    required this.isDesktop,
+    required this.value,
+    required this.onChanged,
+  });
+
+  final bool isDesktop;
+  final bool value;
+  final ValueChanged<bool> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final links = PrivacyAndTOSText.links();
+    if (links.isEmpty) return const SizedBox.shrink();
+    final colors = Theme.of(context).extension<StackColors>()!;
+    final size = isDesktop ? 18.0 : 12.0;
+    final sentence = links.length == 1
+        ? l10n.introConsentOne("\u0000")
+        : l10n.introConsentTwo("\u0000", "\u0001");
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      // The words tick the box too; the links open their pages.
+      onTap: () => onChanged(!value),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Checkbox(
+            value: value,
+            activeColor: colors.checkboxBGChecked,
+            checkColor: colors.checkboxIconChecked,
+            side: BorderSide(color: colors.checkboxBorderEmpty, width: 2),
+            semanticLabel: sentence
+                .replaceAll("\u0000", links.first.$1)
+                .replaceAll("\u0001", links.last.$1),
+            onChanged: (ticked) => onChanged(ticked ?? false),
+          ),
+          Flexible(
+            child: RichText(
+              text: TextSpan(
+                style: STextStyles.label(context).copyWith(fontSize: size),
+                children: PrivacyAndTOSText.linkedSpans(
+                  context,
+                  sentence,
+                  links,
+                  size,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
 
 class GetStartedButton extends StatelessWidget {
-  const GetStartedButton({super.key, required this.isDesktop});
+  const GetStartedButton({
+    super.key,
+    required this.isDesktop,
+    this.enabled = true,
+  });
 
   final bool isDesktop;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
     return !isDesktop
         ? TextButton(
-            style: Theme.of(context)
-                .extension<StackColors>()!
-                .getPrimaryEnabledButtonStyle(context),
-            onPressed: () {
-              Prefs.instance.externalCalls = true;
-              Navigator.of(context)
-                  .pushNamed(StackPrivacyCalls.routeName, arguments: false);
-            },
+            style: enabled
+                ? Theme.of(context)
+                      .extension<StackColors>()!
+                      .getPrimaryEnabledButtonStyle(context)
+                : Theme.of(context)
+                      .extension<StackColors>()!
+                      .getPrimaryDisabledButtonStyle(context),
+            onPressed: !enabled
+                ? null
+                : () {
+                    Prefs.instance.externalCalls = true;
+                    Navigator.of(
+                      context,
+                    ).pushNamed(StackPrivacyCalls.routeName, arguments: false);
+                  },
             child: Text(
               l10n.introGetStarted,
               style: STextStyles.button(context),
@@ -316,15 +424,23 @@ class GetStartedButton extends StatelessWidget {
             width: double.infinity,
             height: 70,
             child: TextButton(
-              style: Theme.of(context)
-                  .extension<StackColors>()!
-                  .getPrimaryEnabledButtonStyle(context),
-              onPressed: () {
-                // As on mobile: Easy Crypto until chosen otherwise.
-                Prefs.instance.externalCalls = true;
-                Navigator.of(context)
-                    .pushNamed(StackPrivacyCalls.routeName, arguments: false);
-              },
+              style: enabled
+                  ? Theme.of(context)
+                        .extension<StackColors>()!
+                        .getPrimaryEnabledButtonStyle(context)
+                  : Theme.of(context)
+                        .extension<StackColors>()!
+                        .getPrimaryDisabledButtonStyle(context),
+              onPressed: !enabled
+                  ? null
+                  : () {
+                      // As on mobile: Easy Crypto until chosen otherwise.
+                      Prefs.instance.externalCalls = true;
+                      Navigator.of(context).pushNamed(
+                        StackPrivacyCalls.routeName,
+                        arguments: false,
+                      );
+                    },
               child: Text(
                 l10n.introCreateNew(AppConfig.prefix),
                 style: STextStyles.button(context).copyWith(fontSize: 20),

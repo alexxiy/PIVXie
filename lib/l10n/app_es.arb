@@ -867,6 +867,8 @@
   "introPrivacyLink": "la Política de privacidad",
   "introAgreeOne": "Al usar {app}, aceptas {link}",
   "introAgreeTwo": "Al usar {app}, aceptas {first} y {second}",
+  "introConsentOne": "Acepto {link}",
+  "introConsentTwo": "Acepto {first} y {second}",
   "introGetStarted": "Comenzar",
   "introCreateNew": "Configurar {app}",
   "privacyChooseExperience": "Elige tu experiencia de {app}",

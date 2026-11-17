@@ -867,6 +867,8 @@
   "introPrivacyLink": "Chính sách quyền riêng tư",
   "introAgreeOne": "Khi sử dụng {app}, bạn đồng ý với {link}",
   "introAgreeTwo": "Khi sử dụng {app}, bạn đồng ý với {first} và {second}",
+  "introConsentOne": "Tôi đồng ý với {link}",
+  "introConsentTwo": "Tôi đồng ý với {first} và {second}",
   "introGetStarted": "Bắt đầu",
   "introCreateNew": "Thiết lập {app}",
   "privacyChooseExperience": "Chọn chế độ {app}",

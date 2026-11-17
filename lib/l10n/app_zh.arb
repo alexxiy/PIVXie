@@ -867,6 +867,8 @@
   "introPrivacyLink": "隐私政策",
   "introAgreeOne": "使用 {app} 即表示您同意{link}",
   "introAgreeTwo": "使用 {app} 即表示您同意{first}和{second}",
+  "introConsentOne": "我已阅读并同意{link}",
+  "introConsentTwo": "我已阅读并同意{first}和{second}",
   "introGetStarted": "开始使用",
   "introCreateNew": "设置 {app}",
   "privacyChooseExperience": "选择 {app} 模式",

@@ -867,6 +867,8 @@
   "introPrivacyLink": "プライバシーポリシー",
   "introAgreeOne": "{app} を利用すると、{link}に同意したものとみなされます",
   "introAgreeTwo": "{app} を利用すると、{first}と{second}に同意したものとみなされます",
+  "introConsentOne": "{link}に同意します",
+  "introConsentTwo": "{first}と{second}に同意します",
   "introGetStarted": "はじめる",
   "introCreateNew": "{app} をセットアップ",
   "privacyChooseExperience": "{app} のモードを選択",

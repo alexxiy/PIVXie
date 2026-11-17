@@ -867,6 +867,8 @@
   "introPrivacyLink": "سیاست حریم خصوصی",
   "introAgreeOne": "با استفاده از {app}، با {link} موافقت می‌کنید",
   "introAgreeTwo": "با استفاده از {app}، با {first} و {second} موافقت می‌کنید",
+  "introConsentOne": "با {link} موافقم",
+  "introConsentTwo": "با {first} و {second} موافقم",
   "introGetStarted": "شروع کنید",
   "introCreateNew": "ساخت {app} جدید",
   "privacyChooseExperience": "تجربه {app} خود را انتخاب کنید",

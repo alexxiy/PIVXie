@@ -867,6 +867,8 @@
   "introPrivacyLink": "Gizlilik Politikası",
   "introAgreeOne": "{app} uygulamasını kullanarak şunu kabul etmiş olursunuz: {link}",
   "introAgreeTwo": "{app} uygulamasını kullanarak şunları kabul etmiş olursunuz: {first} ve {second}",
+  "introConsentOne": "Bunu kabul ediyorum: {link}",
+  "introConsentTwo": "Şunları kabul ediyorum: {first} ve {second}",
   "introGetStarted": "Başlayın",
   "introCreateNew": "{app} kurulumunu yap",
   "privacyChooseExperience": "{app} deneyiminizi seçin",

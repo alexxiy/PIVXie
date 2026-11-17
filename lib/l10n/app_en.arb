@@ -2522,11 +2522,11 @@
   },
   "introTermsLink": "Terms of service",
   "@introTermsLink": {
-    "description": "A link inside introAgreeOne/introAgreeTwo: use the form that fits there."
+    "description": "A link inside introAgreeOne/introAgreeTwo and introConsentOne/introConsentTwo: use the form that fits there."
   },
   "introPrivacyLink": "Privacy policy",
   "@introPrivacyLink": {
-    "description": "A link inside introAgreeOne/introAgreeTwo: use the form that fits there."
+    "description": "A link inside introAgreeOne/introAgreeTwo and introConsentOne/introConsentTwo: use the form that fits there."
   },
   "introAgreeOne": "By using {app}, you agree to the {link}",
   "@introAgreeOne": {
@@ -2547,6 +2547,27 @@
       "app": {
         "type": "String"
       },
+      "first": {
+        "type": "String"
+      },
+      "second": {
+        "type": "String"
+      }
+    }
+  },
+  "introConsentOne": "I have read and agree to the {link}",
+  "@introConsentOne": {
+    "description": "Next to the unticked check box on the first screen; the user ticks it to agree. {link} is introTermsLink or introPrivacyLink.",
+    "placeholders": {
+      "link": {
+        "type": "String"
+      }
+    }
+  },
+  "introConsentTwo": "I have read and agree to the {first} and {second}",
+  "@introConsentTwo": {
+    "description": "Next to the unticked check box on the first screen; the user ticks it to agree. {first} is introTermsLink, {second} introPrivacyLink.",
+    "placeholders": {
       "first": {
         "type": "String"
       },
