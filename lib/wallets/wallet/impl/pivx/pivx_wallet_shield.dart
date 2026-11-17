@@ -372,6 +372,16 @@ extension _PivxShield on PivxWallet {
 
     // After a parser change, every shield tx is read again.
     if (_reparseHistory) walletTxids.addAll(state.txInfo.keys);
+    // Wallet txs an earlier scan found that never reached the history: that
+    // sync stopped after saving the scanned blocks (the app closed, a failed
+    // request) and before storing them, and later scans start past their
+    // blocks. A shield-to-shield send then showed 0 confirmations for good,
+    // and a payment received was missing from the history.
+    final stored = await _storedTxs(state.txInfo.keys);
+    walletTxids.addAll([
+      for (final txid in state.txInfo.keys)
+        if (stored[txid]?.height == null) txid,
+    ]);
     if (walletTxids.isNotEmpty) {
       await _storeShieldHistory(walletTxids);
     }
@@ -413,6 +423,17 @@ extension _PivxShield on PivxWallet {
       ),
     );
 
+    final walletTxs = [
+      for (final w in r["wallet_transactions"] as List)
+        Map<String, dynamic>.from(w as Map),
+    ];
+    // Requests first: [state] is the wallet's live copy, so it may only
+    // change once nothing can fail any more. A failed request after the
+    // notes moved on (but not the tree) scanned these blocks into their
+    // witnesses twice on the next try, and shield sends failed with
+    // "Failed to add sapling spend" until a rescan.
+    await _findCompactTxids(walletTxs, relevant);
+
     final kept = [
       for (final n in r["decrypted_notes"] as List)
         Map<String, dynamic>.from(n as Map),
@@ -434,11 +455,6 @@ extension _PivxShield on PivxWallet {
     ].where((n) => !spent.contains(n["nullifier"])).toList();
     state.pendingSpent.removeWhere((_, nfs) => nfs.any(spent.contains));
 
-    final walletTxs = [
-      for (final w in r["wallet_transactions"] as List)
-        Map<String, dynamic>.from(w as Map),
-    ];
-    await _findCompactTxids(walletTxs, relevant);
     for (final wtx in walletTxs) {
       final txid = wtx["txid"] as String;
       // Its notes are in [unspentNotes] now.

@@ -896,27 +896,57 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
     // Oldest first: a parent goes out again before its child.
     final byTxid = {for (final t in rows) t.txid: t};
     final txids = {...byTxid.keys, ...?_shield?.pendingSpent.keys};
+    final confirmed = <Map<String, dynamic>>[];
     for (final txid in txids) {
       final row = byTxid[txid];
       final age = row == null ? null : now - row.timestamp;
       if (age != null && age < _kCheckUnconfirmedAfter.inSeconds) continue;
       final raw = row?.pivxRawTx;
-      if (await _stillOnNetwork(txid, raw: raw) != false) continue;
+      if (await _stillOnNetwork(txid, raw: raw, confirmed: confirmed) !=
+          false) {
+        continue;
+      }
       if (raw == null && age != null && age < _kForgetUnknownAfter.inSeconds) {
         continue;
       }
       Logging.instance.w("PIVX: $txid is no longer on the network; forgot it");
       await _forgetUnconfirmed(txid, row);
     }
+    if (confirmed.isEmpty) return;
+    // Mined, yet still pending here: each sync reads the history only
+    // [_kResyncDepth] blocks below the newest stored tx, so a block missed
+    // once (the app closed at the wrong time, a failed sync, a bridge that
+    // still listed the tx as unconfirmed) was never read again, and the
+    // send showed 0 confirmations for good. Store the bridge's copy.
+    final sets = await _addressSets();
+    final coldStake = await _coldStakeOutpoints(confirmed);
+    await _storeTxs([
+      for (final json in confirmed)
+        if (_parseTx(json, sets: sets, isColdStakeOutpoint: coldStake)
+            case final tx?)
+          tx
+        else if (byTxid[json["txid"]] case final row?)
+          row.copyWith(
+            height: json["blockHeight"] as int,
+            blockHash: json["blockHash"] as String?,
+            timestamp: json["blockTime"] as int? ?? row.timestamp,
+          ),
+    ]);
   }
 
   /// Whether unconfirmed [txid] is still on the network: true when the
   /// bridge's node has it or takes [raw] again, false when it doesn't
   /// have it and refuses [raw] (or there is none), null when that can't
-  /// be told now (the bridge unreachable, ...).
-  Future<bool?> _stillOnNetwork(String txid, {String? raw}) async {
+  /// be told now (the bridge unreachable, ...). A tx already in a block
+  /// is added to [confirmed].
+  Future<bool?> _stillOnNetwork(
+    String txid, {
+    String? raw,
+    List<Map<String, dynamic>>? confirmed,
+  }) async {
     try {
-      await bridge.tx(txid);
+      final json = await bridge.tx(txid);
+      if ((json["blockHeight"] as int? ?? -1) > 0) confirmed?.add(json);
       return true;
     } on PivxBridgeException catch (e) {
       // Any other error (the node down, ...) tells nothing.
