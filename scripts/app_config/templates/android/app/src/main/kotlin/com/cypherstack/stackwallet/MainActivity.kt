@@ -7,6 +7,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -92,6 +93,13 @@ class MainActivity: FlutterFragmentActivity() {
         // screens how much room the bars take (SafeArea).
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        // Android 12+: the system splash has the same logo, size and place as
+        // the Flutter start overlay below it (lib/widgets/start_splash.dart),
+        // so take it away at once. Its own exit fades it out before the app
+        // window fades in (with a small slide): the logo blinked and jumped.
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            splashScreen.setOnExitAnimationListener { view -> view.remove() }
+        }
         handleOpenFile(intent)
     }
 

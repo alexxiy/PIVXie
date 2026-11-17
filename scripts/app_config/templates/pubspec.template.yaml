@@ -166,7 +166,10 @@ flutter_native_splash:
   color: "F7F7F7"
   color_dark_ios: "2A2D34"
   color_dark_android: "2A2D34"
+  # The same logo, same size (288dp canvas = 1152 px), so the system splash
+  # matches the Flutter start overlay (lib/widgets/start_splash.dart).
   android_12:
+    image: assets/icon/splash_android12.png
     color: "F7F7F7"
     color_dark: "2A2D34"
 
@@ -197,7 +200,9 @@ flutter:
   #  - images/a_dot_ham.jpeg
   assets:
     - assets/in_app_logo_icons/
-    # assets/icon/ only feeds the launcher icon / splash generators.
+    # The rest of assets/icon/ only feeds the launcher icon / splash
+    # generators; the splash logo is also drawn by the start overlay.
+    - assets/icon/splash.png
     - google_fonts/
     - assets/svg/
 

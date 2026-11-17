@@ -66,6 +66,7 @@ import 'utilities/text_styles.dart';
 import 'utilities/util.dart';
 import 'wallets/isar/providers/all_wallets_info_provider.dart';
 import 'widgets/adaptive_page.dart';
+import 'widgets/start_splash.dart';
 
 final openedFromSWBFileStringStateProvider = StateProvider<String?>(
   (ref) => null,
@@ -259,6 +260,7 @@ void main(List<String> args) async {
 
   // Riverpod 3 retries failing providers by default; keep the old
   // fail-once behaviour.
+  await StartSplash.preload();
   runApp(ProviderScope(retry: (_, _) => null, child: const MyApp()));
 }
 
@@ -271,7 +273,9 @@ class MyApp extends StatelessWidget {
     final localeService = LocaleService();
     localeService.loadLocale();
 
-    return const KeyboardDismisser(child: MaterialAppWithTheme());
+    return const KeyboardDismisser(
+      child: StartSplash(child: MaterialAppWithTheme()),
+    );
   }
 }
 
@@ -755,6 +759,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
               future: loadShared(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.done) {
+                  StartSplash.markReady();
                   if (_desktopHasPassword) {
                     String? startupWalletId;
                     if (ref
@@ -781,6 +786,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
               future: load(false),
               builder: (BuildContext context, AsyncSnapshot<void> snapshot) {
                 if (snapshot.connectionState == ConnectionState.done) {
+                  StartSplash.markReady();
                   if (ref.read(pAllWalletsInfo).isNotEmpty ||
                       ref.read(prefsChangeNotifierProvider).hasPin) {
                     String? startupWalletId;
