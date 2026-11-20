@@ -5810,5 +5810,8 @@
   "defiConfigMismatch": "The bridge's settings don't match this version of PIVXie, so it can't be used from here. Update the app.",
   "@defiConfigMismatch": {
     "description": "The bridge names another token, chain or network than this app version expects."
-  }
+  },
+  "sendColdStakeToShield": "Delegated coins can't go straight to a shield address. Send them to your own address first, then on to the shield address.",
+  "sendUseMyAddress": "Use my address",
+  "sendCoinUnavailable": "A coin you picked can't be spent right now. Check your choice in Coin control."
 }

@@ -1837,5 +1837,8 @@
   "defiDepositChecking": "{chain} で入金アドレスを確認しています…",
   "defiDepositUnavailable": "{chain} が応答しないため、入金アドレスはまだ確認できません。まもなく再試行します…",
   "defiNoOrders": "まだ注文はありません。このウォレットで作成した注文がここに表示されます。",
-  "defiConfigMismatch": "ブリッジの設定がこのバージョンの PIVXie と一致しないため、ここからは使えません。アプリを更新してください。"
+  "defiConfigMismatch": "ブリッジの設定がこのバージョンの PIVXie と一致しないため、ここからは使えません。アプリを更新してください。",
+  "sendColdStakeToShield": "委任したコインは Shield アドレスへ直接送れません。まず自分のアドレスへ送り、その後 Shield アドレスへ送ってください。",
+  "sendUseMyAddress": "自分のアドレスを使う",
+  "sendCoinUnavailable": "選んだコインのうち、今は使えないものがあります。コインコントロールで選択を確認してください。"
 }

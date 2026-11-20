@@ -1837,5 +1837,8 @@
   "defiDepositChecking": "Yatırma adresi {chain} üzerinde kontrol ediliyor…",
   "defiDepositUnavailable": "{chain} yanıt vermedi, bu yüzden yatırma adresi henüz doğrulanamıyor. Birazdan yeniden deneniyor…",
   "defiNoOrders": "Henüz sipariş yok. Bu cüzdanda verilen siparişler burada görünür.",
-  "defiConfigMismatch": "Köprünün ayarları PIVXie'nin bu sürümüyle uyuşmuyor, bu yüzden buradan kullanılamıyor. Uygulamayı güncelleyin."
+  "defiConfigMismatch": "Köprünün ayarları PIVXie'nin bu sürümüyle uyuşmuyor, bu yüzden buradan kullanılamıyor. Uygulamayı güncelleyin.",
+  "sendColdStakeToShield": "Devredilen coinler doğrudan bir Shield adresine gönderilemez. Önce kendi adresinize, ardından Shield adresine gönderin.",
+  "sendUseMyAddress": "Adresimi kullan",
+  "sendCoinUnavailable": "Seçtiğiniz coinlerden biri şu anda harcanamıyor. Seçiminizi Coin kontrolü bölümünde kontrol edin."
 }

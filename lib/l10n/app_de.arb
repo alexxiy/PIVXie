@@ -1837,5 +1837,8 @@
   "defiDepositChecking": "Einzahlungsadresse wird auf {chain} geprüft…",
   "defiDepositUnavailable": "{chain} hat nicht geantwortet, daher kann die Einzahlungsadresse noch nicht geprüft werden. Neuer Versuch in Kürze…",
   "defiNoOrders": "Noch keine Aufträge. In dieser Wallet erstellte Aufträge erscheinen hier.",
-  "defiConfigMismatch": "Die Einstellungen der Bridge passen nicht zu dieser PIVXie-Version, daher kann sie hier nicht genutzt werden. Aktualisieren Sie die App."
+  "defiConfigMismatch": "Die Einstellungen der Bridge passen nicht zu dieser PIVXie-Version, daher kann sie hier nicht genutzt werden. Aktualisieren Sie die App.",
+  "sendColdStakeToShield": "Delegierte Coins können nicht direkt an eine Shield-Adresse gesendet werden. Senden Sie sie zuerst an Ihre eigene Adresse und dann an die Shield-Adresse.",
+  "sendUseMyAddress": "Meine Adresse verwenden",
+  "sendCoinUnavailable": "Einer der gewählten Coins kann gerade nicht ausgegeben werden. Prüfen Sie Ihre Auswahl unter Coin Control."
 }

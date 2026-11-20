@@ -430,6 +430,22 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
                       const SizedBox(height: 40),
                       Row(
                         children: [
+                          if (e is PivxColdStakeToShieldException) ...[
+                            Expanded(
+                              child: SecondaryButton(
+                                buttonHeight: ButtonHeight.l,
+                                label: l10n.sendUseMyAddress,
+                                onPressed: () {
+                                  Navigator.of(
+                                    context,
+                                    rootNavigator: true,
+                                  ).pop();
+                                  unawaited(_useOwnAddress());
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                          ],
                           Expanded(
                             child: SecondaryButton(
                               buttonHeight: ButtonHeight.l,
@@ -454,6 +470,19 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
         );
       }
     }
+  }
+
+  /// Puts the wallet's own transparent receiving address in the recipient
+  /// field: delegated coins go there first, then on to a shield address.
+  Future<void> _useOwnAddress() async {
+    final own = await ref
+        .read(pWallets)
+        .getWallet(walletId)
+        .getCurrentReceivingAddress();
+    if (own == null || !mounted) return;
+    _setAddress(own.value);
+    _setValidAddressProviders(_address);
+    setState(() => _addressToggleFlag = true);
   }
 
   void clearSendForm() {

@@ -1837,5 +1837,8 @@
   "defiDepositChecking": "Depozit ünvanı {chain}-də yoxlanılır…",
   "defiDepositUnavailable": "{chain} cavab vermədi, ona görə depozit ünvanını hələ yoxlamaq olmur. Bir azdan yenidən cəhd edilir…",
   "defiNoOrders": "Hələ sifariş yoxdur. Bu pulqabında verilən sifarişlər burada görünür.",
-  "defiConfigMismatch": "Körpünün ayarları PIVXie-nin bu versiyasına uyğun gəlmir, ona görə onu buradan istifadə etmək olmur. Tətbiqi yeniləyin."
+  "defiConfigMismatch": "Körpünün ayarları PIVXie-nin bu versiyasına uyğun gəlmir, ona görə onu buradan istifadə etmək olmur. Tətbiqi yeniləyin.",
+  "sendColdStakeToShield": "Həvalə edilmiş coinlər birbaşa Shield ünvanına göndərilə bilməz. Əvvəlcə onları öz ünvanınıza, sonra Shield ünvanına göndərin.",
+  "sendUseMyAddress": "Ünvanımı istifadə et",
+  "sendCoinUnavailable": "Seçdiyiniz coinlərdən biri hazırda xərclənə bilməz. Seçiminizi Coin nəzarətində yoxlayın."
 }

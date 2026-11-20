@@ -863,6 +863,9 @@ extension _PivxShield on PivxWallet {
           .whereType<StandardInput>()
           .map((e) => e.utxo)
           .toList();
+      if (selected.any(isPivxColdStakeUtxo)) {
+        throw PivxColdStakeToShieldException(l10n.sendColdStakeToShield);
+      }
       final candidates = _spendable(
         selected.isNotEmpty
             ? selected
@@ -871,7 +874,7 @@ extension _PivxShield on PivxWallet {
         collateral: selected.isNotEmpty,
       );
       if (selected.isNotEmpty && candidates.length != selected.length) {
-        throw Exception("Attempted to use an unavailable utxo");
+        throw Exception(l10n.sendCoinUnavailable);
       }
       // Keys only for the coins the library will spend (all of a
       // coin-control selection).

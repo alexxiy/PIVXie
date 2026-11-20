@@ -441,3 +441,16 @@ extension PivxColdStakingWallet on PivxWallet {
     };
   }
 }
+
+/// Delegated coins picked in coin control for a send to a shield address.
+/// The shield library signs plain P2PKH inputs only, so they have to go to
+/// one of the wallet's own transparent addresses first (the send screens
+/// offer that address).
+class PivxColdStakeToShieldException implements Exception {
+  const PivxColdStakeToShieldException(this.message);
+
+  final String message;
+
+  @override
+  String toString() => message;
+}

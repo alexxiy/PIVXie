@@ -1762,7 +1762,7 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
         collateral: true,
       );
       if (usable.length != candidates.length) {
-        throw Exception("Attempted to use an unavailable utxo");
+        throw Exception(l10n.sendCoinUnavailable);
       }
     } else {
       candidates = _spendable(

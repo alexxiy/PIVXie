@@ -1837,5 +1837,8 @@
   "defiDepositChecking": "Đang kiểm tra địa chỉ nạp trên {chain}…",
   "defiDepositUnavailable": "{chain} không phản hồi nên chưa thể kiểm tra địa chỉ nạp. Sẽ thử lại ngay…",
   "defiNoOrders": "Chưa có lệnh nào. Các lệnh tạo trong ví này sẽ hiện ở đây.",
-  "defiConfigMismatch": "Cài đặt của cầu không khớp với phiên bản PIVXie này nên không thể dùng từ đây. Hãy cập nhật ứng dụng."
+  "defiConfigMismatch": "Cài đặt của cầu không khớp với phiên bản PIVXie này nên không thể dùng từ đây. Hãy cập nhật ứng dụng.",
+  "sendColdStakeToShield": "Coin đã ủy thác không thể gửi thẳng đến địa chỉ Shield. Hãy gửi chúng đến địa chỉ của bạn trước, rồi mới gửi đến địa chỉ Shield.",
+  "sendUseMyAddress": "Dùng địa chỉ của tôi",
+  "sendCoinUnavailable": "Một coin bạn đã chọn hiện chưa thể chi tiêu. Hãy kiểm tra lựa chọn trong Kiểm soát coin."
 }

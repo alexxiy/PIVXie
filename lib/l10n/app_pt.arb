@@ -1837,5 +1837,8 @@
   "defiDepositChecking": "Verificando o endereço de depósito na {chain}…",
   "defiDepositUnavailable": "A {chain} não respondeu, então o endereço de depósito ainda não pode ser verificado. Tentando de novo em instantes…",
   "defiNoOrders": "Ainda não há pedidos. Os pedidos feitos nesta carteira aparecem aqui.",
-  "defiConfigMismatch": "As configurações da ponte não correspondem a esta versão do PIVXie, então ela não pode ser usada daqui. Atualize o app."
+  "defiConfigMismatch": "As configurações da ponte não correspondem a esta versão do PIVXie, então ela não pode ser usada daqui. Atualize o app.",
+  "sendColdStakeToShield": "Moedas delegadas não podem ir direto para um endereço Shield. Envie-as primeiro para o seu próprio endereço e depois para o endereço Shield.",
+  "sendUseMyAddress": "Usar meu endereço",
+  "sendCoinUnavailable": "Uma das moedas que você escolheu não pode ser gasta agora. Confira sua seleção em Controle de moedas."
 }

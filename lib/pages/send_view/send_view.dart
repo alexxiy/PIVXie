@@ -649,6 +649,25 @@ class _SendViewState extends ConsumerState<SendView> {
               return StackDialog(
                 title: l10n.sendTransactionFailed,
                 message: e.toString(),
+                leftButton: e is PivxColdStakeToShieldException
+                    ? TextButton(
+                        style: Theme.of(context)
+                            .extension<StackColors>()!
+                            .getSecondaryEnabledButtonStyle(context),
+                        child: Text(
+                          l10n.sendUseMyAddress,
+                          style: STextStyles.button(context).copyWith(
+                            color: Theme.of(context)
+                                .extension<StackColors>()!
+                                .accentColorDark,
+                          ),
+                        ),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          unawaited(_useOwnAddress());
+                        },
+                      )
+                    : null,
                 rightButton: TextButton(
                   style: Theme.of(context)
                       .extension<StackColors>()!
@@ -671,6 +690,19 @@ class _SendViewState extends ConsumerState<SendView> {
         );
       }
     }
+  }
+
+  /// Puts the wallet's own transparent receiving address in the recipient
+  /// field: delegated coins go there first, then on to a shield address.
+  Future<void> _useOwnAddress() async {
+    final own = await ref
+        .read(pWallets)
+        .getWallet(walletId)
+        .getCurrentReceivingAddress();
+    if (own == null || !mounted) return;
+    _setAddress(own.value);
+    _setValidAddressProviders(_address);
+    setState(() => _addressToggleFlag = true);
   }
 
   void clearSendForm() {
