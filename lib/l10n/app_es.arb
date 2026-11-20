@@ -1840,5 +1840,8 @@
   "defiConfigMismatch": "La configuración del puente no coincide con esta versión de PIVXie, así que no se puede usar desde aquí. Actualiza la app.",
   "sendColdStakeToShield": "Las monedas delegadas no pueden ir directamente a una dirección Shield. Envíalas primero a tu propia dirección y luego a la dirección Shield.",
   "sendUseMyAddress": "Usar mi dirección",
-  "sendCoinUnavailable": "Una de las monedas que elegiste no se puede gastar ahora. Revisa tu selección en Control de monedas."
+  "sendCoinUnavailable": "Una de las monedas que elegiste no se puede gastar ahora. Revisa tu selección en Control de monedas.",
+  "introConsentTitle": "Antes de empezar",
+  "introConsentRead": "Lee los documentos de abajo. Cada uno se abre en tu navegador.",
+  "introConsentOpenFirst": "Abre cada documento para poder marcar la casilla."
 }

@@ -1840,5 +1840,8 @@
   "defiConfigMismatch": "Köprünün ayarları PIVXie'nin bu sürümüyle uyuşmuyor, bu yüzden buradan kullanılamıyor. Uygulamayı güncelleyin.",
   "sendColdStakeToShield": "Devredilen coinler doğrudan bir Shield adresine gönderilemez. Önce kendi adresinize, ardından Shield adresine gönderin.",
   "sendUseMyAddress": "Adresimi kullan",
-  "sendCoinUnavailable": "Seçtiğiniz coinlerden biri şu anda harcanamıyor. Seçiminizi Coin kontrolü bölümünde kontrol edin."
+  "sendCoinUnavailable": "Seçtiğiniz coinlerden biri şu anda harcanamıyor. Seçiminizi Coin kontrolü bölümünde kontrol edin.",
+  "introConsentTitle": "Başlamadan önce",
+  "introConsentRead": "Lütfen aşağıdaki belgeleri okuyun. Her biri tarayıcınızda açılır.",
+  "introConsentOpenFirst": "Kutuyu işaretlemek için her belgeyi açın."
 }

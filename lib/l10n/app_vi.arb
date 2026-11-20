@@ -1840,5 +1840,8 @@
   "defiConfigMismatch": "Cài đặt của cầu không khớp với phiên bản PIVXie này nên không thể dùng từ đây. Hãy cập nhật ứng dụng.",
   "sendColdStakeToShield": "Coin đã ủy thác không thể gửi thẳng đến địa chỉ Shield. Hãy gửi chúng đến địa chỉ của bạn trước, rồi mới gửi đến địa chỉ Shield.",
   "sendUseMyAddress": "Dùng địa chỉ của tôi",
-  "sendCoinUnavailable": "Một coin bạn đã chọn hiện chưa thể chi tiêu. Hãy kiểm tra lựa chọn trong Kiểm soát coin."
+  "sendCoinUnavailable": "Một coin bạn đã chọn hiện chưa thể chi tiêu. Hãy kiểm tra lựa chọn trong Kiểm soát coin.",
+  "introConsentTitle": "Trước khi bắt đầu",
+  "introConsentRead": "Vui lòng đọc các tài liệu bên dưới. Mỗi tài liệu sẽ mở trong trình duyệt của bạn.",
+  "introConsentOpenFirst": "Hãy mở từng tài liệu để đánh dấu ô."
 }

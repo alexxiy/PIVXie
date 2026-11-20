@@ -5813,5 +5813,8 @@
   },
   "sendColdStakeToShield": "Delegated coins can't go straight to a shield address. Send them to your own address first, then on to the shield address.",
   "sendUseMyAddress": "Use my address",
-  "sendCoinUnavailable": "A coin you picked can't be spent right now. Check your choice in Coin control."
+  "sendCoinUnavailable": "A coin you picked can't be spent right now. Check your choice in Coin control.",
+  "introConsentTitle": "Before you start",
+  "introConsentRead": "Please read the documents below. Each one opens in your browser.",
+  "introConsentOpenFirst": "Open each document to tick the box."
 }

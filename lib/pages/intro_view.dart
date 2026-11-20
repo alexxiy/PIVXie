@@ -26,7 +26,9 @@ import '../utilities/text_styles.dart';
 import '../utilities/util.dart';
 import '../widgets/adaptive_page.dart';
 import '../widgets/background.dart';
+import '../widgets/desktop/primary_button.dart';
 import '../widgets/desktop/secondary_button.dart';
+import '../widgets/stack_dialog.dart';
 import 'stack_privacy_calls.dart';
 
 class IntroView extends ConsumerStatefulWidget {
@@ -41,21 +43,31 @@ class IntroView extends ConsumerStatefulWidget {
 class _IntroViewState extends ConsumerState<IntroView> {
   late final bool isDesktop;
 
-  /// The terms and privacy policy, agreed to by ticking the box: app stores
-  /// ask for an active choice, not "by using the app, you agree".
-  bool _agreed = false;
-  bool get _canStart => _agreed || PrivacyAndTOSText.links().isEmpty;
+  /// The terms and privacy policy, accepted once in [ConsentDialog] on the
+  /// first start: app stores ask for an active choice, not "by using the
+  /// app, you agree". This screen only shows before the app is set up, so
+  /// existing users are never asked.
+  bool get _canStart =>
+      Prefs.instance.termsAccepted || PrivacyAndTOSText.links().isEmpty;
 
-  Widget _consent() => PrivacyConsent(
-    isDesktop: isDesktop,
-    value: _agreed,
-    onChanged: (value) => setState(() => _agreed = value),
-  );
+  /// Holds the screen until the terms are accepted: the dialog can't be
+  /// dismissed, and comes back if anything else closes it.
+  Future<void> _askConsent() async {
+    while (mounted && !_canStart) {
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (_) => ConsentDialog(isDesktop: isDesktop),
+      );
+    }
+    if (mounted) setState(() {});
+  }
 
   @override
   void initState() {
     isDesktop = Util.isDesktop;
     super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) => _askConsent());
   }
 
   @override
@@ -87,8 +99,6 @@ class _IntroViewState extends ConsumerState<IntroView> {
                           const SizedBox(height: 8),
                           IntroAboutText(isDesktop: isDesktop),
                           const SizedBox(height: 24),
-                          _consent(),
-                          const SizedBox(height: 16),
                           GetStartedButton(
                             isDesktop: isDesktop,
                             enabled: _canStart,
@@ -134,12 +144,6 @@ class _IntroViewState extends ConsumerState<IntroView> {
                               const Spacer(flex: 4),
                               Padding(
                                 padding: const EdgeInsets.symmetric(
-                                  horizontal: 32,
-                                ),
-                                child: _consent(),
-                              ),
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
                                   horizontal: 16,
                                   vertical: 16,
                                 ),
@@ -179,8 +183,6 @@ class _IntroViewState extends ConsumerState<IntroView> {
                           const Spacer(flex: 24),
                           IntroAboutText(isDesktop: isDesktop),
                           const Spacer(flex: 42),
-                          _consent(),
-                          const SizedBox(height: 16),
                           GetStartedButton(
                             isDesktop: isDesktop,
                             enabled: _canStart,
@@ -326,61 +328,171 @@ class PrivacyAndTOSText extends StatelessWidget {
   }
 }
 
-/// The unticked check box on the first screen with "I have read and agree
-/// to the Terms of service and Privacy policy" (whichever the app config
-/// sets; nothing when neither). Getting started waits for the tick.
-class PrivacyConsent extends StatelessWidget {
-  const PrivacyConsent({
-    super.key,
-    required this.isDesktop,
-    required this.value,
-    required this.onChanged,
-  });
+/// The first-start dialog: the terms and privacy policy links, which open
+/// in the browser, then "I have read and agree" and Continue. It can't be
+/// dismissed (no barrier tap, back or Escape). The box unlocks once every
+/// link was opened, and Continue once the box is ticked.
+class ConsentDialog extends StatefulWidget {
+  const ConsentDialog({super.key, required this.isDesktop});
 
   final bool isDesktop;
-  final bool value;
-  final ValueChanged<bool> onChanged;
+
+  @override
+  State<ConsentDialog> createState() => _ConsentDialogState();
+}
+
+class _ConsentDialogState extends State<ConsentDialog> {
+  final _opened = {...Prefs.instance.termsOpened};
+  // Links no browser could open: their addresses are shown to copy.
+  final _failed = <String>{};
+  bool _agreed = false;
+  bool _saving = false;
+
+  Future<void> _open(String url) async {
+    // Stored first: the phone may close the app while the browser is open.
+    await Prefs.instance.markTermsOpened(url);
+    var ok = false;
+    try {
+      ok = await launchUrl(
+        Uri.parse(url),
+        mode: LaunchMode.externalApplication,
+      );
+    } catch (_) {}
+    if (!mounted) return;
+    setState(() {
+      if (!ok) _failed.add(url);
+      _opened.add(url);
+    });
+  }
+
+  Future<void> _continue() async {
+    setState(() => _saving = true);
+    await Prefs.instance.acceptTerms();
+    if (mounted) Navigator.of(context).pop();
+  }
 
   @override
   Widget build(BuildContext context) {
-    final links = PrivacyAndTOSText.links();
-    if (links.isEmpty) return const SizedBox.shrink();
     final colors = Theme.of(context).extension<StackColors>()!;
-    final size = isDesktop ? 18.0 : 12.0;
-    final sentence = links.length == 1
-        ? l10n.introConsentOne("\u0000")
-        : l10n.introConsentTwo("\u0000", "\u0001");
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
-      // The words tick the box too; the links open their pages.
-      onTap: () => onChanged(!value),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Checkbox(
-            value: value,
-            activeColor: colors.checkboxBGChecked,
-            checkColor: colors.checkboxIconChecked,
-            side: BorderSide(color: colors.checkboxBorderEmpty, width: 2),
-            semanticLabel: sentence
-                .replaceAll("\u0000", links.first.$1)
-                .replaceAll("\u0001", links.last.$1),
-            onChanged: (ticked) => onChanged(ticked ?? false),
-          ),
-          Flexible(
-            child: RichText(
-              text: TextSpan(
-                style: STextStyles.label(context).copyWith(fontSize: size),
-                children: PrivacyAndTOSText.linkedSpans(
-                  context,
-                  sentence,
-                  links,
-                  size,
+    final links = PrivacyAndTOSText.links();
+    final desktop = widget.isDesktop;
+    final size = desktop ? 18.0 : 14.0;
+    final canTick = links.every((l) => _opened.contains(l.$2));
+    final canContinue = _agreed && canTick && !_saving;
+    final body = (desktop
+            ? STextStyles.desktopTextSmall(context)
+            : STextStyles.smallMed14(context))
+        .copyWith(fontSize: size);
+    final agree = links.length == 1
+        ? l10n.introConsentOne(links.first.$1)
+        : l10n.introConsentTwo(links.first.$1, links.last.$1);
+
+    return PopScope(
+      canPop: false,
+      child: StackDialogBase(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text(
+              l10n.introConsentTitle,
+              style: desktop
+                  ? STextStyles.desktopH3(context)
+                  : STextStyles.pageTitleH2(context),
+            ),
+            const SizedBox(height: 12),
+            Text(l10n.introConsentRead, style: body),
+            const SizedBox(height: 8),
+            for (final link in links) ...[
+              InkWell(
+                borderRadius: BorderRadius.circular(8),
+                onTap: () => _open(link.$2),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  child: Row(
+                    children: [
+                      Icon(
+                        _opened.contains(link.$2)
+                            ? Icons.check_circle
+                            : Icons.open_in_new,
+                        size: size + 4,
+                        color: _opened.contains(link.$2)
+                            ? colors.accentColorGreen
+                            : colors.accentColorBlue,
+                      ),
+                      const SizedBox(width: 10),
+                      Flexible(
+                        child: Text(
+                          link.$1,
+                          style: STextStyles.richLink(
+                            context,
+                          ).copyWith(fontSize: size),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
+              if (_failed.contains(link.$2))
+                Padding(
+                  padding: const EdgeInsetsDirectional.only(
+                    start: 32,
+                    bottom: 6,
+                  ),
+                  child: SelectableText(link.$2, style: body),
+                ),
+            ],
+            const SizedBox(height: 8),
+            GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: canTick ? () => setState(() => _agreed = !_agreed) : null,
+              child: Row(
+                children: [
+                  Checkbox(
+                    value: _agreed,
+                    activeColor: colors.checkboxBGChecked,
+                    checkColor: colors.checkboxIconChecked,
+                    side: BorderSide(
+                      color: canTick
+                          ? colors.checkboxBorderEmpty
+                          : colors.checkboxBorderEmpty.withValues(alpha: 0.4),
+                      width: 2,
+                    ),
+                    semanticLabel: agree,
+                    onChanged: canTick
+                        ? (ticked) => setState(() => _agreed = ticked ?? false)
+                        : null,
+                  ),
+                  Flexible(
+                    child: Text(
+                      agree,
+                      style: canTick
+                          ? body
+                          : body.copyWith(color: colors.textSubtitle2),
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+            if (!canTick)
+              Padding(
+                padding: const EdgeInsetsDirectional.only(start: 12, top: 4),
+                child: Text(
+                  l10n.introConsentOpenFirst,
+                  style: desktop
+                      ? STextStyles.desktopTextExtraExtraSmall(context)
+                      : STextStyles.itemSubtitle12(context),
+                ),
+              ),
+            const SizedBox(height: 20),
+            PrimaryButton(
+              label: l10n.commonContinue,
+              enabled: canContinue,
+              buttonHeight: desktop ? ButtonHeight.l : ButtonHeight.xl,
+              onPressed: canContinue ? _continue : null,
+            ),
+          ],
+        ),
       ),
     );
   }

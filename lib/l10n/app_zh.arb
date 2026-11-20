@@ -1840,5 +1840,8 @@
   "defiConfigMismatch": "桥的设置与此版本的 PIVXie 不符，因此无法在此使用。请更新应用。",
   "sendColdStakeToShield": "委托的币不能直接发送到 Shield 地址。请先发送到您自己的地址，再发送到 Shield 地址。",
   "sendUseMyAddress": "使用我的地址",
-  "sendCoinUnavailable": "您选择的币中有一枚暂时无法花费。请在手动选币中检查您的选择。"
+  "sendCoinUnavailable": "您选择的币中有一枚暂时无法花费。请在手动选币中检查您的选择。",
+  "introConsentTitle": "开始之前",
+  "introConsentRead": "请阅读以下文件。每个文件都会在您的浏览器中打开。",
+  "introConsentOpenFirst": "请先打开每个文件，才能勾选此框。"
 }

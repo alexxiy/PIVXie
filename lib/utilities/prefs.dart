@@ -56,6 +56,8 @@ class Prefs extends ChangeNotifier {
       _gotoWalletOnStartup = await _getGotoWalletOnStartup();
       _startupWalletId = await _getStartupWalletId();
       _externalCalls = await _getHasExternalCalls();
+      _termsAccepted = await _getTermsAccepted();
+      _termsOpened = await _getTermsOpened();
       _enableCoinControl = await _getEnableCoinControl();
       _enableSystemBrightness = await _getEnableSystemBrightness();
       _themeId = await _getThemeId();
@@ -660,6 +662,59 @@ class Prefs extends ChangeNotifier {
     }
     return true;
   }
+
+  // Terms and privacy policy accepted in the first-start dialog (intro
+  // screen). Only people who reach the intro screen are asked: anyone who
+  // set the app up before this existed goes straight to the lock or login
+  // screen and never sees it.
+  bool _termsAccepted = false;
+
+  bool get termsAccepted => _termsAccepted;
+
+  /// Stored before it returns, so a quick close of the app keeps it.
+  Future<void> acceptTerms() async {
+    await DB.instance.put<dynamic>(
+      boxName: DB.boxNamePrefs,
+      key: "termsAccepted",
+      value: true,
+    );
+    _termsAccepted = true;
+    notifyListeners();
+  }
+
+  Future<bool> _getTermsAccepted() async =>
+      await DB.instance.get<dynamic>(
+            boxName: DB.boxNamePrefs,
+            key: "termsAccepted",
+          )
+          as bool? ??
+      false;
+
+  // Links opened in that dialog: kept, so a phone that closes the app
+  // while the browser is open doesn't ask for them again.
+  List<String> _termsOpened = const [];
+
+  List<String> get termsOpened => _termsOpened;
+
+  Future<void> markTermsOpened(String url) async {
+    if (_termsOpened.contains(url)) return;
+    _termsOpened = [..._termsOpened, url];
+    await DB.instance.put<dynamic>(
+      boxName: DB.boxNamePrefs,
+      key: "termsOpened",
+      value: _termsOpened,
+    );
+  }
+
+  Future<List<String>> _getTermsOpened() async =>
+      (await DB.instance.get<dynamic>(
+                boxName: DB.boxNamePrefs,
+                key: "termsOpened",
+              )
+              as List?)
+          ?.cast<String>()
+          .toList() ??
+      const [];
 
   // coin control
 

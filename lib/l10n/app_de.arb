@@ -1840,5 +1840,8 @@
   "defiConfigMismatch": "Die Einstellungen der Bridge passen nicht zu dieser PIVXie-Version, daher kann sie hier nicht genutzt werden. Aktualisieren Sie die App.",
   "sendColdStakeToShield": "Delegierte Coins können nicht direkt an eine Shield-Adresse gesendet werden. Senden Sie sie zuerst an Ihre eigene Adresse und dann an die Shield-Adresse.",
   "sendUseMyAddress": "Meine Adresse verwenden",
-  "sendCoinUnavailable": "Einer der gewählten Coins kann gerade nicht ausgegeben werden. Prüfen Sie Ihre Auswahl unter Coin Control."
+  "sendCoinUnavailable": "Einer der gewählten Coins kann gerade nicht ausgegeben werden. Prüfen Sie Ihre Auswahl unter Coin Control.",
+  "introConsentTitle": "Bevor Sie beginnen",
+  "introConsentRead": "Bitte lesen Sie die folgenden Dokumente. Jedes öffnet sich in Ihrem Browser.",
+  "introConsentOpenFirst": "Öffnen Sie jedes Dokument, um das Kästchen anzukreuzen."
 }

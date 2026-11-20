@@ -1840,5 +1840,8 @@
   "defiConfigMismatch": "ブリッジの設定がこのバージョンの PIVXie と一致しないため、ここからは使えません。アプリを更新してください。",
   "sendColdStakeToShield": "委任したコインは Shield アドレスへ直接送れません。まず自分のアドレスへ送り、その後 Shield アドレスへ送ってください。",
   "sendUseMyAddress": "自分のアドレスを使う",
-  "sendCoinUnavailable": "選んだコインのうち、今は使えないものがあります。コインコントロールで選択を確認してください。"
+  "sendCoinUnavailable": "選んだコインのうち、今は使えないものがあります。コインコントロールで選択を確認してください。",
+  "introConsentTitle": "はじめる前に",
+  "introConsentRead": "以下のドキュメントをお読みください。それぞれブラウザで開きます。",
+  "introConsentOpenFirst": "チェックを入れるには、各ドキュメントを開いてください。"
 }

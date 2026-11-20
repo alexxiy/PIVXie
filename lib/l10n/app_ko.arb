@@ -1840,5 +1840,8 @@
   "defiConfigMismatch": "브리지 설정이 이 버전의 PIVXie와 맞지 않아 여기서 사용할 수 없습니다. 앱을 업데이트하세요.",
   "sendColdStakeToShield": "위임한 코인은 Shield 주소로 바로 보낼 수 없습니다. 먼저 내 주소로 보낸 다음 Shield 주소로 보내세요.",
   "sendUseMyAddress": "내 주소 사용",
-  "sendCoinUnavailable": "선택한 코인 중 지금 사용할 수 없는 코인이 있습니다. 코인 컨트롤에서 선택을 확인하세요."
+  "sendCoinUnavailable": "선택한 코인 중 지금 사용할 수 없는 코인이 있습니다. 코인 컨트롤에서 선택을 확인하세요.",
+  "introConsentTitle": "시작하기 전에",
+  "introConsentRead": "아래 문서를 읽어 주세요. 각 문서는 브라우저에서 열립니다.",
+  "introConsentOpenFirst": "체크하려면 각 문서를 열어 주세요."
 }
