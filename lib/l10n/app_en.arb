@@ -1150,6 +1150,9 @@
     }
   },
   "sendRecipient": "Recipient",
+  "sendRecipientName": "Recipient name",
+  "sendShieldedMemo": "Shielded memo",
+  "sendMemoEmpty": "No memo",
   "sendTransactionFee": "Transaction fee",
   "sendNote": "Note",
   "sendSendTo": "Send to",
