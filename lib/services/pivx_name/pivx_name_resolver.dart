@@ -171,6 +171,7 @@ class PivxNameResolver {
     this.service, {
     PivxNameTransport? transport,
     this.recheckDelay = const Duration(seconds: 5),
+    this.retryDelay = const Duration(seconds: 1),
   }) : _transport = transport ?? pivxNameHttpTransport;
 
   /// Lookups for [coin] with the app's network settings (Tor), or null when
@@ -187,6 +188,10 @@ class PivxNameResolver {
   /// after an anchoring transaction the server can be a few seconds ahead of
   /// it. A fabricated root is unknown at every block.
   final Duration recheckDelay;
+
+  /// Before asking again while the server says the names are being
+  /// updated.
+  final Duration retryDelay;
 
   Future<PivxNameLookup> lookup(String name) => _lookup(name, recheck: true);
 
@@ -280,7 +285,7 @@ class PivxNameResolver {
 
   /// The record and proof for [name], or null when the server doesn't know
   /// it.
-  Future<Map<String, dynamic>?> _resolve(String name) async {
+  Future<Map<String, dynamic>?> _resolveOnce(String name) async {
     // [name] is valid, so it is safe in the path as is.
     final res = await _indexer("POST", "/v1.0/resolve/$name", body: "{}");
     final json = _decodeObject(res.body);
@@ -289,6 +294,8 @@ class PivxNameResolver {
       final text = error["error_message"];
       // The only error text acted on, compared whole.
       if (text == "Domain not found") return null;
+      // A sync was committing: asked again in a moment (see [_resolve]).
+      if (text == _namesUpdating) throw const _NamesUpdating();
       throw PivxNameException(
         PivxNameError.indexerError,
         "The PIVX.name server answered with an error.",
@@ -304,6 +311,29 @@ class PivxNameResolver {
       );
     }
     return record;
+  }
+
+  /// The server's answer while a sync commits the names. It already read
+  /// them again a few times itself, so the lookup waits a moment first.
+  static const _namesUpdating =
+      "The names are being updated, repeat the request";
+
+  /// [_resolveOnce], asked again while the names are being updated.
+  Future<Map<String, dynamic>?> _resolve(String name) async {
+    for (var attempt = 1; ; attempt++) {
+      try {
+        return await _resolveOnce(name);
+      } on _NamesUpdating {
+        if (attempt >= 3) {
+          throw PivxNameException(
+            PivxNameError.indexerError,
+            "The PIVX.name server answered with an error.",
+            detail: _namesUpdating,
+          );
+        }
+      }
+      await Future<void>.delayed(retryDelay);
+    }
   }
 
   Future<String> _indexerRoot() async {
@@ -584,4 +614,9 @@ Future<PivxNameResponse> pivxNameHttpTransport(
   } finally {
     client.close(force: true);
   }
+}
+
+/// The server is committing the names; see [PivxNameResolver._resolve].
+class _NamesUpdating implements Exception {
+  const _NamesUpdating();
 }

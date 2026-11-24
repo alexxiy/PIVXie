@@ -338,7 +338,13 @@ void main() {
     late Map<String, Object? Function(Map<String, dynamic>? body)> routes;
     late List<String> calls;
 
-    PivxNamesRegistrar registrar() {
+    final unpinned = PivxNamesService(
+      registrar: PivxNamesService.mainnet.registrar,
+      network: "mainnet",
+      marker: "PiNS",
+    );
+
+    PivxNamesRegistrar registrar([PivxNamesService? service]) {
       Future<PivxNameResponse> transport(
         String method,
         Uri url, {
@@ -359,11 +365,17 @@ void main() {
         );
       }
 
-      return PivxNamesRegistrar(PivxNamesService.mainnet, transport: transport);
+      return PivxNamesRegistrar(service ?? unpinned, transport: transport);
     }
 
     setUp(() {
-      routes = {};
+      routes = {
+        // The registrar's own address, not one the tests pay or withdraw to.
+        "getPaymentAddress": (_) => {
+          "address": PivxNamesService.mainnet.paymentAddress,
+          "network": "mainnet",
+        },
+      };
       calls = [];
     });
 
@@ -901,6 +913,91 @@ void main() {
         ),
         throwsA(clock),
       );
+    });
+
+    test("the published payment address is pinned", () async {
+      final pinned = PivxNamesService(
+        registrar: unpinned.registrar,
+        network: "mainnet",
+        marker: unpinned.marker,
+        paymentAddress: PivxNamesService.mainnet.paymentAddress,
+      );
+      routes["getPaymentAddress"] = (_) => {
+        "address": liveTarget,
+        "network": "mainnet",
+      };
+      await expectLater(
+        registrar(pinned).paymentInfo(),
+        throwsA(isA<PivxNamesException>()),
+      );
+      routes["getPaymentAddress"] = (_) => {
+        "address": PivxNamesService.mainnet.paymentAddress,
+        "network": "mainnet",
+      };
+      expect(
+        (await registrar(pinned).paymentInfo()).address,
+        PivxNamesService.mainnet.paymentAddress,
+      );
+    });
+
+    test("nonces on the registrar's clock, above the name's last", () async {
+      final device = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      routes["getPaymentAddress"] = (_) => {
+        "address": liveTarget,
+        "network": "mainnet",
+        "server_time": device + 3600,
+      };
+      Object? stored;
+      routes["check/alexxiy.pivx"] = (_) => {
+        "exists": true,
+        "update_price": 100000000,
+        if (stored != null) "nonce": stored,
+      };
+      final r = registrar();
+      final now = await r.serverNow();
+      expect(now - device, inInclusiveRange(3599, 3601));
+      // An older registrar sends no nonce: the time.
+      expect(
+        await r.commandNonce("alexxiy.pivx"),
+        inInclusiveRange(now, now + 2),
+      );
+      stored = now + 100;
+      expect(await r.commandNonce("alexxiy.pivx"), now + 101);
+      // One signed here already: above it.
+      expect(await r.commandNonce("alexxiy.pivx"), now + 102);
+      // Too far ahead for the indexer.
+      stored = "${now + 1000}";
+      await expectLater(
+        r.commandNonce("alexxiy.pivx"),
+        throwsA(isA<PivxNamesException>()),
+      );
+    });
+
+    test("no server time: the device clock", () async {
+      final device = DateTime.now().millisecondsSinceEpoch ~/ 1000;
+      expect(
+        await registrar().serverNow(),
+        inInclusiveRange(device, device + 1),
+      );
+    });
+
+    test("no withdrawal to the payment address", () async {
+      routes["getPaymentAddress"] = (_) => {
+        "address": liveTarget,
+        "network": "mainnet",
+      };
+      routes["balance"] = (_) => 1;
+      await expectLater(
+        registrar().withdraw(
+          pubkey: liveOwnerKey,
+          address: liveTarget,
+          amount: BigInt.one,
+          nonce: 1,
+          signature: "00",
+        ),
+        throwsA(isA<PivxNamesException>()),
+      );
+      expect(calls, ["GET getPaymentAddress"]);
     });
 
     test("statuses", () {

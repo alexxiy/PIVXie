@@ -91,7 +91,7 @@ class _PivxNamesTransactionsViewState
     try {
       final wallet = _wallet;
       final identity = await wallet.namesIdentity();
-      final nonce = pivxNamesNonce();
+      final nonce = await _registrar.serverNow();
       final signature = await identity.sign(
         pivxNamesHistoryMessage(
           marker: _registrar.service.marker,

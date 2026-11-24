@@ -154,7 +154,7 @@ Future<PivxNamesPayment?> _sign(
         marker: registrar.service.marker,
         op: flow.op,
         name: flow.name,
-        nonce: pivxNamesNonce(),
+        nonce: await registrar.commandNonce(flow.name),
         pubkey: identity.publicKey,
         target: target,
         newOwner: newOwner,

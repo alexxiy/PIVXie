@@ -70,10 +70,13 @@ const kPivxNamesMaxListingPrice = 50000000;
 const _pivxDecimals = 8;
 const _satsPerPivx = 100000000;
 
-/// Seconds since the epoch: the nonce of a command or request. The
-/// registrar refuses a command whose nonce is ahead of the block that
-/// carries it (beyond a few minutes), and one not above the name's last
-/// nonce.
+/// How far a command's nonce may run ahead of its block's time: the
+/// indexer's Protocol::NONCE_FUTURE_TOLERANCE.
+const kPivxNamesNonceFutureTolerance = 300;
+
+/// Seconds since the epoch on this device's clock. Commands and signed
+/// requests take the registrar's clock instead
+/// ([PivxNamesRegistrar.commandNonce], [PivxNamesRegistrar.serverNow]).
 int pivxNamesNonce([DateTime? now]) =>
     (now ?? DateTime.now()).millisecondsSinceEpoch ~/ 1000;
 

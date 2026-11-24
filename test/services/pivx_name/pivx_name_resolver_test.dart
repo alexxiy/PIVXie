@@ -60,6 +60,9 @@ class _Net {
 
   /// A server that answers with this error text.
   String? serverError;
+
+  /// Answers "being updated" this many times first.
+  int updatingFor = 0;
   String? serverBody;
   var serverDown = false;
 
@@ -76,6 +79,7 @@ class _Net {
     service,
     transport: transport,
     recheckDelay: Duration.zero,
+    retryDelay: Duration.zero,
   );
 
   String rootAt(int block) =>
@@ -139,6 +143,14 @@ class _Net {
     if (serverDown) throw TimeoutException("No answer");
     if (serverBody != null) return (status: 200, body: serverBody!);
     // The error answers lookups; the root is still served.
+    if (updatingFor > 0 && url.path != "/v1.0/getRoot") {
+      updatingFor--;
+      return _json({
+        "error": {
+          "error_message": "The names are being updated, repeat the request",
+        },
+      });
+    }
     if (serverError != null && url.path != "/v1.0/getRoot") {
       return _json({
         "error": {"error_message": serverError},
@@ -413,6 +425,19 @@ void main() {
 
     test("a non-JSON answer", () async {
       final net = _Net()..serverBody = "<html>502</html>";
+      await expectLater(
+        net.resolver().lookup("alexxiy.pivx"),
+        _throwsKind(PivxNameError.indexerError),
+      );
+    });
+
+    test("names being updated: asked again", () async {
+      final net = _Net()..updatingFor = 2;
+      expect(
+        await net.resolver().lookup("alexxiy.pivx"),
+        isA<PivxNameVerified>(),
+      );
+      net.updatingFor = 3;
       await expectLater(
         net.resolver().lookup("alexxiy.pivx"),
         _throwsKind(PivxNameError.indexerError),

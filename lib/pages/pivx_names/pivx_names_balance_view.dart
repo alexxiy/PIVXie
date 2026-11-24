@@ -135,7 +135,7 @@ class _PivxNamesBalanceViewState extends ConsumerState<PivxNamesBalanceView> {
       onException: (e) => error = e,
       whileFutureAlt: () async {
         final identity = await wallet.namesIdentity();
-        final nonce = pivxNamesNonce();
+        final nonce = await _registrar.serverNow();
         final signature = await identity.sign(
           pivxNamesWithdrawMessage(
             marker: _registrar.service.marker,

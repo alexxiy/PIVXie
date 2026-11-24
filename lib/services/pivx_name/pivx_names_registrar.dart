@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math' as math;
 
 import '../../l10n/l10n.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
@@ -15,6 +16,7 @@ class PivxNamesService {
     required this.registrar,
     required this.network,
     required this.marker,
+    this.paymentAddress,
   });
 
   final Uri registrar;
@@ -26,10 +28,17 @@ class PivxNamesService {
   /// one can't be replayed on another.
   final String marker;
 
+  /// The address the registrar must serve for payments, when pinned: the
+  /// protocol's published one. Any other is refused, so a change on the
+  /// registrar's server alone can't send payments elsewhere. A new address
+  /// needs a new release of the app, as it does for the web app.
+  final String? paymentAddress;
+
   static final mainnet = PivxNamesService(
     registrar: Uri.parse("https://registrar.pivx.name"),
     network: "mainnet",
     marker: "PiNS",
+    paymentAddress: "ps1rf97n020fhwycx2nnxfm97ufeyygk9q64h96e5dx304lreg9zl53sas6g3c9gnlfpqw5s4u3zsh",
   );
 
   /// The registrar for [coin], or null where names don't exist (only
@@ -342,6 +351,21 @@ class PivxNamesRegistrar {
 
   Future<PivxNamesPaymentInfo>? _paymentInfo;
 
+  /// The registrar's clock minus this device's, in seconds, from the
+  /// `server_time` of the payment info. 0 until measured, or when the
+  /// registrar sends no time.
+  double _clockOffset = 0;
+
+  /// When [_clockOffset] was measured, on the device clock and on a
+  /// monotonic one. When the device clock moves against the monotonic one
+  /// (set by hand, or the device slept), the offset is measured again.
+  DateTime? _clockMark;
+  final _clockWatch = Stopwatch();
+
+  /// The greatest nonce signed per name in this run, so a second command
+  /// on a name before the first is indexed still carries a greater one.
+  final _lastNonce = <String, int>{};
+
   Future<Object?> _call(String path, [Map<String, dynamic>? body]) async {
     final url = service.registrar.replace(path: "/v1.0/$path");
     final PivxNameResponse response;
@@ -405,6 +429,66 @@ class PivxNamesRegistrar {
     }
   }
 
+  /// Takes the registrar's [serverTime] as of now. It was read when the
+  /// request reached the registrar, so the offset is off by the answer's
+  /// way back and up to a second: a gap of a few seconds is that noise, and
+  /// the device clock stays.
+  void _measureClock(Object? serverTime) {
+    if (serverTime is! int || serverTime <= 0) return;
+    final now = DateTime.now();
+    final offset = serverTime - now.millisecondsSinceEpoch / 1000;
+    _clockOffset = offset.abs() > 2 ? offset : 0;
+    _clockMark = now;
+    _clockWatch
+      ..reset()
+      ..start();
+  }
+
+  bool get _clockMoved {
+    final mark = _clockMark;
+    if (mark == null) return false;
+    final drift = DateTime.now().difference(mark) - _clockWatch.elapsed;
+    return drift.inMilliseconds.abs() > 2000;
+  }
+
+  /// Unix seconds on the registrar's clock, as near as the app can tell:
+  /// the nonce of a signed request. The registrar takes one within a
+  /// minute of its clock, so a device whose own clock is off still signs
+  /// requests it takes. The payment info brings the clock, and is asked
+  /// again when the device clock moved since.
+  Future<int> serverNow() async {
+    if (_clockMoved) {
+      _paymentInfo = null;
+      _clockMark = null;
+    }
+    await paymentInfo();
+    return (DateTime.now().millisecondsSinceEpoch / 1000 + _clockOffset)
+        .floor();
+  }
+
+  /// The nonce for a command on [name]: the registrar's time, but above the
+  /// name's last nonce (a device clock behind, or a listing signed a few
+  /// minutes ahead) and above the last one signed here. A command whose
+  /// nonce isn't greater is refused after it's paid for, and refunded.
+  Future<int> commandNonce(String name) async {
+    final now = await serverNow();
+    final r = await _call(_checkPath(name));
+    if (r is! Map) _malformed();
+    // An older registrar doesn't send it: the time and this run's own
+    // nonces go.
+    final stored = _int(r["nonce"]) ?? 0;
+    final nonce = math.max(
+      now,
+      math.max(stored + 1, (_lastNonce[name] ?? 0) + 1),
+    );
+    // The indexer refuses a command dated this far ahead of its block.
+    if (nonce > now + kPivxNamesNonceFutureTolerance) {
+      throw PivxNamesException(l10n.pivxNamesNonceWait);
+    }
+    _lastNonce[name] = nonce;
+    return nonce;
+  }
+
   Future<PivxNamesPaymentInfo> _fetchPaymentInfo() async {
     final r = await _call("getPaymentAddress");
     if (r is! Map) _malformed();
@@ -415,6 +499,11 @@ class PivxNamesRegistrar {
       );
     }
     if (address is! String || !isValidPivxNamesTarget(address)) _malformed();
+    final pinned = service.paymentAddress;
+    if (pinned != null && address != pinned) {
+      throw PivxNamesException(l10n.pivxNamesWrongPaymentAddress);
+    }
+    _measureClock(r["server_time"]);
     int confirmations(Object? v, int fallback) =>
         v is int && v > 0 && v < 10000 ? v : fallback;
     return (
@@ -638,6 +727,11 @@ class PivxNamesRegistrar {
     required int nonce,
     required String signature,
   }) async {
+    // Payouts are sent from the payment address: paid there, the coins
+    // would never leave the registrar's wallet, and it refuses that.
+    if (address == (await paymentInfo()).address) {
+      throw PivxNamesException(l10n.pivxNamesWithdrawToRegistrar);
+    }
     final r = await _timed("balance", {
       "action": "withdraw",
       "pubkey": pubkey,

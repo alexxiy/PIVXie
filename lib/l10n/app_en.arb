@@ -958,6 +958,9 @@
   },
   "pivxNamesBadAnswer": "PIVX.name sent an answer the app doesn't understand",
   "pivxNamesClockOff": "PIVX.name turned the request down because this device's clock is off. Set the right time and try again.",
+  "pivxNamesNonceWait": "This name was changed moments ago. Wait a few minutes and try again.",
+  "pivxNamesWrongPaymentAddress": "PIVX.name sent a payment address that isn't its published one, so the app won't pay it. Try again later or update the app.",
+  "pivxNamesWithdrawToRegistrar": "This is the service's payment address, where payouts are sent from. Withdraw to an address of your own.",
   "pivxNamesWrongNetwork": "PIVX.name answered for {got}, not {expected}",
   "@pivxNamesWrongNetwork": {
     "placeholders": {
