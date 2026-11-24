@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 
 import '../../../../utilities/logger.dart';
 import '../../../../utilities/stack_file_system.dart';
@@ -152,12 +153,18 @@ class PivxShieldState {
     final f = await _file(walletId);
     if (!f.existsSync()) return null;
     try {
-      final json = jsonDecode(await f.readAsString()) as Map<String, dynamic>;
+      final path = f.path;
+      // Parsed off the UI isolate: the witnesses make the file large.
+      final json = await Isolate.run(
+        () async => jsonDecode(await File(path).readAsString()),
+      ) as Map<String, dynamic>;
       if (json["version"] != version) return null;
       return PivxShieldState.fromJson(json, extfvk: extfvk);
     } catch (e) {
       // Everything in it comes from the chain again: scan anew.
-      Logging.instance.w("PIVX shield: unreadable state of $walletId: $e");
+      Logging.instance.w(
+        "PIVX shield: unreadable state of $walletId: ${e.runtimeType}",
+      );
       return null;
     }
   }
@@ -176,10 +183,18 @@ class PivxShieldState {
 
   Future<void> _write(String walletId) async {
     final f = await _file(walletId);
-    final tmp = File("${f.path}.tmp");
-    await tmp.writeAsString(jsonEncode(toJson()), flush: true);
-    await tmp.rename(f.path);
+    await _writeFile(f.path, toJson());
   }
+
+  /// Encoded and written off the UI isolate: the witnesses make the file
+  /// large. The maps are copied as the isolate starts, so later changes
+  /// to the state don't reach this save.
+  static Future<void> _writeFile(String path, Map<String, dynamic> json) =>
+      Isolate.run(() async {
+        final tmp = File("$path.tmp");
+        await tmp.writeAsBytes(JsonUtf8Encoder().convert(json), flush: true);
+        await tmp.rename(path);
+      });
 
   static Future<void> delete(String walletId) async {
     final f = await _file(walletId);

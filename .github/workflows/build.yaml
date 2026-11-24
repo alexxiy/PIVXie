@@ -41,7 +41,7 @@ permissions:
   contents: read
 
 env:
-  FLUTTER_VERSION: 3.47.8
+  FLUTTER_VERSION: 3.50.1
   # The Rust the Tor plugin pins (its rust-toolchain.toml, at the
   # tor_ffi_plugin ref in the pubspec template): update them together.
   TOR_RUST: 1.99.1
@@ -109,7 +109,7 @@ jobs:
       # Link the system libsecret and jsoncpp.
       USE_SYSTEM_SECURE_STORAGE_DEPS: "1"
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       # The image's libunwind-14-dev (LLVM 14) conflicts with libunwind-dev,
       # which the GStreamer headers need.
@@ -147,7 +147,7 @@ jobs:
       # The QR scanner's camera support links a small static OpenCV, so the
       # bundle runs without OpenCV installed.
       - name: Cache OpenCV
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: scripts/linux/build/opencv/install
           key: opencv-ubuntu-22.04-arm64-${{ hashFiles('scripts/linux/build_opencv.sh') }}
@@ -197,7 +197,7 @@ jobs:
     env:
       VERSION: ${{ needs.version.outputs.version }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - uses: actions/download-artifact@v8
         with:
@@ -205,7 +205,7 @@ jobs:
           path: linux
 
       - name: Cache Flatpak SDK
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           path: ~/.local/share/flatpak
           key: flatpak-freedesktop-26.08-aarch64-v1
@@ -257,7 +257,7 @@ jobs:
       - name: Keep LF line endings
         run: git config --global core.autocrlf false
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - uses: subosito/flutter-action@v2
         with:
@@ -318,7 +318,7 @@ jobs:
       DART_DEFINES: ${{ needs.version.outputs.dart_defines }}${{ matrix.appstore && ' --dart-define=APP_STORE=true' || '' }}
       APPSTORE: ${{ matrix.appstore }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Xcode
         run: xcodebuild -version
@@ -375,7 +375,7 @@ jobs:
       BUILD_NUMBER: ${{ needs.version.outputs.build_number }}
       DART_DEFINES: ${{ needs.version.outputs.dart_defines }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - uses: subosito/flutter-action@v2
         with:

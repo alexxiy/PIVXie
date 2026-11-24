@@ -29,6 +29,7 @@ import '../../utilities/address_utils.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/clipboard_interface.dart';
 import '../../utilities/constants.dart';
+import '../../utilities/logger.dart';
 import '../../utilities/text_styles.dart';
 import '../../utilities/util.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
@@ -132,8 +133,7 @@ class _GenerateUriQrCodeViewState extends State<GenerateUriQrCodeView> {
         );
       }
     } catch (e) {
-      //todo: comeback to this
-      debugPrint(e.toString());
+      Logging.instance.w("Sharing the QR code failed", error: e);
     }
   }
 

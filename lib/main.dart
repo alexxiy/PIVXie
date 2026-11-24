@@ -131,7 +131,7 @@ void main(List<String> args) async {
   if (Platform.isLinux || Platform.isMacOS) {
     // History, addresses and shield notes: for this user's eyes only.
     try {
-      await Process.run("chmod", [
+      await Process.run("/bin/chmod", [
         "700",
         (await StackFileSystem.applicationRootDirectory()).path,
       ]);

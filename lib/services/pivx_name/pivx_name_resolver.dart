@@ -577,12 +577,7 @@ Future<PivxNameResponse> pivxNameHttpTransport(
 }) async {
   final useTor = AppConfig.hasFeature(AppFeature.tor) && Prefs.instance.useTor;
   final proxy = useTor ? TorService.sharedInstance.getProxyInfo() : null;
-  final client = HttpClient()..connectionTimeout = kPivxNameRequestTimeout;
-  if (proxy != null) {
-    SocksTCPClient.assignToHttpClient(client, [
-      ProxySettings(proxy.host, proxy.port),
-    ]);
-  }
+  final client = _sharedClient(proxy);
   HttpClientRequest? request;
   try {
     return await () async {
@@ -611,9 +606,41 @@ Future<PivxNameResponse> pivxNameHttpTransport(
   } on TimeoutException {
     request?.abort();
     throw TimeoutException("No answer from ${url.host} within 10 s");
-  } finally {
-    client.close(force: true);
   }
+}
+
+HttpClient? _client;
+({InternetAddress host, int port})? _clientProxy;
+DateTime _clientUsed = DateTime(0);
+
+/// One client for every request: a lookup asks the chain several times,
+/// and each new connection costs a TLS handshake (over Tor, a new stream
+/// as well). After a pause pooled connections may be dead (sleep, network
+/// change), so a fresh client then; likewise when Tor moved to another
+/// port. Running requests still finish on the old one.
+HttpClient _sharedClient(({InternetAddress host, int port})? proxy) {
+  final now = DateTime.now();
+  if (_client != null &&
+      (proxy != _clientProxy ||
+          now.difference(_clientUsed) > const Duration(seconds: 20))) {
+    _client!.close();
+    _client = null;
+  }
+  _clientUsed = now;
+  _clientProxy = proxy;
+  return _client ??= () {
+    // Idle connections are dropped before servers close them, so a request
+    // never goes out on one being closed.
+    final client = HttpClient()
+      ..connectionTimeout = kPivxNameRequestTimeout
+      ..idleTimeout = const Duration(seconds: 15);
+    if (proxy != null) {
+      SocksTCPClient.assignToHttpClient(client, [
+        ProxySettings(proxy.host, proxy.port),
+      ]);
+    }
+    return client;
+  }();
 }
 
 /// The server is committing the names; see [PivxNameResolver._resolve].

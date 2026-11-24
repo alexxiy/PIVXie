@@ -435,7 +435,12 @@ class PivxBridgeClient {
   }
 
   Future<Map<String, dynamic>> tx(String txid) async {
-    return Map<String, dynamic>.from(await _getJson("/tx/$txid") as Map);
+    final json = Map<String, dynamic>.from(await _getJson("/tx/$txid") as Map);
+    // The answer is stored as this tx: it has to be this one.
+    if (json["txid"] != txid) {
+      throw PivxBridgeException("The bridge sent another transaction");
+    }
+    return json;
   }
 
   /// Raw hex of a transaction.

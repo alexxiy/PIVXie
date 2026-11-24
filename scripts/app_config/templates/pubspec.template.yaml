@@ -16,8 +16,8 @@ publish_to: none
 version: PLACEHOLDER_V+PLACEHOLDER_B
 
 environment:
-  sdk: ">=3.13.0 <4.0.0"
-  flutter: ^3.47.7
+  sdk: ">=3.14.0 <4.0.0"
+  flutter: ^3.50.1
 
 dependencies:
   flutter:
@@ -80,7 +80,7 @@ dependencies:
 
   # Storage plugins
   flutter_secure_storage: ^11.2.0
-  hive_ce: ^2.23.3
+  hive_ce: ^2.24.0
   isar_community: 3.4.1
   isar_community_flutter_libs: 3.4.1
   path_provider: ^2.1.6
@@ -92,17 +92,17 @@ dependencies:
   flutter_native_splash: ^2.4.8
   google_fonts: ^9.0.0
   url_launcher: ^6.3.3
-  flutter_svg: ^2.4.0
+  flutter_svg: ^2.5.0
   lottie: ^3.8.2
   qr_flutter: ^4.0.0
-  dropdown_button2: ^3.1.0
+  dropdown_button2: ^4.0.0
   # 4.x is built on package:material_ui instead of the SDK's material
   # library and fails inside our dialogs ("No Material widget found",
   # a gray box in release builds). Stay on 3.x until it works with the SDK.
   calendar_date_picker2: ^3.0.0
   another_flushbar: ^2.2.4
   keyboard_dismisser: ^3.0.0
-  emojis: ^3.2.0
+  emojis: ^3.3.0
   flutter_riverpod: ^3.5.0
 
   # Platform plugins
@@ -112,7 +112,7 @@ dependencies:
   device_info_plus: ^13.3.0
   package_info_plus: ^10.2.2
   share_plus: ^13.3.1
-  file_picker: ^13.3.3
+  file_picker: ^13.4.1
   mobile_scanner: ^7.5.0
   mobile_app_privacy:
     git:
@@ -126,20 +126,20 @@ dependencies:
       url: https://github.com/cypherstack/packages.git
       path: packages/camera/camera_windows
       ref: 9bfbfd643ba4e6865ec34124e42a1cc502c400c0
-  camera_platform_interface: ^2.14.0
+  camera_platform_interface: ^2.15.1
   camera_macos: ^0.1.1
   zxing2: ^0.2.3
-  image: ^4.12.0
+  image: ^4.13.1
 
   # Dart utilities
-  decimal: ^3.2.6
+  decimal: ^3.2.7
   intl: ^0.20.3
   event_bus: ^2.0.0
   uuid: ^4.6.0
   tuple: ^2.0.0
   equatable: ^3.0.0
   async: ^2.13.1
-  archive: ^4.7.0
+  archive: ^4.7.1
   meta: ^1.9.1
   socks5_proxy: ^2.1.2
   logger:

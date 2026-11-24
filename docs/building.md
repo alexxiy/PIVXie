@@ -6,7 +6,7 @@ These steps build the Android app on a Linux host. iOS needs a macOS host (see [
 
 - A Linux host. PIVXie is built on Fedora 44; Ubuntu 24.04 works too.
 - About 40 GB of free disk space (Flutter, the Android SDK, Gradle and Rust caches, and the build output).
-- [Flutter](https://docs.flutter.dev/install/manual) 3.47.7 or newer (Dart 3.13). Run `flutter doctor` to check the install.
+- [Flutter](https://docs.flutter.dev/install/manual) 3.50.1 or newer (Dart 3.14). Run `flutter doctor` to check the install.
 - JDK 17.
 - The Android SDK with the command-line tools, platform 37 (Android 17) and NDK 28.0.13004108. You can install them with Android Studio's SDK Manager or with `sdkmanager`:
   ```bash
