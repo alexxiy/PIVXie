@@ -120,10 +120,16 @@ class DesktopFavoriteWallets extends ConsumerWidget {
                               .textSubtitle1,
                         ),
                         const SizedBox(width: 4),
-                        Text(
-                          l10n.walletsAddFavorite,
-                          style: STextStyles.itemSubtitle(context)
-                              .copyWith(fontSize: 18),
+                        // Long in some languages on small windows.
+                        Flexible(
+                          child: Text(
+                            l10n.walletsAddFavorite,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
+                            style: STextStyles.itemSubtitle(context)
+                                .copyWith(fontSize: 18),
+                          ),
                         ),
                       ],
                     ),

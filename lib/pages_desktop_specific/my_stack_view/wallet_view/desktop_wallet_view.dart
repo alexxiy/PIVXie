@@ -281,7 +281,7 @@ class _DesktopWalletViewState extends ConsumerState<DesktopWalletView> {
                           Flexible(
                             child: Text(
                               l10n.walletRecentActivity,
-                              maxLines: 1,
+                              maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                               style: STextStyles.desktopTextExtraSmall(context)
                                   .copyWith(

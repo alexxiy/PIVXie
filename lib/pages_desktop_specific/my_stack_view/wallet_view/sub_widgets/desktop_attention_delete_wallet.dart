@@ -52,10 +52,13 @@ class _DesktopAttentionDeleteWallet
 
   @override
   Widget build(BuildContext context) {
+    // The warning is long in some languages: the dialog takes the height
+    // it needs, up to 700, and scrolls on short windows.
     return DesktopDialog(
       maxWidth: 610,
-      maxHeight: 530,
+      maxHeight: 700,
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.end,

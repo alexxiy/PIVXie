@@ -185,12 +185,16 @@ class _AddressCardState extends ConsumerState<AddressCard> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      label!.value.isNotEmpty
-                          ? label!.value
-                          : l10n.receiveNoLabel,
-                      style: STextStyles.itemSubtitle(context),
-                      textAlign: TextAlign.start,
+                    Flexible(
+                      child: Text(
+                        label!.value.isNotEmpty
+                            ? label!.value
+                            : l10n.receiveNoLabel,
+                        style: STextStyles.itemSubtitle(context),
+                        textAlign: TextAlign.start,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     ),
                     SimpleEditButton(
                       editValue: label!.value,
@@ -219,7 +223,10 @@ class _AddressCardState extends ConsumerState<AddressCard> {
                 ),
                 if (!widget.compact) const SizedBox(height: 10),
                 if (!widget.compact)
-                  Row(
+                  // Wraps in narrow cards and long languages.
+                  Wrap(
+                    spacing: 16,
+                    runSpacing: 8,
                     children: [
                       CustomTextButton(
                         text: l10n.receiveCopyAddress,
@@ -239,7 +246,6 @@ class _AddressCardState extends ConsumerState<AddressCard> {
                               });
                         },
                       ),
-                      const SizedBox(width: 16),
                       CustomTextButton(
                         text: l10n.receiveShowQr,
                         onTap: () async {
