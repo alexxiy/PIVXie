@@ -2,7 +2,7 @@ PIVXie es una billetera PIVX de autocustodia que te deja el control. Tu frase de
 
 Privacidad
 • Transacciones SHIELD: mueve PIV a Shield, sácalos de Shield y envíalos de forma privada, con un memo cifrado opcional.
-• Tor opcional para todas las conexiones.
+• Tor o Nym opcional para todas las conexiones.
 • Sin anuncios y sin rastreo.
 
 Staking, masternodes y gobernanza

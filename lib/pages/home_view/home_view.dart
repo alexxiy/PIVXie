@@ -20,6 +20,7 @@ import '../../l10n/l10n.dart';
 import '../../providers/global/prefs_provider.dart';
 import '../../providers/ui/home_view_index_provider.dart';
 import '../../route_generator.dart';
+import '../../services/network_privacy.dart';
 import '../../themes/stack_colors.dart';
 import '../../utilities/assets.dart';
 import '../../utilities/idle_monitor.dart';
@@ -337,7 +338,7 @@ class _HomeViewState extends ConsumerState<HomeView> {
               ],
             ),
             actions: [
-              if (AppConfig.hasFeature(AppFeature.tor))
+              if (NetworkPrivacy.available.isNotEmpty)
                 const Padding(
                   padding: EdgeInsetsDirectional.only(
                     top: 10,

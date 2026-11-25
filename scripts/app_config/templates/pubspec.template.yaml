@@ -34,6 +34,11 @@ dependencies:
 #      ref: e30ed0d386a40ee4a999aeaf57aafd32921d601e
 # %%END_ENABLE_TOR%%
 
+# %%ENABLE_NYM%%
+#  flutter_libnym:
+#    path: ./crypto_plugins/flutter_libnym
+# %%END_ENABLE_NYM%%
+
 # %%ENABLE_PIVX%%
 #  flutter_libpivxshield:
 #    path: ./crypto_plugins/flutter_libpivxshield

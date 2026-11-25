@@ -66,6 +66,8 @@ class Prefs extends ChangeNotifier {
       await _setAmountUnits();
       await _setMaxDecimals();
       _useTor = await _getUseTor();
+      // Only one of Tor and Nym is on.
+      _useNym = !_useTor && await _getUseNym();
       _autoPin = await _getAutoPin();
       _logsPath = await _getLogsPath();
       _logLevel = await _getLogLevel();
@@ -932,6 +934,7 @@ class Prefs extends ChangeNotifier {
         value: useTor,
       );
       _useTor = useTor;
+      if (useTor) useNym = false;
       notifyListeners();
       GlobalEventBus.instance.fire(
         TorPreferenceChangedEvent(
@@ -946,6 +949,33 @@ class Prefs extends ChangeNotifier {
     return await DB.instance.get<dynamic>(
           boxName: DB.boxNamePrefs,
           key: "useTor",
+        ) as bool? ??
+        false;
+  }
+
+  // Nym mixnet, the other choice next to Tor: only one of them is on.
+
+  bool _useNym = false;
+
+  bool get useNym => _useNym;
+
+  set useNym(bool useNym) {
+    if (_useNym != useNym) {
+      DB.instance.put<dynamic>(
+        boxName: DB.boxNamePrefs,
+        key: "useNym",
+        value: useNym,
+      );
+      _useNym = useNym;
+      if (useNym) this.useTor = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> _getUseNym() async {
+    return await DB.instance.get<dynamic>(
+          boxName: DB.boxNamePrefs,
+          key: "useNym",
         ) as bool? ??
         false;
   }

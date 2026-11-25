@@ -2,7 +2,7 @@ PIVXie is a self-custodial PIVX wallet that keeps you in control. Your recovery 
 
 Privacy
 • SHIELD transactions: shield, unshield and send PIV privately, with an optional encrypted memo.
-• Optional Tor for every connection.
+• Optional Tor or Nym for every connection.
 • No ads and no tracking.
 
 Staking, masternodes and governance

@@ -2,7 +2,7 @@ PIVXie nəzarəti sizdə saxlayan PIVX pulqabısıdır. Bərpa ifadəniz və aç
 
 Məxfilik
 • SHIELD əməliyyatları: PIV-ləri Shield-ə köçürün, Shield-dən çıxarın və məxfi göndərin, istəsəniz şifrələnmiş memo ilə.
-• Bütün bağlantılar üçün istəyə bağlı Tor.
+• Bütün bağlantılar üçün istəyə bağlı Tor və ya Nym.
 • Reklam yoxdur, izləmə yoxdur.
 
 Staking, masternodlar və idarəetmə

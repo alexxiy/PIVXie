@@ -820,9 +820,7 @@ extension PivxGovernanceWallet on PivxWallet {
     if (includeArchive && _mainnet) {
       final response = await const HTTP().get(
         url: Uri.parse("https://pivx.org/proposals/past"),
-        proxyInfo: bridge.useTor
-            ? TorService.sharedInstance.getProxyInfo()
-            : null,
+        proxyInfo: bridge.proxyInfo,
         connectionTimeout: const Duration(seconds: 20),
       );
       if (response.code != 200) {

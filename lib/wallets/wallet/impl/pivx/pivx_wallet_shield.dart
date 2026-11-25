@@ -728,7 +728,6 @@ extension _PivxShield on PivxWallet {
           host: node.host,
           port: node.port,
           useSSL: node.useSSL,
-          useTor: false,
         ).baseUri.toString(),
     };
     // Sizes of the files whose hashes the prover checks.
@@ -744,10 +743,8 @@ extension _PivxShield on PivxWallet {
             Uri.parse("$src/$name"),
             file,
             maxBytes: size,
-            // Per file: Tor may have been turned on meanwhile.
-            proxy: bridge.useTor
-                ? TorService.sharedInstance.getProxyInfo()
-                : null,
+            // Per file: Tor or Nym may have been turned on meanwhile.
+            proxy: bridge.proxyInfo,
             onProgress: (r, _) => onProgress(base + weight * r / size),
           );
           lastError = null;

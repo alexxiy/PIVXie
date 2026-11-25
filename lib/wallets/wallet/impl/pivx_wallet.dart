@@ -31,7 +31,7 @@ import '../../../utilities/flutter_secure_storage_interface.dart';
 import '../../../services/event_bus/events/global/refresh_percent_changed_event.dart';
 import '../../../services/event_bus/global_event_bus.dart';
 import '../../../services/pivx_name/pivx_names_identity.dart';
-import '../../../services/tor_service.dart';
+import '../../../services/network_privacy.dart';
 import '../../../utilities/logger.dart';
 import '../../../utilities/stack_file_system.dart';
 import '../../../utilities/ui_stall_watch.dart';
@@ -198,7 +198,9 @@ class PivxWallet extends Bip39HDWallet<Pivx> with CoinControlInterface<Pivx> {
         prefs.useTor ? l10n.nodeUseWithoutTor : l10n.nodeUseOnlyOverTor,
       );
     }
-    final key = "${node.host}|${node.port}|${node.useSSL}|${prefs.useTor}";
+    final key =
+        "${node.host}|${node.port}|${node.useSSL}|"
+        "${NetworkPrivacy.activeIn(prefs)}";
     if (_client == null || _clientKey != key) {
       _client?.close();
       _client = PivxBridgeClient.fromNode(node, prefs);

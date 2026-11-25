@@ -3,12 +3,11 @@ import 'dart:convert';
 import 'package:decimal/decimal.dart';
 import 'package:intl/intl.dart';
 
-import '../../app_config.dart';
 import '../../l10n/l10n.dart';
 import '../../models/isar/models/isar_models.dart';
 import '../../networking/http.dart';
 import '../../services/pivx_name/pivx_name_resolver.dart';
-import '../../services/tor_service.dart';
+import '../../services/network_privacy.dart';
 import '../../utilities/amount/amount.dart';
 import '../../utilities/app_store_build.dart';
 import '../../utilities/assets.dart';
@@ -244,11 +243,7 @@ Future<Decimal?> pivxUsdPrice({HTTP client = const HTTP()}) async {
         "?ids=pivx&vs_currencies=usd",
       ),
       headers: {'Content-Type': 'application/json'},
-      proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
-          ? null
-          : Prefs.instance.useTor
-          ? TorService.sharedInstance.getProxyInfo()
-          : null,
+      proxyInfo: NetworkPrivacy.proxyInfo(),
     );
     final json = jsonDecode(response.body) as Map;
     final value = Decimal.parse("${(json["pivx"] as Map)["usd"]}");

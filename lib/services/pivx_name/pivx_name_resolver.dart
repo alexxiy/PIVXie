@@ -5,10 +5,8 @@ import 'dart:typed_data';
 
 import 'package:socks5_proxy/socks_client.dart';
 
-import '../../app_config.dart';
-import '../../utilities/prefs.dart';
 import '../../wallets/crypto_currency/crypto_currency.dart';
-import '../tor_service.dart';
+import '../network_privacy.dart';
 import 'pivx_name.dart';
 
 /// Where names are looked up and checked. Constants, never stored: the
@@ -568,15 +566,15 @@ const kPivxNameRequestTimeout = Duration(seconds: 10);
 /// No legitimate answer comes near this.
 const _maxBody = 256 * 1024;
 
-/// Requests over Tor when the app uses it. With Tor on but not connected,
-/// [TorService.getProxyInfo] throws, so nothing leaves without it.
+/// Requests over Tor or Nym when the app uses one. With it on but not
+/// connected, [NetworkPrivacy.proxyInfo] throws, so nothing leaves
+/// without it.
 Future<PivxNameResponse> pivxNameHttpTransport(
   String method,
   Uri url, {
   String? body,
 }) async {
-  final useTor = AppConfig.hasFeature(AppFeature.tor) && Prefs.instance.useTor;
-  final proxy = useTor ? TorService.sharedInstance.getProxyInfo() : null;
+  final proxy = NetworkPrivacy.proxyInfo();
   final client = _sharedClient(proxy);
   HttpClientRequest? request;
   try {

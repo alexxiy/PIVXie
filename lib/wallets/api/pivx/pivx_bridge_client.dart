@@ -7,10 +7,9 @@ import 'dart:typed_data';
 import 'package:coinlib_flutter/coinlib_flutter.dart' as coinlib;
 import 'package:socks5_proxy/socks_client.dart';
 
-import '../../../app_config.dart';
 import '../../../l10n/l10n.dart';
 import '../../../models/node_model.dart';
-import '../../../services/tor_service.dart';
+import '../../../services/network_privacy.dart';
 import '../../../utilities/extensions/extensions.dart';
 import '../../../utilities/local_network_access.dart';
 import '../../../utilities/prefs.dart';
@@ -53,7 +52,6 @@ String restoreFailureText(Object error, NodeModel node) {
     host: node.host,
     port: node.port,
     useSSL: node.useSSL,
-    useTor: false,
   ).baseUri.authority;
   return switch (error) {
     PivxBridgeException(noIndex: true) => l10n.restoreNodeNoIndex(name),
@@ -72,14 +70,14 @@ String restoreFailureText(Object error, NodeModel node) {
 /// transparent address index (`/xpub`, `/utxo`, ...). Index answers follow
 /// Blockbook's format: amounts are satoshi strings.
 class PivxBridgeClient {
-  PivxBridgeClient({required this.baseUri, this.useTor = false});
+  PivxBridgeClient({required this.baseUri, this.network});
 
   factory PivxBridgeClient.fromNode(NodeModel node, Prefs prefs) =>
       PivxBridgeClient.fromParts(
         host: node.host,
         port: node.port,
         useSSL: node.useSSL,
-        useTor: prefs.useTor,
+        network: NetworkPrivacy.activeIn(prefs),
       );
 
   /// [host] may be a bare hostname or a full base URL including scheme
@@ -88,7 +86,7 @@ class PivxBridgeClient {
     required String host,
     required int port,
     required bool useSSL,
-    required bool useTor,
+    PrivacyNetwork? network,
   }) {
     var uri = Uri.parse(host.trim());
     if (!uri.hasScheme) {
@@ -103,7 +101,7 @@ class PivxBridgeClient {
         : uri.path;
     return PivxBridgeClient(
       baseUri: uri.replace(path: path),
-      useTor: AppConfig.hasFeature(AppFeature.tor) && useTor,
+      network: network,
     );
   }
 
@@ -139,23 +137,28 @@ class PivxBridgeClient {
   }
 
   final Uri baseUri;
-  final bool useTor;
+
+  /// Tor or Nym, when one was on as this client was made.
+  final PrivacyNetwork? network;
 
   static const _timeout = Duration(seconds: 60);
 
-  /// Tor's proxy for this client, read for every request: it throws while
-  /// Tor is on but not connected, so nothing goes out without it.
-  ({InternetAddress host, int port})? get _proxy {
-    if (useTor) return TorService.sharedInstance.getProxyInfo();
-    _refuseDirectUnderTor();
+  /// The Tor or Nym proxy for this client, read for every request: it
+  /// throws while that network is on but not connected, so nothing goes
+  /// out without it.
+  ({InternetAddress host, int port})? get proxyInfo {
+    final network = this.network;
+    if (network != null) return NetworkPrivacy.proxyOf(network);
+    _refuseDirectUnderPrivacy();
     return null;
   }
 
-  /// A client made before Tor was turned on (still held by a running sync)
-  /// must not go on without it.
-  static void _refuseDirectUnderTor() {
-    if (AppConfig.hasFeature(AppFeature.tor) && Prefs.instance.useTor) {
-      throw PivxBridgeException(l10n.bridgeTorTurnedOn);
+  /// A client made before Tor or Nym was turned on (still held by a
+  /// running sync) must not go on without it.
+  static void _refuseDirectUnderPrivacy() {
+    final network = NetworkPrivacy.active;
+    if (network != null) {
+      throw PivxBridgeException(l10n.bridgePrivacyTurnedOn(network.label));
     }
   }
 
@@ -174,7 +177,7 @@ class PivxBridgeClient {
   /// requests still finish on the old one.
   HttpClient get _http {
     final now = DateTime.now();
-    final proxy = _proxy;
+    final proxy = proxyInfo;
     if (_httpClient != null &&
         (proxy != _httpProxy ||
             now.difference(_lastActivity) > const Duration(seconds: 20))) {
@@ -209,10 +212,10 @@ class PivxBridgeClient {
   }
 
   /// Android 17 needs the user's permission to reach a bridge on the
-  /// local network (over Tor the proxy connects, not the app, and the
-  /// host isn't looked up).
+  /// local network (over Tor or Nym the proxy connects, not the app, and
+  /// the host isn't looked up).
   Future<void> _localNetworkReady() async {
-    if (_proxy == null) await LocalNetworkAccess.ensure(baseUri.host);
+    if (proxyInfo == null) await LocalNetworkAccess.ensure(baseUri.host);
   }
 
   Future<({int code, String body})> _send(
@@ -718,7 +721,7 @@ class PivxBridgeClient {
     void Function(int received, int? total)? onProgress,
   }) async {
     if (proxy == null) {
-      _refuseDirectUnderTor();
+      _refuseDirectUnderPrivacy();
       await LocalNetworkAccess.ensure(url.host);
     }
     final client = _newHttpClient(proxy);

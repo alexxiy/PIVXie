@@ -1,0 +1,68 @@
+// Builds the Rust crate in ../rust for each Android ABI via cargokit.
+
+group 'me.pivxie.flutter_libnym'
+version '1.0'
+
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath("com.android.tools.build:gradle:9.5.2")
+    }
+}
+
+rootProject.allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        // The Android part of rustls-platform-verifier (TLS certificate
+        // checks of the Nym client), published by the rustls project.
+        maven {
+            url = "https://github.com/rustls/rustls-platform-verifier/raw/maven-archive/android-release-support/maven/"
+            content { includeGroup("org.rustls") }
+        }
+    }
+}
+
+// Its version must match the rustls-platform-verifier-android crate in
+// Cargo.lock, or the app crashes at runtime.
+def rustlsVerifierVersion() {
+    def lines = file("../rust/Cargo.lock").readLines()
+    def idx = lines.findIndexOf { it.trim() == 'name = "rustls-platform-verifier-android"' }
+    def version = idx < 0 ? null : lines.drop(idx + 1)
+        .find { it.trim().startsWith("version = ") }
+        ?.find(/"([^"]*)"/) { match, v -> v }
+    if (!version) throw new GradleException("rustls-platform-verifier-android not in Cargo.lock")
+    return version
+}
+
+apply plugin: 'com.android.library'
+
+android {
+    namespace 'me.pivxie.flutter_libnym'
+    compileSdk = 37
+    ndkVersion = "30.0.16248370"
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+
+    defaultConfig {
+        minSdk = 24
+        consumerProguardFiles "consumer-rules.pro"
+    }
+}
+
+dependencies {
+    implementation "org.rustls:rustls-platform-verifier:${rustlsVerifierVersion()}"
+}
+
+apply from: "../cargokit/gradle/plugin.gradle"
+
+cargokit {
+    manifestDir = "../rust"
+    libname = "nym_socks_ffi"
+}

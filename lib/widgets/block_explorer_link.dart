@@ -4,6 +4,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../l10n/l10n.dart';
 import '../providers/providers.dart';
+import '../services/network_privacy.dart';
 import '../themes/stack_colors.dart';
 import '../utilities/text_styles.dart';
 import '../utilities/util.dart';
@@ -76,8 +77,11 @@ class _ExplorerWarning extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final outsideTor = ref.read(prefsChangeNotifierProvider).useTor
-        ? "\n\n${l10n.blockExplorerOutsideTor}"
+    final network = NetworkPrivacy.activeIn(
+      ref.read(prefsChangeNotifierProvider),
+    );
+    final outsideTor = network != null
+        ? "\n\n${l10n.blockExplorerOutsidePrivacy(network.label)}"
         : "";
     final message =
         (address

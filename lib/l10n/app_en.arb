@@ -66,7 +66,6 @@
     }
   },
   "commonNeverShowAgain": "Never show again",
-  "blockExplorerOutsideTor": "Your browser opens it outside of Tor.",
   "blockExplorerWarningTransaction": "You are about to view this transaction in a block explorer. The explorer may log your IP address and link it to the transaction. Only proceed if you trust {explorer}.",
   "@blockExplorerWarningTransaction": {
     "placeholders": {
@@ -99,7 +98,6 @@
   "datePickerFrom": "From...",
   "datePickerTo": "To...",
   "commonOk": "Ok",
-  "torOff": "Tor off",
   "qrScanTitle": "Scan QR code",
   "qrScanNoCamera": "No camera found. Use Select file to scan a QR code from an image.",
   "qrScanSelectFile": "Select file",
@@ -159,7 +157,6 @@
       }
     }
   },
-  "torSettingsSemantics": "Tor Settings Button. Takes To Tor Settings Page.",
   "walletOpening": "Opening {name}",
   "@walletOpening": {
     "placeholders": {
@@ -3100,7 +3097,6 @@
     }
   },
   "settingsSecurity": "Security",
-  "settingsTor": "Tor settings",
   "settingsManageNodes": "Manage nodes",
   "settingsSyncing": "Syncing preferences",
   "settingsStartup": "Startup",
@@ -3912,7 +3908,6 @@
   },
   "syncingChangePreferences": "Change preferences",
   "torConnectTo": "Connect to Tor",
-  "torConnectingTo": "Connecting to Tor",
   "torDisconnectFrom": "Disconnect from Tor",
   "torOneClick": "Connect to the Tor Network with one click.",
   "addressNonWallet": "Non wallet/unknown",
@@ -4425,7 +4420,6 @@
       }
     }
   },
-  "bridgeTorTurnedOn": "Tor was turned on",
   "bridgeNoRoute": "This bridge has no /{route}: it's older than pivx-bridge 0.5, or runs without the address index (ADDR_INDEX)",
   "@bridgeNoRoute": {
     "description": "{route}: a part of the bridge's web address, e.g. \"address\".",
@@ -5822,5 +5816,103 @@
   "sendCoinUnavailable": "A coin you picked can't be spent right now. Check your choice in Coin control.",
   "introConsentTitle": "Before you start",
   "introConsentRead": "Please read the documents below. Each one opens in your browser.",
-  "introConsentOpenFirst": "Open each document to tick the box."
+  "introConsentOpenFirst": "Open each document to tick the box.",
+  "networkPrivacy": "Network privacy",
+  "networkPrivacySemantics": "Network privacy button. Opens the network privacy page.",
+  "networkPrivacyOff": "Network privacy off",
+  "networkConnected": "{network} connected",
+  "@networkConnected": {
+    "placeholders": {
+      "network": {
+        "type": "String"
+      }
+    }
+  },
+  "networkConnecting": "Connecting to {network}",
+  "@networkConnecting": {
+    "placeholders": {
+      "network": {
+        "type": "String"
+      }
+    }
+  },
+  "networkDisconnected": "{network} disconnected",
+  "@networkDisconnected": {
+    "placeholders": {
+      "network": {
+        "type": "String"
+      }
+    }
+  },
+  "networkSwitchTitle": "Switch to {network}?",
+  "@networkSwitchTitle": {
+    "placeholders": {
+      "network": {
+        "type": "String"
+      }
+    }
+  },
+  "networkSwitchText": "Only one of them can be on at a time. {from} will be turned off and {to} will connect.",
+  "@networkSwitchText": {
+    "placeholders": {
+      "from": {
+        "type": "String"
+      },
+      "to": {
+        "type": "String"
+      }
+    }
+  },
+  "networkSwitchButton": "Switch to {network}",
+  "@networkSwitchButton": {
+    "placeholders": {
+      "network": {
+        "type": "String"
+      }
+    }
+  },
+  "networkSwitchCaps": "SWITCH TO {network}",
+  "@networkSwitchCaps": {
+    "placeholders": {
+      "network": {
+        "type": "String"
+      }
+    }
+  },
+  "nymWhatIs": "What is Nym?",
+  "nymWhatIsText": "Nym is open-source software that keeps your internet traffic private. It wraps the traffic in layers of encryption and sends it through a mixnet, where nodes shuffle it with other people's traffic, so it's hard to tell where data comes from and where it goes.",
+  "nymOnlyText": "With Nym on, the app connects only through Nym. If Nym stops working, the app stops connecting until it's back.",
+  "nymStatus": "Nym status",
+  "nymOneClick": "Connect to the Nym mixnet with one click.",
+  "nymConnectTo": "Connect to Nym",
+  "nymDisconnectFrom": "Disconnect from Nym",
+  "networkChooseTitle": "Choose your connection",
+  "networkChooseText": "{appName} can send its traffic through Tor or Nym, so the servers it talks to don't see your IP address. The app waits for your choice before going online. You can change it later in Settings.",
+  "@networkChooseText": {
+    "placeholders": {
+      "appName": {
+        "type": "String"
+      }
+    }
+  },
+  "networkOptionTorText": "Sends your traffic through three volunteer relays with layered encryption.",
+  "networkOptionNymText": "Mixes your traffic with other people's traffic as it passes through the Nym network.",
+  "networkOptionDirect": "Direct connection",
+  "networkOptionDirectText": "Fastest, but the servers the app talks to see your IP address.",
+  "bridgePrivacyTurnedOn": "{network} was turned on",
+  "@bridgePrivacyTurnedOn": {
+    "placeholders": {
+      "network": {
+        "type": "String"
+      }
+    }
+  },
+  "blockExplorerOutsidePrivacy": "Your browser opens it outside of {network}.",
+  "@blockExplorerOutsidePrivacy": {
+    "placeholders": {
+      "network": {
+        "type": "String"
+      }
+    }
+  }
 }

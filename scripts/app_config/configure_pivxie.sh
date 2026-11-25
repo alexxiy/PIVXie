@@ -31,12 +31,14 @@ fi
 dart "${APP_PROJECT_ROOT_DIR}/tool/process_pubspec_deps.dart" \
       "${PUBSPEC_FILE}" \
       TOR \
+      NYM \
       PIVX
 
 dart "${APP_PROJECT_ROOT_DIR}/tool/gen_interfaces.dart" \
       "${APP_PROJECT_ROOT_DIR}/tool/wl_templates" \
       "${APP_PROJECT_ROOT_DIR}/lib/wl_gen/generated" \
       TOR \
+      NYM \
       PIVX
 
 pushd "${APP_PROJECT_ROOT_DIR}"
@@ -89,6 +91,7 @@ const List<SupportLink> _communityLinks = [
 
 const Set<AppFeature> _features = {
   AppFeature.tor,
+  AppFeature.nym,
   AppFeature.darkTheme,
 };
 

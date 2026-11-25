@@ -119,6 +119,14 @@ apply_standard_settings(${BINARY_NAME})
 # runtime anyway, and a second, static copy in the executable takes over
 # the exceptions plugin code throws; mixed with the system unwinder it
 # aborts the app (OpenCV's camera probe on a machine without a camera).
+#
+# The system unwinder (libgcc_s) is loaded before the Flutter engine: since
+# Flutter 3.50.1 the engine exports part of its own unwinder (_Unwind_GetIP,
+# _Unwind_RaiseException, ...), and the Rust plugins (Tor, Nym, Shield) then
+# mix the two on a backtrace or a panic and crash the app (Tor's first
+# connect does a backtrace).
+target_link_libraries(${BINARY_NAME} PRIVATE
+  "-Wl,--push-state,--no-as-needed" gcc_s "-Wl,--pop-state")
 target_link_libraries(${BINARY_NAME} PRIVATE flutter)
 target_link_libraries(${BINARY_NAME} PRIVATE PkgConfig::GTK)
 if(USE_SYSTEM_SECURE_STORAGE_DEPS)

@@ -1,0 +1,26 @@
+[package]
+name = "nym_socks_ffi"
+version = "0.1.0"
+edition = "2021"
+description = "Native (C ABI) Nym mixnet SOCKS5 client for PIVXie, built on nym-sdk."
+license = "GPL-3.0-only"
+publish = false
+
+[lib]
+crate-type = ["cdylib", "staticlib"]
+
+[dependencies]
+nym-sdk = { version = "3.0.0", default-features = false, features = ["socks5"] }
+tokio = { version = "1", features = ["rt-multi-thread", "time", "sync", "macros"] }
+
+# Android: the Nym API client checks TLS certificates through the system's
+# trust store (rustls-platform-verifier), which needs the app context once.
+[target.'cfg(target_os = "android")'.dependencies]
+rustls-platform-verifier = "0.7"
+jni = { version = "0.22", default-features = false }
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true

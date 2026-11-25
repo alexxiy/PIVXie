@@ -50,8 +50,8 @@ import 'route_generator.dart';
 import 'services/device_network.dart';
 import 'services/fastest_node.dart';
 import 'services/locale_service.dart';
+import 'services/network_privacy.dart';
 import 'services/node_service.dart';
-import 'services/tor_service.dart';
 import 'themes/theme_providers.dart';
 import 'themes/theme_service.dart';
 import 'utilities/constants.dart';
@@ -215,15 +215,8 @@ void main(List<String> args) async {
     UiStallWatch.start();
   }
 
-  if (AppConfig.hasFeature(AppFeature.tor) && Prefs.instance.useTor) {
-    TorService.sharedInstance.init(
-      torDataDirPath: (await StackFileSystem.applicationTorDirectory()).path,
-    );
-    // In the background: where Tor can't be reached the app must still
-    // open (to turn Tor off, or to read the recovery phrase). Until Tor is
-    // connected, network calls fail instead of going around it.
-    unawaited(TorService.sharedInstance.start().catchError((_) {})); // logged
-  }
+  // Tor or Nym, in the background (see there).
+  await NetworkPrivacy.startOnLaunch();
   await StackFileSystem.initThemesDir();
 
   await loadCoinlibFuture;

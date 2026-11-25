@@ -89,6 +89,8 @@ class _SVG {
 
   String get circleTor => "assets/svg/tor-circle.svg";
   String get tor => "assets/svg/tor.svg";
+  String get networkPrivacy => "assets/svg/network-privacy.svg";
+  String get nym => "assets/svg/nym.svg";
   String get circleSliders => "assets/svg/configuration.svg";
   String get circlePlus => "assets/svg/plus-circle.svg";
   String get circleNode => "assets/svg/node-circle.svg";

@@ -1,19 +1,13 @@
-import 'dart:async';
-
-import 'package:event_bus/event_bus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import '../../l10n/l10n.dart';
 import '../../pages_desktop_specific/desktop_menu_item.dart';
-import '../../providers/global/prefs_provider.dart';
 import '../../services/event_bus/events/global/tor_connection_status_changed_event.dart';
-import '../../services/event_bus/global_event_bus.dart';
-import '../../services/tor_service.dart';
+import '../../services/network_privacy.dart';
 import '../../themes/stack_colors.dart';
-import '../../utilities/assets.dart';
 import '../../utilities/text_styles.dart';
+import '../network_privacy.dart';
 
 class DesktopTorStatusButton extends ConsumerStatefulWidget {
   const DesktopTorStatusButton({
@@ -42,27 +36,6 @@ class _DesktopTorStatusButtonState extends ConsumerState<DesktopTorStatusButton>
   late final DMIController? controller;
   late final double labelLength;
 
-  /// The global event bus.
-  late final EventBus eventBus;
-
-  /// The subscription to the TorConnectionStatusChangedEvent.
-  late final StreamSubscription<TorConnectionStatusChangedEvent>
-  _torConnectionStatusSubscription;
-
-  /// The current status of the Tor connection.
-  late TorConnectionStatus _torConnectionStatus;
-
-  Color _color(TorConnectionStatus status) {
-    switch (status) {
-      case TorConnectionStatus.disconnected:
-        return Theme.of(context).extension<StackColors>()!.textSubtitle3;
-      case TorConnectionStatus.connecting:
-        return Theme.of(context).extension<StackColors>()!.accentColorYellow;
-      case TorConnectionStatus.connected:
-        return Theme.of(context).extension<StackColors>()!.accentColorGreen;
-    }
-  }
-
   bool _iconOnly = false;
 
   void toggle() {
@@ -81,22 +54,6 @@ class _DesktopTorStatusButtonState extends ConsumerState<DesktopTorStatusButton>
     labelLength = widget.labelLength;
     controller = widget.controller;
 
-    // Initialize the global event bus.
-    eventBus = GlobalEventBus.instance;
-
-    // Initialize the TorConnectionStatus.
-    _torConnectionStatus = ref.read(pTorService).status;
-
-    // Subscribe to the TorConnectionStatusChangedEvent.
-    _torConnectionStatusSubscription = eventBus
-        .on<TorConnectionStatusChangedEvent>()
-        .listen((event) async {
-          // Rebuild the widget.
-          setState(() {
-            _torConnectionStatus = event.newStatus;
-          });
-        });
-
     _iconOnly = !widget.isExpandedInitially;
     controller?.toggle = toggle;
     animationController = AnimationController(
@@ -110,9 +67,6 @@ class _DesktopTorStatusButtonState extends ConsumerState<DesktopTorStatusButton>
 
   @override
   void dispose() {
-    // Clean up the subscription to the TorConnectionStatusChangedEvent.
-    _torConnectionStatusSubscription.cancel();
-
     controller?.dispose();
     animationController.dispose();
     super.dispose();
@@ -120,10 +74,17 @@ class _DesktopTorStatusButtonState extends ConsumerState<DesktopTorStatusButton>
 
   @override
   Widget build(BuildContext context) {
-    // "Disconnected" read as if the wallet were offline.
-    final torOn = ref.watch(
-      prefsChangeNotifierProvider.select((value) => value.useTor),
+    return NetworkStatusBuilder(
+      builder: (context, network, status) => _build(context, network, status),
     );
+  }
+
+  Widget _build(
+    BuildContext context,
+    PrivacyNetwork? network,
+    TorConnectionStatus status,
+  ) {
+    final colors = Theme.of(context).extension<StackColors>()!;
     return TextButton(
       style: Theme.of(context)
           .extension<StackColors>()!
@@ -142,8 +103,8 @@ class _DesktopTorStatusButtonState extends ConsumerState<DesktopTorStatusButton>
                   width: _iconOnly ? 0 : 16,
                 ),
                 SvgPicture.asset(
-                  Assets.svg.tor,
-                  color: _color(_torConnectionStatus),
+                  networkIconAsset(network),
+                  color: networkStatusColor(status, colors),
                   width: 20,
                   height: 20,
                 ),
@@ -159,18 +120,10 @@ class _DesktopTorStatusButtonState extends ConsumerState<DesktopTorStatusButton>
                       children: [
                         const SizedBox(width: 12),
                         Text(
-                          !torOn
-                              ? l10n.torOff
-                              : switch (_torConnectionStatus) {
-                                  TorConnectionStatus.connected =>
-                                    l10n.commonConnected,
-                                  TorConnectionStatus.connecting =>
-                                    l10n.commonConnecting,
-                                  TorConnectionStatus.disconnected =>
-                                    l10n.commonDisconnected,
-                                },
-                          style: STextStyles.smallMed12(context)
-                              .copyWith(color: _color(_torConnectionStatus)),
+                          networkStatusText(network, status),
+                          style: STextStyles.smallMed12(
+                            context,
+                          ).copyWith(color: networkStatusColor(status, colors)),
                         ),
                         const SizedBox(width: 21),
                       ],

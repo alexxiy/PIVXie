@@ -12,6 +12,9 @@ part 'app_config.g.dart';
 enum AppFeature {
   tor,
 
+  /// The Nym mixnet, offered next to Tor (only one is on).
+  nym,
+
   /// Ships light and dark default themes; settings offer System / Light /
   /// Dark.
   darkTheme,

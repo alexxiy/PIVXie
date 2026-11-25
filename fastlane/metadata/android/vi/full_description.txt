@@ -2,7 +2,7 @@ PIVXie là ví PIVX tự lưu ký giúp bạn luôn nắm quyền kiểm soát. 
 
 Quyền riêng tư
 • Giao dịch SHIELD: chuyển PIV vào Shield, rút khỏi Shield và gửi riêng tư, kèm memo mã hóa nếu muốn.
-• Tùy chọn dùng Tor cho mọi kết nối.
+• Tùy chọn dùng Tor hoặc Nym cho mọi kết nối.
 • Không quảng cáo, không theo dõi.
 
 Staking, masternode và quản trị

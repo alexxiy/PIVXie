@@ -2,7 +2,7 @@ O PIVXie é uma carteira PIVX de autocustódia que deixa você no controle. Sua 
 
 Privacidade
 • Transações SHIELD: mova PIV para o Shield, retire do Shield e envie com privacidade, com um memo criptografado opcional.
-• Tor opcional em todas as conexões.
+• Tor ou Nym opcional em todas as conexões.
 • Sem anúncios e sem rastreamento.
 
 Staking, masternodes e governança

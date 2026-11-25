@@ -2,7 +2,7 @@ PIVXie, kontrolü sizde tutan bir PIVX cüzdanıdır. Kurtarma ifadeniz ve anaht
 
 Gizlilik
 • SHIELD işlemleri: PIV'leri Shield'e taşıyın, Shield'den çıkarın ve gizlice gönderin; isterseniz şifreli bir memo ekleyin.
-• Tüm bağlantılar için isteğe bağlı Tor.
+• Tüm bağlantılar için isteğe bağlı Tor veya Nym.
 • Reklam yok, takip yok.
 
 Staking, masternode'lar ve yönetişim

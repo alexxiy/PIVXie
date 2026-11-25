@@ -13,7 +13,6 @@ import 'package:flutter/material.dart';
 import 'package:isar_community/isar.dart';
 import 'package:tuple/tuple.dart';
 
-import 'app_config.dart';
 import 'l10n/l10n.dart';
 import 'models/add_wallet_list_entity/add_wallet_list_entity.dart';
 import 'models/isar/models/blockchain_data/v2/transaction_v2.dart';
@@ -41,6 +40,7 @@ import 'pages/generic/single_field_edit_view.dart';
 import 'pages/home_view/home_view.dart';
 import 'pages/intro_view.dart';
 import 'pages/manage_favorites_view/manage_favorites_view.dart';
+import 'pages/network_choice_view.dart';
 import 'pages/pinpad_views/create_pin_view.dart';
 import 'pages/receive_view/addresses/address_details_view.dart';
 import 'pages/receive_view/addresses/edit_address_label_view.dart';
@@ -101,7 +101,7 @@ import 'pages/settings_views/global_settings_view/support_view.dart';
 import 'pages/settings_views/global_settings_view/syncing_preferences_views/syncing_options_view.dart';
 import 'pages/settings_views/global_settings_view/syncing_preferences_views/syncing_preferences_view.dart';
 import 'pages/settings_views/global_settings_view/syncing_preferences_views/wallet_syncing_options_view.dart';
-import 'pages/settings_views/global_settings_view/tor_settings/tor_settings_view.dart';
+import 'pages/settings_views/global_settings_view/network_privacy/network_privacy_view.dart';
 import 'pages/settings_views/wallet_settings_view/wallet_backup_views/wallet_backup_view.dart';
 import 'pages/settings_views/wallet_settings_view/wallet_network_settings_view/wallet_network_settings_view.dart';
 import 'pages/settings_views/wallet_settings_view/wallet_settings_view.dart';
@@ -147,9 +147,10 @@ import 'pages_desktop_specific/settings/settings_menu/nodes_settings.dart';
 import 'pages_desktop_specific/settings/settings_menu/security_settings.dart';
 import 'pages_desktop_specific/settings/settings_menu/startup_settings.dart';
 import 'pages_desktop_specific/settings/settings_menu/syncing_preferences_settings.dart';
-import 'pages_desktop_specific/settings/settings_menu/tor_settings/tor_settings.dart';
+import 'pages_desktop_specific/settings/settings_menu/network_privacy/network_privacy_settings.dart';
 import 'services/event_bus/events/global/node_connection_status_changed_event.dart';
 import 'services/event_bus/events/global/wallet_sync_status_changed_event.dart';
+import 'services/network_privacy.dart';
 import 'utilities/address_utils.dart';
 import 'utilities/amount/amount.dart';
 import 'utilities/enums/add_wallet_type_enum.dart';
@@ -434,21 +435,28 @@ class RouteGenerator {
           settings: RouteSettings(name: settings.name),
         );
 
-      case TorSettingsView.routeName:
+      case NetworkChoiceView.routeName:
         return getRoute(
           shouldUseMaterialRoute: useMaterialPageRoute,
-          builder: (_) => AppConfig.hasFeature(AppFeature.tor)
-              ? const TorSettingsView()
-              : throw Exception("Tor not configured in prebuild setup"),
+          builder: (_) => const NetworkChoiceView(),
           settings: RouteSettings(name: settings.name),
         );
 
-      case TorSettings.routeName:
+      case NetworkPrivacyView.routeName:
         return getRoute(
           shouldUseMaterialRoute: useMaterialPageRoute,
-          builder: (_) => AppConfig.hasFeature(AppFeature.tor)
-              ? const TorSettings()
-              : throw Exception("Tor not configured in prebuild setup"),
+          builder: (_) => NetworkPrivacy.available.isNotEmpty
+              ? const NetworkPrivacyView()
+              : throw Exception("Tor and Nym not configured in prebuild setup"),
+          settings: RouteSettings(name: settings.name),
+        );
+
+      case NetworkPrivacySettings.routeName:
+        return getRoute(
+          shouldUseMaterialRoute: useMaterialPageRoute,
+          builder: (_) => NetworkPrivacy.available.isNotEmpty
+              ? const NetworkPrivacySettings()
+              : throw Exception("Tor and Nym not configured in prebuild setup"),
           settings: RouteSettings(name: settings.name),
         );
 

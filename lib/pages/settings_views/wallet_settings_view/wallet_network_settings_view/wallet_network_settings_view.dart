@@ -19,8 +19,8 @@ import 'package:flutter_svg/svg.dart';
 import 'package:tuple/tuple.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
-import '../../../../app_config.dart';
 import '../../../../l10n/l10n.dart';
+import '../../../../pages_desktop_specific/settings/settings_menu/network_privacy/network_privacy_settings.dart';
 import '../../../../providers/providers.dart';
 import '../../../../route_generator.dart';
 import '../../../../services/device_network.dart';
@@ -29,7 +29,7 @@ import '../../../../services/event_bus/events/global/refresh_percent_changed_eve
 import '../../../../services/event_bus/events/global/tor_connection_status_changed_event.dart';
 import '../../../../services/event_bus/events/global/wallet_sync_status_changed_event.dart';
 import '../../../../services/event_bus/global_event_bus.dart';
-import '../../../../services/tor_service.dart';
+import '../../../../services/network_privacy.dart';
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/assets.dart';
 import '../../../../utilities/constants.dart';
@@ -44,15 +44,16 @@ import '../../../../widgets/conditional_parent.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/custom_buttons/blue_text_button.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
+import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../../widgets/expandable.dart';
+import '../../../../widgets/network_privacy.dart';
 import '../../../../widgets/no_internet_notice.dart';
 import '../../../../widgets/progress_bar.dart';
 import '../../../../widgets/rounded_container.dart';
 import '../../../../widgets/rounded_white_container.dart';
 import '../../../../widgets/stack_dialog.dart';
-import '../../../../widgets/tor_subscription.dart';
 import '../../global_settings_view/manage_nodes_views/add_edit_node_view.dart';
-import '../../global_settings_view/tor_settings/tor_settings_view.dart';
+import '../../global_settings_view/network_privacy/network_privacy_view.dart';
 import '../../sub_widgets/nodes_list.dart';
 import 'sub_widgets/confirm_full_rescan.dart';
 import 'sub_widgets/rescanning_dialog.dart';
@@ -97,27 +98,43 @@ class _WalletNetworkSettingsViewState
   late double _percent;
   bool _advancedIsExpanded = false;
 
-  /// The current status of the Tor connection.
-  late TorConnectionStatus _torConnectionStatus;
-
-  bool _buttonLockTor = false;
-  Future<void> onTorTapped() async {
-    if (_buttonLockTor) {
+  /// The Tor and Nym settings: a page on phones, a dialog on desktop.
+  void _openNetworkPrivacy() {
+    if (!isDesktop) {
+      Navigator.of(context).pushNamed(NetworkPrivacyView.routeName);
       return;
     }
-    _buttonLockTor = true;
-    try {
-      if (ref.read(prefsChangeNotifierProvider).useTor) {
-        await disconnectTor(ref, context);
-      } else {
-        await connectTor(ref, context);
-      }
-    } catch (_) {
-      // Nothing. Just using finally to ensure button lock is reset in case
-      // some unexpected error happens
-    } finally {
-      _buttonLockTor = false;
-    }
+    showDialog<void>(
+      context: context,
+      builder: (context) => DesktopDialog(
+        maxWidth: 620,
+        maxHeight: double.infinity,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Padding(
+                  padding: const EdgeInsetsDirectional.only(start: 32),
+                  child: Text(
+                    l10n.networkPrivacy,
+                    style: STextStyles.desktopH3(context),
+                  ),
+                ),
+                const DesktopDialogCloseButton(),
+              ],
+            ),
+            const Flexible(
+              child: Padding(
+                padding: EdgeInsetsDirectional.only(start: 32, bottom: 16),
+                child: NetworkPrivacySettings(),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Future<void> _attemptRescan() async {
@@ -272,9 +289,6 @@ class _WalletNetworkSettingsViewState
     //     }
     //   },
     // );
-
-    // Initialize the TorConnectionStatus.
-    _torConnectionStatus = ref.read(pTorService).status;
 
     super.initState();
   }
@@ -716,35 +730,25 @@ class _WalletNetworkSettingsViewState
               ],
             ),
           ),
-          if (AppConfig.hasFeature(AppFeature.tor))
+          if (NetworkPrivacy.available.isNotEmpty) ...[
             SizedBox(height: isDesktop ? 32 : 20),
-          if (AppConfig.hasFeature(AppFeature.tor))
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  l10n.torStatus,
+                  l10n.networkPrivacy,
                   textAlign: TextAlign.start,
                   style: isDesktop
                       ? STextStyles.desktopTextExtraExtraSmall(context)
                       : STextStyles.smallMed12(context),
                 ),
                 CustomTextButton(
-                  text:
-                      ref.watch(
-                        prefsChangeNotifierProvider.select(
-                          (value) => value.useTor,
-                        ),
-                      )
-                      ? l10n.commonDisconnect
-                      : l10n.commonConnect,
-                  onTap: onTorTapped,
+                  text: l10n.commonChange,
+                  onTap: _openNetworkPrivacy,
                 ),
               ],
             ),
-          if (AppConfig.hasFeature(AppFeature.tor))
             SizedBox(height: isDesktop ? 12 : 9),
-          if (AppConfig.hasFeature(AppFeature.tor))
             RoundedWhiteContainer(
               borderColor: isDesktop
                   ? Theme.of(context).extension<StackColors>()!.background
@@ -752,105 +756,69 @@ class _WalletNetworkSettingsViewState
               padding: isDesktop
                   ? const EdgeInsets.all(16)
                   : const EdgeInsets.all(12),
-              child: Row(
-                children: [
-                  if (ref.watch(
-                    prefsChangeNotifierProvider.select((value) => value.useTor),
-                  ))
-                    Container(
-                      width: _iconSize,
-                      height: _iconSize,
-                      decoration: BoxDecoration(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .accentColorGreen
-                            .withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(_iconSize),
-                      ),
-                      child: Center(
-                        child: SvgPicture.asset(
-                          Assets.svg.tor,
-                          height: isDesktop ? 19 : 14,
-                          width: isDesktop ? 19 : 14,
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .accentColorGreen,
+              child: NetworkStatusBuilder(
+                builder: (context, network, status) {
+                  final colors = Theme.of(context).extension<StackColors>()!;
+                  final on = network != null;
+                  return Row(
+                    children: [
+                      Container(
+                        width: _iconSize,
+                        height: _iconSize,
+                        decoration: BoxDecoration(
+                          color: on
+                              ? networkStatusColor(
+                                  status,
+                                  colors,
+                                ).withOpacity(0.2)
+                              : colors.textDark.withOpacity(0.08),
+                          borderRadius: BorderRadius.circular(_iconSize),
+                        ),
+                        child: Center(
+                          child: SvgPicture.asset(
+                            networkIconAsset(network),
+                            height: isDesktop ? 19 : 14,
+                            width: isDesktop ? 19 : 14,
+                            color: on
+                                ? networkStatusColor(status, colors)
+                                : colors.textDark,
+                          ),
                         ),
                       ),
-                    ),
-                  if (!ref.watch(
-                    prefsChangeNotifierProvider.select((value) => value.useTor),
-                  ))
-                    Container(
-                      width: _iconSize,
-                      height: _iconSize,
-                      decoration: BoxDecoration(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textDark
-                            .withOpacity(0.08),
-                        borderRadius: BorderRadius.circular(_iconSize),
-                      ),
-                      child: Center(
-                        child: SvgPicture.asset(
-                          Assets.svg.tor,
-                          height: isDesktop ? 19 : 14,
-                          width: isDesktop ? 19 : 14,
-                          color: Theme.of(context)
-                              .extension<StackColors>()!
-                              .textDark,
-                        ),
-                      ),
-                    ),
-                  SizedBox(width: _boxPadding),
-                  TorSubscription(
-                    onTorStatusChanged: (status) {
-                      setState(() {
-                        _torConnectionStatus = status;
-                      });
-                    },
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          l10n.torStatus,
-                          style: STextStyles.desktopTextExtraExtraSmall(context)
-                              .copyWith(
-                                color: Theme.of(context)
-                                    .extension<StackColors>()!
-                                    .textDark,
+                      SizedBox(width: _boxPadding),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              network?.label ?? l10n.networkPrivacyOff,
+                              style: STextStyles.desktopTextExtraExtraSmall(
+                                context,
+                              ).copyWith(color: colors.textDark),
+                            ),
+                            if (on)
+                              Text(
+                                switch (status) {
+                                  TorConnectionStatus.connected =>
+                                    l10n.commonConnected,
+                                  TorConnectionStatus.connecting =>
+                                    l10n.commonConnecting,
+                                  TorConnectionStatus.disconnected =>
+                                    l10n.commonDisconnected,
+                                },
+                                style: STextStyles.desktopTextExtraExtraSmall(
+                                  context,
+                                ),
                               ),
+                          ],
                         ),
-                        if (_torConnectionStatus ==
-                            TorConnectionStatus.connected)
-                          Text(
-                            l10n.commonConnected,
-                            style: STextStyles.desktopTextExtraExtraSmall(
-                              context,
-                            ),
-                          ),
-                        if (_torConnectionStatus ==
-                            TorConnectionStatus.connecting)
-                          Text(
-                            l10n.commonConnecting,
-                            style: STextStyles.desktopTextExtraExtraSmall(
-                              context,
-                            ),
-                          ),
-                        if (_torConnectionStatus ==
-                            TorConnectionStatus.disconnected)
-                          Text(
-                            l10n.commonDisconnected,
-                            style: STextStyles.desktopTextExtraExtraSmall(
-                              context,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ],
+                      ),
+                    ],
+                  );
+                },
               ),
             ),
+          ],
           SizedBox(height: isDesktop ? 32 : 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,

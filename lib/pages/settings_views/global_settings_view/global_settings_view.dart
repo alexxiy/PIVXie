@@ -38,7 +38,7 @@ import 'stack_backup_views/stack_backup_view.dart';
 import 'startup_preferences/startup_preferences_view.dart';
 import 'support_view.dart';
 import 'syncing_preferences_views/syncing_preferences_view.dart';
-import 'tor_settings/tor_settings_view.dart';
+import 'network_privacy/network_privacy_view.dart';
 
 class GlobalSettingsView extends ConsumerWidget {
   const GlobalSettingsView({super.key});
@@ -138,12 +138,13 @@ class GlobalSettingsView extends ConsumerWidget {
                                   ),
                                   const SizedBox(height: 8),
                                   SettingsListButton(
-                                    iconAssetName: Assets.svg.tor,
+                                    iconAssetName: Assets.svg.networkPrivacy,
                                     iconSize: 18,
-                                    title: l10n.settingsTor,
+                                    title: l10n.networkPrivacy,
                                     onPressed: () {
-                                      Navigator.of(context)
-                                          .pushNamed(TorSettingsView.routeName);
+                                      Navigator.of(
+                                        context,
+                                      ).pushNamed(NetworkPrivacyView.routeName);
                                     },
                                   ),
                                   const SizedBox(height: 8),

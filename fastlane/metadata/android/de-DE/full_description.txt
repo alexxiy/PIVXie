@@ -2,7 +2,7 @@ PIVXie ist eine PIVX-Wallet in Eigenverwahrung, bei der Sie die Kontrolle behalt
 
 Privatsphäre
 • SHIELD-Transaktionen: PIV ins Shield und aus dem Shield verschieben und privat senden, auf Wunsch mit verschlüsseltem Memo.
-• Tor für alle Verbindungen, wenn Sie möchten.
+• Tor oder Nym für alle Verbindungen, wenn Sie möchten.
 • Keine Werbung und kein Tracking.
 
 Staking, Masternodes und Governance

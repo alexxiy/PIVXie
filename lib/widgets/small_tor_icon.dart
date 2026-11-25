@@ -1,73 +1,35 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-import '../l10n/l10n.dart';
-import '../pages/settings_views/global_settings_view/tor_settings/tor_settings_view.dart';
-import '../services/event_bus/events/global/tor_connection_status_changed_event.dart';
-import '../services/tor_service.dart';
-import '../themes/stack_colors.dart';
-import '../utilities/assets.dart';
-import 'custom_buttons/app_bar_icon_button.dart';
-import 'tor_subscription.dart';
 
-class SmallTorIcon extends ConsumerStatefulWidget {
+import '../l10n/l10n.dart';
+import '../pages/settings_views/global_settings_view/network_privacy/network_privacy_view.dart';
+import '../themes/stack_colors.dart';
+import 'custom_buttons/app_bar_icon_button.dart';
+import 'network_privacy.dart';
+
+/// The app bar button for Tor and Nym: its colour shows the status of the
+/// one that's on (grey when both are off).
+class SmallTorIcon extends StatelessWidget {
   const SmallTorIcon({super.key});
 
   @override
-  ConsumerState<SmallTorIcon> createState() => _SmallTorIconState();
-}
-
-class _SmallTorIconState extends ConsumerState<SmallTorIcon> {
-  late TorConnectionStatus _status;
-
-  Color _color(
-    TorConnectionStatus status,
-    StackColors colors,
-  ) {
-    switch (status) {
-      case TorConnectionStatus.disconnected:
-        return colors.textSubtitle3;
-
-      case TorConnectionStatus.connected:
-        return colors.accentColorGreen;
-
-      case TorConnectionStatus.connecting:
-        return colors.accentColorYellow;
-    }
-  }
-
-  @override
-  void initState() {
-    _status = ref.read(pTorService).status;
-
-    super.initState();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return TorSubscription(
-      onTorStatusChanged: (status) {
-        setState(() {
-          _status = status;
-        });
-      },
-      child: AppBarIconButton(
-        semanticsLabel: l10n.torSettingsSemantics,
+    final colors = Theme.of(context).extension<StackColors>()!;
+    return NetworkStatusBuilder(
+      builder: (context, network, status) => AppBarIconButton(
+        semanticsLabel: l10n.networkPrivacySemantics,
         key: const Key("walletsViewTorButton"),
         size: 36,
         shadows: const [],
-        color: Theme.of(context).extension<StackColors>()!.backgroundAppBar,
+        color: colors.backgroundAppBar,
         icon: SvgPicture.asset(
-          Assets.svg.tor,
-          color: _color(
-            _status,
-            Theme.of(context).extension<StackColors>()!,
-          ),
+          networkIconAsset(network),
+          color: networkStatusColor(status, colors),
           width: 20,
           height: 20,
         ),
         onPressed: () {
-          Navigator.of(context).pushNamed(TorSettingsView.routeName);
+          Navigator.of(context).pushNamed(NetworkPrivacyView.routeName);
         },
       ),
     );

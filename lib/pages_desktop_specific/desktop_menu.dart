@@ -17,6 +17,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import '../app_config.dart';
 import '../l10n/l10n.dart';
 import '../providers/desktop/current_desktop_menu_item.dart';
+import '../services/network_privacy.dart';
 import '../themes/stack_colors.dart';
 import '../utilities/assets.dart';
 import '../utilities/text_styles.dart';
@@ -152,8 +153,8 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                 ),
               ),
             ),
-            if (AppConfig.hasFeature(AppFeature.tor)) const SizedBox(height: 5),
-            if (AppConfig.hasFeature(AppFeature.tor))
+            if (NetworkPrivacy.available.isNotEmpty) const SizedBox(height: 5),
+            if (NetworkPrivacy.available.isNotEmpty)
               AnimatedContainer(
                 duration: duration,
                 width: _width == expandedWidth
@@ -170,7 +171,7 @@ class _DesktopMenuState extends ConsumerState<DesktopMenu> {
                     ref
                         .read(selectedSettingsMenuItemStateProvider.notifier)
                         .state = DesktopSettingsPage
-                        .tor
+                        .networkPrivacy
                         .index;
                   },
                 ),

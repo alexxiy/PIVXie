@@ -26,7 +26,7 @@ import 'settings_menu/nodes_settings.dart';
 import 'settings_menu/security_settings.dart';
 import 'settings_menu/startup_settings.dart';
 import 'settings_menu/syncing_preferences_settings.dart';
-import 'settings_menu/tor_settings/tor_settings.dart';
+import 'settings_menu/network_privacy/network_privacy_settings.dart';
 
 class DesktopSettingsView extends ConsumerStatefulWidget {
   const DesktopSettingsView({super.key});
@@ -56,9 +56,9 @@ class _DesktopSettingsViewState extends ConsumerState<DesktopSettingsView> {
         "settingsCurrencyDesktopKey",
         CurrencySettings.routeName,
       ),
-      DesktopSettingsPage.tor => (
-        "settingsTorDesktopKey",
-        TorSettings.routeName,
+      DesktopSettingsPage.networkPrivacy => (
+        "settingsNetworkPrivacyDesktopKey",
+        NetworkPrivacySettings.routeName,
       ),
       DesktopSettingsPage.nodes => (
         "settingsNodesDesktopKey",

@@ -18,6 +18,7 @@ import '../l10n/l10n.dart';
 import '../pages_desktop_specific/password/create_password_view.dart';
 import '../providers/global/prefs_provider.dart';
 import '../providers/global/price_provider.dart';
+import '../services/network_privacy.dart';
 import '../themes/stack_colors.dart';
 import '../utilities/assets.dart';
 import '../utilities/constants.dart';
@@ -30,6 +31,7 @@ import '../widgets/desktop/desktop_app_bar.dart';
 import '../widgets/desktop/desktop_scaffold.dart';
 import '../widgets/desktop/primary_button.dart';
 import '../widgets/rounded_white_container.dart';
+import 'network_choice_view.dart';
 import 'pinpad_views/create_pin_view.dart';
 
 class StackPrivacyCalls extends ConsumerStatefulWidget {
@@ -249,7 +251,13 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
                                       value: isEasy,
                                     )
                                     .then((_) {
-                                      if (isEasy) {
+                                      // On first start prices wait for the
+                                      // network choice, the next page.
+                                      if (isEasy &&
+                                          (widget.isSettings ||
+                                              NetworkPrivacy
+                                                  .available
+                                                  .isEmpty)) {
                                         ref
                                             .read(
                                               priceAnd24hChangeNotifierProvider,
@@ -258,7 +266,10 @@ class _StackPrivacyCalls extends ConsumerState<StackPrivacyCalls> {
                                       }
                                     });
                                 if (!widget.isSettings) {
-                                  if (isDesktop) {
+                                  if (NetworkPrivacy.available.isNotEmpty) {
+                                    Navigator.of(context)
+                                        .pushNamed(NetworkChoiceView.routeName);
+                                  } else if (isDesktop) {
                                     Navigator.of(
                                       context,
                                     ).pushNamed(CreatePasswordView.routeName);

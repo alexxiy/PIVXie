@@ -21,7 +21,7 @@ import '../utilities/logger.dart';
 import '../utilities/prefs.dart';
 import '../utilities/util.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
-import 'tor_service.dart';
+import 'network_privacy.dart';
 
 class PriceAPI {
   // coingecko coin ids
@@ -122,11 +122,7 @@ class PriceAPI {
       final coinGeckoResponse = await client.get(
         url: uri,
         headers: {'Content-Type': 'application/json'},
-        proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
-            ? null
-            : Prefs.instance.useTor
-            ? TorService.sharedInstance.getProxyInfo()
-            : null,
+        proxyInfo: NetworkPrivacy.proxyInfo(),
       );
 
       final coinGeckoData = jsonDecode(coinGeckoResponse.body) as List<dynamic>;
@@ -190,11 +186,7 @@ class PriceAPI {
       final response = await client.get(
         url: uri,
         headers: {'Content-Type': 'application/json'},
-        proxyInfo: !AppConfig.hasFeature(AppFeature.tor)
-            ? null
-            : Prefs.instance.useTor
-            ? TorService.sharedInstance.getProxyInfo()
-            : null,
+        proxyInfo: NetworkPrivacy.proxyInfo(),
       );
 
       final json = jsonDecode(response.body) as List<dynamic>;

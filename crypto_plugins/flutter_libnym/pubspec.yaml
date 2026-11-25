@@ -1,0 +1,29 @@
+name: flutter_libnym
+description: Nym mixnet SOCKS5 client for Flutter via dart:ffi, built on nym-sdk with cargokit.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: ">=3.5.0 <4.0.0"
+  flutter: ">=3.24.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  ffi: ^2.0.1
+
+flutter:
+  plugin:
+    platforms:
+      android:
+        ffiPlugin: true
+        package: me.pivxie.flutter_libnym
+        pluginClass: FlutterLibnymPlugin
+      ios:
+        ffiPlugin: true
+      linux:
+        ffiPlugin: true
+      macos:
+        ffiPlugin: true
+      windows:
+        ffiPlugin: true
