@@ -699,6 +699,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
       _cryptoAmountChangeLock = false;
     } else {
       amount = Decimal.zero.toAmount(fractionDigits: coin.fractionDigits);
+      // Forget the last amount, so typing it again counts as a change.
+      _cachedAmountToSend = null;
       _cryptoAmountChangeLock = true;
       cryptoAmountController.text = "";
       _cryptoAmountChangeLock = false;

@@ -27,6 +27,12 @@ class AmountInputFormatter extends TextInputFormatter {
     final decimalSeparator = numberSymbols?.DECIMAL_SEP ?? ".";
     final groupSeparator = numberSymbols?.GROUP_SEP ?? ",";
 
+    // Amounts take digits and separators only; a hardware keyboard could
+    // type letters or signs.
+    if (RegExp(r"[\p{L}+\-]", unicode: true).hasMatch(newValue.text)) {
+      return oldValue;
+    }
+
     String newText = newValue.text.replaceAll(groupSeparator, "");
 
     // The cursor keeps its place counted from the end, as separators come
@@ -43,8 +49,9 @@ class AmountInputFormatter extends TextInputFormatter {
         return oldValue;
       }
 
-      final fractionDigits =
-          unit == null ? decimals : max(decimals - unit!.shift, 0);
+      final fractionDigits = unit == null
+          ? decimals
+          : max(decimals - unit!.shift, 0);
 
       if (newText.startsWith(decimalSeparator)) {
         if (newText.length - 1 > fractionDigits) {

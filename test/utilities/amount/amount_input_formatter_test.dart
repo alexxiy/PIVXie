@@ -41,4 +41,22 @@ void main() {
     expect(value.selection.baseOffset, greaterThanOrEqualTo(0));
     expect(value.selection.baseOffset, lessThanOrEqualTo(value.text.length));
   });
+
+  test("letters and signs are refused, keeping the old text", () {
+    const old = TextEditingValue(
+      text: "1",
+      selection: TextSelection.collapsed(offset: 1),
+    );
+    for (final text in ["1a", "1e5", "-1", "+1", "1 PIV"]) {
+      final value = formatter.formatEditUpdate(
+        old,
+        TextEditingValue(
+          text: text,
+          selection: TextSelection.collapsed(offset: text.length),
+        ),
+      );
+      expect(value, old, reason: text);
+    }
+    expect(edit("1.5", const TextSelection.collapsed(offset: 3)).text, "1.5");
+  });
 }
