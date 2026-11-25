@@ -44,7 +44,6 @@ import '../../../../utilities/amount/amount_unit.dart';
 import '../../../../utilities/clipboard_interface.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/logger.dart';
-import '../../../../utilities/prefs.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../utilities/util.dart';
 import '../../../../utilities/enums/fee_rate_type_enum.dart';
@@ -1096,6 +1095,10 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
     final String locale = ref.watch(
       localeServiceChangeNotifierProvider.select((value) => value.locale),
     );
+    // Watched, so the fiat field follows a change of the setting.
+    final externalCalls = ref.watch(
+      prefsChangeNotifierProvider.select((value) => value.externalCalls),
+    );
 
     // The chosen coins belong to one balance.
     ref.listen(publicPrivateBalanceStateProvider, (_, __) {
@@ -1193,8 +1196,8 @@ class _DesktopSendState extends ConsumerState<DesktopSend> {
             ),
           ),
         ),
-        if (Prefs.instance.externalCalls) const SizedBox(height: 10),
-        if (Prefs.instance.externalCalls)
+        if (externalCalls) const SizedBox(height: 10),
+        if (externalCalls)
           TextField(
             autocorrect: Util.isDesktop ? false : true,
             enableSuggestions: Util.isDesktop ? false : true,

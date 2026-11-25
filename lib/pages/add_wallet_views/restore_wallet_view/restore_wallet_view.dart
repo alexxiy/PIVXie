@@ -277,11 +277,7 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
     if (_formKey.currentState!.validate()) {
       if (mounted) setState(() => _hideSeedWords = true);
 
-      String mnemonic = "";
-      for (final element in _controllers) {
-        mnemonic += " ${element.text.trim().toLowerCase()}";
-      }
-      mnemonic = mnemonic.trim();
+      final mnemonic = _enteredMnemonic();
 
       if (bip39.validateMnemonic(mnemonic) == false) {
         unawaited(
@@ -670,10 +666,25 @@ class _RestoreWalletViewState extends ConsumerState<RestoreWalletView> {
     }
   }
 
+  String _enteredMnemonic() =>
+      _controllers.map((e) => e.text.trim().toLowerCase()).join(" ").trim();
+
   Future<void> requestRestore() async {
     // wait for keyboard to disappear
     FocusScope.of(context).unfocus();
     await Future<void>.delayed(const Duration(milliseconds: 100));
+
+    // An empty or wrong phrase is refused before asking to confirm.
+    if (mounted && !bip39.validateMnemonic(_enteredMnemonic())) {
+      unawaited(
+        showFloatingFlushBar(
+          type: FlushBarType.warning,
+          message: l10n.restoreInvalidSeed,
+          context: context,
+        ),
+      );
+      return;
+    }
 
     if (mounted) {
       await showDialog<dynamic>(
