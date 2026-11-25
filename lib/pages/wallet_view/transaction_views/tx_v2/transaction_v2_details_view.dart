@@ -817,7 +817,11 @@ class _TransactionV2DetailsViewState
                                     minConfirms,
                                     coin.minCoinbaseConfirms,
                                   );
-                                  if (confirmed) {
+                                  if (_transaction.height == null ||
+                                      _transaction.height! < 0) {
+                                    // Not in a block yet.
+                                    height = l10n.txPending;
+                                  } else if (confirmed) {
                                     height = _transaction.height == 0
                                         ? l10n.mnStatusUnknown
                                         : "${_transaction.height}";
@@ -1270,7 +1274,15 @@ class _DetailItem extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: labelStyle),
-          SelectableText(detail, style: detailStyle),
+          const SizedBox(width: 12),
+          // Long values wrap instead of overflowing.
+          Flexible(
+            child: SelectableText(
+              detail,
+              style: detailStyle,
+              textAlign: TextAlign.end,
+            ),
+          ),
         ],
       ),
     );
