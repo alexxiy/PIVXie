@@ -15,8 +15,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:isar_community/isar.dart';
 import 'package:tuple/tuple.dart';
 
+import '../../../../db/isar/main_db.dart';
 import '../../../../l10n/l10n.dart';
 import '../../../../models/isar/models/blockchain_data/transaction_type.dart';
 import '../../../../models/isar/models/blockchain_data/v2/transaction_v2.dart';
@@ -92,6 +94,8 @@ class _TransactionV2DetailsViewState
   late List<({List<String> addresses, Amount amount, bool coldStake})> data;
 
   bool showFeePending = false;
+
+  StreamSubscription<List<TransactionV2>>? _txSub;
 
   @override
   void initState() {
@@ -171,11 +175,24 @@ class _TransactionV2DetailsViewState
         ),
     ];
 
+    // Follow the stored tx, so its block (height, confirmations, status)
+    // shows while the screen is open. Updates replace the stored entry, so
+    // look it up by txid, not by id.
+    _txSub = MainDB.instance.isar.transactionV2s
+        .where()
+        .txidWalletIdEqualTo(_transaction.txid, walletId)
+        .watch()
+        .listen((txs) {
+          if (txs.isEmpty || !mounted) return;
+          setState(() => _transaction = txs.first);
+        });
+
     super.initState();
   }
 
   @override
   void dispose() {
+    _txSub?.cancel();
     super.dispose();
   }
 
