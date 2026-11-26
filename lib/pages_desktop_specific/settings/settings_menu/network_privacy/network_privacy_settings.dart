@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../../l10n/l10n.dart';
-import '../../../../providers/global/prefs_provider.dart';
 import '../../../../services/event_bus/events/global/tor_connection_status_changed_event.dart';
 import '../../../../services/network_privacy.dart';
 import '../../../../themes/stack_colors.dart';
@@ -12,7 +11,7 @@ import '../../../../utilities/assets.dart';
 import '../../../../utilities/text_styles.dart';
 import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
-import '../../../../widgets/desktop/secondary_button.dart';
+import '../../../../widgets/desktop/custom_text_button.dart';
 import '../../../../widgets/network_privacy.dart';
 import '../../../../widgets/nym_animation.dart';
 import '../../../../widgets/rounded_white_container.dart';
@@ -51,51 +50,6 @@ class _NetworkCard extends ConsumerStatefulWidget {
 
 class _NetworkCardState extends ConsumerState<_NetworkCard> {
   bool get _tor => widget.network == PrivacyNetwork.tor;
-
-  bool _busy = false;
-
-  Future<void> _run(Future<void> Function() action) async {
-    if (_busy) return;
-    _busy = true;
-    try {
-      await action();
-    } finally {
-      _busy = false;
-    }
-  }
-
-  /// With the other network on, connecting this one switches over.
-  String get _connectLabel {
-    final active = ref.watch(
-      prefsChangeNotifierProvider.select(NetworkPrivacy.activeIn),
-    );
-    if (active != null && active != widget.network) {
-      return l10n.networkSwitchButton(widget.network.label);
-    }
-    return _tor ? l10n.torConnectTo : l10n.nymConnectTo;
-  }
-
-  Widget _button(TorConnectionStatus status) => switch (status) {
-    TorConnectionStatus.disconnected => SecondaryButton(
-      label: _connectLabel,
-      width: 200,
-      buttonHeight: ButtonHeight.m,
-      onPressed: () => _run(() => connectNetwork(ref, context, widget.network)),
-    ),
-    // A click cancels.
-    TorConnectionStatus.connecting => SecondaryButton(
-      label: l10n.torConnectingTapToCancel,
-      width: 200,
-      buttonHeight: ButtonHeight.m,
-      onPressed: () => _run(() => disconnectNetwork(ref, widget.network)),
-    ),
-    TorConnectionStatus.connected => SecondaryButton(
-      label: _tor ? l10n.torDisconnectFrom : l10n.nymDisconnectFrom,
-      width: 200,
-      buttonHeight: ButtonHeight.m,
-      onPressed: () => _run(() => disconnectNetwork(ref, widget.network)),
-    ),
-  };
 
   void _showWhatIs() {
     showDialog<dynamic>(
@@ -205,7 +159,12 @@ class _NetworkCardState extends ConsumerState<_NetworkCard> {
             const SizedBox(height: 10),
             Padding(
               padding: const EdgeInsets.all(10.0),
-              child: _button(status),
+              child: NetworkActionButton(
+                network: widget.network,
+                status: status,
+                width: 260,
+                buttonHeight: ButtonHeight.m,
+              ),
             ),
             const SizedBox(height: 20),
             Padding(

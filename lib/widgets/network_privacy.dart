@@ -101,8 +101,39 @@ class _NetworkStatusBuilderState extends ConsumerState<NetworkStatusBuilder> {
   }
 }
 
+/// Whether a tap is asking to switch networks, so taps meanwhile don't
+/// ask again.
+bool _confirming = false;
+
+/// What a tap on [network] does at [status]: connect it (switching over
+/// from the other one), cancel the connection, or disconnect it.
+///
+/// Returns once that's under way, not when connected: connecting can
+/// take minutes, and a tap meanwhile has to cancel it.
+Future<void> tapNetwork(
+  WidgetRef ref,
+  BuildContext context,
+  PrivacyNetwork network,
+  TorConnectionStatus status,
+) async {
+  switch (status) {
+    case TorConnectionStatus.disconnected:
+      if (_confirming) return;
+      _confirming = true;
+      try {
+        await connectNetwork(ref, context, network);
+      } finally {
+        _confirming = false;
+      }
+    case TorConnectionStatus.connecting:
+    case TorConnectionStatus.connected:
+      await disconnectNetwork(ref, network);
+  }
+}
+
 /// Turns [network] on. When the other one is on, asks first: only one
-/// of them is on at a time.
+/// of them is on at a time. Returns once connecting has started; the
+/// status shows how it goes.
 Future<void> connectNetwork(
   WidgetRef ref,
   BuildContext context,
@@ -114,10 +145,59 @@ Future<void> connectNetwork(
     final confirmed = await _confirmSwitch(context, from: other, to: network);
     if (confirmed != true) return;
   }
-  try {
-    await NetworkPrivacy.turnOn(prefs, network);
-  } catch (_) {
-    // Logged; the status shows it didn't connect.
+  // Logged when it fails; the status then shows it didn't connect.
+  unawaited(NetworkPrivacy.turnOn(prefs, network).catchError((Object _) {}));
+}
+
+/// The button under a network's status: connect (or switch over to it),
+/// a spinner while connecting that cancels on a tap, or disconnect.
+class NetworkActionButton extends ConsumerWidget {
+  const NetworkActionButton({
+    super.key,
+    required this.network,
+    required this.status,
+    this.width,
+    this.buttonHeight,
+  });
+
+  final PrivacyNetwork network;
+  final TorConnectionStatus status;
+  final double? width;
+  final ButtonHeight? buttonHeight;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final tor = network == PrivacyNetwork.tor;
+    final active = ref.watch(
+      prefsChangeNotifierProvider.select(NetworkPrivacy.activeIn),
+    );
+    final label = switch (status) {
+      TorConnectionStatus.disconnected
+          when active != null && active != network =>
+        l10n.networkSwitchButton(network.label),
+      TorConnectionStatus.disconnected =>
+        tor ? l10n.torConnectTo : l10n.nymConnectTo,
+      TorConnectionStatus.connecting => l10n.torConnectingTapToCancel,
+      TorConnectionStatus.connected =>
+        tor ? l10n.torDisconnectFrom : l10n.nymDisconnectFrom,
+    };
+    return SecondaryButton(
+      label: label,
+      width: width,
+      buttonHeight: buttonHeight,
+      icon: status == TorConnectionStatus.connecting
+          ? SizedBox.square(
+              dimension: 16,
+              child: CircularProgressIndicator(
+                strokeWidth: 2,
+                color: Theme.of(context)
+                    .extension<StackColors>()!
+                    .buttonTextSecondary,
+              ),
+            )
+          : null,
+      onPressed: () => tapNetwork(ref, context, network, status),
+    );
   }
 }
 

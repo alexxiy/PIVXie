@@ -169,23 +169,6 @@ double _animationWidth(BuildContext context) {
       : min(size.width, ScreenFit.columnWidth) / 1.5;
 }
 
-/// Connects or disconnects [network] on a tap; a tap while connecting
-/// cancels.
-Future<void> _toggle(
-  WidgetRef ref,
-  BuildContext context,
-  PrivacyNetwork network,
-  TorConnectionStatus status,
-) async {
-  switch (status) {
-    case TorConnectionStatus.disconnected:
-      await connectNetwork(ref, context, network);
-    case TorConnectionStatus.connected:
-    case TorConnectionStatus.connecting:
-      await disconnectNetwork(ref, network);
-  }
-}
-
 class _NymAnimatedButton extends ConsumerStatefulWidget {
   const _NymAnimatedButton();
 
@@ -194,23 +177,13 @@ class _NymAnimatedButton extends ConsumerStatefulWidget {
 }
 
 class _NymAnimatedButtonState extends ConsumerState<_NymAnimatedButton> {
-  bool _tapLock = false;
-
   @override
   Widget build(BuildContext context) {
     final width = _animationWidth(context);
     return NetworkStatusBuilder(
       network: PrivacyNetwork.nym,
       builder: (context, _, status) => GestureDetector(
-        onTap: () async {
-          if (_tapLock) return;
-          _tapLock = true;
-          try {
-            await _toggle(ref, context, PrivacyNetwork.nym, status);
-          } finally {
-            _tapLock = false;
-          }
-        },
+        onTap: () => tapNetwork(ref, context, PrivacyNetwork.nym, status),
         child: Column(
           children: [
             Padding(
@@ -238,23 +211,7 @@ class _TorAnimatedButtonState extends ConsumerState<_TorAnimatedButton>
 
   late TorConnectionStatus _status;
 
-  bool _tapLock = false;
-
-  Future<void> onTap() async {
-    if (_tapLock) {
-      return;
-    }
-    _tapLock = true;
-    try {
-      await _toggle(ref, context, PrivacyNetwork.tor, _status);
-    } catch (_) {
-      // any exceptions should already be handled with error dialogs
-      // this try catch is just extra protection to ensure _tapLock gets reset
-      // in the finally block in the event of an unknown error
-    } finally {
-      _tapLock = false;
-    }
-  }
+  Future<void> onTap() => tapNetwork(ref, context, PrivacyNetwork.tor, _status);
 
   Future<void> _playPlug() async {
     await _play(from: "0.0", to: "connecting-start", repeat: false);
@@ -390,60 +347,58 @@ class _TorAnimatedButtonState extends ConsumerState<_TorAnimatedButton>
   }
 }
 
-class _StatusButton extends ConsumerStatefulWidget {
+/// The network's status, and under it the button that connects,
+/// cancels or disconnects it.
+class _StatusButton extends StatelessWidget {
   const _StatusButton({required this.network});
 
   final PrivacyNetwork network;
 
-  @override
-  ConsumerState<_StatusButton> createState() => _StatusButtonState();
-}
-
-class _StatusButtonState extends ConsumerState<_StatusButton> {
-  bool _tapLock = false;
-
   String _label(TorConnectionStatus status) => switch (status) {
     TorConnectionStatus.disconnected => l10n.commonDisconnected,
     TorConnectionStatus.connected => l10n.commonConnected,
-    TorConnectionStatus.connecting => l10n.torConnectingTapToCancel,
+    TorConnectionStatus.connecting => l10n.commonConnecting,
   };
 
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<StackColors>()!;
     return NetworkStatusBuilder(
-      network: widget.network,
-      builder: (context, network, status) => GestureDetector(
-        onTap: () async {
-          if (_tapLock) return;
-          _tapLock = true;
-          try {
-            await _toggle(ref, context, widget.network, status);
-          } finally {
-            _tapLock = false;
-          }
-        },
-        child: RoundedWhiteContainer(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: Row(
-              children: [
-                Text(
-                  widget.network == PrivacyNetwork.tor
-                      ? l10n.torStatus
-                      : l10n.nymStatus,
-                  style: STextStyles.titleBold12(context),
-                ),
-                const Spacer(),
-                Text(
-                  _label(status),
-                  style: STextStyles.itemSubtitle(context)
-                      .copyWith(color: networkStatusColor(status, colors)),
-                ),
-              ],
+      network: network,
+      builder: (context, _, status) => Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          RoundedWhiteContainer(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8.0),
+              child: Row(
+                children: [
+                  Text(
+                    network == PrivacyNetwork.tor
+                        ? l10n.torStatus
+                        : l10n.nymStatus,
+                    style: STextStyles.titleBold12(context),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      _label(status),
+                      textAlign: TextAlign.end,
+                      style: STextStyles.itemSubtitle(context)
+                          .copyWith(color: networkStatusColor(status, colors)),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
+          const SizedBox(height: 8),
+          NetworkActionButton(
+            network: network,
+            status: status,
+            width: double.infinity,
+          ),
+        ],
       ),
     );
   }
