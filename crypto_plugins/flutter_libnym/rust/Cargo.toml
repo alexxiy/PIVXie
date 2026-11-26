@@ -24,3 +24,9 @@ opt-level = 3
 lto = true
 codegen-units = 1
 strip = true
+
+# sysinfo 0.38.4 (from nym-statistics-common) doesn't build for iOS: libc only
+# has proc_pidinfo and RTM_IFINFO2 for macOS. Our branch backports the 0.40
+# fixes; drop this once Nym moves to a sysinfo with them.
+[patch.crates-io]
+sysinfo = { git = "https://github.com/alexxiy/sysinfo", rev = "644e86ab235215342240bf5f107b6ca82c448f2f" }

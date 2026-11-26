@@ -7637,8 +7637,7 @@ dependencies = [
 [[package]]
 name = "sysinfo"
 version = "0.38.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "92ab6a2f8bfe508deb3c6406578252e491d299cbbf3bc0529ecc3313aee4a52f"
+source = "git+https://github.com/alexxiy/sysinfo?rev=644e86ab235215342240bf5f107b6ca82c448f2f#644e86ab235215342240bf5f107b6ca82c448f2f"
 dependencies = [
  "libc",
  "memchr",
