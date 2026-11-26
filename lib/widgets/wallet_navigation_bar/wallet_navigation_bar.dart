@@ -22,7 +22,6 @@ import '../../utilities/text_styles.dart';
 import '../../pages/wallet_view/wallet_view.dart';
 import '../adaptive_page.dart';
 import '../conditional_parent.dart';
-import '../glass.dart';
 import 'components/wallet_navigation_bar_item.dart';
 
 final walletNavBarMore = StateProvider.autoDispose((ref) => false);
@@ -133,11 +132,7 @@ class _WalletNavigationBarState extends ConsumerState<WalletNavigationBar> {
             child: AnimatedOpacity(
               opacity: ref.watch(walletNavBarMore) ? 1 : 0,
               duration: _moreDuration,
-              child: Container(
-                color: Colors.black.withValues(
-                  alpha: Glass.on(context) ? 0.3 : 0.7,
-                ),
-              ),
+              child: Container(color: Colors.black.withOpacity(0.7)),
             ),
           ),
         ),
@@ -178,16 +173,18 @@ class _WalletNavigationBarState extends ConsumerState<WalletNavigationBar> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(1000),
                       ),
-                      child: GlassSurface(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .bottomNavBack,
-                        shadows: [
-                          Theme.of(context)
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context)
                               .extension<StackColors>()!
-                              .standardBoxShadow,
-                        ],
-                        borderRadius: BorderRadius.circular(1000),
+                              .bottomNavBack,
+                          boxShadow: [
+                            Theme.of(context)
+                                .extension<StackColors>()!
+                                .standardBoxShadow,
+                          ],
+                          borderRadius: BorderRadius.circular(1000),
+                        ),
                         child: Padding(
                           padding: const EdgeInsets.symmetric(
                             vertical: 6,

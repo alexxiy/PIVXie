@@ -5,7 +5,6 @@ import 'package:flutter_svg/svg.dart';
 
 import '../../../../../l10n/l10n.dart';
 import '../../../../../widgets/adaptive_page.dart';
-import '../../../../../widgets/glass.dart';
 import '../../../../../widgets/motion.dart';
 import 'choose_unit_sheet.dart';
 import '../../../../../providers/global/prefs_provider.dart';
@@ -189,19 +188,16 @@ class _EditCoinUnitsViewState extends ConsumerState<EditCoinUnitsView> {
                           .textFieldActiveSearchIconRight,
                     ),
                   ),
-                  dropdownStyleData: Glass.menu(
-                    context,
-                    DropdownStyleData(
-                      openInterval: Motion.menuOpen,
-                      offset: const Offset(0, -10),
-                      elevation: 0,
-                      decoration: BoxDecoration(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .textFieldDefaultBG,
-                        borderRadius: BorderRadius.circular(
-                          Constants.size.circularBorderRadius,
-                        ),
+                  dropdownStyleData: DropdownStyleData(
+                    openInterval: Motion.menuOpen,
+                    offset: const Offset(0, -10),
+                    elevation: 0,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .textFieldDefaultBG,
+                      borderRadius: BorderRadius.circular(
+                        Constants.size.circularBorderRadius,
                       ),
                     ),
                   ),

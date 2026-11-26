@@ -11,7 +11,6 @@ import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../widgets/desktop/primary_button.dart';
-import '../../../widgets/glass.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/stack_text_field.dart';
 
@@ -159,100 +158,98 @@ class _PivxChangeAddressSheetState
         constraints: BoxConstraints(
           maxHeight: MediaQuery.of(context).size.height * 0.85,
         ),
-        child: GlassSurface(
+        decoration: BoxDecoration(
           color: colors.popupBG,
           borderRadius: isDesktop
               ? BorderRadius.circular(20)
               : const BorderRadius.vertical(top: Radius.circular(20)),
-          child: Padding(
-            padding: isDesktop
-                ? const EdgeInsets.all(32)
-                : const EdgeInsets.fromLTRB(16, 10, 16, 16),
-            child: SafeArea(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  if (!isDesktop)
-                    Center(
-                      child: Container(
-                        decoration: BoxDecoration(
-                          color: colors.textFieldDefaultBG,
-                          borderRadius: BorderRadius.circular(
-                            Constants.size.circularBorderRadius,
-                          ),
-                        ),
-                        width: 60,
-                        height: 4,
+        ),
+        padding: isDesktop
+            ? const EdgeInsets.all(32)
+            : const EdgeInsets.fromLTRB(16, 10, 16, 16),
+        child: SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (!isDesktop)
+                Center(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: colors.textFieldDefaultBG,
+                      borderRadius: BorderRadius.circular(
+                        Constants.size.circularBorderRadius,
                       ),
                     ),
-                  if (!isDesktop) const SizedBox(height: 24),
-                  Text(
-                    l10n.sendChangeAddress,
-                    style: isDesktop
-                        ? STextStyles.desktopH3(context)
-                        : STextStyles.pageTitleH2(context),
+                    width: 60,
+                    height: 4,
                   ),
-                  const SizedBox(height: 16),
-                  Flexible(
-                    child: ListView(
-                      shrinkWrap: true,
-                      children: [
-                        _option(
-                          title: l10n.sendAutomatic,
-                          subtitle: widget.shield
-                              ? l10n.sendAutomaticShieldChange
-                              : l10n.sendAutomaticNewChange,
-                          selected: widget.current == null,
-                          onTap: () => Navigator.of(context).pop(""),
-                        ),
-                        for (final a in _addresses)
-                          _option(
-                            title: _title(a),
-                            subtitle: a.value,
-                            selected: widget.current == a.value,
-                            onTap: () => Navigator.of(context).pop(a.value),
-                          ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(
-                      Constants.size.circularBorderRadius,
-                    ),
-                    child: TextField(
-                      controller: _controller,
-                      focusNode: _focus,
-                      autocorrect: false,
-                      enableSuggestions: false,
-                      style: STextStyles.field(context),
-                      onChanged: (_) => setState(() => _error = null),
-                      decoration: standardInputDecoration(
-                        widget.shield
-                            ? l10n.sendOtherShieldAddress
-                            : l10n.sendOtherTransparentAddress,
-                        _focus,
-                        context,
-                      ).copyWith(errorText: _error),
-                    ),
-                  ),
-                  if (_error == null && _foreign) ...[
-                    const SizedBox(height: 8),
-                    Text(
-                      l10n.sendForeignChangeWarning,
-                      style: STextStyles.label(context)
-                          .copyWith(color: colors.textError),
-                    ),
-                  ],
-                  const SizedBox(height: 12),
-                  PrimaryButton(
-                    label: l10n.sendUseThisAddress,
-                    onPressed: _useCustom,
-                  ),
-                ],
+                ),
+              if (!isDesktop) const SizedBox(height: 24),
+              Text(
+                l10n.sendChangeAddress,
+                style: isDesktop
+                    ? STextStyles.desktopH3(context)
+                    : STextStyles.pageTitleH2(context),
               ),
-            ),
+              const SizedBox(height: 16),
+              Flexible(
+                child: ListView(
+                  shrinkWrap: true,
+                  children: [
+                    _option(
+                      title: l10n.sendAutomatic,
+                      subtitle: widget.shield
+                          ? l10n.sendAutomaticShieldChange
+                          : l10n.sendAutomaticNewChange,
+                      selected: widget.current == null,
+                      onTap: () => Navigator.of(context).pop(""),
+                    ),
+                    for (final a in _addresses)
+                      _option(
+                        title: _title(a),
+                        subtitle: a.value,
+                        selected: widget.current == a.value,
+                        onTap: () => Navigator.of(context).pop(a.value),
+                      ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(
+                  Constants.size.circularBorderRadius,
+                ),
+                child: TextField(
+                  controller: _controller,
+                  focusNode: _focus,
+                  autocorrect: false,
+                  enableSuggestions: false,
+                  style: STextStyles.field(context),
+                  onChanged: (_) => setState(() => _error = null),
+                  decoration: standardInputDecoration(
+                    widget.shield
+                        ? l10n.sendOtherShieldAddress
+                        : l10n.sendOtherTransparentAddress,
+                    _focus,
+                    context,
+                  ).copyWith(errorText: _error),
+                ),
+              ),
+              if (_error == null && _foreign) ...[
+                const SizedBox(height: 8),
+                Text(
+                  l10n.sendForeignChangeWarning,
+                  style: STextStyles.label(context)
+                      .copyWith(color: colors.textError),
+                ),
+              ],
+              const SizedBox(height: 12),
+              PrimaryButton(
+                label: l10n.sendUseThisAddress,
+                onPressed: _useCustom,
+              ),
+            ],
           ),
         ),
       ),

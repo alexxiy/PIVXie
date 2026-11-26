@@ -21,7 +21,6 @@ import '../utilities/text_styles.dart';
 import '../utilities/util.dart';
 import 'conditional_parent.dart';
 import 'desktop/secondary_button.dart';
-import 'glass.dart';
 import 'icon_widgets/x_icon.dart';
 import 'stack_text_field.dart';
 import 'textfield_icon_button.dart';
@@ -85,9 +84,11 @@ class _EmojiSelectSheetState extends ConsumerState<EmojiSelectSheet> {
 
     return ConditionalParent(
       condition: !isDesktop,
-      builder: (child) => GlassSurface(
-        color: Theme.of(context).extension<StackColors>()!.popupBG,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      builder: (child) => Container(
+        decoration: BoxDecoration(
+          color: Theme.of(context).extension<StackColors>()!.popupBG,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+        ),
         child: LimitedBox(
           maxHeight: maxHeight,
           child: Padding(

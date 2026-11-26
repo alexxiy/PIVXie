@@ -29,7 +29,6 @@ import '../utilities/enums/sync_type_enum.dart';
 import '../utilities/test_node_connection.dart';
 import '../utilities/text_styles.dart';
 import '../wallets/crypto_currency/crypto_currency.dart';
-import 'glass.dart';
 import 'node_signal_icon.dart';
 import 'rounded_white_container.dart';
 
@@ -149,9 +148,11 @@ class _NodeOptionsSheetState extends ConsumerState<NodeOptionsSheet> {
         ? "Disconnected"
         : "Connected";
 
-    return GlassSurface(
-      color: Theme.of(context).extension<StackColors>()!.popupBG,
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).extension<StackColors>()!.popupBG,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       child: LimitedBox(
         maxHeight: maxHeight,
         child: Padding(

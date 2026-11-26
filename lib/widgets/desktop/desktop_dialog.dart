@@ -13,7 +13,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../../themes/stack_colors.dart';
-import '../glass.dart';
 import '../motion.dart';
 
 class DesktopDialog extends StatelessWidget {
@@ -51,9 +50,11 @@ class DesktopDialog extends StatelessWidget {
             child: Material(
               color: Colors.transparent,
               borderRadius: BorderRadius.circular(20),
-              child: GlassSurface(
-                color: Theme.of(context).extension<StackColors>()!.popupBG,
-                borderRadius: BorderRadius.circular(20),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).extension<StackColors>()!.popupBG,
+                  borderRadius: BorderRadius.circular(20),
+                ),
                 child: fitsWindow
                     ? child
                     : SingleChildScrollView(

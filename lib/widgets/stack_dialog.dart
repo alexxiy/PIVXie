@@ -14,7 +14,6 @@ import '../themes/stack_colors.dart';
 import '../utilities/text_styles.dart';
 import '../utilities/util.dart';
 import 'adaptive_page.dart';
-import 'glass.dart';
 import 'motion.dart';
 
 class StackDialogBase extends StatelessWidget {
@@ -63,13 +62,14 @@ class StackDialogBase extends StatelessWidget {
                           : null),
                   child: SingleChildScrollView(
                     child: Material(
-                      color: Colors.transparent,
                       borderRadius: BorderRadius.circular(20),
-                      child: GlassSurface(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .popupBG,
-                        borderRadius: BorderRadius.circular(20),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .popupBG,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
                         child: Padding(padding: padding, child: child),
                       ),
                     ),

@@ -8,7 +8,6 @@ import '../../../../../utilities/amount/amount_unit.dart';
 import '../../../../../utilities/constants.dart';
 import '../../../../../utilities/text_styles.dart';
 import '../../../../../wallets/crypto_currency/crypto_currency.dart';
-import '../../../../../widgets/glass.dart';
 
 class ChooseUnitSheet extends ConsumerStatefulWidget {
   const ChooseUnitSheet({super.key, required this.coin});
@@ -32,9 +31,11 @@ class _ChooseUnitSheetState extends ConsumerState<ChooseUnitSheet> {
 
   @override
   Widget build(BuildContext context) {
-    return GlassSurface(
-      color: Theme.of(context).extension<StackColors>()!.popupBG,
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).extension<StackColors>()!.popupBG,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       child: Padding(
         padding: const EdgeInsets.only(left: 24, right: 24, top: 10, bottom: 0),
         child: SafeArea(

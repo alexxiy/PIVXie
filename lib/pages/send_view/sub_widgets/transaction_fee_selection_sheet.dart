@@ -26,7 +26,6 @@ import '../../../utilities/text_styles.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
 import '../../../widgets/animated_text.dart';
-import '../../../widgets/glass.dart';
 
 final feeSheetSessionCacheProvider =
     ChangeNotifierProvider<FeeSheetSessionCache>((ref) {
@@ -134,9 +133,11 @@ class _TransactionFeeSelectionSheetState
 
     final coin = ref.watch(pWalletCoin(walletId));
 
-    return GlassSurface(
-      color: Theme.of(context).extension<StackColors>()!.popupBG,
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+    return Container(
+      decoration: BoxDecoration(
+        color: Theme.of(context).extension<StackColors>()!.popupBG,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+      ),
       child: Padding(
         padding: const EdgeInsets.only(left: 24, right: 24, top: 10, bottom: 0),
         child: Column(
