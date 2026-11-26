@@ -26,6 +26,7 @@ import '../../widgets/custom_buttons/blue_text_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/icon_widgets/clipboard_icon.dart';
 import '../../widgets/icon_widgets/qrcode_icon.dart';
+import '../../widgets/motion.dart';
 import '../../widgets/rounded_white_container.dart';
 import '../../widgets/stack_dialog.dart';
 import '../../widgets/stack_text_field.dart';
@@ -990,7 +991,8 @@ class _PivxDefiViewState extends ConsumerState<PivxDefiView> {
         const SizedBox(height: 4),
         Center(
           child: AnimatedSwitcher(
-            duration: const Duration(milliseconds: 250),
+            duration: const Duration(milliseconds: 380),
+            transitionBuilder: Motion.fadeScaleFrom(0.9),
             child: Image.asset(
               _wrap ? Assets.persona.public : Assets.persona.private,
               key: ValueKey(_direction),

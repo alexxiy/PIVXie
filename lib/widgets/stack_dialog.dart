@@ -14,6 +14,7 @@ import '../themes/stack_colors.dart';
 import '../utilities/text_styles.dart';
 import '../utilities/util.dart';
 import 'adaptive_page.dart';
+import 'motion.dart';
 
 class StackDialogBase extends StatelessWidget {
   const StackDialogBase({
@@ -32,6 +33,7 @@ class StackDialogBase extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final centred = Util.isDesktop || ScreenFit.wide(context);
     return SafeArea(
       child: Padding(
         padding: EdgeInsets.only(
@@ -41,31 +43,35 @@ class StackDialogBase extends StatelessWidget {
           bottom: 16 + keyboardPaddingAmount,
         ),
         child: Column(
-          mainAxisAlignment: Util.isDesktop || ScreenFit.wide(context)
+          mainAxisAlignment: centred
               ? MainAxisAlignment.center
               : MainAxisAlignment.end,
           children: [
             Flexible(
-              child: SizedBox(
-                // Phone dialogs shown on desktop: not across the window.
-                width:
-                    width ??
-                    (Util.isDesktop
-                        ? 580
-                        : ScreenFit.wide(context)
-                        ? ScreenFit.dialogWidth
-                        : null),
-                child: SingleChildScrollView(
-                  child: Material(
-                    borderRadius: BorderRadius.circular(20),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Theme.of(context)
-                            .extension<StackColors>()!
-                            .popupBG,
-                        borderRadius: BorderRadius.circular(20),
+              child: SpringIn(
+                alignment: centred ? Alignment.center : Alignment.bottomCenter,
+                rise: centred ? 0 : 24,
+                child: SizedBox(
+                  // Phone dialogs shown on desktop: not across the window.
+                  width:
+                      width ??
+                      (Util.isDesktop
+                          ? 580
+                          : ScreenFit.wide(context)
+                          ? ScreenFit.dialogWidth
+                          : null),
+                  child: SingleChildScrollView(
+                    child: Material(
+                      borderRadius: BorderRadius.circular(20),
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Theme.of(context)
+                              .extension<StackColors>()!
+                              .popupBG,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Padding(padding: padding, child: child),
                       ),
-                      child: Padding(padding: padding, child: child),
                     ),
                   ),
                 ),

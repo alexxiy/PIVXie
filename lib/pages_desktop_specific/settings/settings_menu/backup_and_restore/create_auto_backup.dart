@@ -41,6 +41,7 @@ import '../../../../widgets/desktop/desktop_dialog.dart';
 import '../../../../widgets/desktop/desktop_dialog_close_button.dart';
 import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
+import '../../../../widgets/motion.dart';
 import '../../../../widgets/progress_bar.dart';
 import '../../../../widgets/stack_dialog.dart';
 import '../../../../widgets/stack_text_field.dart';
@@ -623,6 +624,7 @@ class _CreateAutoBackup extends ConsumerState<CreateAutoBackup> {
                         ),
                       ),
                       dropdownStyleData: DropdownStyleData(
+                        openInterval: Motion.menuOpen,
                         offset: const Offset(0, -10),
                         elevation: 0,
                         decoration: BoxDecoration(

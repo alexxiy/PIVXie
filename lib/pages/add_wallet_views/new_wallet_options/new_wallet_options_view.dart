@@ -21,6 +21,7 @@ import '../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../widgets/desktop/desktop_app_bar.dart';
 import '../../../widgets/desktop/desktop_scaffold.dart';
 import '../../../widgets/desktop/primary_button.dart';
+import '../../../widgets/motion.dart';
 import '../../../widgets/rounded_white_container.dart';
 import '../../../widgets/stack_text_field.dart';
 import '../create_or_restore_wallet_view/sub_widgets/coin_image.dart';
@@ -194,6 +195,7 @@ class _NewWalletOptionsViewState extends ConsumerState<NewWalletOptionsView> {
                   ),
                 ),
                 dropdownStyleData: DropdownStyleData(
+                  openInterval: Motion.menuOpen,
                   offset: const Offset(0, -10),
                   elevation: 0,
                   decoration: BoxDecoration(
@@ -253,6 +255,7 @@ class _NewWalletOptionsViewState extends ConsumerState<NewWalletOptionsView> {
                           ),
                         ),
                         dropdownStyleData: DropdownStyleData(
+                          openInterval: Motion.menuOpen,
                           offset: const Offset(0, -10),
                           elevation: 0,
                           decoration: BoxDecoration(

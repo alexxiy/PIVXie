@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/services.dart';
 
+import '../../widgets/motion.dart';
 import 'pivx_donation.dart';
 
 /// The donation screen's colours: violet for the shielded (hooded) PIVXie,
@@ -213,19 +214,8 @@ class _PivxDonationStageState extends State<PivxDonationStage>
                           ),
                         ),
                         child: AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 350),
-                          switchInCurve: Curves.easeOutBack,
-                          transitionBuilder: (child, animation) =>
-                              FadeTransition(
-                                opacity: animation,
-                                child: ScaleTransition(
-                                  scale: Tween(
-                                    begin: 0.85,
-                                    end: 1.0,
-                                  ).animate(animation),
-                                  child: child,
-                                ),
-                              ),
+                          duration: const Duration(milliseconds: 420),
+                          transitionBuilder: Motion.fadeScaleFrom(0.85),
                           child: _picture(size),
                         ),
                       ),

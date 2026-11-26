@@ -44,6 +44,7 @@ import '../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../widgets/custom_buttons/blue_text_button.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
+import '../../widgets/motion.dart';
 import '../../widgets/qr.dart';
 import '../../widgets/rounded_white_container.dart';
 import 'addresses/wallet_addresses_view.dart';
@@ -442,6 +443,7 @@ class _ReceiveViewState extends ConsumerState<ReceiveView> {
                                   ),
                                 ),
                                 dropdownStyleData: DropdownStyleData(
+                                  openInterval: Motion.menuOpen,
                                   offset: const Offset(0, -10),
                                   elevation: 0,
                                   decoration: BoxDecoration(

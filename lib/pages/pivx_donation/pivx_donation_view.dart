@@ -26,6 +26,7 @@ import '../../widgets/custom_buttons/blue_text_button.dart';
 import '../../widgets/desktop/desktop_page_column.dart';
 import '../../widgets/desktop/primary_button.dart';
 import '../../widgets/desktop/secondary_button.dart';
+import '../../widgets/motion.dart';
 import '../../widgets/page_app_bar.dart';
 import '../../widgets/pivx_memo_field.dart';
 import '../../widgets/stack_text_field.dart';
@@ -435,7 +436,8 @@ class _PivxDonationViewState extends ConsumerState<PivxDonationView> {
         duration: const Duration(milliseconds: 200),
         alignment: Alignment.topCenter,
         child: AnimatedSwitcher(
-          duration: const Duration(milliseconds: 200),
+          duration: const Duration(milliseconds: 300),
+          transitionBuilder: Motion.fadeScale,
           child: Text(
             description,
             key: ValueKey(description),

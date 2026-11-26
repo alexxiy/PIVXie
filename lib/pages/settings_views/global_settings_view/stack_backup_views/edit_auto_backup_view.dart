@@ -40,6 +40,7 @@ import '../../../../widgets/conditional_parent.dart';
 import '../../../../widgets/custom_buttons/app_bar_icon_button.dart';
 import '../../../../widgets/desktop/primary_button.dart';
 import '../../../../widgets/desktop/secondary_button.dart';
+import '../../../../widgets/motion.dart';
 import '../../../../widgets/progress_bar.dart';
 import '../../../../widgets/stack_dialog.dart';
 import '../../../../widgets/stack_text_field.dart';
@@ -580,6 +581,7 @@ class _EditAutoBackupViewState extends ConsumerState<EditAutoBackupView> {
                   ),
                 ),
                 dropdownStyleData: DropdownStyleData(
+                  openInterval: Motion.menuOpen,
                   offset: const Offset(0, -10),
                   elevation: 0,
                   decoration: BoxDecoration(

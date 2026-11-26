@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../utilities/util.dart';
 import 'center_or_scroll.dart';
+import 'motion.dart';
 
 /// What the phone and tablet layouts adapt to. Desktop has its own layouts,
 /// so on desktop all of this stays off.
@@ -339,6 +340,7 @@ Future<T?> showAppSheet<T>({
       shape: shape,
       isScrollControlled: isScrollControlled,
       useSafeArea: useSafeArea,
+      sheetAnimationStyle: Motion.sheet(context),
     );
   }
   return showModalBottomSheet<T>(
@@ -347,6 +349,7 @@ Future<T?> showAppSheet<T>({
     shape: shape,
     isScrollControlled: true,
     useSafeArea: true,
+    sheetAnimationStyle: Motion.sheet(context),
     builder: (context) {
       final child = builder(context);
       final body = scrollable ? SingleChildScrollView(child: child) : child;

@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 
 import '../themes/stack_colors.dart';
 import '../utilities/text_styles.dart';
+import 'motion.dart';
 
 class CustomTabView extends StatefulWidget {
   const CustomTabView({
@@ -130,9 +131,7 @@ class _CustomTabViewState extends State<CustomTabView> {
           ),
           AnimatedSwitcher(
             duration: duration,
-            transitionBuilder: (child, animation) {
-              return FadeTransition(opacity: animation, child: child);
-            },
+            transitionBuilder: Motion.fadeScale,
             layoutBuilder: (currentChild, prevChildren) {
               return Stack(
                 alignment: Alignment.topCenter,

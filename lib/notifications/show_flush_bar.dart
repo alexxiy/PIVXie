@@ -17,6 +17,7 @@ import 'package:flutter_svg/svg.dart';
 import '../themes/stack_colors.dart';
 import '../utilities/constants.dart';
 import '../utilities/enums/flush_bar_type.dart';
+import '../widgets/motion.dart';
 
 export '../utilities/enums/flush_bar_type.dart';
 
@@ -70,10 +71,13 @@ Future<dynamic> showFloatingFlushBar({
   late final OverlayEntry entry;
   entry = OverlayEntry(
     builder: (context) => _OverlayFlushbar(
-      animationDuration: const Duration(seconds: 1),
+      // Drops in on a spring and settles; leaves speeding up.
+      animationDuration: Motion.reduced(context)
+          ? Duration.zero
+          : const Duration(milliseconds: 650),
       displayDuration: duration,
-      forwardCurve: Curves.easeOutCirc,
-      reverseCurve: Curves.easeOutCirc,
+      forwardCurve: SpringCurve(Motion.pop, const Duration(milliseconds: 650)),
+      reverseCurve: Curves.easeOutCubic,
       initialAlignment: const Alignment(-1.0, -2.0),
       endAlignment: const Alignment(-1.0, -1.0),
       onDismiss: () {
@@ -128,6 +132,9 @@ class _OverlayFlushbarState extends State<_OverlayFlushbar>
     super.initState();
     _controller = AnimationController(
       duration: widget.animationDuration,
+      reverseDuration: widget.animationDuration == Duration.zero
+          ? Duration.zero
+          : const Duration(milliseconds: 320),
       vsync: this,
     );
     _animation =

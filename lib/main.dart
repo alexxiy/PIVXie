@@ -67,6 +67,7 @@ import 'utilities/util.dart';
 import 'wallets/isar/providers/all_wallets_info_provider.dart';
 import 'widgets/adaptive_page.dart';
 import 'widgets/start_splash.dart';
+import 'widgets/motion.dart';
 
 final openedFromSWBFileStringStateProvider = StateProvider<String?>(
   (ref) => null,
@@ -662,6 +663,7 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
       builder: (context, child) =>
           L10nRoot(child: ScreenFitTheme(child: child!)),
       theme: ThemeData(
+        pageTransitionsTheme: Motion.pageTransitions,
         extensions: [colorScheme],
         highlightColor: colorScheme.highlight,
         brightness: colorScheme.brightness,

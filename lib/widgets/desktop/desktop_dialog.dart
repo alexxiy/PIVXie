@@ -13,6 +13,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 import '../../themes/stack_colors.dart';
+import '../motion.dart';
 
 class DesktopDialog extends StatelessWidget {
   const DesktopDialog({
@@ -40,28 +41,30 @@ class DesktopDialog extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        ConstrainedBox(
-          constraints: BoxConstraints(
-            maxWidth: min(maxWidth, window.width - 32),
-            maxHeight: min(height, window.height - 32),
-          ),
-          child: Material(
-            color: Colors.transparent,
-            borderRadius: BorderRadius.circular(20),
-            child: Container(
-              decoration: BoxDecoration(
-                color: Theme.of(context).extension<StackColors>()!.popupBG,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: fitsWindow
-                  ? child
-                  : SingleChildScrollView(
-                      primary: false,
-                      child: ConstrainedBox(
-                        constraints: BoxConstraints(maxHeight: height),
-                        child: child,
+        SpringIn(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: min(maxWidth, window.width - 32),
+              maxHeight: min(height, window.height - 32),
+            ),
+            child: Material(
+              color: Colors.transparent,
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Theme.of(context).extension<StackColors>()!.popupBG,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: fitsWindow
+                    ? child
+                    : SingleChildScrollView(
+                        primary: false,
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(maxHeight: height),
+                          child: child,
+                        ),
                       ),
-                    ),
+              ),
             ),
           ),
         ),
