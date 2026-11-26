@@ -1,0 +1,1 @@
+新功能：Nym。除了 Tor，PIVXie 现在还能通过 Nym 网络发送流量，您可以在设置应用时选择连接方式。InstantSend 付款会立即显示为待确认，交易详情实时更新。确认页面会显示 Shield 附言和收款人的 PIVX Name。有新版本发布时，PIVXie 现在会提醒您。动画更流畅，并修复了发送、PIVX Names 和布局方面的问题。
