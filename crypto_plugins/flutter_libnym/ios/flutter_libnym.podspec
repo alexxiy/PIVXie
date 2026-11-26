@@ -9,6 +9,8 @@ Pod::Spec.new do |s|
 
   s.source           = { :path => '.' }
   s.source_files     = 'Classes/**/*'
+  # reqwest and hickory-resolver read the system proxy and DNS settings.
+  s.frameworks       = 'SystemConfiguration'
   s.dependency 'Flutter'
   s.platform = :ios, '15.0'
 
