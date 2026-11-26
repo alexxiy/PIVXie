@@ -44,6 +44,7 @@ class StoreChannel(private val activity: Activity) : MethodChannel.MethodCallHan
             "playUpdateInfo" -> PlayStore.updateInfo(activity, result)
             "playStartUpdate" -> PlayStore.startUpdate(activity, result)
             "playReview" -> PlayStore.review(activity, result)
+            "installedFromPlay" -> result.success(installedFromPlay())
             "installApk" -> installApk(call.argument<String>("path"), result)
             else -> result.notImplemented()
         }
@@ -61,6 +62,25 @@ class StoreChannel(private val activity: Activity) : MethodChannel.MethodCallHan
      * setting for the app, else once Android is done: "done", "aborted"
      * (turned down) or "failed" (for example, signed by someone else).
      */
+    /**
+     * Whether Google Play installed this copy. Play's in-app updates and
+     * reviews only work then: not for copies from Aurora Store or other
+     * stores, installed by hand, or on phones without the Play Store. An app
+     * may always ask this about itself, without any permission.
+     */
+    private fun installedFromPlay(): Boolean = try {
+        val pm = activity.packageManager
+        val installer = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            pm.getInstallSourceInfo(activity.packageName).installingPackageName
+        } else {
+            @Suppress("DEPRECATION")
+            pm.getInstallerPackageName(activity.packageName)
+        }
+        installer == "com.android.vending"
+    } catch (e: Exception) {
+        false
+    }
+
     private fun installApk(path: String?, result: MethodChannel.Result) {
         // Only the file the app downloaded into its own cache.
         val file = path?.let { File(it).canonicalFile }

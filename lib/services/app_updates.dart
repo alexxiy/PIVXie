@@ -60,6 +60,14 @@ enum AppDistribution {
 /// Android, the app delegate on Apple systems).
 const _store = MethodChannel("PIVXIE_STORE");
 
+/// Whether Google Play installed this copy (asked once). Play's in-app
+/// updates and reviews only work then: copies from Aurora Store or other
+/// stores, installed by hand, or on phones without the Play Store skip them.
+Future<bool> _installedFromPlay() => _fromPlayStore ??= _store
+    .invokeMethod<bool>("installedFromPlay")
+    .then((value) => value == true, onError: (_) => false);
+Future<bool>? _fromPlayStore;
+
 /// A newer version than the one running.
 class AppUpdate {
   const AppUpdate({this.version, this.page, this.apk});
@@ -212,6 +220,7 @@ abstract final class AppUpdates {
 
   /// Google Play's own answer (its in-app updates).
   static Future<AppUpdate?> _fromPlay() async {
+    if (!await _installedFromPlay()) return null;
     final result = await _store.invokeMapMethod<String, dynamic>(
       "playUpdateInfo",
     );
@@ -517,6 +526,10 @@ abstract final class StoreReview {
   /// (the navigator's).
   static Future<void> afterSend(BuildContext context) async {
     if (!available || await _get<bool>(_doneKey) == true) return;
+    if (AppDistribution.current == AppDistribution.play &&
+        !await _installedFromPlay()) {
+      return;
+    }
     final asks = await _get<int>(_asksKey) ?? 0;
     final first = await _get<int>(_firstUseKey);
     final last = await _get<int>(_lastAskKey);
