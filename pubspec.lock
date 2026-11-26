@@ -609,6 +609,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.14.4"
+  flutter_libnym:
+    dependency: "direct main"
+    description:
+      path: "crypto_plugins/flutter_libnym"
+      relative: true
+    source: path
+    version: "0.1.0"
   flutter_libpivxshield:
     dependency: "direct main"
     description:

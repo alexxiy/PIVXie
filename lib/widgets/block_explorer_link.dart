@@ -99,9 +99,8 @@ class _ExplorerWarning extends ConsumerWidget {
           onPressed: () => Navigator.of(context).pop(false),
           child: Text(
             l10n.commonCancel,
-            style: STextStyles.button(
-              context,
-            ).copyWith(color: colors.accentColorDark),
+            style: STextStyles.button(context)
+                .copyWith(color: colors.accentColorDark),
           ),
         ),
         rightButton: TextButton(
@@ -122,7 +121,10 @@ class _ExplorerWarning extends ConsumerWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(l10n.commonAttention, style: STextStyles.desktopH2(context)),
+                Text(
+                  l10n.commonAttention,
+                  style: STextStyles.desktopH2(context),
+                ),
                 _neverAgain(context, ref),
               ],
             ),

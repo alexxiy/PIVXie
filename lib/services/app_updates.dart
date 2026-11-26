@@ -435,9 +435,8 @@ class _ApkUpdateDialogState extends State<_ApkUpdateDialog> {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).extension<StackColors>()!;
     final text = switch (_stage) {
-      _Stage.downloading => _progress == null
-          ? null
-          : "${(_progress! * 100).floor()} %",
+      _Stage.downloading =>
+        _progress == null ? null : "${(_progress! * 100).floor()} %",
       _Stage.installing => l10n.updateConfirmInstall,
       _Stage.needsPermission => l10n.updateAllowInstall(AppConfig.appName),
       _Stage.failed => _error,
@@ -457,14 +456,11 @@ class _ApkUpdateDialogState extends State<_ApkUpdateDialog> {
           ),
           const SizedBox(height: 12),
         ],
-        if (text != null)
-          Text(text, style: STextStyles.smallMed14(context)),
+        if (text != null) Text(text, style: STextStyles.smallMed14(context)),
       ],
       buttons: [
         SecondaryButton(
-          label: _stage == _Stage.failed
-              ? l10n.commonClose
-              : l10n.commonCancel,
+          label: _stage == _Stage.failed ? l10n.commonClose : l10n.commonCancel,
           onPressed: () => Navigator.of(context).pop(),
         ),
         if (_stage == _Stage.failed && widget.page != null)

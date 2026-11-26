@@ -716,10 +716,9 @@ class Prefs extends ChangeNotifier {
 
   Future<bool> _getTermsAccepted() async =>
       await DB.instance.get<dynamic>(
-            boxName: DB.boxNamePrefs,
-            key: "termsAccepted",
-          )
-          as bool? ??
+        boxName: DB.boxNamePrefs,
+        key: "termsAccepted",
+      ) as bool? ??
       false;
 
   // Links opened in that dialog: kept, so a phone that closes the app
@@ -740,12 +739,9 @@ class Prefs extends ChangeNotifier {
 
   Future<List<String>> _getTermsOpened() async =>
       (await DB.instance.get<dynamic>(
-                boxName: DB.boxNamePrefs,
-                key: "termsOpened",
-              )
-              as List?)
-          ?.cast<String>()
-          .toList() ??
+        boxName: DB.boxNamePrefs,
+        key: "termsOpened",
+      ) as List?)?.cast<String>().toList() ??
       const [];
 
   // coin control

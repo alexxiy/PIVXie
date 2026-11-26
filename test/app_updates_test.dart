@@ -10,12 +10,7 @@ void main() {
     "android":
         android ??
         {
-          for (final abi in [
-            "arm64-v8a",
-            "armeabi-v7a",
-            "x86_64",
-            "universal",
-          ])
+          for (final abi in ["arm64-v8a", "armeabi-v7a", "x86_64", "universal"])
             abi: {"file": "pivxie-1.4.0-android-$abi.apk", "sha256": sha},
         },
   };
