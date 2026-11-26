@@ -38,6 +38,10 @@ class _NymServiceImpl extends NymService {
   /// generation was cancelled.
   int _generation = 0;
 
+  /// The last [disable]'s stop. A start waits for it: a stop still on its
+  /// way would cancel the new start instead of the old one.
+  Future<void> _stopping = Future.value();
+
   @override
   TorConnectionStatus get status => _status;
 
@@ -62,6 +66,8 @@ class _NymServiceImpl extends NymService {
     var wait = const Duration(seconds: 5);
     while (true) {
       try {
+        await _stopping;
+        if (generation != _generation) return;
         final port = await Nym.start();
         if (generation == _generation && !await _exitWorks(port)) {
           // Another try picks another exit.
@@ -77,7 +83,9 @@ class _NymServiceImpl extends NymService {
         _update(TorConnectionStatus.connected, "NymService.start success");
         return;
       } on NymStartCancelled {
-        return;
+        // Not cancelled by disable(): a stop meant for an earlier start.
+        // Try again rather than stay connecting.
+        if (generation != _generation) return;
       } catch (e) {
         if (generation != _generation) return;
         Logging.instance.w("Nym start failed, trying again: $e");
@@ -136,11 +144,11 @@ class _NymServiceImpl extends NymService {
     _generation++;
     _port = null;
     _update(TorConnectionStatus.disconnected, "NymService.disable success");
-    try {
-      await Nym.stop();
-    } catch (e, s) {
+    final stopping = Nym.stop().catchError((Object e, StackTrace s) {
       Logging.instance.w("Nym stop failed: ", error: e, stackTrace: s);
-    }
+    });
+    _stopping = stopping;
+    await stopping;
   }
 
   void _update(TorConnectionStatus status, String message) {
