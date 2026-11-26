@@ -5914,5 +5914,70 @@
         "type": "String"
       }
     }
+  },
+  "commonLater": "Later",
+  "updateTitle": "Update available",
+  "updateText": "{app} {version} is out. Update now?",
+  "@updateText": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      },
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateTextNoVersion": "A new version of {app} is out. Update now?",
+  "@updateTextNoVersion": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "updateNow": "Update",
+  "updateDownloading": "Downloading the update",
+  "updateInstalling": "Installing the update",
+  "updateConfirmInstall": "Confirm the update in the window Android shows.",
+  "updateAllowInstall": "Allow {app} to install apps in the Android settings that just opened, then come back and tap Install.",
+  "@updateAllowInstall": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "updateInstall": "Install",
+  "updateDownloadFailed": "The download didn't finish. Try again later.",
+  "updateNotMatching": "The downloaded file doesn't match the release, so it wasn't installed.",
+  "updateInstallFailed": "Android couldn't install the update.",
+  "updateOpenPage": "Release page",
+  "reviewTitle": "Rate {app}",
+  "@reviewTitle": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "reviewText": "If you have a moment, rate {app} in the store. It helps other people find it.",
+  "@reviewText": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
+  },
+  "reviewRate": "Rate",
+  "reviewNever": "Don't ask again",
+  "checkUpdatesTitle": "Check for updates",
+  "checkUpdatesSubtitle": "Once a day, looks for a new version of {app} where you got it, through Tor or Nym when one is on.",
+  "@checkUpdatesSubtitle": {
+    "placeholders": {
+      "app": {
+        "type": "String"
+      }
+    }
   }
 }

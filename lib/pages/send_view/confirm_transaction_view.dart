@@ -55,6 +55,7 @@ import '../pinpad_views/lock_screen_view.dart';
 import '../wallet_view/wallet_view.dart';
 import 'sub_widgets/pivx_name_lookup.dart';
 import 'sub_widgets/sending_transaction_dialog.dart';
+import '../../services/app_updates.dart';
 
 class ConfirmTransactionView extends ConsumerStatefulWidget {
   const ConfirmTransactionView({
@@ -215,6 +216,8 @@ class _ConfirmTransactionViewState
   late final TextEditingController noteController;
 
   Future<void> _attemptSend(BuildContext context) async {
+    // Outlives the send screens, for a rating ask afterwards.
+    final appContext = Navigator.of(context, rootNavigator: true).context;
     final wallet = ref.read(pWallets).getWallet(walletId);
     final coin = wallet.info.coin;
 
@@ -379,6 +382,10 @@ class _ConfirmTransactionViewState
     unawaited(wallet.refresh());
 
     closeSendingDialog();
+
+    // Now and then store builds ask for a rating, over whatever screen
+    // the send returns to.
+    if (appContext.mounted) unawaited(StoreReview.afterSend(appContext));
 
     widget.onSuccess.call();
 

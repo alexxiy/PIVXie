@@ -31,6 +31,7 @@ import 'logging_settings_view.dart';
 import 'manage_coin_units/edit_coin_units_view.dart';
 import 'manage_coin_units/manage_coin_units_view.dart';
 import 'manage_explorer_view.dart';
+import '../../../../services/app_updates.dart';
 
 class AdvancedSettingsView extends ConsumerWidget {
   const AdvancedSettingsView({super.key});
@@ -140,6 +141,56 @@ class AdvancedSettingsView extends ConsumerWidget {
                     },
                   ),
                 ),
+                if (AppUpdates.available) ...[
+                  const SizedBox(height: 8),
+                  RoundedWhiteContainer(
+                    child: Consumer(
+                      builder: (_, ref, __) => Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    l10n.checkUpdatesTitle,
+                                    style: STextStyles.titleBold12(context),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    l10n.checkUpdatesSubtitle(
+                                      AppConfig.appName,
+                                    ),
+                                    style: STextStyles.itemSubtitle(context),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            SizedBox(
+                              height: 20,
+                              width: 40,
+                              child: DraggableSwitchButton(
+                                isOn: ref.watch(
+                                  prefsChangeNotifierProvider.select(
+                                    (value) => value.checkUpdates,
+                                  ),
+                                ),
+                                onValueChanged: (newValue) {
+                                  ref
+                                          .read(prefsChangeNotifierProvider)
+                                          .checkUpdates =
+                                      newValue;
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 8),
                 RoundedWhiteContainer(
                   child: Consumer(

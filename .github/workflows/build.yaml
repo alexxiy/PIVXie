@@ -79,6 +79,10 @@ jobs:
               exit 1
             fi
             DEFINES="--dart-define=PIVX_TESTNET=true"
+          else
+            # Release builds look for updates on GitHub (the Mac App Store
+            # build asks the App Store instead).
+            DEFINES="--dart-define=PIVXIE_DIST=github"
           fi
           if [ "$DEFI_BRIDGE" = "false" ]; then
             DEFINES="$DEFINES --dart-define=PIVXIE_DEFI=false"
@@ -445,7 +449,7 @@ jobs:
           Before publishing:
           - Windows: sign pivxie.exe and the DLLs in the \`-unsigned\` zip, upload it as \`pivxie-$VERSION-windows-x86_64.zip\` and delete the unsigned one.
           - macOS: sign PIVXie.app with the Developer ID certificate, notarize and staple it, upload it as \`pivxie-$VERSION-macos.zip\` and delete the unsigned one.
-          - Add the Android and Linux x86_64 files built on the DevBox, and SHA256SUMS for the final files.
+          - Add the Android and Linux x86_64 files built on the DevBox, latest.json (the apps look for updates in it), and SHA256SUMS for the final files.
           - Replace these notes with the release notes.
           EOF
 

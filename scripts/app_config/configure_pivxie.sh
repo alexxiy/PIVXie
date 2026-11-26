@@ -63,6 +63,7 @@ const _commitHash = "$BUILT_COMMIT_HASH";
 
 // Project links. Empty ones are not shown in the app.
 const _websiteUrl = "https://pivxie.me";
+const _gitHubRepo = "alexxiy/PIVXie";
 const _termsUrl = "https://pivxie.me/terms-of-service.html";
 const _privacyUrl = "https://pivxie.me/privacy-policy.html";
 

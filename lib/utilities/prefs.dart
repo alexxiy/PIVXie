@@ -53,6 +53,7 @@ class Prefs extends ChangeNotifier {
       _backupFrequencyType = await _getBackupFrequencyType();
       _lastAutoBackup = await _getLastAutoBackup();
       _hideBlockExplorerWarning = await _getHideBlockExplorerWarning();
+      _checkUpdates = await _getCheckUpdates();
       _gotoWalletOnStartup = await _getGotoWalletOnStartup();
       _startupWalletId = await _getStartupWalletId();
       _externalCalls = await _getHasExternalCalls();
@@ -567,6 +568,35 @@ class Prefs extends ChangeNotifier {
           key: "hideBlockExplorerWarning",
         ) as bool? ??
         false;
+  }
+
+  // look for new versions where the app came from
+
+  bool _checkUpdates = true;
+
+  bool get checkUpdates => _checkUpdates;
+
+  set checkUpdates(bool checkUpdates) {
+    if (_checkUpdates != checkUpdates) {
+      DB.instance
+          .put<dynamic>(
+            boxName: DB.boxNamePrefs,
+            key: "checkUpdates",
+            value: checkUpdates,
+          )
+          .then((_) {
+            _checkUpdates = checkUpdates;
+            notifyListeners();
+          });
+    }
+  }
+
+  Future<bool> _getCheckUpdates() async {
+    return await DB.instance.get<dynamic>(
+          boxName: DB.boxNamePrefs,
+          key: "checkUpdates",
+        ) as bool? ??
+        true;
   }
 
   // auto backup

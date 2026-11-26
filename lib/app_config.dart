@@ -44,6 +44,7 @@ abstract class AppConfig {
 
   /// Project links; empty ones are not shown.
   static String get websiteUrl => _websiteUrl;
+  static String get gitHubRepo => _gitHubRepo;
   static String get termsUrl => _termsUrl;
   static String get privacyUrl => _privacyUrl;
 

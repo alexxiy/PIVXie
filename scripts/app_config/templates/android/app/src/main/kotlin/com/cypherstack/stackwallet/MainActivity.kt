@@ -15,6 +15,7 @@ import android.os.PersistableBundle
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugins.GeneratedPluginRegistrant
+import pivxie.store.StoreChannel
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.util.concurrent.Executors
@@ -26,6 +27,7 @@ class MainActivity: FlutterFragmentActivity() {
     private var openUri: Uri? = null
     private val io = Executors.newSingleThreadExecutor()
     private val main = Handler(Looper.getMainLooper())
+    private var store: StoreChannel? = null
 
     override fun configureFlutterEngine(@NonNull flutterEngine: FlutterEngine) {
         GeneratedPluginRegistrant.registerWith(flutterEngine)
@@ -54,6 +56,10 @@ class MainActivity: FlutterFragmentActivity() {
                 }
                 else -> result.notImplemented()
             }
+        }
+        store = StoreChannel(this).also {
+            MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "PIVXIE_STORE")
+                .setMethodCallHandler(it)
         }
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CLIPBOARD_CHANNEL)
             .setMethodCallHandler { call, result ->
@@ -109,6 +115,7 @@ class MainActivity: FlutterFragmentActivity() {
     }
 
     override fun onDestroy() {
+        store?.dispose()
         io.shutdown()
         super.onDestroy()
     }

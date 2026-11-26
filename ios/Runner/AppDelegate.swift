@@ -1,5 +1,6 @@
 import UIKit
 import Flutter
+import StoreKit
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
@@ -35,6 +36,33 @@ import Flutter
           ]
         )
         result(nil)
+      }
+    }
+    if let registrar = self.registrar(forPlugin: "PivxieStore") {
+      let store = FlutterMethodChannel(
+        name: "PIVXIE_STORE",
+        binaryMessenger: registrar.messenger()
+      )
+      store.setMethodCallHandler { call, result in
+        guard call.method == "requestReview" else {
+          result(FlutterMethodNotImplemented)
+          return
+        }
+        // The App Store's rating sheet; iOS decides whether it shows.
+        guard
+          let scene = UIApplication.shared.connectedScenes.first(where: {
+            $0.activationState == .foregroundActive
+          }) as? UIWindowScene
+        else {
+          result(false)
+          return
+        }
+        if #available(iOS 16.0, *) {
+          AppStore.requestReview(in: scene)
+        } else {
+          SKStoreReviewController.requestReview(in: scene)
+        }
+        result(true)
       }
     }
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)

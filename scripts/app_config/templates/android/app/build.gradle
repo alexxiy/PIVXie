@@ -10,6 +10,18 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(new FileInputStream(keystorePropertiesFile))
 }
 
+// PIVXIE_DIST from the --dart-define values (base64, comma separated):
+// "play" builds get Google Play's update and review libraries, "github"
+// builds may install their own updates. Other builds get neither.
+def dartDefines = [:]
+if (project.hasProperty('dart-defines')) {
+    project.property('dart-defines').split(',').each { entry ->
+        def pair = new String(entry.decodeBase64(), 'UTF-8').split('=', 2)
+        if (pair.length == 2) dartDefines[pair[0]] = pair[1]
+    }
+}
+def pivxieDist = dartDefines['PIVXIE_DIST'] ?: ''
+
 android {
     namespace "com.place.holder"
     compileSdk 37
@@ -79,6 +91,13 @@ android {
         }
     }
 
+    sourceSets {
+        main.kotlin.srcDirs += pivxieDist == 'play' ? 'src/play/kotlin' : 'src/noplay/kotlin'
+        if (pivxieDist == 'github') {
+            release.manifest.srcFile 'src/github/AndroidManifest.xml'
+        }
+    }
+
     // not required. Just info
     tasks.whenTaskAdded { task ->
         if (task.name == 'assembleDebug') {
@@ -99,4 +118,11 @@ kotlin {
 
 flutter {
     source '../..'
+}
+
+dependencies {
+    if (pivxieDist == 'play') {
+        implementation 'com.google.android.play:app-update:2.1.0'
+        implementation 'com.google.android.play:review:2.0.2'
+    }
 }

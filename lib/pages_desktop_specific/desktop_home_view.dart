@@ -35,6 +35,7 @@ import 'password/desktop_unlock_app_dialog.dart';
 import 'settings/desktop_settings_view.dart';
 import 'settings/settings_menu/desktop_about_view.dart';
 import 'settings/settings_menu/desktop_support_view.dart';
+import '../services/app_updates.dart';
 
 class DesktopHomeView extends ConsumerStatefulWidget {
   const DesktopHomeView({super.key});
@@ -153,6 +154,10 @@ class _DesktopHomeViewState extends ConsumerState<DesktopHomeView> {
 
     // A link that came while the app was starting, or else the wallet
     // chosen in the startup preferences.
+    // A newer version where the app came from.
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => unawaited(AppUpdates.onStart(context)),
+    );
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (ref.read(pPendingPaymentLink) != null) {
         unawaited(_openPendingLink());

@@ -1,5 +1,6 @@
 import Cocoa
 import FlutterMacOS
+import StoreKit
 
 class MainFlutterWindow: NSWindow {
   /// Edit actions for the focused Flutter field
@@ -8,6 +9,8 @@ class MainFlutterWindow: NSWindow {
   /// Flutter's text input, which never passes them on
   /// (flutter/flutter#184571).
   private var editChannel: FlutterMethodChannel?
+  /// The Mac App Store's rating sheet (lib/services/app_updates.dart).
+  private var storeChannel: FlutterMethodChannel?
   private var keyMonitor: Any?
 
   /// Whether this window saw a Command key go down. Apps that paste for
@@ -27,6 +30,23 @@ class MainFlutterWindow: NSWindow {
       name: "PIVXIE_EDIT",
       binaryMessenger: flutterViewController.engine.binaryMessenger
     )
+    storeChannel = FlutterMethodChannel(
+      name: "PIVXIE_STORE",
+      binaryMessenger: flutterViewController.engine.binaryMessenger
+    )
+    storeChannel?.setMethodCallHandler { [weak flutterViewController] call, result in
+      guard call.method == "requestReview" else {
+        result(FlutterMethodNotImplemented)
+        return
+      }
+      // macOS decides whether it shows.
+      if #available(macOS 13.0, *), let controller = flutterViewController {
+        AppStore.requestReview(in: controller)
+      } else {
+        SKStoreReviewController.requestReview()
+      }
+      result(true)
+    }
     keyMonitor = NSEvent.addLocalMonitorForEvents(
       matching: [.keyDown, .keyUp, .flagsChanged]
     ) { [weak self] event in

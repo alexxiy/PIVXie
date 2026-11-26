@@ -40,6 +40,7 @@ import '../settings_views/global_settings_view/hidden_settings.dart';
 import '../wallets_view/wallets_view.dart';
 import 'node_trouble.dart';
 import 'payment_links.dart';
+import '../../services/app_updates.dart';
 
 class HomeView extends ConsumerStatefulWidget {
   const HomeView({super.key});
@@ -258,6 +259,10 @@ class _HomeViewState extends ConsumerState<HomeView> {
     );
     // A node that stopped answering before the wallet list was up.
     WidgetsBinding.instance.addPostFrameCallback((_) => _askAboutNode());
+    // A newer version where the app came from.
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => unawaited(AppUpdates.onStart(context)),
+    );
 
     super.initState();
   }

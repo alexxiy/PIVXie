@@ -27,6 +27,7 @@ import '../../../../widgets/rounded_white_container.dart';
 import 'debug_info_dialog.dart';
 import 'desktop_manage_block_explorers_dialog.dart';
 import 'stack_privacy_dialog.dart';
+import '../../../../services/app_updates.dart';
 
 class AdvancedSettings extends ConsumerStatefulWidget {
   const AdvancedSettings({super.key});
@@ -120,6 +121,64 @@ class _AdvancedSettings extends ConsumerState<AdvancedSettings> {
                           ],
                         ),
                       ),
+                      if (AppUpdates.available) ...[
+                        const Padding(
+                          padding: EdgeInsets.all(10.0),
+                          child: Divider(thickness: 0.5),
+                        ),
+                        Padding(
+                          padding: const EdgeInsets.all(10),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      l10n.checkUpdatesTitle,
+                                      style:
+                                          STextStyles.desktopTextExtraSmall(
+                                            context,
+                                          ).copyWith(
+                                            color: Theme.of(context)
+                                                .extension<StackColors>()!
+                                                .textDark,
+                                          ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      l10n.checkUpdatesSubtitle(
+                                        AppConfig.appName,
+                                      ),
+                                      style: STextStyles.desktopTextExtraExtraSmall(
+                                        context,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              SizedBox(
+                                height: 20,
+                                width: 40,
+                                child: DraggableSwitchButton(
+                                  isOn: ref.watch(
+                                    prefsChangeNotifierProvider.select(
+                                      (value) => value.checkUpdates,
+                                    ),
+                                  ),
+                                  onValueChanged: (newValue) {
+                                    ref
+                                            .read(prefsChangeNotifierProvider)
+                                            .checkUpdates =
+                                        newValue;
+                                  },
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                       const Padding(
                         padding: EdgeInsets.all(10.0),
                         child: Divider(thickness: 0.5),
