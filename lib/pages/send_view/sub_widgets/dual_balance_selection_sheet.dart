@@ -18,6 +18,7 @@ import '../../../utilities/amount/amount_formatter.dart';
 import '../../../utilities/constants.dart';
 import '../../../utilities/text_styles.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../widgets/glass.dart';
 
 class DualBalanceSelectionSheet extends ConsumerStatefulWidget {
   const DualBalanceSelectionSheet({super.key, required this.walletId});
@@ -43,11 +44,9 @@ class _FiroBalanceSelectionSheetState
   Widget build(BuildContext context) {
     final coin = ref.watch(pWalletCoin(walletId));
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).extension<StackColors>()!.popupBG,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+    return GlassSurface(
+      color: Theme.of(context).extension<StackColors>()!.popupBG,
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
       child: Padding(
         padding: const EdgeInsets.only(left: 24, right: 24, top: 10, bottom: 0),
         child: SafeArea(

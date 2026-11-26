@@ -13,6 +13,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../themes/stack_colors.dart';
 import '../../../utilities/text_styles.dart';
+import '../../glass.dart';
 import '../../rounded_container.dart';
 import '../wallet_navigation_bar.dart';
 
@@ -143,27 +144,32 @@ class WalletNavigationBarMoreItem extends ConsumerWidget {
       },
       child: Material(
         color: Colors.transparent,
-        child: RoundedContainer(
+        child: GlassSurface(
           color: Theme.of(context).extension<StackColors>()!.bottomNavBack,
-          radiusMultiplier: 100,
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 30),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  data.label ?? "",
-                  textAlign: TextAlign.center,
-                  style: STextStyles.buttonSmall(context).copyWith(
-                    color: Theme.of(context)
-                        .extension<StackColors>()!
-                        .bottomNavText,
+          borderRadius: BorderRadius.circular(1000),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 30),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    data.label ?? "",
+                    textAlign: TextAlign.center,
+                    style: STextStyles.buttonSmall(context).copyWith(
+                      color: Theme.of(context)
+                          .extension<StackColors>()!
+                          .bottomNavText,
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 10),
-              if (data.isNew) ...[const NewItemDot(), const SizedBox(width: 8)],
-              data.icon,
-            ],
+                const SizedBox(width: 10),
+                if (data.isNew) ...[
+                  const NewItemDot(),
+                  const SizedBox(width: 8),
+                ],
+                data.icon,
+              ],
+            ),
           ),
         ),
       ),

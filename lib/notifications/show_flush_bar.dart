@@ -17,6 +17,7 @@ import 'package:flutter_svg/svg.dart';
 import '../themes/stack_colors.dart';
 import '../utilities/constants.dart';
 import '../utilities/enums/flush_bar_type.dart';
+import '../widgets/glass.dart';
 import '../widgets/motion.dart';
 
 export '../utilities/enums/flush_bar_type.dart';
@@ -49,6 +50,7 @@ Future<dynamic> showFloatingFlushBar({
       bg = Theme.of(context).extension<StackColors>()!.snackBarBackError;
       break;
   }
+  final glass = Glass.on(context);
   final bar = Flushbar<dynamic>(
     onTap: null,
     isDismissible: false,
@@ -58,7 +60,9 @@ Future<dynamic> showFloatingFlushBar({
     message: message,
     messageColor: fg,
     flushbarPosition: flushbarPosition,
-    backgroundColor: bg,
+    backgroundColor: glass ? bg.withValues(alpha: bg.a * 0.62) : bg,
+    barBlur: glass ? 16 : 0,
+    borderColor: glass ? Colors.white.withValues(alpha: 0.45) : null,
     duration: null,
     flushbarStyle: FlushbarStyle.FLOATING,
     borderRadius: BorderRadius.circular(Constants.size.circularBorderRadius),

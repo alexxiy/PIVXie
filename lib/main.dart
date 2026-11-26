@@ -66,6 +66,7 @@ import 'utilities/text_styles.dart';
 import 'utilities/util.dart';
 import 'wallets/isar/providers/all_wallets_info_provider.dart';
 import 'widgets/adaptive_page.dart';
+import 'widgets/glass.dart';
 import 'widgets/start_splash.dart';
 import 'widgets/motion.dart';
 
@@ -664,6 +665,8 @@ class _MaterialAppWithThemeState extends ConsumerState<MaterialAppWithTheme>
           L10nRoot(child: ScreenFitTheme(child: child!)),
       theme: ThemeData(
         pageTransitionsTheme: Motion.pageTransitions,
+        dialogTheme: Glass.dialogTheme,
+        bottomSheetTheme: Glass.sheetTheme,
         extensions: [colorScheme],
         highlightColor: colorScheme.highlight,
         brightness: colorScheme.brightness,

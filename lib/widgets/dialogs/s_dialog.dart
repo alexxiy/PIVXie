@@ -4,6 +4,7 @@ import '../../themes/stack_colors.dart';
 import '../../utilities/util.dart';
 import '../adaptive_page.dart';
 import '../conditional_parent.dart';
+import '../glass.dart';
 import '../motion.dart';
 
 class SDialog extends StatelessWidget {
@@ -52,14 +53,13 @@ class SDialog extends StatelessWidget {
                       : double.infinity,
                 ),
                 child: Material(
+                  color: Colors.transparent,
                   borderRadius: BorderRadius.circular(20),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color:
-                          background ??
-                          Theme.of(context).extension<StackColors>()!.popupBG,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
+                  child: GlassSurface(
+                    color:
+                        background ??
+                        Theme.of(context).extension<StackColors>()!.popupBG,
+                    borderRadius: BorderRadius.circular(20),
                     child: ConditionalParent(
                       condition: contentCanScroll,
                       builder: (child) => SingleChildScrollView(child: child),

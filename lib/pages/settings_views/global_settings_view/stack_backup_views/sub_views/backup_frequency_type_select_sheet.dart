@@ -17,6 +17,7 @@ import '../../../../../themes/stack_colors.dart';
 import '../../../../../utilities/constants.dart';
 import '../../../../../utilities/enums/backup_frequency_type.dart';
 import '../../../../../utilities/text_styles.dart';
+import '../../../../../widgets/glass.dart';
 
 class BackupFrequencyTypeSelectSheet extends ConsumerWidget {
   const BackupFrequencyTypeSelectSheet({super.key});
@@ -40,11 +41,9 @@ class BackupFrequencyTypeSelectSheet extends ConsumerWidget {
             .pop(ref.read(prefsChangeNotifierProvider).backupFrequencyType);
         return false;
       },
-      child: Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).extension<StackColors>()!.popupBG,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        ),
+      child: GlassSurface(
+        color: Theme.of(context).extension<StackColors>()!.popupBG,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         child: Padding(
           padding: const EdgeInsets.only(
             left: 24,

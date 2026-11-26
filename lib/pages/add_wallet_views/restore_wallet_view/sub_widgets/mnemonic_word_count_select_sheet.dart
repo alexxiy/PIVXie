@@ -16,6 +16,7 @@ import '../../../../providers/ui/verify_recovery_phrase/mnemonic_word_count_stat
 import '../../../../themes/stack_colors.dart';
 import '../../../../utilities/constants.dart';
 import '../../../../utilities/text_styles.dart';
+import '../../../../widgets/glass.dart';
 
 class MnemonicWordCountSelectSheet extends ConsumerWidget {
   const MnemonicWordCountSelectSheet({super.key, required this.lengthOptions});
@@ -30,11 +31,9 @@ class MnemonicWordCountSelectSheet extends ConsumerWidget {
         Navigator.of(context).pop(length);
         return false;
       },
-      child: Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).extension<StackColors>()!.popupBG,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-        ),
+      child: GlassSurface(
+        color: Theme.of(context).extension<StackColors>()!.popupBG,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         child: Padding(
           padding: const EdgeInsets.only(
             left: 24,

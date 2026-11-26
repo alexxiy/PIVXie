@@ -23,6 +23,7 @@ import '../../../utilities/text_styles.dart';
 import '../../../utilities/util.dart';
 import '../../../wallets/crypto_currency/crypto_currency.dart';
 import '../../../wallets/isar/providers/wallet_info_provider.dart';
+import '../../../widgets/glass.dart';
 
 enum _BalanceType { total, available, full, privateAvailable, privateFull }
 
@@ -60,13 +61,11 @@ class WalletBalanceToggleSheet extends ConsumerWidget {
     // On desktop it sits in a dialog: no drag handle, all corners round.
     final isDesktop = Util.isDesktop;
 
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).extension<StackColors>()!.popupBG,
-        borderRadius: isDesktop
-            ? BorderRadius.circular(20)
-            : const BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+    return GlassSurface(
+      color: Theme.of(context).extension<StackColors>()!.popupBG,
+      borderRadius: isDesktop
+          ? BorderRadius.circular(20)
+          : const BorderRadius.vertical(top: Radius.circular(20)),
       child: LimitedBox(
         maxHeight: maxHeight,
         child: Padding(

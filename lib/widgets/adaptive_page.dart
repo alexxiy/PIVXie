@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../utilities/util.dart';
 import 'center_or_scroll.dart';
+import 'glass.dart';
 import 'motion.dart';
 
 /// What the phone and tablet layouts adapt to. Desktop has its own layouts,
@@ -332,11 +333,29 @@ Future<T?> showAppSheet<T>({
   bool useSafeArea = false,
   bool scrollable = false,
 }) {
+  // Most sheets paint their own surface on a transparent sheet; one that
+  // passes a colour gets its glass here.
+  final glass = Glass.on(context);
+  final glassColor = glass && backgroundColor != null && backgroundColor.a > 0
+      ? backgroundColor
+      : null;
+  Widget surface(BuildContext context, Widget child) => glassColor == null
+      ? child
+      : GlassSurface(
+          color: glassColor,
+          borderRadius: shape is RoundedRectangleBorder
+              ? shape.borderRadius.resolve(Directionality.of(context))
+              : const BorderRadius.vertical(top: Radius.circular(20)),
+          child: child,
+        );
+  final sheetColor = glassColor == null ? backgroundColor : Colors.transparent;
+  final double? elevation = glass ? 0 : null;
   if (Util.isDesktop) {
     return showModalBottomSheet<T>(
       context: context,
-      builder: builder,
-      backgroundColor: backgroundColor,
+      builder: (context) => surface(context, builder(context)),
+      backgroundColor: sheetColor,
+      elevation: elevation,
       shape: shape,
       isScrollControlled: isScrollControlled,
       useSafeArea: useSafeArea,
@@ -345,13 +364,14 @@ Future<T?> showAppSheet<T>({
   }
   return showModalBottomSheet<T>(
     context: context,
-    backgroundColor: backgroundColor,
+    backgroundColor: sheetColor,
+    elevation: elevation,
     shape: shape,
     isScrollControlled: true,
     useSafeArea: true,
     sheetAnimationStyle: Motion.sheet(context),
     builder: (context) {
-      final child = builder(context);
+      final child = surface(context, builder(context));
       final body = scrollable ? SingleChildScrollView(child: child) : child;
       if (isScrollControlled || ScreenFit.short(context)) return body;
       return ConstrainedBox(
